@@ -25,11 +25,11 @@ void UNoesisGuiVisualStateManager::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	void UNoesisGuiVisualStateManager::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::VisualStateManager* NoesisVisualStateManager = NsDynamicCast<Noesis::Gui::VisualStateManager*>(NoesisComponent.GetPtr());
 	if (!NoesisVisualStateManager)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

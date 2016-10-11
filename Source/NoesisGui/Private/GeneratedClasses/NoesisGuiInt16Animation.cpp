@@ -25,11 +25,11 @@ void UNoesisGuiInt16Animation::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	void UNoesisGuiInt16Animation::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Animation<NsInt16>* NoesisInt16Animation = NsDynamicCast<Noesis::Gui::Animation<NsInt16>*>(NoesisComponent.GetPtr());
 	if (!NoesisInt16Animation)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

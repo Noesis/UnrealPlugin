@@ -23,13 +23,20 @@ void UNoesisGuiPen::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComp
 
 }
 
+bool UNoesisGuiPen::IsRenderable()
+{
+	Noesis::Gui::Pen* NoesisPen = NsDynamicCast<Noesis::Gui::Pen*>(NoesisComponent.GetPtr());
+	check(NoesisPen);
+	return NoesisPen->IsRenderable();
+}
+
 	void UNoesisGuiPen::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Pen* NoesisPen = NsDynamicCast<Noesis::Gui::Pen*>(NoesisComponent.GetPtr());
 	if (!NoesisPen)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

@@ -17,6 +17,15 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+bool IsReadOnly();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+void SetItemsControlOwner(class UNoesisGuiItemsControl* ItemsControl);
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+void SetView(class UNoesisGuiCollectionView* View);
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

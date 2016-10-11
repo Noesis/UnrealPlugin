@@ -25,11 +25,11 @@ void UNoesisGuiTranslateTransform::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	void UNoesisGuiTranslateTransform::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TranslateTransform* NoesisTranslateTransform = NsDynamicCast<Noesis::Gui::TranslateTransform*>(NoesisComponent.GetPtr());
 	if (!NoesisTranslateTransform)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

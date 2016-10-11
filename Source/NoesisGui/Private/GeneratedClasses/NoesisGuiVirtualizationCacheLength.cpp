@@ -39,11 +39,11 @@ float UNoesisGuiVirtualizationCacheLength::GetCacheBeforeViewport()
 
 	void UNoesisGuiVirtualizationCacheLength::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::VirtualizationCacheLength* NoesisVirtualizationCacheLength = NsDynamicCast<Noesis::Gui::VirtualizationCacheLength*>(NoesisComponent.GetPtr());
 	if (!NoesisVirtualizationCacheLength)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

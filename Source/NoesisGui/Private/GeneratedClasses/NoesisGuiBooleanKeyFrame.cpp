@@ -25,11 +25,11 @@ void UNoesisGuiBooleanKeyFrame::SetNoesisComponent(Noesis::Core::BaseComponent* 
 
 	void UNoesisGuiBooleanKeyFrame::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::KeyFrame<NsBool>* NoesisBooleanKeyFrame = NsDynamicCast<Noesis::Gui::KeyFrame<NsBool>*>(NoesisComponent.GetPtr());
 	if (!NoesisBooleanKeyFrame)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

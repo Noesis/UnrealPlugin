@@ -25,11 +25,11 @@ void UNoesisGuiCompositeTransform::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	void UNoesisGuiCompositeTransform::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::CompositeTransform* NoesisCompositeTransform = NsDynamicCast<Noesis::Gui::CompositeTransform*>(NoesisComponent.GetPtr());
 	if (!NoesisCompositeTransform)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

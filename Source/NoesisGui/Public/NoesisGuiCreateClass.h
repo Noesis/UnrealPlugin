@@ -10,1772 +10,1205 @@
 UNoesisGuiBaseComponent* CreateClassFor(Noesis::Core::BaseComponent* BaseComponent, UObject* Outer)
 {
 	const Noesis::Core::TypeClass* BaseComponentClass = BaseComponent->GetClassType();
-	if (BaseComponentClass == Noesis::Gui::BaseBinding::StaticGetClassType())
+	UClass* Class = UNoesisGuiBaseComponent::StaticClass();
+	if (BaseComponentClass == Noesis::Gui::BaseBinding::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseBinding::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBaseBinding>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBaseBinding::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Binding::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Binding::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Binding::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBinding>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBinding::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BaseCommand::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BaseCommand::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseCommand::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBaseCommand>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBaseCommand::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BaseDictionary::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BaseDictionary::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseDictionary::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBaseDictionary>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBaseDictionary::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ResourceDictionary::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ResourceDictionary::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ResourceDictionary::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiResourceDictionary>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiResourceDictionary::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BaseExpression::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BaseExpression::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseExpression::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBaseExpression>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBaseExpression::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BaseBindingExpression::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BaseBindingExpression::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseBindingExpression::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBaseBindingExpression>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBaseBindingExpression::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BaseSetter::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BaseSetter::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseSetter::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBaseSetter>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBaseSetter::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Setter::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Setter::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Setter::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSetter>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSetter::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BaseValueConverter::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BaseValueConverter::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseValueConverter::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBaseValueConverter>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBaseValueConverter::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Clock::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Clock::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Clock::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiClock>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiClock::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::AnimationClock::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::AnimationClock::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::AnimationClock::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiAnimationClock>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiAnimationClock::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ClockGroup::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ClockGroup::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ClockGroup::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiClockGroup>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiClockGroup::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Collection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Collection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Collection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TriggerCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TriggerCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TriggerCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTriggerCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTriggerCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::InputBindingCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::InputBindingCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::InputBindingCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiInputBindingCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiInputBindingCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BaseSetterCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BaseSetterCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseSetterCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBaseSetterCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBaseSetterCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::VisualStateCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::VisualStateCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::VisualStateCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiVisualStateCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiVisualStateCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::CommandBindingCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::CommandBindingCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::CommandBindingCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiCommandBindingCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiCommandBindingCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::InlineCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::InlineCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::InlineCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiInlineCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiInlineCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ColumnDefinitionCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ColumnDefinitionCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ColumnDefinitionCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiColumnDefinitionCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiColumnDefinitionCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::RowDefinitionCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::RowDefinitionCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::RowDefinitionCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRowDefinitionCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiRowDefinitionCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::GridViewColumnCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::GridViewColumnCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::GridViewColumnCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiGridViewColumnCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiGridViewColumnCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TriggerActionCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TriggerActionCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TriggerActionCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTriggerActionCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTriggerActionCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ConditionCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ConditionCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ConditionCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiConditionCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiConditionCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::VisualTransitionCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ResourceDictionaryCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ResourceDictionaryCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiVisualTransitionCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiResourceDictionaryCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::InputGestureCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::VisualTransitionCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::VisualTransitionCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiInputGestureCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiVisualTransitionCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::VisualCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::InputGestureCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::InputGestureCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiVisualCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiInputGestureCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::UIElementCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::VisualCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::VisualCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiUIElementCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiVisualCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::CommandBinding::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::UIElementCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::UIElementCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiCommandBinding>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiUIElementCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Condition::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::CollectionView::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::CollectionView::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiCondition>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiCollectionView::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DataTemplateSelector::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::CommandBinding::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::CommandBinding::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDataTemplateSelector>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiCommandBinding::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DependencyObject::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Condition::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Condition::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDependencyObject>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiCondition::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BaseTrigger::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DataTemplateSelector::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DataTemplateSelector::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBaseTrigger>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDataTemplateSelector::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DataTrigger::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DependencyObject::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DependencyObject::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDataTrigger>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDependencyObject::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::EventTrigger::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BaseTrigger::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseTrigger::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiEventTrigger>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBaseTrigger::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::MultiDataTrigger::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DataTrigger::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DataTrigger::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiMultiDataTrigger>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDataTrigger::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::MultiTrigger::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::EventTrigger::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::EventTrigger::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiMultiTrigger>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiEventTrigger::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Trigger::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::MultiDataTrigger::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::MultiDataTrigger::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTrigger>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiMultiDataTrigger::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BaseView::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::MultiTrigger::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::MultiTrigger::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBaseView>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiMultiTrigger::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::GridView::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Trigger::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Trigger::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiGridView>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTrigger::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::CollectionViewSource::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BaseView::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseView::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiCollectionViewSource>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBaseView::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Freezable::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::GridView::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::GridView::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiFreezable>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiGridView::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Animatable::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::CollectionViewSource::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::CollectionViewSource::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiAnimatable>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiCollectionViewSource::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Brush::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Freezable::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Freezable::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBrush>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiFreezable::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::GradientBrush::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Animatable::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Animatable::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiGradientBrush>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiAnimatable::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::LinearGradientBrush::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Brush::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Brush::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiLinearGradientBrush>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBrush::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::RadialGradientBrush::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::GradientBrush::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::GradientBrush::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRadialGradientBrush>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiGradientBrush::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::SolidColorBrush::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::LinearGradientBrush::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::LinearGradientBrush::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSolidColorBrush>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiLinearGradientBrush::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TileBrush::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::RadialGradientBrush::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::RadialGradientBrush::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTileBrush>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiRadialGradientBrush::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ImageBrush::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::SolidColorBrush::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::SolidColorBrush::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiImageBrush>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSolidColorBrush::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::VisualBrush::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TileBrush::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TileBrush::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiVisualBrush>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTileBrush::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DashStyle::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ImageBrush::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ImageBrush::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDashStyle>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiImageBrush::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Geometry::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::VisualBrush::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::VisualBrush::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiGeometry>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiVisualBrush::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::CombinedGeometry::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DashStyle::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DashStyle::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiCombinedGeometry>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDashStyle::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::EllipseGeometry::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Geometry::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Geometry::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiEllipseGeometry>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiGeometry::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::GeometryGroup::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::CombinedGeometry::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::CombinedGeometry::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiGeometryGroup>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiCombinedGeometry::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::LineGeometry::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::EllipseGeometry::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::EllipseGeometry::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiLineGeometry>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiEllipseGeometry::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::RectangleGeometry::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::GeometryGroup::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::GeometryGroup::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRectangleGeometry>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiGeometryGroup::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::StreamGeometry::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::LineGeometry::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::LineGeometry::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiStreamGeometry>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiLineGeometry::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::GradientStop::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::RectangleGeometry::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::RectangleGeometry::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiGradientStop>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiRectangleGeometry::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ImageSource::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::StreamGeometry::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::StreamGeometry::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiImageSource>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiStreamGeometry::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TextureSource::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::GradientStop::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::GradientStop::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTextureSource>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiGradientStop::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Pen::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ImageSource::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ImageSource::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiPen>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiImageSource::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Projection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TextureSource::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TextureSource::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiProjection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTextureSource::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Matrix3DProjection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Pen::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Pen::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiMatrix3DProjection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiPen::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::PlaneProjection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Projection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Projection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiPlaneProjection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiProjection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Timeline::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Matrix3DProjection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Matrix3DProjection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTimeline>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiMatrix3DProjection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::AnimationTimeline::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::PlaneProjection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::PlaneProjection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiAnimationTimeline>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiPlaneProjection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Int16AnimationUsingKeyFrames::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Timeline::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Timeline::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiInt16AnimationUsingKeyFrames>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTimeline::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::SizeAnimationUsingKeyFrames::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::AnimationTimeline::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::AnimationTimeline::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSizeAnimationUsingKeyFrames>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiAnimationTimeline::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::PointAnimationUsingKeyFrames::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Int16AnimationUsingKeyFrames::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Int16AnimationUsingKeyFrames::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiPointAnimationUsingKeyFrames>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiInt16AnimationUsingKeyFrames::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ColorAnimationUsingKeyFrames::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::SizeAnimationUsingKeyFrames::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::SizeAnimationUsingKeyFrames::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiColorAnimationUsingKeyFrames>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSizeAnimationUsingKeyFrames::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ThicknessAnimationUsingKeyFrames::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::PointAnimationUsingKeyFrames::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::PointAnimationUsingKeyFrames::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiThicknessAnimationUsingKeyFrames>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiPointAnimationUsingKeyFrames::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ObjectAnimationUsingKeyFrames::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ColorAnimationUsingKeyFrames::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ColorAnimationUsingKeyFrames::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiObjectAnimationUsingKeyFrames>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiColorAnimationUsingKeyFrames::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Int32AnimationUsingKeyFrames::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ThicknessAnimationUsingKeyFrames::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ThicknessAnimationUsingKeyFrames::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiInt32AnimationUsingKeyFrames>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiThicknessAnimationUsingKeyFrames::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::StringAnimationUsingKeyFrames::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ObjectAnimationUsingKeyFrames::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ObjectAnimationUsingKeyFrames::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiStringAnimationUsingKeyFrames>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiObjectAnimationUsingKeyFrames::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BooleanAnimationUsingKeyFrames::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Int32AnimationUsingKeyFrames::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Int32AnimationUsingKeyFrames::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBooleanAnimationUsingKeyFrames>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiInt32AnimationUsingKeyFrames::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::RectAnimationUsingKeyFrames::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::StringAnimationUsingKeyFrames::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::StringAnimationUsingKeyFrames::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRectAnimationUsingKeyFrames>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiStringAnimationUsingKeyFrames::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DoubleAnimationUsingKeyFrames::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BooleanAnimationUsingKeyFrames::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BooleanAnimationUsingKeyFrames::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDoubleAnimationUsingKeyFrames>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBooleanAnimationUsingKeyFrames::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BaseAnimation::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::RectAnimationUsingKeyFrames::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::RectAnimationUsingKeyFrames::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBaseAnimation>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiRectAnimationUsingKeyFrames::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Int32Animation::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DoubleAnimationUsingKeyFrames::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DoubleAnimationUsingKeyFrames::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiInt32Animation>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDoubleAnimationUsingKeyFrames::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::PointAnimation::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BaseAnimation::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseAnimation::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiPointAnimation>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBaseAnimation::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ColorAnimation::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Int32Animation::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Int32Animation::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiColorAnimation>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiInt32Animation::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::RectAnimation::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::PointAnimation::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::PointAnimation::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRectAnimation>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiPointAnimation::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ThicknessAnimation::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ColorAnimation::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ColorAnimation::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiThicknessAnimation>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiColorAnimation::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::SizeAnimation::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::RectAnimation::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::RectAnimation::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSizeAnimation>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiRectAnimation::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Int16Animation::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ThicknessAnimation::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ThicknessAnimation::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiInt16Animation>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiThicknessAnimation::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DoubleAnimation::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::SizeAnimation::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::SizeAnimation::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDoubleAnimation>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSizeAnimation::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TimelineGroup::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Int16Animation::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Int16Animation::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTimelineGroup>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiInt16Animation::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ParallelTimeline::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DoubleAnimation::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DoubleAnimation::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiParallelTimeline>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDoubleAnimation::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Storyboard::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TimelineGroup::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TimelineGroup::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiStoryboard>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTimelineGroup::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Transform::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ParallelTimeline::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ParallelTimeline::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTransform>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiParallelTimeline::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::CompositeTransform::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Storyboard::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Storyboard::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiCompositeTransform>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiStoryboard::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::MatrixTransform::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Transform::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Transform::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiMatrixTransform>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTransform::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::RotateTransform::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::CompositeTransform::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::CompositeTransform::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRotateTransform>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiCompositeTransform::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ScaleTransform::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::MatrixTransform::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::MatrixTransform::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiScaleTransform>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiMatrixTransform::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::SkewTransform::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::RotateTransform::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::RotateTransform::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSkewTransform>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiRotateTransform::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TransformGroup::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ScaleTransform::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ScaleTransform::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTransformGroup>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiScaleTransform::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TranslateTransform::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::SkewTransform::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::SkewTransform::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTranslateTransform>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSkewTransform::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::EasingFunctionBase::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TransformGroup::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TransformGroup::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiEasingFunctionBase>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTransformGroup::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BackEase::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TranslateTransform::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TranslateTransform::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBackEase>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTranslateTransform::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BounceEase::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::EasingFunctionBase::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::EasingFunctionBase::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBounceEase>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiEasingFunctionBase::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::CircleEase::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BackEase::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BackEase::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiCircleEase>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBackEase::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::CubicEase::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BounceEase::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BounceEase::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiCubicEase>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBounceEase::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ElasticEase::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::CircleEase::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::CircleEase::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiElasticEase>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiCircleEase::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ExponentialEase::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::CubicEase::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::CubicEase::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiExponentialEase>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiCubicEase::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::PowerEase::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ElasticEase::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ElasticEase::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiPowerEase>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiElasticEase::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::QuadraticEase::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ExponentialEase::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ExponentialEase::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiQuadraticEase>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiExponentialEase::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::QuarticEase::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::PowerEase::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::PowerEase::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiQuarticEase>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiPowerEase::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::QuinticEase::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::QuadraticEase::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::QuadraticEase::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiQuinticEase>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiQuadraticEase::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::SineEase::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::QuarticEase::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::QuarticEase::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSineEase>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiQuarticEase::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::InputBinding::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::QuinticEase::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::QuinticEase::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiInputBinding>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiQuinticEase::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::KeyBinding::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::SineEase::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::SineEase::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiKeyBinding>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSineEase::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Int16KeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::InputBinding::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::InputBinding::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiInt16KeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiInputBinding::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::SizeKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::KeyBinding::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::KeyBinding::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSizeKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiKeyBinding::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::PointKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Int16KeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Int16KeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiPointKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiInt16KeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ColorKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::SizeKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::SizeKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiColorKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSizeKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ThicknessKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::PointKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::PointKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiThicknessKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiPointKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ObjectKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ColorKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ColorKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiObjectKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiColorKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Int32KeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ThicknessKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ThicknessKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiInt32KeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiThicknessKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::StringKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ObjectKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ObjectKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiStringKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiObjectKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BooleanKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Int32KeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Int32KeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBooleanKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiInt32KeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::RectKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::StringKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::StringKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRectKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiStringKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DoubleKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BooleanKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BooleanKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDoubleKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBooleanKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DiscreteInt16KeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::RectKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::RectKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDiscreteInt16KeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiRectKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DiscreteSizeKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DoubleKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DoubleKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDiscreteSizeKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDoubleKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DiscretePointKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DiscreteInt16KeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DiscreteInt16KeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDiscretePointKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDiscreteInt16KeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DiscreteColorKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DiscreteSizeKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DiscreteSizeKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDiscreteColorKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDiscreteSizeKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DiscreteThicknessKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DiscretePointKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DiscretePointKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDiscreteThicknessKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDiscretePointKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DiscreteObjectKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DiscreteColorKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DiscreteColorKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDiscreteObjectKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDiscreteColorKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DiscreteInt32KeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DiscreteThicknessKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DiscreteThicknessKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDiscreteInt32KeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDiscreteThicknessKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DiscreteStringKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DiscreteObjectKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DiscreteObjectKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDiscreteStringKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDiscreteObjectKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DiscreteBooleanKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DiscreteInt32KeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DiscreteInt32KeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDiscreteBooleanKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDiscreteInt32KeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DiscreteRectKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DiscreteStringKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DiscreteStringKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDiscreteRectKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDiscreteStringKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DiscreteDoubleKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DiscreteBooleanKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DiscreteBooleanKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDiscreteDoubleKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDiscreteBooleanKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::EasingInt32KeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DiscreteRectKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DiscreteRectKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiEasingInt32KeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDiscreteRectKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::EasingPointKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DiscreteDoubleKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DiscreteDoubleKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiEasingPointKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDiscreteDoubleKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::EasingColorKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::EasingInt32KeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::EasingInt32KeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiEasingColorKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiEasingInt32KeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::EasingRectKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::EasingPointKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::EasingPointKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiEasingRectKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiEasingPointKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::EasingThicknessKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::EasingColorKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::EasingColorKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiEasingThicknessKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiEasingColorKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::EasingSizeKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::EasingRectKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::EasingRectKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiEasingSizeKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiEasingRectKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::EasingInt16KeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::EasingThicknessKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::EasingThicknessKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiEasingInt16KeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiEasingThicknessKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::EasingDoubleKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::EasingSizeKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::EasingSizeKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiEasingDoubleKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiEasingSizeKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::LinearInt32KeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::EasingInt16KeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::EasingInt16KeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiLinearInt32KeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiEasingInt16KeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::LinearPointKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::EasingDoubleKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::EasingDoubleKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiLinearPointKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiEasingDoubleKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::LinearColorKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::LinearInt32KeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::LinearInt32KeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiLinearColorKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiLinearInt32KeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::LinearRectKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::LinearPointKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::LinearPointKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiLinearRectKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiLinearPointKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::LinearThicknessKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::LinearColorKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::LinearColorKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiLinearThicknessKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiLinearColorKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::LinearSizeKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::LinearRectKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::LinearRectKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiLinearSizeKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiLinearRectKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::LinearInt16KeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::LinearThicknessKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::LinearThicknessKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiLinearInt16KeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiLinearThicknessKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::LinearDoubleKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::LinearSizeKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::LinearSizeKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiLinearDoubleKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiLinearSizeKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::SplineInt32KeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::LinearInt16KeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::LinearInt16KeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSplineInt32KeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiLinearInt16KeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::SplinePointKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::LinearDoubleKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::LinearDoubleKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSplinePointKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiLinearDoubleKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::SplineColorKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::SplineInt32KeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::SplineInt32KeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSplineColorKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSplineInt32KeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::SplineRectKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::SplinePointKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::SplinePointKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSplineRectKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSplinePointKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::SplineThicknessKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::SplineColorKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::SplineColorKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSplineThicknessKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSplineColorKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::SplineSizeKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::SplineRectKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::SplineRectKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSplineSizeKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSplineRectKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::SplineInt16KeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::SplineThicknessKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::SplineThicknessKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSplineInt16KeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSplineThicknessKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::SplineDoubleKeyFrame::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::SplineSizeKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::SplineSizeKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSplineDoubleKeyFrame>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSplineSizeKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::KeySpline::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::SplineInt16KeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::SplineInt16KeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiKeySpline>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSplineInt16KeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::GridViewColumn::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::SplineDoubleKeyFrame::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::SplineDoubleKeyFrame::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiGridViewColumn>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSplineDoubleKeyFrame::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TextElement::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::KeySpline::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::KeySpline::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTextElement>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiKeySpline::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Inline::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::GridViewColumn::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::GridViewColumn::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiInline>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiGridViewColumn::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::LineBreak::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TextElement::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TextElement::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiLineBreak>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTextElement::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Run::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Inline::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Inline::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRun>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiInline::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TriggerAction::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::LineBreak::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::LineBreak::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTriggerAction>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiLineBreak::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BeginStoryboard::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Run::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Run::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBeginStoryboard>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiRun::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ControllableStoryboardAction::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TriggerAction::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TriggerAction::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiControllableStoryboardAction>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTriggerAction::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::PauseStoryboard::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BeginStoryboard::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BeginStoryboard::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiPauseStoryboard>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBeginStoryboard::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ResumeStoryboard::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ControllableStoryboardAction::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ControllableStoryboardAction::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiResumeStoryboard>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiControllableStoryboardAction::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::StopStoryboard::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::PauseStoryboard::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::PauseStoryboard::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiStopStoryboard>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiPauseStoryboard::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Visual::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ResumeStoryboard::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ResumeStoryboard::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiVisual>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiResumeStoryboard::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::UIElement::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::StopStoryboard::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::StopStoryboard::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiUIElement>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiStopStoryboard::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::FrameworkElement::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Visual::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Visual::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiFrameworkElement>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiVisual::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BaseDefinition::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::UIElement::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::UIElement::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBaseDefinition>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiUIElement::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ColumnDefinition::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::FrameworkElement::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::FrameworkElement::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiColumnDefinition>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiFrameworkElement::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::RowDefinition::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BaseDefinition::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseDefinition::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRowDefinition>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBaseDefinition::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BaseGridViewRowPresenter::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ColumnDefinition::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ColumnDefinition::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBaseGridViewRowPresenter>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiColumnDefinition::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::GridViewHeaderRowPresenter::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::RowDefinition::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::RowDefinition::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiGridViewHeaderRowPresenter>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiRowDefinition::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::GridViewRowPresenter::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BaseGridViewRowPresenter::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseGridViewRowPresenter::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiGridViewRowPresenter>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBaseGridViewRowPresenter::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ContentPresenter::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::GridViewHeaderRowPresenter::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::GridViewHeaderRowPresenter::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiContentPresenter>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiGridViewHeaderRowPresenter::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ScrollContentPresenter::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::GridViewRowPresenter::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::GridViewRowPresenter::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiScrollContentPresenter>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiGridViewRowPresenter::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Control::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ContentPresenter::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ContentPresenter::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiControl>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiContentPresenter::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BaseTextBox::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ScrollContentPresenter::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ScrollContentPresenter::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBaseTextBox>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiScrollContentPresenter::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TextBox::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Control::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Control::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTextBox>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiControl::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ContentControl::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BaseTextBox::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseTextBox::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiContentControl>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBaseTextBox::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BaseButton::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TextBox::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TextBox::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBaseButton>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTextBox::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Button::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ContentControl::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ContentControl::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiButton>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiContentControl::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::GridViewColumnHeader::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BaseButton::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseButton::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiGridViewColumnHeader>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBaseButton::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::RepeatButton::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Button::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Button::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRepeatButton>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiButton::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ToggleButton::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::GridViewColumnHeader::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::GridViewColumnHeader::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiToggleButton>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiGridViewColumnHeader::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::CheckBox::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::RepeatButton::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::RepeatButton::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiCheckBox>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiRepeatButton::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::RadioButton::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ToggleButton::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ToggleButton::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRadioButton>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiToggleButton::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::HeaderedContentControl::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::CheckBox::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::CheckBox::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiHeaderedContentControl>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiCheckBox::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Expander::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::RadioButton::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::RadioButton::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiExpander>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiRadioButton::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::GroupBox::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::HeaderedContentControl::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::HeaderedContentControl::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiGroupBox>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiHeaderedContentControl::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TabItem::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Expander::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Expander::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTabItem>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiExpander::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Label::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::GroupBox::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::GroupBox::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiLabel>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiGroupBox::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ListBoxItem::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TabItem::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TabItem::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiListBoxItem>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTabItem::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ComboBoxItem::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Label::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Label::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiComboBoxItem>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiLabel::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ListViewItem::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ListBoxItem::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ListBoxItem::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiListViewItem>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiListBoxItem::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ScrollViewer::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ComboBoxItem::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ComboBoxItem::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiScrollViewer>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiComboBoxItem::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::StatusBarItem::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ListViewItem::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ListViewItem::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiStatusBarItem>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiListViewItem::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ToolTip::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ScrollViewer::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ScrollViewer::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiToolTip>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiScrollViewer::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::UserControl::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::StatusBarItem::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::StatusBarItem::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiUserControl>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiStatusBarItem::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Page::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ToolTip::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ToolTip::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiPage>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiToolTip::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ItemsControl::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::UserControl::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::UserControl::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiItemsControl>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiUserControl::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BaseMenu::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Page::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Page::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBaseMenu>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiPage::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ContextMenu::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ItemsControl::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ItemsControl::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiContextMenu>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiItemsControl::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Menu::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BaseMenu::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseMenu::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiMenu>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBaseMenu::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::HeaderedItemsControl::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ContextMenu::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ContextMenu::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiHeaderedItemsControl>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiContextMenu::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::MenuItem::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Menu::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Menu::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiMenuItem>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiMenu::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ToolBar::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::HeaderedItemsControl::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::HeaderedItemsControl::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiToolBar>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiHeaderedItemsControl::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TreeViewItem::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::MenuItem::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::MenuItem::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTreeViewItem>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiMenuItem::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Selector::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ToolBar::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ToolBar::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSelector>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiToolBar::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ComboBox::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TreeViewItem::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TreeViewItem::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiComboBox>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTreeViewItem::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ListBox::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Selector::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Selector::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiListBox>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSelector::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ListView::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ComboBox::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ComboBox::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiListView>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiComboBox::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TabControl::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ListBox::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ListBox::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTabControl>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiListBox::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::StatusBar::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ListView::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ListView::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiStatusBar>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiListView::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TreeView::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TabControl::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TabControl::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTreeView>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTabControl::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::PasswordBox::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::StatusBar::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::StatusBar::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiPasswordBox>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiStatusBar::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::RangeBase::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TreeView::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TreeView::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRangeBase>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTreeView::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ProgressBar::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::PasswordBox::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::PasswordBox::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiProgressBar>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiPasswordBox::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ScrollBar::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::RangeBase::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::RangeBase::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiScrollBar>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiRangeBase::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Slider::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ProgressBar::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ProgressBar::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSlider>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiProgressBar::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Separator::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ScrollBar::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ScrollBar::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSeparator>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiScrollBar::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Thumb::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Slider::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Slider::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiThumb>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSlider::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Decorator::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Separator::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Separator::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDecorator>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSeparator::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::AdornerDecorator::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Thumb::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Thumb::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiAdornerDecorator>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiThumb::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Border::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Decorator::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Decorator::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBorder>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDecorator::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BulletDecorator::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::AdornerDecorator::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::AdornerDecorator::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBulletDecorator>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiAdornerDecorator::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Image::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Border::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Border::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiImage>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBorder::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ItemsPresenter::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BulletDecorator::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BulletDecorator::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiItemsPresenter>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBulletDecorator::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Panel::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Image::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Image::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiPanel>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiImage::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Canvas::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ItemsPresenter::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ItemsPresenter::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiCanvas>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiItemsPresenter::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DockPanel::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Panel::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Panel::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDockPanel>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiPanel::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Grid::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Canvas::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Canvas::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiGrid>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiCanvas::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::StackPanel::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DockPanel::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DockPanel::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiStackPanel>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDockPanel::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ToolBarPanel::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Grid::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Grid::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiToolBarPanel>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiGrid::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TabPanel::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::StackPanel::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::StackPanel::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTabPanel>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiStackPanel::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ToolBarOverflowPanel::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ToolBarPanel::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ToolBarPanel::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiToolBarOverflowPanel>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiToolBarPanel::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::UniformGrid::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TabPanel::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TabPanel::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiUniformGrid>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTabPanel::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::VirtualizingPanel::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ToolBarOverflowPanel::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ToolBarOverflowPanel::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiVirtualizingPanel>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiToolBarOverflowPanel::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::VirtualizingStackPanel::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::UniformGrid::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::UniformGrid::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiVirtualizingStackPanel>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiUniformGrid::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::WrapPanel::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::VirtualizingPanel::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::VirtualizingPanel::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiWrapPanel>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiVirtualizingPanel::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Popup::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::VirtualizingStackPanel::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::VirtualizingStackPanel::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiPopup>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiVirtualizingStackPanel::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Shape::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::WrapPanel::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::WrapPanel::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiShape>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiWrapPanel::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Ellipse::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Popup::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Popup::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiEllipse>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiPopup::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Line::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Shape::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Shape::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiLine>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiShape::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Path::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Ellipse::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Ellipse::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiPath>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiEllipse::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Rectangle::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Line::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Line::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRectangle>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiLine::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TextBlock::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Path::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Path::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTextBlock>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiPath::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TickBar::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Rectangle::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Rectangle::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTickBar>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiRectangle::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ToolBarTray::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TextBlock::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TextBlock::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiToolBarTray>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTextBlock::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Track::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TickBar::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TickBar::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTrack>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTickBar::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Viewbox::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ToolBarTray::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ToolBarTray::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiViewbox>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiToolBarTray::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::VisualState::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Track::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Track::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiVisualState>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTrack::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::VisualStateGroup::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Viewbox::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Viewbox::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiVisualStateGroup>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiViewbox::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::VisualTransition::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::VisualState::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::VisualState::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiVisualTransition>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiVisualState::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DependencyProperty::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::VisualStateGroup::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::VisualStateGroup::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDependencyProperty>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiVisualStateGroup::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::FrameworkTemplate::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::VisualTransition::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::VisualTransition::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiFrameworkTemplate>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiVisualTransition::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ControlTemplate::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DependencyProperty::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DependencyProperty::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiControlTemplate>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDependencyProperty::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DataTemplate::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::FrameworkTemplate::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::FrameworkTemplate::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDataTemplate>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiFrameworkTemplate::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::HierarchicalDataTemplate::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ControlTemplate::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ControlTemplate::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiHierarchicalDataTemplate>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiControlTemplate::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ItemsPanelTemplate::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DataTemplate::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DataTemplate::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiItemsPanelTemplate>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDataTemplate::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::InputGesture::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::HierarchicalDataTemplate::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::HierarchicalDataTemplate::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiInputGesture>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiHierarchicalDataTemplate::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::KeyGesture::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ItemsPanelTemplate::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ItemsPanelTemplate::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiKeyGesture>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiItemsPanelTemplate::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ItemCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::InputGesture::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::InputGesture::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiItemCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiInputGesture::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ItemContainerGenerator::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::KeyGesture::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::KeyGesture::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiItemContainerGenerator>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiKeyGesture::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::KeyboardNavigation::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ItemCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ItemCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiKeyboardNavigation>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiItemCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::PropertyPath::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ItemContainerGenerator::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ItemContainerGenerator::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiPropertyPath>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiItemContainerGenerator::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::RelativeSource::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Keyboard::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Keyboard::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRelativeSource>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiKeyboard::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ResourceKeyType::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::KeyboardNavigation::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::KeyboardNavigation::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiResourceKeyType>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiKeyboardNavigation::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::RoutedCommand::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Mouse::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Mouse::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRoutedCommand>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiMouse::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::RoutedUICommand::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::PropertyMetadata::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::PropertyMetadata::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRoutedUICommand>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiPropertyMetadata::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::RoutedEvent::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::PropertyPath::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::PropertyPath::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRoutedEvent>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiPropertyPath::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Style::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::RelativeSource::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::RelativeSource::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiStyle>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiRelativeSource::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TemplateBinding::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ResourceKeyType::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ResourceKeyType::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiTemplateBinding>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiResourceKeyType::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ToolTipService::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::RoutedCommand::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::RoutedCommand::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiToolTipService>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiRoutedCommand::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ThicknessKeyFrameCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::RoutedUICommand::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::RoutedUICommand::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiThicknessKeyFrameCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiRoutedUICommand::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ColorKeyFrameCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::RoutedEvent::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::RoutedEvent::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiColorKeyFrameCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiRoutedEvent::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::SizeKeyFrameCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Style::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Style::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiSizeKeyFrameCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiStyle::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::ObjectKeyFrameCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::TemplateBinding::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TemplateBinding::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiObjectKeyFrameCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiTemplateBinding::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BooleanKeyFrameCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ToolTipService::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ToolTipService::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBooleanKeyFrameCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiToolTipService::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Int32KeyFrameCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ThicknessKeyFrameCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ThicknessKeyFrameCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiInt32KeyFrameCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiThicknessKeyFrameCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::DoubleKeyFrameCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ColorKeyFrameCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ColorKeyFrameCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiDoubleKeyFrameCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiColorKeyFrameCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::Int16KeyFrameCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::SizeKeyFrameCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::SizeKeyFrameCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiInt16KeyFrameCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiSizeKeyFrameCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::StringKeyFrameCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::ObjectKeyFrameCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ObjectKeyFrameCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiStringKeyFrameCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiObjectKeyFrameCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::PointKeyFrameCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::BooleanKeyFrameCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BooleanKeyFrameCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiPointKeyFrameCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiBooleanKeyFrameCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::RectKeyFrameCollection::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Int32KeyFrameCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Int32KeyFrameCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiRectKeyFrameCollection>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiInt32KeyFrameCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::VirtualizationCacheLength::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::DoubleKeyFrameCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::DoubleKeyFrameCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiVirtualizationCacheLength>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiDoubleKeyFrameCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::VisualStateManager::StaticGetClassType())
+	if (BaseComponentClass == Noesis::Gui::Int16KeyFrameCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Int16KeyFrameCollection::StaticGetClassType()))
 	{
-		UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiVisualStateManager>(Outer);
-		Component->SetNoesisComponent(BaseComponent);
-		return Component;
+		Class = UNoesisGuiInt16KeyFrameCollection::StaticClass();
 	}
+	if (BaseComponentClass == Noesis::Gui::StringKeyFrameCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::StringKeyFrameCollection::StaticGetClassType()))
 	{
-		return NewObject<UNoesisGuiBaseComponent>();
+		Class = UNoesisGuiStringKeyFrameCollection::StaticClass();
 	}
+	if (BaseComponentClass == Noesis::Gui::PointKeyFrameCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::PointKeyFrameCollection::StaticGetClassType()))
+	{
+		Class = UNoesisGuiPointKeyFrameCollection::StaticClass();
+	}
+	if (BaseComponentClass == Noesis::Gui::RectKeyFrameCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::RectKeyFrameCollection::StaticGetClassType()))
+	{
+		Class = UNoesisGuiRectKeyFrameCollection::StaticClass();
+	}
+	if (BaseComponentClass == Noesis::Gui::VirtualizationCacheLength::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::VirtualizationCacheLength::StaticGetClassType()))
+	{
+		Class = UNoesisGuiVirtualizationCacheLength::StaticClass();
+	}
+	if (BaseComponentClass == Noesis::Gui::VisualStateManager::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::VisualStateManager::StaticGetClassType()))
+	{
+		Class = UNoesisGuiVisualStateManager::StaticClass();
+	}
+	UNoesisGuiBaseComponent* Component = NewObject<UNoesisGuiBaseComponent>(Outer, Class);
+	Component->SetNoesisComponent(BaseComponent);
+	return Component;
 }
 

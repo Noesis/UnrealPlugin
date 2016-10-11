@@ -25,11 +25,11 @@ void UNoesisGuiTimelineGroup::SetNoesisComponent(Noesis::Core::BaseComponent* In
 
 	void UNoesisGuiTimelineGroup::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TimelineGroup* NoesisTimelineGroup = NsDynamicCast<Noesis::Gui::TimelineGroup*>(NoesisComponent.GetPtr());
 	if (!NoesisTimelineGroup)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

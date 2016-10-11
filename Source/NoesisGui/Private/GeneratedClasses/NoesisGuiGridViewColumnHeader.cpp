@@ -25,11 +25,11 @@ void UNoesisGuiGridViewColumnHeader::SetNoesisComponent(Noesis::Core::BaseCompon
 
 	void UNoesisGuiGridViewColumnHeader::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::GridViewColumnHeader* NoesisGridViewColumnHeader = NsDynamicCast<Noesis::Gui::GridViewColumnHeader*>(NoesisComponent.GetPtr());
 	if (!NoesisGridViewColumnHeader)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

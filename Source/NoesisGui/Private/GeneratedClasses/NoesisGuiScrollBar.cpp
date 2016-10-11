@@ -21,6 +21,8 @@ void UNoesisGuiScrollBar::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 	Noesis::Gui::ScrollBar* NoesisScrollBar = NsDynamicCast<Noesis::Gui::ScrollBar*>(InNoesisComponent);
 	check(NoesisScrollBar);
 
+	Scroll_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiScrollBar::Scroll_Private);
+	NoesisScrollBar->Scroll() += Scroll_Delegate;
 }
 
 class UNoesisGuiTrack* UNoesisGuiScrollBar::GetTrack()
@@ -30,13 +32,23 @@ class UNoesisGuiTrack* UNoesisGuiScrollBar::GetTrack()
 	return CastChecked<UNoesisGuiTrack>(Instance->FindUnrealComponentForNoesisComponent(NoesisScrollBar->GetTrack()));
 }
 
+	void UNoesisGuiScrollBar::Scroll_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ScrollEventArgs& InArgs)
+{
+	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+		return;
+	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
+	FNoesisGuiScrollEventArgs Args(Instance, InArgs);
+	Scroll.Broadcast(Sender, Args);
+}
+
 	void UNoesisGuiScrollBar::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ScrollBar* NoesisScrollBar = NsDynamicCast<Noesis::Gui::ScrollBar*>(NoesisComponent.GetPtr());
 	if (!NoesisScrollBar)
-		return;
+		return Super::BeginDestroy();
 
+	NoesisScrollBar->Scroll() -= Scroll_Delegate;
+
+	Super::BeginDestroy();
 }
 

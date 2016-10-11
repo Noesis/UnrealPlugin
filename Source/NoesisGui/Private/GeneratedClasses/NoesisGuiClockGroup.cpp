@@ -23,13 +23,36 @@ void UNoesisGuiClockGroup::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 
 }
 
+void UNoesisGuiClockGroup::Add(class UNoesisGuiClock* InClock)
+{
+	Noesis::Gui::ClockGroup* NoesisClockGroup = NsDynamicCast<Noesis::Gui::ClockGroup*>(NoesisComponent.GetPtr());
+	check(NoesisClockGroup);
+	Clock* NoesisInClock = NsDynamicCast<Clock*>(InClock->NoesisComponent.GetPtr());
+	return NoesisClockGroup->Add(NoesisInClock);
+}
+
+class UNoesisGuiClock* UNoesisGuiClockGroup::GetChild(int32 InIndex)
+{
+	Noesis::Gui::ClockGroup* NoesisClockGroup = NsDynamicCast<Noesis::Gui::ClockGroup*>(NoesisComponent.GetPtr());
+	check(NoesisClockGroup);
+	NsSize NoesisInIndex = InIndex;
+	return CastChecked<UNoesisGuiClock>(Instance->FindUnrealComponentForNoesisComponent(NoesisClockGroup->GetChild(NoesisInIndex)));
+}
+
+int32 UNoesisGuiClockGroup::GetChildrenCount()
+{
+	Noesis::Gui::ClockGroup* NoesisClockGroup = NsDynamicCast<Noesis::Gui::ClockGroup*>(NoesisComponent.GetPtr());
+	check(NoesisClockGroup);
+	return (int32)NoesisClockGroup->GetChildrenCount();
+}
+
 	void UNoesisGuiClockGroup::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ClockGroup* NoesisClockGroup = NsDynamicCast<Noesis::Gui::ClockGroup*>(NoesisComponent.GetPtr());
 	if (!NoesisClockGroup)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

@@ -21,7 +21,8 @@ void UNoesisGuiBaseButton::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 	Noesis::Gui::BaseButton* NoesisBaseButton = NsDynamicCast<Noesis::Gui::BaseButton*>(InNoesisComponent);
 	check(NoesisBaseButton);
 
-	NoesisBaseButton->Click() += Noesis::MakeDelegate(this, &UNoesisGuiBaseButton::Click_Private);
+	Click_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiBaseButton::Click_Private);
+	NoesisBaseButton->Click() += Click_Delegate;
 }
 
 	void UNoesisGuiBaseButton::Click_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
@@ -29,20 +30,18 @@ void UNoesisGuiBaseButton::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiRoutedEventArgs Args;
-	Args.Source = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.source));
-	Args.RoutedEvent = CastChecked<UNoesisGuiRoutedEvent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.routedEvent));
+	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Click.Broadcast(Sender, Args);
 }
 
 	void UNoesisGuiBaseButton::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::BaseButton* NoesisBaseButton = NsDynamicCast<Noesis::Gui::BaseButton*>(NoesisComponent.GetPtr());
 	if (!NoesisBaseButton)
-		return;
+		return Super::BeginDestroy();
 
-	NoesisBaseButton->Click() -= Noesis::MakeDelegate(this, &UNoesisGuiBaseButton::Click_Private);
+	NoesisBaseButton->Click() -= Click_Delegate;
+
+	Super::BeginDestroy();
 }
 

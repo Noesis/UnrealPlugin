@@ -17,6 +17,10 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
+	// Property Name
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+	FName GetName();
+
 	// Property RoutingStrategy
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	ENoesisGuiRoutingStrategy GetRoutingStrategy();

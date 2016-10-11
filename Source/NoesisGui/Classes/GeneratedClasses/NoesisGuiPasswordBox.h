@@ -28,6 +28,8 @@ public:
 
 	void PasswordChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs);
 
+	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)> PasswordChanged_Delegate;
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

@@ -25,11 +25,11 @@ void UNoesisGuiEasingFunctionBase::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	void UNoesisGuiEasingFunctionBase::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::EasingFunctionBase* NoesisEasingFunctionBase = NsDynamicCast<Noesis::Gui::EasingFunctionBase*>(NoesisComponent.GetPtr());
 	if (!NoesisEasingFunctionBase)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

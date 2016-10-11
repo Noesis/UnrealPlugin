@@ -25,11 +25,11 @@ void UNoesisGuiLinearPointKeyFrame::SetNoesisComponent(Noesis::Core::BaseCompone
 
 	void UNoesisGuiLinearPointKeyFrame::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Point>* NoesisLinearPointKeyFrame = NsDynamicCast<Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Point>*>(NoesisComponent.GetPtr());
 	if (!NoesisLinearPointKeyFrame)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

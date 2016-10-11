@@ -25,11 +25,11 @@ void UNoesisGuiContentPresenter::SetNoesisComponent(Noesis::Core::BaseComponent*
 
 	void UNoesisGuiContentPresenter::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ContentPresenter* NoesisContentPresenter = NsDynamicCast<Noesis::Gui::ContentPresenter*>(NoesisComponent.GetPtr());
 	if (!NoesisContentPresenter)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

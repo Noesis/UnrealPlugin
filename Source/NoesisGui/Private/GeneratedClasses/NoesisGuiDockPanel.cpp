@@ -25,11 +25,11 @@ void UNoesisGuiDockPanel::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	void UNoesisGuiDockPanel::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::DockPanel* NoesisDockPanel = NsDynamicCast<Noesis::Gui::DockPanel*>(NoesisComponent.GetPtr());
 	if (!NoesisDockPanel)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

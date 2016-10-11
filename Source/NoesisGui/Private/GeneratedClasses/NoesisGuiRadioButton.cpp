@@ -25,11 +25,11 @@ void UNoesisGuiRadioButton::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	void UNoesisGuiRadioButton::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::RadioButton* NoesisRadioButton = NsDynamicCast<Noesis::Gui::RadioButton*>(NoesisComponent.GetPtr());
 	if (!NoesisRadioButton)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

@@ -25,11 +25,11 @@ void UNoesisGuiLinearDoubleKeyFrame::SetNoesisComponent(Noesis::Core::BaseCompon
 
 	void UNoesisGuiLinearDoubleKeyFrame::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::LinearKeyFrame<NsFloat32>* NoesisLinearDoubleKeyFrame = NsDynamicCast<Noesis::Gui::LinearKeyFrame<NsFloat32>*>(NoesisComponent.GetPtr());
 	if (!NoesisLinearDoubleKeyFrame)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

@@ -25,11 +25,11 @@ void UNoesisGuiImageBrush::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 
 	void UNoesisGuiImageBrush::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ImageBrush* NoesisImageBrush = NsDynamicCast<Noesis::Gui::ImageBrush*>(NoesisComponent.GetPtr());
 	if (!NoesisImageBrush)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

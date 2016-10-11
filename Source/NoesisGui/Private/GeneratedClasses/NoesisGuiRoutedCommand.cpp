@@ -30,13 +30,31 @@ class UNoesisGuiInputGestureCollection* UNoesisGuiRoutedCommand::GetInputGesture
 	return CastChecked<UNoesisGuiInputGestureCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisRoutedCommand->GetInputGestures()));
 }
 
+bool UNoesisGuiRoutedCommand::CanExecute(class UNoesisGuiBaseComponent* InParam, class UNoesisGuiUIElement* InTarget)
+{
+	Noesis::Gui::RoutedCommand* NoesisRoutedCommand = NsDynamicCast<Noesis::Gui::RoutedCommand*>(NoesisComponent.GetPtr());
+	check(NoesisRoutedCommand);
+	Core::BaseComponent* NoesisInParam = NsDynamicCast<Core::BaseComponent*>(InParam->NoesisComponent.GetPtr());
+	UIElement* NoesisInTarget = NsDynamicCast<UIElement*>(InTarget->NoesisComponent.GetPtr());
+	return NoesisRoutedCommand->CanExecute(NoesisInParam, NoesisInTarget);
+}
+
+void UNoesisGuiRoutedCommand::Execute(class UNoesisGuiBaseComponent* InParam, class UNoesisGuiUIElement* InTarget)
+{
+	Noesis::Gui::RoutedCommand* NoesisRoutedCommand = NsDynamicCast<Noesis::Gui::RoutedCommand*>(NoesisComponent.GetPtr());
+	check(NoesisRoutedCommand);
+	Core::BaseComponent* NoesisInParam = NsDynamicCast<Core::BaseComponent*>(InParam->NoesisComponent.GetPtr());
+	UIElement* NoesisInTarget = NsDynamicCast<UIElement*>(InTarget->NoesisComponent.GetPtr());
+	return NoesisRoutedCommand->Execute(NoesisInParam, NoesisInTarget);
+}
+
 	void UNoesisGuiRoutedCommand::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::RoutedCommand* NoesisRoutedCommand = NsDynamicCast<Noesis::Gui::RoutedCommand*>(NoesisComponent.GetPtr());
 	if (!NoesisRoutedCommand)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

@@ -17,6 +17,13 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
+	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
+	FNoesisGuiFloatPropertyChangedEventHandler ValueChanged;
+
+	void ValueChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedPropertyChangedEventArgs<NsFloat32>& InArgs);
+
+	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::RoutedPropertyChangedEventArgs<NsFloat32>& InArgs)> ValueChanged_Delegate;
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

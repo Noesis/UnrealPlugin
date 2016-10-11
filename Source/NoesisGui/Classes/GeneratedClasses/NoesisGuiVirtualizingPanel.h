@@ -17,6 +17,12 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+void BringIndexIntoView(int32 Index);
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+class UNoesisGuiIItemContainerGenerator* GetItemContainerGenerator();
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

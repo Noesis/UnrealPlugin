@@ -17,6 +17,19 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+void CalculateEffectiveDurations();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+FNoesisGuiDuration GetNaturalDuration(class UNoesisGuiClock* Clock);
+
+	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
+	FNoesisGuiTimelineEventHandler Completed;
+
+	void Completed_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TimelineEventArgs& InArgs);
+
+	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::TimelineEventArgs& InArgs)> Completed_Delegate;
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

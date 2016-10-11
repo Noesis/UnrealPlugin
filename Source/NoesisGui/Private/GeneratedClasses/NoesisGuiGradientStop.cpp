@@ -25,11 +25,11 @@ void UNoesisGuiGradientStop::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 
 	void UNoesisGuiGradientStop::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::GradientStop* NoesisGradientStop = NsDynamicCast<Noesis::Gui::GradientStop*>(NoesisComponent.GetPtr());
 	if (!NoesisGradientStop)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

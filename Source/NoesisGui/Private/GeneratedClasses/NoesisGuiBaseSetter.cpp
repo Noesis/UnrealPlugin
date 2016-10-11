@@ -25,11 +25,11 @@ void UNoesisGuiBaseSetter::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 
 	void UNoesisGuiBaseSetter::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::BaseSetter* NoesisBaseSetter = NsDynamicCast<Noesis::Gui::BaseSetter*>(NoesisComponent.GetPtr());
 	if (!NoesisBaseSetter)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

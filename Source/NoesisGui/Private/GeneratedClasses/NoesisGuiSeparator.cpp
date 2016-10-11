@@ -25,11 +25,11 @@ void UNoesisGuiSeparator::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	void UNoesisGuiSeparator::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Separator* NoesisSeparator = NsDynamicCast<Noesis::Gui::Separator*>(NoesisComponent.GetPtr());
 	if (!NoesisSeparator)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

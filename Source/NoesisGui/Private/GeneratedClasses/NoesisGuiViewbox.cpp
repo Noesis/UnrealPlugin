@@ -39,11 +39,11 @@ void UNoesisGuiViewbox::SetChild(class UNoesisGuiUIElement* InChild)
 
 	void UNoesisGuiViewbox::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Viewbox* NoesisViewbox = NsDynamicCast<Noesis::Gui::Viewbox*>(NoesisComponent.GetPtr());
 	if (!NoesisViewbox)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

@@ -25,11 +25,11 @@ void UNoesisGuiSplineInt32KeyFrame::SetNoesisComponent(Noesis::Core::BaseCompone
 
 	void UNoesisGuiSplineInt32KeyFrame::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::SplineKeyFrame<NsInt32>* NoesisSplineInt32KeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<NsInt32>*>(NoesisComponent.GetPtr());
 	if (!NoesisSplineInt32KeyFrame)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

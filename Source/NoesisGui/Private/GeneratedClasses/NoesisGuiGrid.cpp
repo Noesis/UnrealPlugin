@@ -39,11 +39,11 @@ class UNoesisGuiRowDefinitionCollection* UNoesisGuiGrid::GetRowDefinitions()
 
 	void UNoesisGuiGrid::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Grid* NoesisGrid = NsDynamicCast<Noesis::Gui::Grid*>(NoesisComponent.GetPtr());
 	if (!NoesisGrid)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

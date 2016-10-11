@@ -25,11 +25,11 @@ void UNoesisGuiBaseMenu::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesi
 
 	void UNoesisGuiBaseMenu::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::BaseMenu* NoesisBaseMenu = NsDynamicCast<Noesis::Gui::BaseMenu*>(NoesisComponent.GetPtr());
 	if (!NoesisBaseMenu)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

@@ -25,11 +25,11 @@ void UNoesisGuiSplineColorKeyFrame::SetNoesisComponent(Noesis::Core::BaseCompone
 
 	void UNoesisGuiSplineColorKeyFrame::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Color>* NoesisSplineColorKeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Color>*>(NoesisComponent.GetPtr());
 	if (!NoesisSplineColorKeyFrame)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

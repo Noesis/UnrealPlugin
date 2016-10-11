@@ -25,11 +25,11 @@ void UNoesisGuiRepeatButton::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 
 	void UNoesisGuiRepeatButton::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::RepeatButton* NoesisRepeatButton = NsDynamicCast<Noesis::Gui::RepeatButton*>(NoesisComponent.GetPtr());
 	if (!NoesisRepeatButton)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

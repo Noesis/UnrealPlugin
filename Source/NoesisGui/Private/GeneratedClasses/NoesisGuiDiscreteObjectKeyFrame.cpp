@@ -25,11 +25,11 @@ void UNoesisGuiDiscreteObjectKeyFrame::SetNoesisComponent(Noesis::Core::BaseComp
 
 	void UNoesisGuiDiscreteObjectKeyFrame::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::DiscreteKeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent>>* NoesisDiscreteObjectKeyFrame = NsDynamicCast<Noesis::Gui::DiscreteKeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent>>*>(NoesisComponent.GetPtr());
 	if (!NoesisDiscreteObjectKeyFrame)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

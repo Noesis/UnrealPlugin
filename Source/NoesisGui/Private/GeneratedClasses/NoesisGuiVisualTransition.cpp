@@ -23,18 +23,32 @@ void UNoesisGuiVisualTransition::SetNoesisComponent(Noesis::Core::BaseComponent*
 
 }
 
+FName UNoesisGuiVisualTransition::GetFrom()
+{
+	Noesis::Gui::VisualTransition* NoesisVisualTransition = NsDynamicCast<Noesis::Gui::VisualTransition*>(NoesisComponent.GetPtr());
+	check(NoesisVisualTransition);
+	return FName(NoesisVisualTransition->GetFrom().GetStr());
+}
+
+void UNoesisGuiVisualTransition::SetFrom(FName InFrom)
+{
+	Noesis::Gui::VisualTransition* NoesisVisualTransition = NsDynamicCast<Noesis::Gui::VisualTransition*>(NoesisComponent.GetPtr());
+	check(NoesisVisualTransition);
+	NoesisVisualTransition->SetFrom(Noesis::Core::Symbol(InFrom.GetPlainANSIString()));
+}
+
 FNoesisGuiDuration UNoesisGuiVisualTransition::GetGeneratedDuration()
 {
 	Noesis::Gui::VisualTransition* NoesisVisualTransition = NsDynamicCast<Noesis::Gui::VisualTransition*>(NoesisComponent.GetPtr());
 	check(NoesisVisualTransition);
-	return FNoesisGuiDuration((ENoesisGuiDurationType)NoesisVisualTransition->GetGeneratedDuration().GetDurationType(), (int32)NoesisVisualTransition->GetGeneratedDuration().GetTimeSpan().GetMilliseconds());
+	return FNoesisGuiDuration(NoesisVisualTransition->GetGeneratedDuration());
 }
 
 void UNoesisGuiVisualTransition::SetGeneratedDuration(FNoesisGuiDuration InGeneratedDuration)
 {
 	Noesis::Gui::VisualTransition* NoesisVisualTransition = NsDynamicCast<Noesis::Gui::VisualTransition*>(NoesisComponent.GetPtr());
 	check(NoesisVisualTransition);
-	NoesisVisualTransition->SetGeneratedDuration(InGeneratedDuration.DurationType == DT_Automatic ? Duration::Automatic() : (InGeneratedDuration.DurationType == DT_Forever ? Duration::Forever() : Duration(Noesis::Gui::TimeSpan(0, 0, 0, 0, InGeneratedDuration.Milliseconds))));
+	NoesisVisualTransition->SetGeneratedDuration(InGeneratedDuration.ToNoesis());
 }
 
 class UNoesisGuiEasingFunctionBase* UNoesisGuiVisualTransition::GetGeneratedEasingFunction()
@@ -65,13 +79,34 @@ void UNoesisGuiVisualTransition::SetStoryboard(class UNoesisGuiStoryboard* InSto
 	NoesisVisualTransition->SetStoryboard(NsDynamicCast<Storyboard*>(InStoryboard->NoesisComponent.GetPtr()));
 }
 
+FName UNoesisGuiVisualTransition::GetTo()
+{
+	Noesis::Gui::VisualTransition* NoesisVisualTransition = NsDynamicCast<Noesis::Gui::VisualTransition*>(NoesisComponent.GetPtr());
+	check(NoesisVisualTransition);
+	return FName(NoesisVisualTransition->GetTo().GetStr());
+}
+
+void UNoesisGuiVisualTransition::SetTo(FName InTo)
+{
+	Noesis::Gui::VisualTransition* NoesisVisualTransition = NsDynamicCast<Noesis::Gui::VisualTransition*>(NoesisComponent.GetPtr());
+	check(NoesisVisualTransition);
+	NoesisVisualTransition->SetTo(Noesis::Core::Symbol(InTo.GetPlainANSIString()));
+}
+
+bool UNoesisGuiVisualTransition::IsDefault()
+{
+	Noesis::Gui::VisualTransition* NoesisVisualTransition = NsDynamicCast<Noesis::Gui::VisualTransition*>(NoesisComponent.GetPtr());
+	check(NoesisVisualTransition);
+	return NoesisVisualTransition->IsDefault();
+}
+
 	void UNoesisGuiVisualTransition::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::VisualTransition* NoesisVisualTransition = NsDynamicCast<Noesis::Gui::VisualTransition*>(NoesisComponent.GetPtr());
 	if (!NoesisVisualTransition)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

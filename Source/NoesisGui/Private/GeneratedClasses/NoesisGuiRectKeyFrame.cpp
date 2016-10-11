@@ -25,11 +25,11 @@ void UNoesisGuiRectKeyFrame::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 
 	void UNoesisGuiRectKeyFrame::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::KeyFrame<Noesis::Drawing::Rect>* NoesisRectKeyFrame = NsDynamicCast<Noesis::Gui::KeyFrame<Noesis::Drawing::Rect>*>(NoesisComponent.GetPtr());
 	if (!NoesisRectKeyFrame)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

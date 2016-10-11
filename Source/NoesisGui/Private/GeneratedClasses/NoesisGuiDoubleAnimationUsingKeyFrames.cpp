@@ -25,11 +25,11 @@ void UNoesisGuiDoubleAnimationUsingKeyFrames::SetNoesisComponent(Noesis::Core::B
 
 	void UNoesisGuiDoubleAnimationUsingKeyFrames::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::AnimationUsingKeyFrames<NsFloat32>* NoesisDoubleAnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<NsFloat32>*>(NoesisComponent.GetPtr());
 	if (!NoesisDoubleAnimationUsingKeyFrames)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

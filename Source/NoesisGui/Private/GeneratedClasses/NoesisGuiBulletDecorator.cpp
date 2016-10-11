@@ -39,11 +39,11 @@ void UNoesisGuiBulletDecorator::SetBullet(class UNoesisGuiUIElement* InBullet)
 
 	void UNoesisGuiBulletDecorator::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::BulletDecorator* NoesisBulletDecorator = NsDynamicCast<Noesis::Gui::BulletDecorator*>(NoesisComponent.GetPtr());
 	if (!NoesisBulletDecorator)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

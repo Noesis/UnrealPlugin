@@ -25,11 +25,11 @@ void UNoesisGuiMatrix3DProjection::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	void UNoesisGuiMatrix3DProjection::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Matrix3DProjection* NoesisMatrix3DProjection = NsDynamicCast<Noesis::Gui::Matrix3DProjection*>(NoesisComponent.GetPtr());
 	if (!NoesisMatrix3DProjection)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

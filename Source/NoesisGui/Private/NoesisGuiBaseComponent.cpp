@@ -15,3 +15,10 @@ void UNoesisGuiBaseComponent::SetNoesisComponent(Noesis::Core::BaseComponent* In
 {
 	NoesisComponent = Noesis::Ptr<Noesis::Core::BaseComponent>(InNoesisComponent);
 }
+
+void UNoesisGuiBaseComponent::BeginDestroy()
+{
+	Super::BeginDestroy();
+
+	NoesisComponent.Reset();
+}

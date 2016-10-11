@@ -25,11 +25,11 @@ void UNoesisGuiTickBar::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesis
 
 	void UNoesisGuiTickBar::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TickBar* NoesisTickBar = NsDynamicCast<Noesis::Gui::TickBar*>(NoesisComponent.GetPtr());
 	if (!NoesisTickBar)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

@@ -25,7 +25,15 @@ class NOESISGUI_API UNoesisGuiInstance : public UObject
 	float Width;
 	float Height;
 
-	TMap<Noesis::Core::BaseComponent*, UNoesisGuiBaseComponent*> ComponentMap;
+	TMap<Noesis::Core::BaseComponent*, class UNoesisGuiBaseComponent*> ComponentMap;
+
+	UPROPERTY(Transient)
+	TArray<class UNoesisGuiBaseComponent*> CreatedComponents;
+
+	TMap<Noesis::Core::Interface*, class UNoesisGuiInterface*> InterfaceMap;
+
+	UPROPERTY(Transient)
+	TArray<class UNoesisGuiInterface*> CreatedInterfaces;
 
 	UPROPERTY()
 	class UNoesisGuiXaml* BaseXaml;
@@ -52,10 +60,12 @@ class NOESISGUI_API UNoesisGuiInstance : public UObject
 
 	FVector2D GetSize() const;
 
-	void SetComponentFor(Noesis::Core::BaseComponent* NoesisComponent, UNoesisGuiBaseComponent* UnrealComponent);
-	UNoesisGuiBaseComponent* FindUnrealComponentForNoesisComponent(const Noesis::Core::BaseComponent* NoesisComponent);
-	Noesis::Core::BaseComponent* FindNoesisComponentForUnrealComponent(UNoesisGuiBaseComponent* UnrealComponent);
-	Noesis::Ptr<Noesis::Core::BaseComponent> FindNoesisComponentPtrForUnrealComponent(UNoesisGuiBaseComponent* UnrealComponent);
+	void SetComponentFor(Noesis::Core::BaseComponent* NoesisComponent, class UNoesisGuiBaseComponent* UnrealComponent);
+	class UNoesisGuiBaseComponent* FindUnrealComponentForNoesisComponent(const Noesis::Core::BaseComponent* NoesisComponent);
+	class UNoesisGuiBaseComponent* FindUnrealComponentForNoesisComponent(const Noesis::Core::Ptr<Noesis::Core::BaseComponent> NoesisComponent);
+	void SetInterfaceFor(Noesis::Core::Interface* NoesisInterface, class UNoesisGuiInterface* UnrealInterface);
+	class UNoesisGuiInterface* FindUnrealInterfaceForNoesisInterface(const Noesis::Core::Interface* NoesisInterface);
+	class UNoesisGuiInterface* FindUnrealInterfaceForNoesisInterface(const Noesis::Core::Ptr<Noesis::Core::Interface> NoesisInterface);
 
 	// UObject interface
 	virtual class UWorld* GetWorld() const override;

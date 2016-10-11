@@ -39,11 +39,11 @@ void UNoesisGuiControllableStoryboardAction::SetBeginStoryboardName(FString InBe
 
 	void UNoesisGuiControllableStoryboardAction::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ControllableStoryboardAction* NoesisControllableStoryboardAction = NsDynamicCast<Noesis::Gui::ControllableStoryboardAction*>(NoesisComponent.GetPtr());
 	if (!NoesisControllableStoryboardAction)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

@@ -21,8 +21,17 @@ void UNoesisGuiToolTip::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesis
 	Noesis::Gui::ToolTip* NoesisToolTip = NsDynamicCast<Noesis::Gui::ToolTip*>(InNoesisComponent);
 	check(NoesisToolTip);
 
-	NoesisToolTip->Closed() += Noesis::MakeDelegate(this, &UNoesisGuiToolTip::Closed_Private);
-	NoesisToolTip->Opened() += Noesis::MakeDelegate(this, &UNoesisGuiToolTip::Opened_Private);
+	Closed_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiToolTip::Closed_Private);
+	NoesisToolTip->Closed() += Closed_Delegate;
+	Opened_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiToolTip::Opened_Private);
+	NoesisToolTip->Opened() += Opened_Delegate;
+}
+
+UNoesisGuiPopup* UNoesisGuiToolTip::GetPopup()
+{
+	Noesis::Gui::ToolTip* NoesisToolTip = NsDynamicCast<Noesis::Gui::ToolTip*>(NoesisComponent.GetPtr());
+	check(NoesisToolTip);
+	return CastChecked<UNoesisGuiPopup>(Instance->FindUnrealComponentForNoesisComponent(NoesisToolTip->GetPopup()));
 }
 
 	void UNoesisGuiToolTip::Closed_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
@@ -30,9 +39,7 @@ void UNoesisGuiToolTip::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesis
 	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiRoutedEventArgs Args;
-	Args.Source = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.source));
-	Args.RoutedEvent = CastChecked<UNoesisGuiRoutedEvent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.routedEvent));
+	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Closed.Broadcast(Sender, Args);
 }
 
@@ -41,21 +48,19 @@ void UNoesisGuiToolTip::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesis
 	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiRoutedEventArgs Args;
-	Args.Source = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.source));
-	Args.RoutedEvent = CastChecked<UNoesisGuiRoutedEvent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.routedEvent));
+	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Opened.Broadcast(Sender, Args);
 }
 
 	void UNoesisGuiToolTip::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ToolTip* NoesisToolTip = NsDynamicCast<Noesis::Gui::ToolTip*>(NoesisComponent.GetPtr());
 	if (!NoesisToolTip)
-		return;
+		return Super::BeginDestroy();
 
-	NoesisToolTip->Closed() -= Noesis::MakeDelegate(this, &UNoesisGuiToolTip::Closed_Private);
-	NoesisToolTip->Opened() -= Noesis::MakeDelegate(this, &UNoesisGuiToolTip::Opened_Private);
+	NoesisToolTip->Closed() -= Closed_Delegate;
+	NoesisToolTip->Opened() -= Opened_Delegate;
+
+	Super::BeginDestroy();
 }
 

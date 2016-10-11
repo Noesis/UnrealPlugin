@@ -25,11 +25,11 @@ void UNoesisGuiToolBarPanel::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 
 	void UNoesisGuiToolBarPanel::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ToolBarPanel* NoesisToolBarPanel = NsDynamicCast<Noesis::Gui::ToolBarPanel*>(NoesisComponent.GetPtr());
 	if (!NoesisToolBarPanel)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

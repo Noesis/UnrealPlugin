@@ -21,15 +21,148 @@ void UNoesisGuiScrollViewer::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(InNoesisComponent);
 	check(NoesisScrollViewer);
 
+	ScrollChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiScrollViewer::ScrollChanged_Private);
+	NoesisScrollViewer->ScrollChanged() += ScrollChanged_Delegate;
+}
+
+void UNoesisGuiScrollViewer::InvalidateScrollInfo()
+{
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer);
+	return NoesisScrollViewer->InvalidateScrollInfo();
+}
+
+void UNoesisGuiScrollViewer::LineDown()
+{
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer);
+	return NoesisScrollViewer->LineDown();
+}
+
+void UNoesisGuiScrollViewer::LineLeft()
+{
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer);
+	return NoesisScrollViewer->LineLeft();
+}
+
+void UNoesisGuiScrollViewer::LineRight()
+{
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer);
+	return NoesisScrollViewer->LineRight();
+}
+
+void UNoesisGuiScrollViewer::LineUp()
+{
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer);
+	return NoesisScrollViewer->LineUp();
+}
+
+void UNoesisGuiScrollViewer::PageDown()
+{
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer);
+	return NoesisScrollViewer->PageDown();
+}
+
+void UNoesisGuiScrollViewer::PageLeft()
+{
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer);
+	return NoesisScrollViewer->PageLeft();
+}
+
+void UNoesisGuiScrollViewer::PageRight()
+{
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer);
+	return NoesisScrollViewer->PageRight();
+}
+
+void UNoesisGuiScrollViewer::PageUp()
+{
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer);
+	return NoesisScrollViewer->PageUp();
+}
+
+void UNoesisGuiScrollViewer::ScrollToBottom()
+{
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer);
+	return NoesisScrollViewer->ScrollToBottom();
+}
+
+void UNoesisGuiScrollViewer::ScrollToEnd()
+{
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer);
+	return NoesisScrollViewer->ScrollToEnd();
+}
+
+void UNoesisGuiScrollViewer::ScrollToHome()
+{
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer);
+	return NoesisScrollViewer->ScrollToHome();
+}
+
+void UNoesisGuiScrollViewer::ScrollToHorizontalOffset(float InOffset)
+{
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer);
+	NsFloat32 NoesisInOffset = InOffset;
+	return NoesisScrollViewer->ScrollToHorizontalOffset(NoesisInOffset);
+}
+
+void UNoesisGuiScrollViewer::ScrollToLeftEnd()
+{
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer);
+	return NoesisScrollViewer->ScrollToLeftEnd();
+}
+
+void UNoesisGuiScrollViewer::ScrollToRightEnd()
+{
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer);
+	return NoesisScrollViewer->ScrollToRightEnd();
+}
+
+void UNoesisGuiScrollViewer::ScrollToTop()
+{
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer);
+	return NoesisScrollViewer->ScrollToTop();
+}
+
+void UNoesisGuiScrollViewer::ScrollToVerticalOffset(float InOffset)
+{
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer);
+	NsFloat32 NoesisInOffset = InOffset;
+	return NoesisScrollViewer->ScrollToVerticalOffset(NoesisInOffset);
+}
+
+	void UNoesisGuiScrollViewer::ScrollChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ScrollChangedEventArgs& InArgs)
+{
+	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+		return;
+	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
+	FNoesisGuiScrollChangedEventArgs Args(Instance, InArgs);
+	ScrollChanged.Broadcast(Sender, Args);
 }
 
 	void UNoesisGuiScrollViewer::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
 	if (!NoesisScrollViewer)
-		return;
+		return Super::BeginDestroy();
 
+	NoesisScrollViewer->ScrollChanged() -= ScrollChanged_Delegate;
+
+	Super::BeginDestroy();
 }
 

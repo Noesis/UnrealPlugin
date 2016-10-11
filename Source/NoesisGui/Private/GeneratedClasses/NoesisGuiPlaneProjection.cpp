@@ -25,11 +25,11 @@ void UNoesisGuiPlaneProjection::SetNoesisComponent(Noesis::Core::BaseComponent* 
 
 	void UNoesisGuiPlaneProjection::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::PlaneProjection* NoesisPlaneProjection = NsDynamicCast<Noesis::Gui::PlaneProjection*>(NoesisComponent.GetPtr());
 	if (!NoesisPlaneProjection)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

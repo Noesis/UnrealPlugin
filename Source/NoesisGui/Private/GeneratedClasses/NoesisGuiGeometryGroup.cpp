@@ -25,11 +25,11 @@ void UNoesisGuiGeometryGroup::SetNoesisComponent(Noesis::Core::BaseComponent* In
 
 	void UNoesisGuiGeometryGroup::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::GeometryGroup* NoesisGeometryGroup = NsDynamicCast<Noesis::Gui::GeometryGroup*>(NoesisComponent.GetPtr());
 	if (!NoesisGeometryGroup)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

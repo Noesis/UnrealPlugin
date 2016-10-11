@@ -25,11 +25,11 @@ void UNoesisGuiGridViewRowPresenter::SetNoesisComponent(Noesis::Core::BaseCompon
 
 	void UNoesisGuiGridViewRowPresenter::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::GridViewRowPresenter* NoesisGridViewRowPresenter = NsDynamicCast<Noesis::Gui::GridViewRowPresenter*>(NoesisComponent.GetPtr());
 	if (!NoesisGridViewRowPresenter)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

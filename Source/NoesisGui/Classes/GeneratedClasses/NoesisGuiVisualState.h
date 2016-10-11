@@ -17,6 +17,12 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
+	// Property Name
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+	FName GetName();
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+	void SetName(FName InName);
+
 	// Property Storyboard
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	class UNoesisGuiStoryboard* GetStoryboard();

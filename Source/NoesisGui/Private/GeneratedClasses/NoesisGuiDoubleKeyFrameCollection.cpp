@@ -25,11 +25,11 @@ void UNoesisGuiDoubleKeyFrameCollection::SetNoesisComponent(Noesis::Core::BaseCo
 
 	void UNoesisGuiDoubleKeyFrameCollection::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<NsFloat32>>* NoesisDoubleKeyFrameCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<NsFloat32>>*>(NoesisComponent.GetPtr());
 	if (!NoesisDoubleKeyFrameCollection)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

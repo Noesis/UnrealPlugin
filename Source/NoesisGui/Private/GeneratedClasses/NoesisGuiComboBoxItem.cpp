@@ -23,13 +23,21 @@ void UNoesisGuiComboBoxItem::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 
 }
 
+void UNoesisGuiComboBoxItem::SetHighlighted(bool InValue)
+{
+	Noesis::Gui::ComboBoxItem* NoesisComboBoxItem = NsDynamicCast<Noesis::Gui::ComboBoxItem*>(NoesisComponent.GetPtr());
+	check(NoesisComboBoxItem);
+	NsBool NoesisInValue = InValue;
+	return NoesisComboBoxItem->SetHighlighted(NoesisInValue);
+}
+
 	void UNoesisGuiComboBoxItem::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ComboBoxItem* NoesisComboBoxItem = NsDynamicCast<Noesis::Gui::ComboBoxItem*>(NoesisComponent.GetPtr());
 	if (!NoesisComboBoxItem)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

@@ -25,11 +25,11 @@ void UNoesisGuiCircleEase::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 
 	void UNoesisGuiCircleEase::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::CircleEase* NoesisCircleEase = NsDynamicCast<Noesis::Gui::CircleEase*>(NoesisComponent.GetPtr());
 	if (!NoesisCircleEase)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

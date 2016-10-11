@@ -17,6 +17,27 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+bool CanFreeze();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+class UNoesisGuiFreezable* Clone();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+class UNoesisGuiFreezable* CloneCurrentValue();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+void Freeze();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+class UNoesisGuiFreezable* GetAsFrozen();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+class UNoesisGuiFreezable* GetCurrentValueAsFrozen();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+bool IsFrozen();
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

@@ -25,11 +25,11 @@ void UNoesisGuiVisualStateCollection::SetNoesisComponent(Noesis::Core::BaseCompo
 
 	void UNoesisGuiVisualStateCollection::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TypedCollection<Noesis::Gui::VisualState>* NoesisVisualStateCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::VisualState>*>(NoesisComponent.GetPtr());
 	if (!NoesisVisualStateCollection)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

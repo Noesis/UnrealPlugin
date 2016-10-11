@@ -21,6 +21,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	class UNoesisGuiInputGestureCollection* GetInputGestures();
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+bool CanExecute(class UNoesisGuiBaseComponent* Param, class UNoesisGuiUIElement* Target);
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+void Execute(class UNoesisGuiBaseComponent* Param, class UNoesisGuiUIElement* Target);
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

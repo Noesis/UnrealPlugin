@@ -25,11 +25,11 @@ void UNoesisGuiSlider::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisC
 
 	void UNoesisGuiSlider::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Slider* NoesisSlider = NsDynamicCast<Noesis::Gui::Slider*>(NoesisComponent.GetPtr());
 	if (!NoesisSlider)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

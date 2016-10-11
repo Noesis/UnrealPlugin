@@ -29,6 +29,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	void SetControlPoint2(FNoesisGuiDrawingPoint InControlPoint2);
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+float GetSplineProgress(float LinearProgress);
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

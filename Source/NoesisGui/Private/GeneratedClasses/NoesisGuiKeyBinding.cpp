@@ -39,11 +39,11 @@ int32 UNoesisGuiKeyBinding::GetModifiers()
 
 	void UNoesisGuiKeyBinding::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::KeyBinding* NoesisKeyBinding = NsDynamicCast<Noesis::Gui::KeyBinding*>(NoesisComponent.GetPtr());
 	if (!NoesisKeyBinding)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

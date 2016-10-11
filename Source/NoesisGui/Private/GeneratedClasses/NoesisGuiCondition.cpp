@@ -81,11 +81,11 @@ void UNoesisGuiCondition::SetValue(class UNoesisGuiBaseComponent* InValue)
 
 	void UNoesisGuiCondition::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Condition* NoesisCondition = NsDynamicCast<Noesis::Gui::Condition*>(NoesisComponent.GetPtr());
 	if (!NoesisCondition)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

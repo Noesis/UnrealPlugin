@@ -25,11 +25,11 @@ void UNoesisGuiDoubleAnimation::SetNoesisComponent(Noesis::Core::BaseComponent* 
 
 	void UNoesisGuiDoubleAnimation::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Animation<NsFloat32>* NoesisDoubleAnimation = NsDynamicCast<Noesis::Gui::Animation<NsFloat32>*>(NoesisComponent.GetPtr());
 	if (!NoesisDoubleAnimation)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

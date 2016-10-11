@@ -23,13 +23,20 @@ void UNoesisGuiBaseDictionary::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 }
 
+void UNoesisGuiBaseDictionary::RemoveDictionaryChangedListeners()
+{
+	Noesis::Gui::BaseDictionary* NoesisBaseDictionary = NsDynamicCast<Noesis::Gui::BaseDictionary*>(NoesisComponent.GetPtr());
+	check(NoesisBaseDictionary);
+	return NoesisBaseDictionary->RemoveDictionaryChangedListeners();
+}
+
 	void UNoesisGuiBaseDictionary::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::BaseDictionary* NoesisBaseDictionary = NsDynamicCast<Noesis::Gui::BaseDictionary*>(NoesisComponent.GetPtr());
 	if (!NoesisBaseDictionary)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

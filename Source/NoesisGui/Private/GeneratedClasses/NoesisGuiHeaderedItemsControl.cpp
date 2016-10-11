@@ -25,11 +25,11 @@ void UNoesisGuiHeaderedItemsControl::SetNoesisComponent(Noesis::Core::BaseCompon
 
 	void UNoesisGuiHeaderedItemsControl::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::HeaderedItemsControl* NoesisHeaderedItemsControl = NsDynamicCast<Noesis::Gui::HeaderedItemsControl*>(NoesisComponent.GetPtr());
 	if (!NoesisHeaderedItemsControl)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

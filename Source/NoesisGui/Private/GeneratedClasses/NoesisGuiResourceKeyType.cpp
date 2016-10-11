@@ -25,11 +25,11 @@ void UNoesisGuiResourceKeyType::SetNoesisComponent(Noesis::Core::BaseComponent* 
 
 	void UNoesisGuiResourceKeyType::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ResourceKeyType* NoesisResourceKeyType = NsDynamicCast<Noesis::Gui::ResourceKeyType*>(NoesisComponent.GetPtr());
 	if (!NoesisResourceKeyType)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

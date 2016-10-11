@@ -25,11 +25,11 @@ void UNoesisGuiStatusBarItem::SetNoesisComponent(Noesis::Core::BaseComponent* In
 
 	void UNoesisGuiStatusBarItem::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::StatusBarItem* NoesisStatusBarItem = NsDynamicCast<Noesis::Gui::StatusBarItem*>(NoesisComponent.GetPtr());
 	if (!NoesisStatusBarItem)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

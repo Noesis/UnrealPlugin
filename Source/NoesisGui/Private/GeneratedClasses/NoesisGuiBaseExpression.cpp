@@ -25,11 +25,11 @@ void UNoesisGuiBaseExpression::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	void UNoesisGuiBaseExpression::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::BaseExpression* NoesisBaseExpression = NsDynamicCast<Noesis::Gui::BaseExpression*>(NoesisComponent.GetPtr());
 	if (!NoesisBaseExpression)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

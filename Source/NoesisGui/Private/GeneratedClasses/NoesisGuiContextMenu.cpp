@@ -21,8 +21,17 @@ void UNoesisGuiContextMenu::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 	Noesis::Gui::ContextMenu* NoesisContextMenu = NsDynamicCast<Noesis::Gui::ContextMenu*>(InNoesisComponent);
 	check(NoesisContextMenu);
 
-	NoesisContextMenu->Closed() += Noesis::MakeDelegate(this, &UNoesisGuiContextMenu::Closed_Private);
-	NoesisContextMenu->Opened() += Noesis::MakeDelegate(this, &UNoesisGuiContextMenu::Opened_Private);
+	Closed_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiContextMenu::Closed_Private);
+	NoesisContextMenu->Closed() += Closed_Delegate;
+	Opened_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiContextMenu::Opened_Private);
+	NoesisContextMenu->Opened() += Opened_Delegate;
+}
+
+UNoesisGuiPopup* UNoesisGuiContextMenu::GetPopup()
+{
+	Noesis::Gui::ContextMenu* NoesisContextMenu = NsDynamicCast<Noesis::Gui::ContextMenu*>(NoesisComponent.GetPtr());
+	check(NoesisContextMenu);
+	return CastChecked<UNoesisGuiPopup>(Instance->FindUnrealComponentForNoesisComponent(NoesisContextMenu->GetPopup()));
 }
 
 	void UNoesisGuiContextMenu::Closed_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
@@ -30,9 +39,7 @@ void UNoesisGuiContextMenu::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiRoutedEventArgs Args;
-	Args.Source = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.source));
-	Args.RoutedEvent = CastChecked<UNoesisGuiRoutedEvent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.routedEvent));
+	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Closed.Broadcast(Sender, Args);
 }
 
@@ -41,21 +48,19 @@ void UNoesisGuiContextMenu::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiRoutedEventArgs Args;
-	Args.Source = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.source));
-	Args.RoutedEvent = CastChecked<UNoesisGuiRoutedEvent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.routedEvent));
+	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Opened.Broadcast(Sender, Args);
 }
 
 	void UNoesisGuiContextMenu::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ContextMenu* NoesisContextMenu = NsDynamicCast<Noesis::Gui::ContextMenu*>(NoesisComponent.GetPtr());
 	if (!NoesisContextMenu)
-		return;
+		return Super::BeginDestroy();
 
-	NoesisContextMenu->Closed() -= Noesis::MakeDelegate(this, &UNoesisGuiContextMenu::Closed_Private);
-	NoesisContextMenu->Opened() -= Noesis::MakeDelegate(this, &UNoesisGuiContextMenu::Opened_Private);
+	NoesisContextMenu->Closed() -= Closed_Delegate;
+	NoesisContextMenu->Opened() -= Opened_Delegate;
+
+	Super::BeginDestroy();
 }
 

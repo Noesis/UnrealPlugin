@@ -17,6 +17,9 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+class UNoesisGuiDataTemplate* SelectTemplate(class UNoesisGuiBaseComponent* Item, class UNoesisGuiDependencyObject* Container);
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

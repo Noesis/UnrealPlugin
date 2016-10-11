@@ -25,11 +25,11 @@ void UNoesisGuiMatrixTransform::SetNoesisComponent(Noesis::Core::BaseComponent* 
 
 	void UNoesisGuiMatrixTransform::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::MatrixTransform* NoesisMatrixTransform = NsDynamicCast<Noesis::Gui::MatrixTransform*>(NoesisComponent.GetPtr());
 	if (!NoesisMatrixTransform)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

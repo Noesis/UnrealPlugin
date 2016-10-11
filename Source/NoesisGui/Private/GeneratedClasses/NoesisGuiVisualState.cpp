@@ -23,6 +23,20 @@ void UNoesisGuiVisualState::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 }
 
+FName UNoesisGuiVisualState::GetName()
+{
+	Noesis::Gui::VisualState* NoesisVisualState = NsDynamicCast<Noesis::Gui::VisualState*>(NoesisComponent.GetPtr());
+	check(NoesisVisualState);
+	return FName(NoesisVisualState->GetName().GetStr());
+}
+
+void UNoesisGuiVisualState::SetName(FName InName)
+{
+	Noesis::Gui::VisualState* NoesisVisualState = NsDynamicCast<Noesis::Gui::VisualState*>(NoesisComponent.GetPtr());
+	check(NoesisVisualState);
+	NoesisVisualState->SetName(Noesis::Core::Symbol(InName.GetPlainANSIString()));
+}
+
 class UNoesisGuiStoryboard* UNoesisGuiVisualState::GetStoryboard()
 {
 	Noesis::Gui::VisualState* NoesisVisualState = NsDynamicCast<Noesis::Gui::VisualState*>(NoesisComponent.GetPtr());
@@ -39,11 +53,11 @@ void UNoesisGuiVisualState::SetStoryboard(class UNoesisGuiStoryboard* InStoryboa
 
 	void UNoesisGuiVisualState::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::VisualState* NoesisVisualState = NsDynamicCast<Noesis::Gui::VisualState*>(NoesisComponent.GetPtr());
 	if (!NoesisVisualState)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

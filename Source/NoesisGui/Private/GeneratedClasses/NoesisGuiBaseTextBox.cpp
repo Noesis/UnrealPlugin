@@ -21,8 +21,10 @@ void UNoesisGuiBaseTextBox::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 	Noesis::Gui::BaseTextBox* NoesisBaseTextBox = NsDynamicCast<Noesis::Gui::BaseTextBox*>(InNoesisComponent);
 	check(NoesisBaseTextBox);
 
-	NoesisBaseTextBox->SelectionChanged() += Noesis::MakeDelegate(this, &UNoesisGuiBaseTextBox::SelectionChanged_Private);
-	NoesisBaseTextBox->TextChanged() += Noesis::MakeDelegate(this, &UNoesisGuiBaseTextBox::TextChanged_Private);
+	SelectionChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiBaseTextBox::SelectionChanged_Private);
+	NoesisBaseTextBox->SelectionChanged() += SelectionChanged_Delegate;
+	TextChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiBaseTextBox::TextChanged_Private);
+	NoesisBaseTextBox->TextChanged() += TextChanged_Delegate;
 }
 
 	void UNoesisGuiBaseTextBox::SelectionChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
@@ -30,9 +32,7 @@ void UNoesisGuiBaseTextBox::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiRoutedEventArgs Args;
-	Args.Source = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.source));
-	Args.RoutedEvent = CastChecked<UNoesisGuiRoutedEvent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.routedEvent));
+	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	SelectionChanged.Broadcast(Sender, Args);
 }
 
@@ -41,21 +41,19 @@ void UNoesisGuiBaseTextBox::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiRoutedEventArgs Args;
-	Args.Source = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.source));
-	Args.RoutedEvent = CastChecked<UNoesisGuiRoutedEvent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.routedEvent));
+	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	TextChanged.Broadcast(Sender, Args);
 }
 
 	void UNoesisGuiBaseTextBox::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::BaseTextBox* NoesisBaseTextBox = NsDynamicCast<Noesis::Gui::BaseTextBox*>(NoesisComponent.GetPtr());
 	if (!NoesisBaseTextBox)
-		return;
+		return Super::BeginDestroy();
 
-	NoesisBaseTextBox->SelectionChanged() -= Noesis::MakeDelegate(this, &UNoesisGuiBaseTextBox::SelectionChanged_Private);
-	NoesisBaseTextBox->TextChanged() -= Noesis::MakeDelegate(this, &UNoesisGuiBaseTextBox::TextChanged_Private);
+	NoesisBaseTextBox->SelectionChanged() -= SelectionChanged_Delegate;
+	NoesisBaseTextBox->TextChanged() -= TextChanged_Delegate;
+
+	Super::BeginDestroy();
 }
 

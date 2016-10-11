@@ -25,11 +25,11 @@ void UNoesisGuiEasingThicknessKeyFrame::SetNoesisComponent(Noesis::Core::BaseCom
 
 	void UNoesisGuiEasingThicknessKeyFrame::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Thickness>* NoesisEasingThicknessKeyFrame = NsDynamicCast<Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Thickness>*>(NoesisComponent.GetPtr());
 	if (!NoesisEasingThicknessKeyFrame)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

@@ -39,11 +39,11 @@ void UNoesisGuiRoutedUICommand::SetText(FString InText)
 
 	void UNoesisGuiRoutedUICommand::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::RoutedUICommand* NoesisRoutedUICommand = NsDynamicCast<Noesis::Gui::RoutedUICommand*>(NoesisComponent.GetPtr());
 	if (!NoesisRoutedUICommand)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

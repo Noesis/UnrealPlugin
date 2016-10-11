@@ -25,11 +25,11 @@ void UNoesisGuiSizeAnimation::SetNoesisComponent(Noesis::Core::BaseComponent* In
 
 	void UNoesisGuiSizeAnimation::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Animation<Noesis::Drawing::Size>* NoesisSizeAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Size>*>(NoesisComponent.GetPtr());
 	if (!NoesisSizeAnimation)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

@@ -25,11 +25,11 @@ void UNoesisGuiThicknessAnimation::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	void UNoesisGuiThicknessAnimation::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Animation<Noesis::Drawing::Thickness>* NoesisThicknessAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Thickness>*>(NoesisComponent.GetPtr());
 	if (!NoesisThicknessAnimation)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

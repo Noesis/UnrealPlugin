@@ -25,11 +25,11 @@ void UNoesisGuiColorAnimation::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	void UNoesisGuiColorAnimation::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Animation<Noesis::Drawing::Color>* NoesisColorAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Color>*>(NoesisComponent.GetPtr());
 	if (!NoesisColorAnimation)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

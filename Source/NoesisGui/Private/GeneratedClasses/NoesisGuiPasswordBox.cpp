@@ -21,7 +21,8 @@ void UNoesisGuiPasswordBox::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 	Noesis::Gui::PasswordBox* NoesisPasswordBox = NsDynamicCast<Noesis::Gui::PasswordBox*>(InNoesisComponent);
 	check(NoesisPasswordBox);
 
-	NoesisPasswordBox->PasswordChanged() += Noesis::MakeDelegate(this, &UNoesisGuiPasswordBox::PasswordChanged_Private);
+	PasswordChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiPasswordBox::PasswordChanged_Private);
+	NoesisPasswordBox->PasswordChanged() += PasswordChanged_Delegate;
 }
 
 FString UNoesisGuiPasswordBox::GetPassword()
@@ -43,20 +44,18 @@ void UNoesisGuiPasswordBox::SetPassword(FString InPassword)
 	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiRoutedEventArgs Args;
-	Args.Source = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.source));
-	Args.RoutedEvent = CastChecked<UNoesisGuiRoutedEvent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.routedEvent));
+	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	PasswordChanged.Broadcast(Sender, Args);
 }
 
 	void UNoesisGuiPasswordBox::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::PasswordBox* NoesisPasswordBox = NsDynamicCast<Noesis::Gui::PasswordBox*>(NoesisComponent.GetPtr());
 	if (!NoesisPasswordBox)
-		return;
+		return Super::BeginDestroy();
 
-	NoesisPasswordBox->PasswordChanged() -= Noesis::MakeDelegate(this, &UNoesisGuiPasswordBox::PasswordChanged_Private);
+	NoesisPasswordBox->PasswordChanged() -= PasswordChanged_Delegate;
+
+	Super::BeginDestroy();
 }
 

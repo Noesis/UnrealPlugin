@@ -40,6 +40,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	class UNoesisGuiTimeline* GetTimeline();
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+ENoesisGuiClockState GetCurrentState();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+bool HasControllableRoot();
+
+	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
+	FNoesisGuiEventHandler Completed;
+
+	void Completed_Private(Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs);
+
+	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs)> Completed_Delegate;
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

@@ -65,13 +65,27 @@ void UNoesisGuiTextBox::SetSelectionStart(int32 InSelectionStart)
 	NoesisTextBox->SetSelectionStart(InSelectionStart);
 }
 
+int32 UNoesisGuiTextBox::GetCaretIndex()
+{
+	Noesis::Gui::TextBox* NoesisTextBox = NsDynamicCast<Noesis::Gui::TextBox*>(NoesisComponent.GetPtr());
+	check(NoesisTextBox);
+	return NoesisTextBox->GetCaretIndex();
+}
+
+void UNoesisGuiTextBox::SelectAll()
+{
+	Noesis::Gui::TextBox* NoesisTextBox = NsDynamicCast<Noesis::Gui::TextBox*>(NoesisComponent.GetPtr());
+	check(NoesisTextBox);
+	return NoesisTextBox->SelectAll();
+}
+
 	void UNoesisGuiTextBox::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TextBox* NoesisTextBox = NsDynamicCast<Noesis::Gui::TextBox*>(NoesisComponent.GetPtr());
 	if (!NoesisTextBox)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

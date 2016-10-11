@@ -17,6 +17,12 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
+	// Property Converter
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+	UNoesisGuiIValueConverter* GetConverter();
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+	void SetConverter(UNoesisGuiIValueConverter* InConverter);
+
 	// Property ConverterParameter
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	class UNoesisGuiBaseComponent* GetConverterParameter();
@@ -58,6 +64,9 @@ public:
 	ENoesisGuiUpdateSourceTrigger GetUpdateSourceTrigger();
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	void SetUpdateSourceTrigger(ENoesisGuiUpdateSourceTrigger InUpdateSourceTrigger);
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+FNoesisGuiObjectWithNameScope GetSourceObject(class UNoesisGuiBaseComponent* Target, const class UNoesisGuiDependencyProperty* TargetProperty);
 
 	// UObject interface
 	virtual void BeginDestroy() override;

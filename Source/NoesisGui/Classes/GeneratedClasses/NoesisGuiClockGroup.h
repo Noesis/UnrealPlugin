@@ -17,6 +17,15 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+void Add(class UNoesisGuiClock* Clock);
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+class UNoesisGuiClock* GetChild(int32 Index);
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+int32 GetChildrenCount();
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

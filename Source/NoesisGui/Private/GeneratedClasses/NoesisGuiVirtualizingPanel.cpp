@@ -23,13 +23,28 @@ void UNoesisGuiVirtualizingPanel::SetNoesisComponent(Noesis::Core::BaseComponent
 
 }
 
+void UNoesisGuiVirtualizingPanel::BringIndexIntoView(int32 InIndex)
+{
+	Noesis::Gui::VirtualizingPanel* NoesisVirtualizingPanel = NsDynamicCast<Noesis::Gui::VirtualizingPanel*>(NoesisComponent.GetPtr());
+	check(NoesisVirtualizingPanel);
+	NsInt32 NoesisInIndex = InIndex;
+	return NoesisVirtualizingPanel->BringIndexIntoView(NoesisInIndex);
+}
+
+class UNoesisGuiIItemContainerGenerator* UNoesisGuiVirtualizingPanel::GetItemContainerGenerator()
+{
+	Noesis::Gui::VirtualizingPanel* NoesisVirtualizingPanel = NsDynamicCast<Noesis::Gui::VirtualizingPanel*>(NoesisComponent.GetPtr());
+	check(NoesisVirtualizingPanel);
+	return CastChecked<UNoesisGuiIItemContainerGenerator>(Instance->FindUnrealInterfaceForNoesisInterface(NoesisVirtualizingPanel->GetItemContainerGenerator()));
+}
+
 	void UNoesisGuiVirtualizingPanel::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::VirtualizingPanel* NoesisVirtualizingPanel = NsDynamicCast<Noesis::Gui::VirtualizingPanel*>(NoesisComponent.GetPtr());
 	if (!NoesisVirtualizingPanel)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

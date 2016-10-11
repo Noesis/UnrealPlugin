@@ -25,11 +25,11 @@ void UNoesisGuiInputGestureCollection::SetNoesisComponent(Noesis::Core::BaseComp
 
 	void UNoesisGuiInputGestureCollection::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TypedCollection<Noesis::Gui::InputGesture>* NoesisInputGestureCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::InputGesture>*>(NoesisComponent.GetPtr());
 	if (!NoesisInputGestureCollection)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

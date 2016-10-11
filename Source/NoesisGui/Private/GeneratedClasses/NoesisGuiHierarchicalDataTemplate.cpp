@@ -81,11 +81,11 @@ void UNoesisGuiHierarchicalDataTemplate::SetItemsSource(class UNoesisGuiBaseBind
 
 	void UNoesisGuiHierarchicalDataTemplate::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::HierarchicalDataTemplate* NoesisHierarchicalDataTemplate = NsDynamicCast<Noesis::Gui::HierarchicalDataTemplate*>(NoesisComponent.GetPtr());
 	if (!NoesisHierarchicalDataTemplate)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

@@ -25,11 +25,11 @@ void UNoesisGuiAnimatable::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 
 	void UNoesisGuiAnimatable::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Animatable* NoesisAnimatable = NsDynamicCast<Noesis::Gui::Animatable*>(NoesisComponent.GetPtr());
 	if (!NoesisAnimatable)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

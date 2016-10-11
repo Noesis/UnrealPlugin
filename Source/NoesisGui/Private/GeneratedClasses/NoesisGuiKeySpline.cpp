@@ -27,37 +27,45 @@ FNoesisGuiDrawingPoint UNoesisGuiKeySpline::GetControlPoint1()
 {
 	Noesis::Gui::KeySpline* NoesisKeySpline = NsDynamicCast<Noesis::Gui::KeySpline*>(NoesisComponent.GetPtr());
 	check(NoesisKeySpline);
-	return FNoesisGuiDrawingPoint(NoesisKeySpline->GetControlPoint1().x, NoesisKeySpline->GetControlPoint1().y);
+	return FNoesisGuiDrawingPoint(NoesisKeySpline->GetControlPoint1());
 }
 
 void UNoesisGuiKeySpline::SetControlPoint1(FNoesisGuiDrawingPoint InControlPoint1)
 {
 	Noesis::Gui::KeySpline* NoesisKeySpline = NsDynamicCast<Noesis::Gui::KeySpline*>(NoesisComponent.GetPtr());
 	check(NoesisKeySpline);
-	NoesisKeySpline->SetControlPoint1(Drawing::Point(InControlPoint1.X, InControlPoint1.Y));
+	NoesisKeySpline->SetControlPoint1(InControlPoint1.ToNoesis());
 }
 
 FNoesisGuiDrawingPoint UNoesisGuiKeySpline::GetControlPoint2()
 {
 	Noesis::Gui::KeySpline* NoesisKeySpline = NsDynamicCast<Noesis::Gui::KeySpline*>(NoesisComponent.GetPtr());
 	check(NoesisKeySpline);
-	return FNoesisGuiDrawingPoint(NoesisKeySpline->GetControlPoint2().x, NoesisKeySpline->GetControlPoint2().y);
+	return FNoesisGuiDrawingPoint(NoesisKeySpline->GetControlPoint2());
 }
 
 void UNoesisGuiKeySpline::SetControlPoint2(FNoesisGuiDrawingPoint InControlPoint2)
 {
 	Noesis::Gui::KeySpline* NoesisKeySpline = NsDynamicCast<Noesis::Gui::KeySpline*>(NoesisComponent.GetPtr());
 	check(NoesisKeySpline);
-	NoesisKeySpline->SetControlPoint2(Drawing::Point(InControlPoint2.X, InControlPoint2.Y));
+	NoesisKeySpline->SetControlPoint2(InControlPoint2.ToNoesis());
+}
+
+float UNoesisGuiKeySpline::GetSplineProgress(float InLinearProgress)
+{
+	Noesis::Gui::KeySpline* NoesisKeySpline = NsDynamicCast<Noesis::Gui::KeySpline*>(NoesisComponent.GetPtr());
+	check(NoesisKeySpline);
+	NsFloat32 NoesisInLinearProgress = InLinearProgress;
+	return (float)NoesisKeySpline->GetSplineProgress(NoesisInLinearProgress);
 }
 
 	void UNoesisGuiKeySpline::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::KeySpline* NoesisKeySpline = NsDynamicCast<Noesis::Gui::KeySpline*>(NoesisComponent.GetPtr());
 	if (!NoesisKeySpline)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

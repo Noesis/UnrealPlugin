@@ -17,6 +17,9 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+UNoesisGuiPopup* GetPopup();
+
 	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
 	FNoesisGuiRoutedEventHandler Closed;
 
@@ -26,6 +29,10 @@ public:
 	void Closed_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs);
 
 	void Opened_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs);
+
+	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)> Closed_Delegate;
+
+	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)> Opened_Delegate;
 
 	// UObject interface
 	virtual void BeginDestroy() override;

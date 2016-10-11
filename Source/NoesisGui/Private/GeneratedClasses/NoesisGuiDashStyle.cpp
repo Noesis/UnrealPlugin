@@ -25,11 +25,11 @@ void UNoesisGuiDashStyle::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	void UNoesisGuiDashStyle::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::DashStyle* NoesisDashStyle = NsDynamicCast<Noesis::Gui::DashStyle*>(NoesisComponent.GetPtr());
 	if (!NoesisDashStyle)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

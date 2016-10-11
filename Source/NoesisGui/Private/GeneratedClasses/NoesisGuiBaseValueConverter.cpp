@@ -25,11 +25,11 @@ void UNoesisGuiBaseValueConverter::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	void UNoesisGuiBaseValueConverter::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::BaseValueConverter* NoesisBaseValueConverter = NsDynamicCast<Noesis::Gui::BaseValueConverter*>(NoesisComponent.GetPtr());
 	if (!NoesisBaseValueConverter)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

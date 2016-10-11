@@ -25,11 +25,11 @@ void UNoesisGuiEasingInt32KeyFrame::SetNoesisComponent(Noesis::Core::BaseCompone
 
 	void UNoesisGuiEasingInt32KeyFrame::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::EasingKeyFrame<NsInt32>* NoesisEasingInt32KeyFrame = NsDynamicCast<Noesis::Gui::EasingKeyFrame<NsInt32>*>(NoesisComponent.GetPtr());
 	if (!NoesisEasingInt32KeyFrame)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

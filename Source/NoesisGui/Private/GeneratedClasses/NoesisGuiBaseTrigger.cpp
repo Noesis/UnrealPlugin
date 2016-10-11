@@ -39,11 +39,11 @@ class UNoesisGuiTriggerActionCollection* UNoesisGuiBaseTrigger::GetExitActions()
 
 	void UNoesisGuiBaseTrigger::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::BaseTrigger* NoesisBaseTrigger = NsDynamicCast<Noesis::Gui::BaseTrigger*>(NoesisComponent.GetPtr());
 	if (!NoesisBaseTrigger)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

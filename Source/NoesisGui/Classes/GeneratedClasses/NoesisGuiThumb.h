@@ -17,6 +17,30 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+void CancelDrag();
+
+	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
+	FNoesisGuiDragCompletedEventHandler DragCompleted;
+
+	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
+	FNoesisGuiDragDeltaEventHandler DragDelta;
+
+	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
+	FNoesisGuiDragStartedEventHandler DragStarted;
+
+	void DragCompleted_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DragCompletedEventArgs& InArgs);
+
+	void DragDelta_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DragDeltaEventArgs& InArgs);
+
+	void DragStarted_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DragStartedEventArgs& InArgs);
+
+	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::DragCompletedEventArgs& InArgs)> DragCompleted_Delegate;
+
+	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::DragDeltaEventArgs& InArgs)> DragDelta_Delegate;
+
+	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::DragStartedEventArgs& InArgs)> DragStarted_Delegate;
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

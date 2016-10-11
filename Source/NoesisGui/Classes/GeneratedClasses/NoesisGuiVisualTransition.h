@@ -17,6 +17,12 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
+	// Property From
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+	FName GetFrom();
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+	void SetFrom(FName InFrom);
+
 	// Property GeneratedDuration
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	FNoesisGuiDuration GetGeneratedDuration();
@@ -34,6 +40,15 @@ public:
 	class UNoesisGuiStoryboard* GetStoryboard();
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	void SetStoryboard(class UNoesisGuiStoryboard* InStoryboard);
+
+	// Property To
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+	FName GetTo();
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+	void SetTo(FName InTo);
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+bool IsDefault();
 
 	// UObject interface
 	virtual void BeginDestroy() override;

@@ -25,11 +25,11 @@ void UNoesisGuiQuadraticEase::SetNoesisComponent(Noesis::Core::BaseComponent* In
 
 	void UNoesisGuiQuadraticEase::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::QuadraticEase* NoesisQuadraticEase = NsDynamicCast<Noesis::Gui::QuadraticEase*>(NoesisComponent.GetPtr());
 	if (!NoesisQuadraticEase)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

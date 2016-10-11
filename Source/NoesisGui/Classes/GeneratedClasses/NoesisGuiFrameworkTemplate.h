@@ -29,6 +29,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	void SetVisualTree(class UNoesisGuiVisual* InVisualTree);
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+class UNoesisGuiFrameworkElement* Apply(class UNoesisGuiFrameworkElement* TemplatedParent, class UNoesisGuiBaseComponent* DataContext);
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+class UNoesisGuiBaseComponent* FindName(FString Name, class UNoesisGuiFrameworkElement* TemplatedParent);
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+class UNoesisGuiTriggerCollection* GetAvailableTriggers();
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

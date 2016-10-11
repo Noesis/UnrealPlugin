@@ -25,11 +25,11 @@ void UNoesisGuiShape::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisCo
 
 	void UNoesisGuiShape::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Shape* NoesisShape = NsDynamicCast<Noesis::Gui::Shape*>(NoesisComponent.GetPtr());
 	if (!NoesisShape)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

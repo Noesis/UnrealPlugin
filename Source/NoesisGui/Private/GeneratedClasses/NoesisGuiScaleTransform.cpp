@@ -25,11 +25,11 @@ void UNoesisGuiScaleTransform::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	void UNoesisGuiScaleTransform::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ScaleTransform* NoesisScaleTransform = NsDynamicCast<Noesis::Gui::ScaleTransform*>(NoesisComponent.GetPtr());
 	if (!NoesisScaleTransform)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

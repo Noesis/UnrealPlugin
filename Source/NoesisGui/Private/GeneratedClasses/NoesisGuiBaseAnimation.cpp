@@ -25,11 +25,11 @@ void UNoesisGuiBaseAnimation::SetNoesisComponent(Noesis::Core::BaseComponent* In
 
 	void UNoesisGuiBaseAnimation::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::BaseAnimation* NoesisBaseAnimation = NsDynamicCast<Noesis::Gui::BaseAnimation*>(NoesisComponent.GetPtr());
 	if (!NoesisBaseAnimation)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

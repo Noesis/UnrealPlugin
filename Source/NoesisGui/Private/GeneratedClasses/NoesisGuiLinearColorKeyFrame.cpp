@@ -25,11 +25,11 @@ void UNoesisGuiLinearColorKeyFrame::SetNoesisComponent(Noesis::Core::BaseCompone
 
 	void UNoesisGuiLinearColorKeyFrame::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Color>* NoesisLinearColorKeyFrame = NsDynamicCast<Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Color>*>(NoesisComponent.GetPtr());
 	if (!NoesisLinearColorKeyFrame)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

@@ -25,11 +25,11 @@ void UNoesisGuiElasticEase::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	void UNoesisGuiElasticEase::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ElasticEase* NoesisElasticEase = NsDynamicCast<Noesis::Gui::ElasticEase*>(NoesisComponent.GetPtr());
 	if (!NoesisElasticEase)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

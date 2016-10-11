@@ -25,11 +25,11 @@ void UNoesisGuiSizeAnimationUsingKeyFrames::SetNoesisComponent(Noesis::Core::Bas
 
 	void UNoesisGuiSizeAnimationUsingKeyFrames::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Size>* NoesisSizeAnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Size>*>(NoesisComponent.GetPtr());
 	if (!NoesisSizeAnimationUsingKeyFrames)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

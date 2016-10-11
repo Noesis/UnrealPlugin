@@ -25,11 +25,11 @@ void UNoesisGuiConditionCollection::SetNoesisComponent(Noesis::Core::BaseCompone
 
 	void UNoesisGuiConditionCollection::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TypedCollection<Noesis::Gui::Condition>* NoesisConditionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::Condition>*>(NoesisComponent.GetPtr());
 	if (!NoesisConditionCollection)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

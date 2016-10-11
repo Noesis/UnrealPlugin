@@ -23,13 +23,20 @@ void UNoesisGuiDecorator::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 }
 
+class UNoesisGuiUIElement* UNoesisGuiDecorator::GetChild()
+{
+	Noesis::Gui::Decorator* NoesisDecorator = NsDynamicCast<Noesis::Gui::Decorator*>(NoesisComponent.GetPtr());
+	check(NoesisDecorator);
+	return CastChecked<UNoesisGuiUIElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisDecorator->GetChild()));
+}
+
 	void UNoesisGuiDecorator::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Decorator* NoesisDecorator = NsDynamicCast<Noesis::Gui::Decorator*>(NoesisComponent.GetPtr());
 	if (!NoesisDecorator)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

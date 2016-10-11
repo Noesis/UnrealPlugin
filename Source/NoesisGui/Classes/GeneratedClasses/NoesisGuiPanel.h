@@ -21,6 +21,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	class UNoesisGuiUIElementCollection* GetChildren();
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+void InvalidateZOrder();
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

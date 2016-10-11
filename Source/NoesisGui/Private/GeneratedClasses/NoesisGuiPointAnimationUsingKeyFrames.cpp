@@ -25,11 +25,11 @@ void UNoesisGuiPointAnimationUsingKeyFrames::SetNoesisComponent(Noesis::Core::Ba
 
 	void UNoesisGuiPointAnimationUsingKeyFrames::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Point>* NoesisPointAnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Point>*>(NoesisComponent.GetPtr());
 	if (!NoesisPointAnimationUsingKeyFrames)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

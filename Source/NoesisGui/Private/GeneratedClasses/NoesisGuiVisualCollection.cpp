@@ -39,11 +39,11 @@ void UNoesisGuiVisualCollection::SetVisualParent(class UNoesisGuiVisual* InVisua
 
 	void UNoesisGuiVisualCollection::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::VisualCollection* NoesisVisualCollection = NsDynamicCast<Noesis::Gui::VisualCollection*>(NoesisComponent.GetPtr());
 	if (!NoesisVisualCollection)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

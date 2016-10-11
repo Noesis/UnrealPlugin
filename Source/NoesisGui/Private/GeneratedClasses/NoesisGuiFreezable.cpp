@@ -23,13 +23,62 @@ void UNoesisGuiFreezable::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 }
 
+bool UNoesisGuiFreezable::CanFreeze()
+{
+	Noesis::Gui::Freezable* NoesisFreezable = NsDynamicCast<Noesis::Gui::Freezable*>(NoesisComponent.GetPtr());
+	check(NoesisFreezable);
+	return NoesisFreezable->CanFreeze();
+}
+
+class UNoesisGuiFreezable* UNoesisGuiFreezable::Clone()
+{
+	Noesis::Gui::Freezable* NoesisFreezable = NsDynamicCast<Noesis::Gui::Freezable*>(NoesisComponent.GetPtr());
+	check(NoesisFreezable);
+	return CastChecked<UNoesisGuiFreezable>(Instance->FindUnrealComponentForNoesisComponent(NoesisFreezable->Clone()));
+}
+
+class UNoesisGuiFreezable* UNoesisGuiFreezable::CloneCurrentValue()
+{
+	Noesis::Gui::Freezable* NoesisFreezable = NsDynamicCast<Noesis::Gui::Freezable*>(NoesisComponent.GetPtr());
+	check(NoesisFreezable);
+	return CastChecked<UNoesisGuiFreezable>(Instance->FindUnrealComponentForNoesisComponent(NoesisFreezable->CloneCurrentValue()));
+}
+
+void UNoesisGuiFreezable::Freeze()
+{
+	Noesis::Gui::Freezable* NoesisFreezable = NsDynamicCast<Noesis::Gui::Freezable*>(NoesisComponent.GetPtr());
+	check(NoesisFreezable);
+	return NoesisFreezable->Freeze();
+}
+
+class UNoesisGuiFreezable* UNoesisGuiFreezable::GetAsFrozen()
+{
+	Noesis::Gui::Freezable* NoesisFreezable = NsDynamicCast<Noesis::Gui::Freezable*>(NoesisComponent.GetPtr());
+	check(NoesisFreezable);
+	return CastChecked<UNoesisGuiFreezable>(Instance->FindUnrealComponentForNoesisComponent(NoesisFreezable->GetAsFrozen()));
+}
+
+class UNoesisGuiFreezable* UNoesisGuiFreezable::GetCurrentValueAsFrozen()
+{
+	Noesis::Gui::Freezable* NoesisFreezable = NsDynamicCast<Noesis::Gui::Freezable*>(NoesisComponent.GetPtr());
+	check(NoesisFreezable);
+	return CastChecked<UNoesisGuiFreezable>(Instance->FindUnrealComponentForNoesisComponent(NoesisFreezable->GetCurrentValueAsFrozen()));
+}
+
+bool UNoesisGuiFreezable::IsFrozen()
+{
+	Noesis::Gui::Freezable* NoesisFreezable = NsDynamicCast<Noesis::Gui::Freezable*>(NoesisComponent.GetPtr());
+	check(NoesisFreezable);
+	return NoesisFreezable->IsFrozen();
+}
+
 	void UNoesisGuiFreezable::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Freezable* NoesisFreezable = NsDynamicCast<Noesis::Gui::Freezable*>(NoesisComponent.GetPtr());
 	if (!NoesisFreezable)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

@@ -35,6 +35,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	void SetSelectionStart(int32 InSelectionStart);
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+int32 GetCaretIndex();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+void SelectAll();
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

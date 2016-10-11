@@ -24,4 +24,8 @@ class NOESISGUI_API UNoesisGuiBaseComponent : public UObject
 	Noesis::Ptr<Noesis::Core::BaseComponent> NoesisComponent;
 
 	class UNoesisGuiInstance* Instance;
+
+	// UObject interface
+	virtual void BeginDestroy() override;
+	// End of UObject interface
 };

@@ -23,13 +23,21 @@ void UNoesisGuiStreamGeometry::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 }
 
+void UNoesisGuiStreamGeometry::SetData(FString InData)
+{
+	Noesis::Gui::StreamGeometry* NoesisStreamGeometry = NsDynamicCast<Noesis::Gui::StreamGeometry*>(NoesisComponent.GetPtr());
+	check(NoesisStreamGeometry);
+	const NsChar* NoesisInData = StringCast<NsChar>(*InData).Get();
+	return NoesisStreamGeometry->SetData(NoesisInData);
+}
+
 	void UNoesisGuiStreamGeometry::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::StreamGeometry* NoesisStreamGeometry = NsDynamicCast<Noesis::Gui::StreamGeometry*>(NoesisComponent.GetPtr());
 	if (!NoesisStreamGeometry)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

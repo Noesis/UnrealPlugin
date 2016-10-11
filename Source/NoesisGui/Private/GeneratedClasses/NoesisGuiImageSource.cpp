@@ -39,11 +39,11 @@ float UNoesisGuiImageSource::GetWidth()
 
 	void UNoesisGuiImageSource::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ImageSource* NoesisImageSource = NsDynamicCast<Noesis::Gui::ImageSource*>(NoesisComponent.GetPtr());
 	if (!NoesisImageSource)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

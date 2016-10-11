@@ -67,11 +67,11 @@ void UNoesisGuiRelativeSource::SetMode(ENoesisGuiRelativeSourceMode InMode)
 
 	void UNoesisGuiRelativeSource::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::RelativeSource* NoesisRelativeSource = NsDynamicCast<Noesis::Gui::RelativeSource*>(NoesisComponent.GetPtr());
 	if (!NoesisRelativeSource)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

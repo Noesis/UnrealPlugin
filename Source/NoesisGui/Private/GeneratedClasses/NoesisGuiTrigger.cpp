@@ -74,11 +74,11 @@ void UNoesisGuiTrigger::SetValue(class UNoesisGuiBaseComponent* InValue)
 
 	void UNoesisGuiTrigger::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Trigger* NoesisTrigger = NsDynamicCast<Noesis::Gui::Trigger*>(NoesisComponent.GetPtr());
 	if (!NoesisTrigger)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

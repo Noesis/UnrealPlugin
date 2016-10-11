@@ -25,11 +25,11 @@ void UNoesisGuiInputBindingCollection::SetNoesisComponent(Noesis::Core::BaseComp
 
 	void UNoesisGuiInputBindingCollection::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TypedCollection<Noesis::Gui::InputBinding>* NoesisInputBindingCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::InputBinding>*>(NoesisComponent.GetPtr());
 	if (!NoesisInputBindingCollection)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

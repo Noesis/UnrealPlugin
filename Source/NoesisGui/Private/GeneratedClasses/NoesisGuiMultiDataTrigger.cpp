@@ -39,11 +39,11 @@ class UNoesisGuiBaseSetterCollection* UNoesisGuiMultiDataTrigger::GetSetters()
 
 	void UNoesisGuiMultiDataTrigger::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::MultiDataTrigger* NoesisMultiDataTrigger = NsDynamicCast<Noesis::Gui::MultiDataTrigger*>(NoesisComponent.GetPtr());
 	if (!NoesisMultiDataTrigger)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

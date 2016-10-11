@@ -25,11 +25,11 @@ void UNoesisGuiTextElement::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	void UNoesisGuiTextElement::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TextElement* NoesisTextElement = NsDynamicCast<Noesis::Gui::TextElement*>(NoesisComponent.GetPtr());
 	if (!NoesisTextElement)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

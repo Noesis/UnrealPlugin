@@ -21,6 +21,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	FNoesisGuiDrawingRect GetBounds();
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+bool FillContains(FNoesisGuiDrawingPoint Point);
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+FNoesisGuiDrawingRect GetRenderBounds(class UNoesisGuiPen* Pen);
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+bool IsEmpty();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+bool StrokeContains(class UNoesisGuiPen* Pen, FNoesisGuiDrawingPoint Point);
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

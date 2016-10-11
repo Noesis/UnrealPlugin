@@ -25,11 +25,11 @@ void UNoesisGuiTileBrush::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	void UNoesisGuiTileBrush::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TileBrush* NoesisTileBrush = NsDynamicCast<Noesis::Gui::TileBrush*>(NoesisComponent.GetPtr());
 	if (!NoesisTileBrush)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

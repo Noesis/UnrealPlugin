@@ -25,11 +25,11 @@ void UNoesisGuiEllipse::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesis
 
 	void UNoesisGuiEllipse::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Ellipse* NoesisEllipse = NsDynamicCast<Noesis::Gui::Ellipse*>(NoesisComponent.GetPtr());
 	if (!NoesisEllipse)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

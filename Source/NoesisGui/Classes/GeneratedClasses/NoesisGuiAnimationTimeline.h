@@ -17,6 +17,15 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+class UNoesisGuiAnimationTimeline* CreateTransitionFrom();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+class UNoesisGuiBaseComponent* GetAnimatedValue(class UNoesisGuiBaseComponent* DefaultOrigin, class UNoesisGuiBaseComponent* DefaultDestination, class UNoesisGuiAnimationClock* Clock);
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+void Start(class UNoesisGuiDependencyObject* Target, const class UNoesisGuiDependencyProperty* Dp, class UNoesisGuiITimeManager* TimeManager, ENoesisGuiHandoffBehavior Handoff);
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

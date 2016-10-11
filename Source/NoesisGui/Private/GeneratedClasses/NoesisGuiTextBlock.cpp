@@ -32,11 +32,11 @@ class UNoesisGuiInlineCollection* UNoesisGuiTextBlock::GetInlines()
 
 	void UNoesisGuiTextBlock::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TextBlock* NoesisTextBlock = NsDynamicCast<Noesis::Gui::TextBlock*>(NoesisComponent.GetPtr());
 	if (!NoesisTextBlock)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

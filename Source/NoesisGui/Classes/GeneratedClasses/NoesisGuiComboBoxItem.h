@@ -17,6 +17,9 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+void SetHighlighted(bool Value);
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

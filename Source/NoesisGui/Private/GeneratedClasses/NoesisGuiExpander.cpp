@@ -21,8 +21,10 @@ void UNoesisGuiExpander::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesi
 	Noesis::Gui::Expander* NoesisExpander = NsDynamicCast<Noesis::Gui::Expander*>(InNoesisComponent);
 	check(NoesisExpander);
 
-	NoesisExpander->Collapsed() += Noesis::MakeDelegate(this, &UNoesisGuiExpander::Collapsed_Private);
-	NoesisExpander->Expanded() += Noesis::MakeDelegate(this, &UNoesisGuiExpander::Expanded_Private);
+	Collapsed_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiExpander::Collapsed_Private);
+	NoesisExpander->Collapsed() += Collapsed_Delegate;
+	Expanded_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiExpander::Expanded_Private);
+	NoesisExpander->Expanded() += Expanded_Delegate;
 }
 
 	void UNoesisGuiExpander::Collapsed_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
@@ -30,9 +32,7 @@ void UNoesisGuiExpander::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesi
 	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiRoutedEventArgs Args;
-	Args.Source = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.source));
-	Args.RoutedEvent = CastChecked<UNoesisGuiRoutedEvent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.routedEvent));
+	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Collapsed.Broadcast(Sender, Args);
 }
 
@@ -41,21 +41,19 @@ void UNoesisGuiExpander::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesi
 	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiRoutedEventArgs Args;
-	Args.Source = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.source));
-	Args.RoutedEvent = CastChecked<UNoesisGuiRoutedEvent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.routedEvent));
+	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Expanded.Broadcast(Sender, Args);
 }
 
 	void UNoesisGuiExpander::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Expander* NoesisExpander = NsDynamicCast<Noesis::Gui::Expander*>(NoesisComponent.GetPtr());
 	if (!NoesisExpander)
-		return;
+		return Super::BeginDestroy();
 
-	NoesisExpander->Collapsed() -= Noesis::MakeDelegate(this, &UNoesisGuiExpander::Collapsed_Private);
-	NoesisExpander->Expanded() -= Noesis::MakeDelegate(this, &UNoesisGuiExpander::Expanded_Private);
+	NoesisExpander->Collapsed() -= Collapsed_Delegate;
+	NoesisExpander->Expanded() -= Expanded_Delegate;
+
+	Super::BeginDestroy();
 }
 

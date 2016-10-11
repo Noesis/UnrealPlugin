@@ -25,11 +25,11 @@ void UNoesisGuiStringAnimationUsingKeyFrames::SetNoesisComponent(Noesis::Core::B
 
 	void UNoesisGuiStringAnimationUsingKeyFrames::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::AnimationUsingKeyFrames<NsString>* NoesisStringAnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<NsString>*>(NoesisComponent.GetPtr());
 	if (!NoesisStringAnimationUsingKeyFrames)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

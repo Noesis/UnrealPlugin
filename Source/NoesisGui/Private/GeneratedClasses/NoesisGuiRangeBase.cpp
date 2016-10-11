@@ -21,15 +21,27 @@ void UNoesisGuiRangeBase::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 	Noesis::Gui::RangeBase* NoesisRangeBase = NsDynamicCast<Noesis::Gui::RangeBase*>(InNoesisComponent);
 	check(NoesisRangeBase);
 
+	ValueChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiRangeBase::ValueChanged_Private);
+	NoesisRangeBase->ValueChanged() += ValueChanged_Delegate;
+}
+
+	void UNoesisGuiRangeBase::ValueChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedPropertyChangedEventArgs<NsFloat32>& InArgs)
+{
+	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+		return;
+	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
+	FNoesisGuiFloatPropertyChangedEventArgs Args(Instance, InArgs);
+	ValueChanged.Broadcast(Sender, Args);
 }
 
 	void UNoesisGuiRangeBase::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::RangeBase* NoesisRangeBase = NsDynamicCast<Noesis::Gui::RangeBase*>(NoesisComponent.GetPtr());
 	if (!NoesisRangeBase)
-		return;
+		return Super::BeginDestroy();
 
+	NoesisRangeBase->ValueChanged() -= ValueChanged_Delegate;
+
+	Super::BeginDestroy();
 }
 

@@ -60,11 +60,11 @@ void UNoesisGuiDataTrigger::SetValue(class UNoesisGuiBaseComponent* InValue)
 
 	void UNoesisGuiDataTrigger::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::DataTrigger* NoesisDataTrigger = NsDynamicCast<Noesis::Gui::DataTrigger*>(NoesisComponent.GetPtr());
 	if (!NoesisDataTrigger)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

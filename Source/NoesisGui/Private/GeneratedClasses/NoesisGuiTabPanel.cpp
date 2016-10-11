@@ -25,11 +25,11 @@ void UNoesisGuiTabPanel::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesi
 
 	void UNoesisGuiTabPanel::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TabPanel* NoesisTabPanel = NsDynamicCast<Noesis::Gui::TabPanel*>(NoesisComponent.GetPtr());
 	if (!NoesisTabPanel)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

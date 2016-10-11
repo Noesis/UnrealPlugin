@@ -39,11 +39,11 @@ void UNoesisGuiInputBinding::SetGesture(class UNoesisGuiInputGesture* InGesture)
 
 	void UNoesisGuiInputBinding::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::InputBinding* NoesisInputBinding = NsDynamicCast<Noesis::Gui::InputBinding*>(NoesisComponent.GetPtr());
 	if (!NoesisInputBinding)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

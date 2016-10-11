@@ -46,11 +46,11 @@ class UNoesisGuiInlineCollection* UNoesisGuiInline::GetSiblingInlines()
 
 	void UNoesisGuiInline::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Inline* NoesisInline = NsDynamicCast<Noesis::Gui::Inline*>(NoesisComponent.GetPtr());
 	if (!NoesisInline)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

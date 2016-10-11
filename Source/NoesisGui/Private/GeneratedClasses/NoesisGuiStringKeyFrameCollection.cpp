@@ -25,11 +25,11 @@ void UNoesisGuiStringKeyFrameCollection::SetNoesisComponent(Noesis::Core::BaseCo
 
 	void UNoesisGuiStringKeyFrameCollection::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<NsString>>* NoesisStringKeyFrameCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<NsString>>*>(NoesisComponent.GetPtr());
 	if (!NoesisStringKeyFrameCollection)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

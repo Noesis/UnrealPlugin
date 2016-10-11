@@ -23,13 +23,20 @@ void UNoesisGuiProjection::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 
 }
 
+bool UNoesisGuiProjection::IsIdentity()
+{
+	Noesis::Gui::Projection* NoesisProjection = NsDynamicCast<Noesis::Gui::Projection*>(NoesisComponent.GetPtr());
+	check(NoesisProjection);
+	return NoesisProjection->IsIdentity();
+}
+
 	void UNoesisGuiProjection::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Projection* NoesisProjection = NsDynamicCast<Noesis::Gui::Projection*>(NoesisComponent.GetPtr());
 	if (!NoesisProjection)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

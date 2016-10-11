@@ -25,11 +25,11 @@ void UNoesisGuiToolTipService::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	void UNoesisGuiToolTipService::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ToolTipService* NoesisToolTipService = NsDynamicCast<Noesis::Gui::ToolTipService*>(NoesisComponent.GetPtr());
 	if (!NoesisToolTipService)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

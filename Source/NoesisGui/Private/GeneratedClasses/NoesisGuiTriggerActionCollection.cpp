@@ -25,11 +25,11 @@ void UNoesisGuiTriggerActionCollection::SetNoesisComponent(Noesis::Core::BaseCom
 
 	void UNoesisGuiTriggerActionCollection::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TypedCollection<Noesis::Gui::TriggerAction>* NoesisTriggerActionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::TriggerAction>*>(NoesisComponent.GetPtr());
 	if (!NoesisTriggerActionCollection)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

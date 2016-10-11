@@ -25,11 +25,11 @@ void UNoesisGuiLineBreak::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	void UNoesisGuiLineBreak::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::LineBreak* NoesisLineBreak = NsDynamicCast<Noesis::Gui::LineBreak*>(NoesisComponent.GetPtr());
 	if (!NoesisLineBreak)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

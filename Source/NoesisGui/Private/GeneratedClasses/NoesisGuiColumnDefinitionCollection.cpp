@@ -25,11 +25,11 @@ void UNoesisGuiColumnDefinitionCollection::SetNoesisComponent(Noesis::Core::Base
 
 	void UNoesisGuiColumnDefinitionCollection::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TypedCollection<Noesis::Gui::ColumnDefinition>* NoesisColumnDefinitionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::ColumnDefinition>*>(NoesisComponent.GetPtr());
 	if (!NoesisColumnDefinitionCollection)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

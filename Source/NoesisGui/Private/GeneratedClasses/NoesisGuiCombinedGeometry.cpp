@@ -25,11 +25,11 @@ void UNoesisGuiCombinedGeometry::SetNoesisComponent(Noesis::Core::BaseComponent*
 
 	void UNoesisGuiCombinedGeometry::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::CombinedGeometry* NoesisCombinedGeometry = NsDynamicCast<Noesis::Gui::CombinedGeometry*>(NoesisComponent.GetPtr());
 	if (!NoesisCombinedGeometry)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

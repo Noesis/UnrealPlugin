@@ -25,11 +25,11 @@ void UNoesisGuiVisualTransitionCollection::SetNoesisComponent(Noesis::Core::Base
 
 	void UNoesisGuiVisualTransitionCollection::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TypedCollection<Noesis::Gui::VisualTransition>* NoesisVisualTransitionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::VisualTransition>*>(NoesisComponent.GetPtr());
 	if (!NoesisVisualTransitionCollection)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

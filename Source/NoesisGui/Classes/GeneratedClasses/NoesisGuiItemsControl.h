@@ -21,6 +21,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	class UNoesisGuiItemCollection* GetItems();
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+class UNoesisGuiDependencyObject* ContainerFromElement(class UNoesisGuiDependencyObject* Element);
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+class UNoesisGuiPanel* GetDefaultItemsPanel();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+class UNoesisGuiItemContainerGenerator* GetItemContainerGenerator();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+bool IsItemItsOwnContainer(class UNoesisGuiBaseComponent* Item);
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

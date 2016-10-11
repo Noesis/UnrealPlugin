@@ -81,11 +81,11 @@ class UNoesisGuiTriggerCollection* UNoesisGuiStyle::GetTriggers()
 
 	void UNoesisGuiStyle::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Style* NoesisStyle = NsDynamicCast<Noesis::Gui::Style*>(NoesisComponent.GetPtr());
 	if (!NoesisStyle)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

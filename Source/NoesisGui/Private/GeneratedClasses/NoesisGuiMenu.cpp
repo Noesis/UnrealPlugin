@@ -23,13 +23,20 @@ void UNoesisGuiMenu::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisCom
 
 }
 
+bool UNoesisGuiMenu::GetActivated()
+{
+	Noesis::Gui::Menu* NoesisMenu = NsDynamicCast<Noesis::Gui::Menu*>(NoesisComponent.GetPtr());
+	check(NoesisMenu);
+	return NoesisMenu->GetActivated();
+}
+
 	void UNoesisGuiMenu::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Menu* NoesisMenu = NsDynamicCast<Noesis::Gui::Menu*>(NoesisComponent.GetPtr());
 	if (!NoesisMenu)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

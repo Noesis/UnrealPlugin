@@ -30,13 +30,43 @@ class UNoesisGuiItemCollection* UNoesisGuiItemsControl::GetItems()
 	return CastChecked<UNoesisGuiItemCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisItemsControl->GetItems()));
 }
 
+class UNoesisGuiDependencyObject* UNoesisGuiItemsControl::ContainerFromElement(class UNoesisGuiDependencyObject* InElement)
+{
+	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
+	check(NoesisItemsControl);
+	DependencyObject* NoesisInElement = NsDynamicCast<DependencyObject*>(InElement->NoesisComponent.GetPtr());
+	return CastChecked<UNoesisGuiDependencyObject>(Instance->FindUnrealComponentForNoesisComponent(NoesisItemsControl->ContainerFromElement(NoesisInElement)));
+}
+
+class UNoesisGuiPanel* UNoesisGuiItemsControl::GetDefaultItemsPanel()
+{
+	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
+	check(NoesisItemsControl);
+	return CastChecked<UNoesisGuiPanel>(Instance->FindUnrealComponentForNoesisComponent(NoesisItemsControl->GetDefaultItemsPanel()));
+}
+
+class UNoesisGuiItemContainerGenerator* UNoesisGuiItemsControl::GetItemContainerGenerator()
+{
+	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
+	check(NoesisItemsControl);
+	return CastChecked<UNoesisGuiItemContainerGenerator>(Instance->FindUnrealComponentForNoesisComponent(NoesisItemsControl->GetItemContainerGenerator()));
+}
+
+bool UNoesisGuiItemsControl::IsItemItsOwnContainer(class UNoesisGuiBaseComponent* InItem)
+{
+	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
+	check(NoesisItemsControl);
+	Core::BaseComponent* NoesisInItem = NsDynamicCast<Core::BaseComponent*>(InItem->NoesisComponent.GetPtr());
+	return NoesisItemsControl->IsItemItsOwnContainer(NoesisInItem);
+}
+
 	void UNoesisGuiItemsControl::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
 	if (!NoesisItemsControl)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

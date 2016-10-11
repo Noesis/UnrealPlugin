@@ -39,11 +39,11 @@ void UNoesisGuiPage::SetTitle(FString InTitle)
 
 	void UNoesisGuiPage::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Page* NoesisPage = NsDynamicCast<Noesis::Gui::Page*>(NoesisComponent.GetPtr());
 	if (!NoesisPage)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

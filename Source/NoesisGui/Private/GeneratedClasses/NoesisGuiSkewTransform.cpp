@@ -25,11 +25,11 @@ void UNoesisGuiSkewTransform::SetNoesisComponent(Noesis::Core::BaseComponent* In
 
 	void UNoesisGuiSkewTransform::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::SkewTransform* NoesisSkewTransform = NsDynamicCast<Noesis::Gui::SkewTransform*>(NoesisComponent.GetPtr());
 	if (!NoesisSkewTransform)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

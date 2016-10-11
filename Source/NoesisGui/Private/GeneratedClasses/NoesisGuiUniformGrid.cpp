@@ -25,11 +25,11 @@ void UNoesisGuiUniformGrid::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	void UNoesisGuiUniformGrid::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::UniformGrid* NoesisUniformGrid = NsDynamicCast<Noesis::Gui::UniformGrid*>(NoesisComponent.GetPtr());
 	if (!NoesisUniformGrid)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

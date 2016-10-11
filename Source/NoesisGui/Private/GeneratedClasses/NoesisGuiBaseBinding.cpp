@@ -53,11 +53,11 @@ void UNoesisGuiBaseBinding::SetStringFormat(FString InStringFormat)
 
 	void UNoesisGuiBaseBinding::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::BaseBinding* NoesisBaseBinding = NsDynamicCast<Noesis::Gui::BaseBinding*>(NoesisComponent.GetPtr());
 	if (!NoesisBaseBinding)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

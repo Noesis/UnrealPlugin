@@ -25,11 +25,11 @@ void UNoesisGuiPauseStoryboard::SetNoesisComponent(Noesis::Core::BaseComponent* 
 
 	void UNoesisGuiPauseStoryboard::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::PauseStoryboard* NoesisPauseStoryboard = NsDynamicCast<Noesis::Gui::PauseStoryboard*>(NoesisComponent.GetPtr());
 	if (!NoesisPauseStoryboard)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

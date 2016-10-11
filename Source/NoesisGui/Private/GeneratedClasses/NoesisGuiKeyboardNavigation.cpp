@@ -25,11 +25,11 @@ void UNoesisGuiKeyboardNavigation::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	void UNoesisGuiKeyboardNavigation::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::KeyboardNavigation* NoesisKeyboardNavigation = NsDynamicCast<Noesis::Gui::KeyboardNavigation*>(NoesisComponent.GetPtr());
 	if (!NoesisKeyboardNavigation)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

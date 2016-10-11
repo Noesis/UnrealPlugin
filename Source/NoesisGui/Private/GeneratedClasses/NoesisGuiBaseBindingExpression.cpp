@@ -32,11 +32,11 @@ class UNoesisGuiBaseBinding* UNoesisGuiBaseBindingExpression::GetBinding()
 
 	void UNoesisGuiBaseBindingExpression::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::BaseBindingExpression* NoesisBaseBindingExpression = NsDynamicCast<Noesis::Gui::BaseBindingExpression*>(NoesisComponent.GetPtr());
 	if (!NoesisBaseBindingExpression)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

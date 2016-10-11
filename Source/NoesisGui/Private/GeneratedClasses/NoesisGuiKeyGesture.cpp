@@ -46,11 +46,11 @@ int32 UNoesisGuiKeyGesture::GetModifiers()
 
 	void UNoesisGuiKeyGesture::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::KeyGesture* NoesisKeyGesture = NsDynamicCast<Noesis::Gui::KeyGesture*>(NoesisComponent.GetPtr());
 	if (!NoesisKeyGesture)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

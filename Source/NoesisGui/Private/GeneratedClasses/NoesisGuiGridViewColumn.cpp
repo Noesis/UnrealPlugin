@@ -53,11 +53,11 @@ void UNoesisGuiGridViewColumn::SetDisplayMemberBinding(class UNoesisGuiBaseBindi
 
 	void UNoesisGuiGridViewColumn::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::GridViewColumn* NoesisGridViewColumn = NsDynamicCast<Noesis::Gui::GridViewColumn*>(NoesisComponent.GetPtr());
 	if (!NoesisGridViewColumn)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

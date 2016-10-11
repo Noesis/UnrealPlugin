@@ -25,11 +25,11 @@ void UNoesisGuiSplinePointKeyFrame::SetNoesisComponent(Noesis::Core::BaseCompone
 
 	void UNoesisGuiSplinePointKeyFrame::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Point>* NoesisSplinePointKeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Point>*>(NoesisComponent.GetPtr());
 	if (!NoesisSplinePointKeyFrame)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

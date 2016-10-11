@@ -53,11 +53,11 @@ void UNoesisGuiBeginStoryboard::SetName(FString InName)
 
 	void UNoesisGuiBeginStoryboard::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::BeginStoryboard* NoesisBeginStoryboard = NsDynamicCast<Noesis::Gui::BeginStoryboard*>(NoesisComponent.GetPtr());
 	if (!NoesisBeginStoryboard)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

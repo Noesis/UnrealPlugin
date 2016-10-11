@@ -25,11 +25,11 @@ void UNoesisGuiItemsPanelTemplate::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	void UNoesisGuiItemsPanelTemplate::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ItemsPanelTemplate* NoesisItemsPanelTemplate = NsDynamicCast<Noesis::Gui::ItemsPanelTemplate*>(NoesisComponent.GetPtr());
 	if (!NoesisItemsPanelTemplate)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

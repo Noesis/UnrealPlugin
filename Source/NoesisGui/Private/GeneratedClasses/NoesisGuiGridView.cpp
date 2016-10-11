@@ -32,11 +32,11 @@ class UNoesisGuiGridViewColumnCollection* UNoesisGuiGridView::GetColumns()
 
 	void UNoesisGuiGridView::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::GridView* NoesisGridView = NsDynamicCast<Noesis::Gui::GridView*>(NoesisComponent.GetPtr());
 	if (!NoesisGridView)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

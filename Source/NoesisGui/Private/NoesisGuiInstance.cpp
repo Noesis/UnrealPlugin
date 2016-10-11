@@ -12,6 +12,7 @@
 #include "Render/NoesisGuiRenderDevice.h"
 #include "NoesisGuiModule.h"
 #include "NoesisGuiCreateClass.h"
+#include "NoesisGuiCreateInterface.h"
 
 UNoesisGuiInstance::UNoesisGuiInstance(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -274,17 +275,51 @@ UNoesisGuiBaseComponent* UNoesisGuiInstance::FindUnrealComponentForNoesisCompone
 
 	UNoesisGuiBaseComponent* UnrealComponent = CreateClassFor((Noesis::Core::BaseComponent*)NoesisComponent, this);
 	SetComponentFor((Noesis::Core::BaseComponent*)NoesisComponent, UnrealComponent);
+	CreatedComponents.Add(UnrealComponent);
 	return UnrealComponent;
 }
 
-Noesis::Core::BaseComponent* UNoesisGuiInstance::FindNoesisComponentForUnrealComponent(UNoesisGuiBaseComponent* UnrealComponent)
+UNoesisGuiBaseComponent* UNoesisGuiInstance::FindUnrealComponentForNoesisComponent(const Noesis::Core::Ptr<Noesis::Core::BaseComponent> NoesisComponent)
 {
-	return UnrealComponent->NoesisComponent.GetPtr();
+	UNoesisGuiBaseComponent** UnrealComponentPtr = ComponentMap.Find(NoesisComponent.GetPtr());
+	if (UnrealComponentPtr)
+		return *UnrealComponentPtr;
+
+	UNoesisGuiBaseComponent* UnrealComponent = CreateClassFor((Noesis::Core::BaseComponent*)NoesisComponent.GetPtr(), this);
+	SetComponentFor((Noesis::Core::BaseComponent*)NoesisComponent.GetPtr(), UnrealComponent);
+	CreatedComponents.Add(UnrealComponent);
+	return UnrealComponent;
 }
 
-Noesis::Ptr<Noesis::Core::BaseComponent> UNoesisGuiInstance::FindNoesisComponentPtrForUnrealComponent(UNoesisGuiBaseComponent* UnrealComponent)
+void UNoesisGuiInstance::SetInterfaceFor(Noesis::Core::Interface* NoesisInterface, UNoesisGuiInterface* UnrealInterface)
 {
-	return UnrealComponent->NoesisComponent;
+	UnrealInterface->SetNoesisInterface(NoesisInterface);
+	UnrealInterface->Instance = this;
+	InterfaceMap.Add(NoesisInterface, UnrealInterface);
+}
+
+UNoesisGuiInterface* UNoesisGuiInstance::FindUnrealInterfaceForNoesisInterface(const Noesis::Core::Interface* NoesisInterface)
+{
+	UNoesisGuiInterface** UnrealInterfacePtr = InterfaceMap.Find(NoesisInterface);
+	if (UnrealInterfacePtr)
+		return *UnrealInterfacePtr;
+
+	UNoesisGuiInterface* UnrealInterface = CreateInterfaceFor((Noesis::Core::Interface*)NoesisInterface, this);
+	SetInterfaceFor((Noesis::Core::Interface*)NoesisInterface, UnrealInterface);
+	CreatedInterfaces.Add(UnrealInterface);
+	return UnrealInterface;
+}
+
+UNoesisGuiInterface* UNoesisGuiInstance::FindUnrealInterfaceForNoesisInterface(const Noesis::Core::Ptr<Noesis::Core::Interface> NoesisInterface)
+{
+	UNoesisGuiInterface** UnrealInterfacePtr = InterfaceMap.Find(NoesisInterface.GetPtr());
+	if (UnrealInterfacePtr)
+		return *UnrealInterfacePtr;
+
+	UNoesisGuiInterface* UnrealInterface = CreateInterfaceFor((Noesis::Core::Interface*)NoesisInterface.GetPtr(), this);
+	SetInterfaceFor((Noesis::Core::Interface*)NoesisInterface.GetPtr(), UnrealInterface);
+	CreatedInterfaces.Add(UnrealInterface);
+	return UnrealInterface;
 }
 
 class UWorld* UNoesisGuiInstance::GetWorld() const
@@ -316,5 +351,7 @@ void UNoesisGuiInstance::BeginDestroy()
 		NoesisGuiRenderDevice->Release();
 		NoesisGuiRenderDevice = nullptr;
 		XamlView.Reset();
+		VgContext.Reset();
+		Xaml.Reset();
 	}
 }

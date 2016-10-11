@@ -23,6 +23,20 @@ void UNoesisGuiBinding::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesis
 
 }
 
+UNoesisGuiIValueConverter* UNoesisGuiBinding::GetConverter()
+{
+	Noesis::Gui::Binding* NoesisBinding = NsDynamicCast<Noesis::Gui::Binding*>(NoesisComponent.GetPtr());
+	check(NoesisBinding);
+	return CastChecked<UNoesisGuiIValueConverter>(Instance->FindUnrealInterfaceForNoesisInterface(NoesisBinding->GetConverter()));
+}
+
+void UNoesisGuiBinding::SetConverter(UNoesisGuiIValueConverter* InConverter)
+{
+	Noesis::Gui::Binding* NoesisBinding = NsDynamicCast<Noesis::Gui::Binding*>(NoesisComponent.GetPtr());
+	check(NoesisBinding);
+	NoesisBinding->SetConverter(NsDynamicCast<IValueConverter*>(InConverter->NoesisInterface.GetPtr()));
+}
+
 class UNoesisGuiBaseComponent* UNoesisGuiBinding::GetConverterParameter()
 {
 	Noesis::Gui::Binding* NoesisBinding = NsDynamicCast<Noesis::Gui::Binding*>(NoesisComponent.GetPtr());
@@ -121,13 +135,22 @@ void UNoesisGuiBinding::SetUpdateSourceTrigger(ENoesisGuiUpdateSourceTrigger InU
 	NoesisBinding->SetUpdateSourceTrigger((UpdateSourceTrigger)InUpdateSourceTrigger);
 }
 
+FNoesisGuiObjectWithNameScope UNoesisGuiBinding::GetSourceObject(class UNoesisGuiBaseComponent* InTarget, const class UNoesisGuiDependencyProperty* InTargetProperty)
+{
+	Noesis::Gui::Binding* NoesisBinding = NsDynamicCast<Noesis::Gui::Binding*>(NoesisComponent.GetPtr());
+	check(NoesisBinding);
+	Core::BaseComponent* NoesisInTarget = NsDynamicCast<Core::BaseComponent*>(InTarget->NoesisComponent.GetPtr());
+	const DependencyProperty* NoesisInTargetProperty = NsDynamicCast<const DependencyProperty*>(InTargetProperty->NoesisComponent.GetPtr());
+	return FNoesisGuiObjectWithNameScope(Instance, NoesisBinding->GetSourceObject(NoesisInTarget, NoesisInTargetProperty));
+}
+
 	void UNoesisGuiBinding::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Binding* NoesisBinding = NsDynamicCast<Noesis::Gui::Binding*>(NoesisComponent.GetPtr());
 	if (!NoesisBinding)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

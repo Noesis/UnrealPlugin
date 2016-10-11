@@ -51,13 +51,38 @@ void UNoesisGuiFrameworkTemplate::SetVisualTree(class UNoesisGuiVisual* InVisual
 	NoesisFrameworkTemplate->SetVisualTree(NsDynamicCast<Visual*>(InVisualTree->NoesisComponent.GetPtr()));
 }
 
+class UNoesisGuiFrameworkElement* UNoesisGuiFrameworkTemplate::Apply(class UNoesisGuiFrameworkElement* InTemplatedParent, class UNoesisGuiBaseComponent* InDataContext)
+{
+	Noesis::Gui::FrameworkTemplate* NoesisFrameworkTemplate = NsDynamicCast<Noesis::Gui::FrameworkTemplate*>(NoesisComponent.GetPtr());
+	check(NoesisFrameworkTemplate);
+	FrameworkElement* NoesisInTemplatedParent = NsDynamicCast<FrameworkElement*>(InTemplatedParent->NoesisComponent.GetPtr());
+	BaseComponent* NoesisInDataContext = NsDynamicCast<BaseComponent*>(InDataContext->NoesisComponent.GetPtr());
+	return CastChecked<UNoesisGuiFrameworkElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkTemplate->Apply(NoesisInTemplatedParent, NoesisInDataContext)));
+}
+
+class UNoesisGuiBaseComponent* UNoesisGuiFrameworkTemplate::FindName(FString InName, class UNoesisGuiFrameworkElement* InTemplatedParent)
+{
+	Noesis::Gui::FrameworkTemplate* NoesisFrameworkTemplate = NsDynamicCast<Noesis::Gui::FrameworkTemplate*>(NoesisComponent.GetPtr());
+	check(NoesisFrameworkTemplate);
+	const NsChar* NoesisInName = StringCast<NsChar>(*InName).Get();
+	FrameworkElement* NoesisInTemplatedParent = NsDynamicCast<FrameworkElement*>(InTemplatedParent->NoesisComponent.GetPtr());
+	return CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkTemplate->FindName(NoesisInName, NoesisInTemplatedParent)));
+}
+
+class UNoesisGuiTriggerCollection* UNoesisGuiFrameworkTemplate::GetAvailableTriggers()
+{
+	Noesis::Gui::FrameworkTemplate* NoesisFrameworkTemplate = NsDynamicCast<Noesis::Gui::FrameworkTemplate*>(NoesisComponent.GetPtr());
+	check(NoesisFrameworkTemplate);
+	return CastChecked<UNoesisGuiTriggerCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkTemplate->GetAvailableTriggers()));
+}
+
 	void UNoesisGuiFrameworkTemplate::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::FrameworkTemplate* NoesisFrameworkTemplate = NsDynamicCast<Noesis::Gui::FrameworkTemplate*>(NoesisComponent.GetPtr());
 	if (!NoesisFrameworkTemplate)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

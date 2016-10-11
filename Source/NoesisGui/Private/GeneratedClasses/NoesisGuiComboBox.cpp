@@ -25,11 +25,11 @@ void UNoesisGuiComboBox::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesi
 
 	void UNoesisGuiComboBox::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ComboBox* NoesisComboBox = NsDynamicCast<Noesis::Gui::ComboBox*>(NoesisComponent.GetPtr());
 	if (!NoesisComboBox)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

@@ -21,6 +21,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	class UNoesisGuiTrack* GetTrack();
 
+	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
+	FNoesisGuiScrollEventHandler Scroll;
+
+	void Scroll_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ScrollEventArgs& InArgs);
+
+	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::ScrollEventArgs& InArgs)> Scroll_Delegate;
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface

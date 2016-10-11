@@ -25,11 +25,11 @@ void UNoesisGuiTabControl::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 
 	void UNoesisGuiTabControl::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TabControl* NoesisTabControl = NsDynamicCast<Noesis::Gui::TabControl*>(NoesisComponent.GetPtr());
 	if (!NoesisTabControl)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

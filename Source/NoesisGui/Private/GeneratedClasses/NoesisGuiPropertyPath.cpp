@@ -39,11 +39,11 @@ void UNoesisGuiPropertyPath::SetPath(FString InPath)
 
 	void UNoesisGuiPropertyPath::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::PropertyPath* NoesisPropertyPath = NsDynamicCast<Noesis::Gui::PropertyPath*>(NoesisComponent.GetPtr());
 	if (!NoesisPropertyPath)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

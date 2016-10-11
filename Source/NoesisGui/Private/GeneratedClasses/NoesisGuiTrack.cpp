@@ -65,13 +65,30 @@ void UNoesisGuiTrack::SetThumb(class UNoesisGuiThumb* InThumb)
 	NoesisTrack->SetThumb(NsDynamicCast<Thumb*>(InThumb->NoesisComponent.GetPtr()));
 }
 
+float UNoesisGuiTrack::ValueFromDistance(float InHorizontal, float InVertical)
+{
+	Noesis::Gui::Track* NoesisTrack = NsDynamicCast<Noesis::Gui::Track*>(NoesisComponent.GetPtr());
+	check(NoesisTrack);
+	NsFloat32 NoesisInHorizontal = InHorizontal;
+	NsFloat32 NoesisInVertical = InVertical;
+	return (float)NoesisTrack->ValueFromDistance(NoesisInHorizontal, NoesisInVertical);
+}
+
+float UNoesisGuiTrack::ValueFromPoint(FNoesisGuiDrawingPoint InPoint)
+{
+	Noesis::Gui::Track* NoesisTrack = NsDynamicCast<Noesis::Gui::Track*>(NoesisComponent.GetPtr());
+	check(NoesisTrack);
+	const Drawing::Point NoesisInPoint = InPoint.ToNoesis();
+	return (float)NoesisTrack->ValueFromPoint(NoesisInPoint);
+}
+
 	void UNoesisGuiTrack::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Track* NoesisTrack = NsDynamicCast<Noesis::Gui::Track*>(NoesisComponent.GetPtr());
 	if (!NoesisTrack)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

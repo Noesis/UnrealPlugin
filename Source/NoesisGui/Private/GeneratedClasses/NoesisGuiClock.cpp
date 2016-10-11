@@ -24,6 +24,8 @@ void UNoesisGuiClock::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisCo
 	Noesis::Gui::Clock* NoesisClock = NsDynamicCast<Noesis::Gui::Clock*>(InNoesisComponent);
 	check(NoesisClock);
 
+	Completed_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiClock::Completed_Private);
+	NoesisClock->Completed() += Completed_Delegate;
 }
 
 int32 UNoesisGuiClock::GetCurrentIteration()
@@ -61,14 +63,38 @@ class UNoesisGuiTimeline* UNoesisGuiClock::GetTimeline()
 	return CastChecked<UNoesisGuiTimeline>(Instance->FindUnrealComponentForNoesisComponent(NoesisClock->GetTimeline()));
 }
 
+ENoesisGuiClockState UNoesisGuiClock::GetCurrentState()
+{
+	Noesis::Gui::Clock* NoesisClock = NsDynamicCast<Noesis::Gui::Clock*>(NoesisComponent.GetPtr());
+	check(NoesisClock);
+	return (ENoesisGuiClockState)NoesisClock->GetCurrentState();
+}
+
+bool UNoesisGuiClock::HasControllableRoot()
+{
+	Noesis::Gui::Clock* NoesisClock = NsDynamicCast<Noesis::Gui::Clock*>(NoesisComponent.GetPtr());
+	check(NoesisClock);
+	return NoesisClock->HasControllableRoot();
+}
+
+	void UNoesisGuiClock::Completed_Private(Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs)
+{
+	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+		return;
+	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
+	FNoesisGuiEventArgs Args(Instance, InArgs);
+	Completed.Broadcast(Sender, Args);
+}
+
 	void UNoesisGuiClock::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Clock* NoesisClock = NsDynamicCast<Noesis::Gui::Clock*>(NoesisComponent.GetPtr());
 	if (!NoesisClock)
-		return;
+		return Super::BeginDestroy();
 
+	NoesisClock->Completed() -= Completed_Delegate;
+
+	Super::BeginDestroy();
 }
 
 #pragma pop_macro("GetCurrentTime")

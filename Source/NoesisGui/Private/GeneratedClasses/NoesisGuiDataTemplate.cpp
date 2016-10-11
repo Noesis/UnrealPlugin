@@ -46,11 +46,11 @@ class UNoesisGuiTriggerCollection* UNoesisGuiDataTemplate::GetTriggers()
 
 	void UNoesisGuiDataTemplate::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::DataTemplate* NoesisDataTemplate = NsDynamicCast<Noesis::Gui::DataTemplate*>(NoesisComponent.GetPtr());
 	if (!NoesisDataTemplate)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

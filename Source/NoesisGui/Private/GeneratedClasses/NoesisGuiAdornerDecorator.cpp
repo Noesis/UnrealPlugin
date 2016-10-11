@@ -25,11 +25,11 @@ void UNoesisGuiAdornerDecorator::SetNoesisComponent(Noesis::Core::BaseComponent*
 
 	void UNoesisGuiAdornerDecorator::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::AdornerDecorator* NoesisAdornerDecorator = NsDynamicCast<Noesis::Gui::AdornerDecorator*>(NoesisComponent.GetPtr());
 	if (!NoesisAdornerDecorator)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

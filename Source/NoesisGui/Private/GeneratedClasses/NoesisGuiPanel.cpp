@@ -30,13 +30,20 @@ class UNoesisGuiUIElementCollection* UNoesisGuiPanel::GetChildren()
 	return CastChecked<UNoesisGuiUIElementCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisPanel->GetChildren()));
 }
 
+void UNoesisGuiPanel::InvalidateZOrder()
+{
+	Noesis::Gui::Panel* NoesisPanel = NsDynamicCast<Noesis::Gui::Panel*>(NoesisComponent.GetPtr());
+	check(NoesisPanel);
+	return NoesisPanel->InvalidateZOrder();
+}
+
 	void UNoesisGuiPanel::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Panel* NoesisPanel = NsDynamicCast<Noesis::Gui::Panel*>(NoesisComponent.GetPtr());
 	if (!NoesisPanel)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

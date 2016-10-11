@@ -25,11 +25,11 @@ void UNoesisGuiExponentialEase::SetNoesisComponent(Noesis::Core::BaseComponent* 
 
 	void UNoesisGuiExponentialEase::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ExponentialEase* NoesisExponentialEase = NsDynamicCast<Noesis::Gui::ExponentialEase*>(NoesisComponent.GetPtr());
 	if (!NoesisExponentialEase)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

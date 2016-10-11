@@ -25,11 +25,11 @@ void UNoesisGuiProgressBar::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	void UNoesisGuiProgressBar::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ProgressBar* NoesisProgressBar = NsDynamicCast<Noesis::Gui::ProgressBar*>(NoesisComponent.GetPtr());
 	if (!NoesisProgressBar)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

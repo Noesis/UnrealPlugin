@@ -21,8 +21,10 @@ void UNoesisGuiListBoxItem::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 	Noesis::Gui::ListBoxItem* NoesisListBoxItem = NsDynamicCast<Noesis::Gui::ListBoxItem*>(InNoesisComponent);
 	check(NoesisListBoxItem);
 
-	NoesisListBoxItem->Selected() += Noesis::MakeDelegate(this, &UNoesisGuiListBoxItem::Selected_Private);
-	NoesisListBoxItem->Unselected() += Noesis::MakeDelegate(this, &UNoesisGuiListBoxItem::Unselected_Private);
+	Selected_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiListBoxItem::Selected_Private);
+	NoesisListBoxItem->Selected() += Selected_Delegate;
+	Unselected_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiListBoxItem::Unselected_Private);
+	NoesisListBoxItem->Unselected() += Unselected_Delegate;
 }
 
 	void UNoesisGuiListBoxItem::Selected_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
@@ -30,9 +32,7 @@ void UNoesisGuiListBoxItem::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiRoutedEventArgs Args;
-	Args.Source = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.source));
-	Args.RoutedEvent = CastChecked<UNoesisGuiRoutedEvent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.routedEvent));
+	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Selected.Broadcast(Sender, Args);
 }
 
@@ -41,21 +41,19 @@ void UNoesisGuiListBoxItem::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiRoutedEventArgs Args;
-	Args.Source = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.source));
-	Args.RoutedEvent = CastChecked<UNoesisGuiRoutedEvent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.routedEvent));
+	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Unselected.Broadcast(Sender, Args);
 }
 
 	void UNoesisGuiListBoxItem::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ListBoxItem* NoesisListBoxItem = NsDynamicCast<Noesis::Gui::ListBoxItem*>(NoesisComponent.GetPtr());
 	if (!NoesisListBoxItem)
-		return;
+		return Super::BeginDestroy();
 
-	NoesisListBoxItem->Selected() -= Noesis::MakeDelegate(this, &UNoesisGuiListBoxItem::Selected_Private);
-	NoesisListBoxItem->Unselected() -= Noesis::MakeDelegate(this, &UNoesisGuiListBoxItem::Unselected_Private);
+	NoesisListBoxItem->Selected() -= Selected_Delegate;
+	NoesisListBoxItem->Unselected() -= Unselected_Delegate;
+
+	Super::BeginDestroy();
 }
 

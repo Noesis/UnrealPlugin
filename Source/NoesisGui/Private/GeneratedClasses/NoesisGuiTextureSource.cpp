@@ -67,11 +67,11 @@ void UNoesisGuiTextureSource::SetSource(FString InSource)
 
 	void UNoesisGuiTextureSource::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TextureSource* NoesisTextureSource = NsDynamicCast<Noesis::Gui::TextureSource*>(NoesisComponent.GetPtr());
 	if (!NoesisTextureSource)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

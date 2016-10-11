@@ -39,11 +39,11 @@ void UNoesisGuiUIElementCollection::SetLogicalParent(class UNoesisGuiFrameworkEl
 
 	void UNoesisGuiUIElementCollection::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::UIElementCollection* NoesisUIElementCollection = NsDynamicCast<Noesis::Gui::UIElementCollection*>(NoesisComponent.GetPtr());
 	if (!NoesisUIElementCollection)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

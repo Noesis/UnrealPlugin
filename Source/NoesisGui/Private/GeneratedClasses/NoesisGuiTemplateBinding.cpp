@@ -39,11 +39,11 @@ void UNoesisGuiTemplateBinding::SetProperty(class UNoesisGuiDependencyProperty* 
 
 	void UNoesisGuiTemplateBinding::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::TemplateBinding* NoesisTemplateBinding = NsDynamicCast<Noesis::Gui::TemplateBinding*>(NoesisComponent.GetPtr());
 	if (!NoesisTemplateBinding)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

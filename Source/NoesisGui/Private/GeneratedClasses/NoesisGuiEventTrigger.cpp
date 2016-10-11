@@ -60,11 +60,11 @@ void UNoesisGuiEventTrigger::SetSourceName(FString InSourceName)
 
 	void UNoesisGuiEventTrigger::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::EventTrigger* NoesisEventTrigger = NsDynamicCast<Noesis::Gui::EventTrigger*>(NoesisComponent.GetPtr());
 	if (!NoesisEventTrigger)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

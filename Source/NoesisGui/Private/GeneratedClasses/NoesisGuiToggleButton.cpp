@@ -21,9 +21,12 @@ void UNoesisGuiToggleButton::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 	Noesis::Gui::ToggleButton* NoesisToggleButton = NsDynamicCast<Noesis::Gui::ToggleButton*>(InNoesisComponent);
 	check(NoesisToggleButton);
 
-	NoesisToggleButton->Checked() += Noesis::MakeDelegate(this, &UNoesisGuiToggleButton::Checked_Private);
-	NoesisToggleButton->Indeterminate() += Noesis::MakeDelegate(this, &UNoesisGuiToggleButton::Indeterminate_Private);
-	NoesisToggleButton->Unchecked() += Noesis::MakeDelegate(this, &UNoesisGuiToggleButton::Unchecked_Private);
+	Checked_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiToggleButton::Checked_Private);
+	NoesisToggleButton->Checked() += Checked_Delegate;
+	Indeterminate_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiToggleButton::Indeterminate_Private);
+	NoesisToggleButton->Indeterminate() += Indeterminate_Delegate;
+	Unchecked_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiToggleButton::Unchecked_Private);
+	NoesisToggleButton->Unchecked() += Unchecked_Delegate;
 }
 
 	void UNoesisGuiToggleButton::Checked_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
@@ -31,9 +34,7 @@ void UNoesisGuiToggleButton::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiRoutedEventArgs Args;
-	Args.Source = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.source));
-	Args.RoutedEvent = CastChecked<UNoesisGuiRoutedEvent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.routedEvent));
+	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Checked.Broadcast(Sender, Args);
 }
 
@@ -42,9 +43,7 @@ void UNoesisGuiToggleButton::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiRoutedEventArgs Args;
-	Args.Source = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.source));
-	Args.RoutedEvent = CastChecked<UNoesisGuiRoutedEvent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.routedEvent));
+	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Indeterminate.Broadcast(Sender, Args);
 }
 
@@ -53,22 +52,20 @@ void UNoesisGuiToggleButton::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiRoutedEventArgs Args;
-	Args.Source = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.source));
-	Args.RoutedEvent = CastChecked<UNoesisGuiRoutedEvent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.routedEvent));
+	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Unchecked.Broadcast(Sender, Args);
 }
 
 	void UNoesisGuiToggleButton::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::ToggleButton* NoesisToggleButton = NsDynamicCast<Noesis::Gui::ToggleButton*>(NoesisComponent.GetPtr());
 	if (!NoesisToggleButton)
-		return;
+		return Super::BeginDestroy();
 
-	NoesisToggleButton->Checked() -= Noesis::MakeDelegate(this, &UNoesisGuiToggleButton::Checked_Private);
-	NoesisToggleButton->Indeterminate() -= Noesis::MakeDelegate(this, &UNoesisGuiToggleButton::Indeterminate_Private);
-	NoesisToggleButton->Unchecked() -= Noesis::MakeDelegate(this, &UNoesisGuiToggleButton::Unchecked_Private);
+	NoesisToggleButton->Checked() -= Checked_Delegate;
+	NoesisToggleButton->Indeterminate() -= Indeterminate_Delegate;
+	NoesisToggleButton->Unchecked() -= Unchecked_Delegate;
+
+	Super::BeginDestroy();
 }
 

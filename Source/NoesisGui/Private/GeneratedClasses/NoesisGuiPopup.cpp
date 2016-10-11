@@ -25,11 +25,11 @@ void UNoesisGuiPopup::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisCo
 
 	void UNoesisGuiPopup::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::Popup* NoesisPopup = NsDynamicCast<Noesis::Gui::Popup*>(NoesisComponent.GetPtr());
 	if (!NoesisPopup)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

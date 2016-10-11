@@ -25,11 +25,11 @@ void UNoesisGuiWrapPanel::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	void UNoesisGuiWrapPanel::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	Noesis::Gui::WrapPanel* NoesisWrapPanel = NsDynamicCast<Noesis::Gui::WrapPanel*>(NoesisComponent.GetPtr());
 	if (!NoesisWrapPanel)
-		return;
+		return Super::BeginDestroy();
 
+
+	Super::BeginDestroy();
 }
 

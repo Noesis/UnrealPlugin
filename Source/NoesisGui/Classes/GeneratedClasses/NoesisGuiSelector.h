@@ -17,6 +17,13 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
+	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
+	FNoesisGuiSelectionChangedEventHandler SelectionChanged;
+
+	void SelectionChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::SelectionChangedEventArgs& InArgs);
+
+	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::SelectionChangedEventArgs& InArgs)> SelectionChanged_Delegate;
+
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface
