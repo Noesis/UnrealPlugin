@@ -7,7 +7,7 @@ Setup
 1. Copy the contents of this repository into Engine/Plugins/NoesisGui.
 
 2. Extract the Noesis GUI SDK into Engine/Plugins/NoesisGui/Source/ThirdParty/Noesis.
-   The Noesis GUI SDK entails folder /NoesisGUI-SDK1.3/ with Bin, Include and Lib. Delete the others.
+   The Noesis GUI SDK means the folder /NoesisGUI-SDK1.3/ with Bin, Include and Lib. Delete the others.
     
 
 3. Regenerate the UE4 projects.
