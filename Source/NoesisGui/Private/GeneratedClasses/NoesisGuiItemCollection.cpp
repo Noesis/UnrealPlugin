@@ -20,7 +20,6 @@ void UNoesisGuiItemCollection::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	Noesis::Gui::ItemCollection* NoesisItemCollection = NsDynamicCast<Noesis::Gui::ItemCollection*>(InNoesisComponent);
 	check(NoesisItemCollection);
-
 }
 
 bool UNoesisGuiItemCollection::IsReadOnly()
@@ -46,13 +45,23 @@ void UNoesisGuiItemCollection::SetView(class UNoesisGuiCollectionView* InView)
 	return NoesisItemCollection->SetView(NoesisInView);
 }
 
-	void UNoesisGuiItemCollection::BeginDestroy()
+void UNoesisGuiItemCollection::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::ItemCollection* NoesisItemCollection = NsDynamicCast<Noesis::Gui::ItemCollection*>(NoesisComponent.GetPtr());
-	if (!NoesisItemCollection)
-		return Super::BeginDestroy();
+	check(NoesisItemCollection)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiItemCollection::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::ItemCollection* NoesisItemCollection = NsDynamicCast<Noesis::Gui::ItemCollection*>(NoesisComponent.GetPtr());
+	check(NoesisItemCollection)
+
+
 }
 

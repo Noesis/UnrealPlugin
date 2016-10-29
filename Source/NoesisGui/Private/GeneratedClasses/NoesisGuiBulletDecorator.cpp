@@ -20,7 +20,6 @@ void UNoesisGuiBulletDecorator::SetNoesisComponent(Noesis::Core::BaseComponent* 
 
 	Noesis::Gui::BulletDecorator* NoesisBulletDecorator = NsDynamicCast<Noesis::Gui::BulletDecorator*>(InNoesisComponent);
 	check(NoesisBulletDecorator);
-
 }
 
 class UNoesisGuiUIElement* UNoesisGuiBulletDecorator::GetBullet()
@@ -37,13 +36,23 @@ void UNoesisGuiBulletDecorator::SetBullet(class UNoesisGuiUIElement* InBullet)
 	NoesisBulletDecorator->SetBullet(NsDynamicCast<UIElement*>(InBullet->NoesisComponent.GetPtr()));
 }
 
-	void UNoesisGuiBulletDecorator::BeginDestroy()
+void UNoesisGuiBulletDecorator::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::BulletDecorator* NoesisBulletDecorator = NsDynamicCast<Noesis::Gui::BulletDecorator*>(NoesisComponent.GetPtr());
-	if (!NoesisBulletDecorator)
-		return Super::BeginDestroy();
+	check(NoesisBulletDecorator)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiBulletDecorator::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::BulletDecorator* NoesisBulletDecorator = NsDynamicCast<Noesis::Gui::BulletDecorator*>(NoesisComponent.GetPtr());
+	check(NoesisBulletDecorator)
+
+
 }
 

@@ -20,7 +20,6 @@ void UNoesisGuiGrid::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisCom
 
 	Noesis::Gui::Grid* NoesisGrid = NsDynamicCast<Noesis::Gui::Grid*>(InNoesisComponent);
 	check(NoesisGrid);
-
 }
 
 class UNoesisGuiColumnDefinitionCollection* UNoesisGuiGrid::GetColumnDefinitions()
@@ -37,13 +36,23 @@ class UNoesisGuiRowDefinitionCollection* UNoesisGuiGrid::GetRowDefinitions()
 	return CastChecked<UNoesisGuiRowDefinitionCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisGrid->GetRowDefinitions()));
 }
 
-	void UNoesisGuiGrid::BeginDestroy()
+void UNoesisGuiGrid::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::Grid* NoesisGrid = NsDynamicCast<Noesis::Gui::Grid*>(NoesisComponent.GetPtr());
-	if (!NoesisGrid)
-		return Super::BeginDestroy();
+	check(NoesisGrid)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiGrid::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::Grid* NoesisGrid = NsDynamicCast<Noesis::Gui::Grid*>(NoesisComponent.GetPtr());
+	check(NoesisGrid)
+
+
 }
 

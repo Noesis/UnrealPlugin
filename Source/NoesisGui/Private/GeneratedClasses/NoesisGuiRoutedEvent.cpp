@@ -20,7 +20,6 @@ void UNoesisGuiRoutedEvent::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	Noesis::Gui::RoutedEvent* NoesisRoutedEvent = NsDynamicCast<Noesis::Gui::RoutedEvent*>(InNoesisComponent);
 	check(NoesisRoutedEvent);
-
 }
 
 FName UNoesisGuiRoutedEvent::GetName()
@@ -44,13 +43,23 @@ void UNoesisGuiRoutedEvent::SetRoutingStrategy(ENoesisGuiRoutingStrategy InRouti
 	NoesisRoutedEvent->SetRoutingStrategy((RoutingStrategy)InRoutingStrategy);
 }
 
-	void UNoesisGuiRoutedEvent::BeginDestroy()
+void UNoesisGuiRoutedEvent::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::RoutedEvent* NoesisRoutedEvent = NsDynamicCast<Noesis::Gui::RoutedEvent*>(NoesisComponent.GetPtr());
-	if (!NoesisRoutedEvent)
-		return Super::BeginDestroy();
+	check(NoesisRoutedEvent)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiRoutedEvent::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::RoutedEvent* NoesisRoutedEvent = NsDynamicCast<Noesis::Gui::RoutedEvent*>(NoesisComponent.GetPtr());
+	check(NoesisRoutedEvent)
+
+
 }
 

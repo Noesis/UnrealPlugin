@@ -20,16 +20,25 @@ void UNoesisGuiBaseDefinition::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	Noesis::Gui::BaseDefinition* NoesisBaseDefinition = NsDynamicCast<Noesis::Gui::BaseDefinition*>(InNoesisComponent);
 	check(NoesisBaseDefinition);
+}
+
+void UNoesisGuiBaseDefinition::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::BaseDefinition* NoesisBaseDefinition = NsDynamicCast<Noesis::Gui::BaseDefinition*>(NoesisComponent.GetPtr());
+	check(NoesisBaseDefinition)
+
 
 }
 
-	void UNoesisGuiBaseDefinition::BeginDestroy()
+void UNoesisGuiBaseDefinition::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::BaseDefinition* NoesisBaseDefinition = NsDynamicCast<Noesis::Gui::BaseDefinition*>(NoesisComponent.GetPtr());
-	if (!NoesisBaseDefinition)
-		return Super::BeginDestroy();
+	check(NoesisBaseDefinition)
 
 
-	Super::BeginDestroy();
 }
 

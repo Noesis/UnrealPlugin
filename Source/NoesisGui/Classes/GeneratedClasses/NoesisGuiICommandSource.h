@@ -26,8 +26,12 @@ class UNoesisGuiBaseComponent* GetCommandParameter();
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 class UNoesisGuiUIElement* GetCommandTarget();
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

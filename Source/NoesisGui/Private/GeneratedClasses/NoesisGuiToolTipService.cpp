@@ -20,16 +20,25 @@ void UNoesisGuiToolTipService::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	Noesis::Gui::ToolTipService* NoesisToolTipService = NsDynamicCast<Noesis::Gui::ToolTipService*>(InNoesisComponent);
 	check(NoesisToolTipService);
+}
+
+void UNoesisGuiToolTipService::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::ToolTipService* NoesisToolTipService = NsDynamicCast<Noesis::Gui::ToolTipService*>(NoesisComponent.GetPtr());
+	check(NoesisToolTipService)
+
 
 }
 
-	void UNoesisGuiToolTipService::BeginDestroy()
+void UNoesisGuiToolTipService::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::ToolTipService* NoesisToolTipService = NsDynamicCast<Noesis::Gui::ToolTipService*>(NoesisComponent.GetPtr());
-	if (!NoesisToolTipService)
-		return Super::BeginDestroy();
+	check(NoesisToolTipService)
 
 
-	Super::BeginDestroy();
 }
 

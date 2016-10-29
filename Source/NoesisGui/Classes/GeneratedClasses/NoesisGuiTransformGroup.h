@@ -23,8 +23,12 @@ class UNoesisGuiTransform* GetChild(int32 Index);
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 int32 GetNumChildren();
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

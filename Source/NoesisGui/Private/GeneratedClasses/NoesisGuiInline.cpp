@@ -20,7 +20,6 @@ void UNoesisGuiInline::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisC
 
 	Noesis::Gui::Inline* NoesisInline = NsDynamicCast<Noesis::Gui::Inline*>(InNoesisComponent);
 	check(NoesisInline);
-
 }
 
 class UNoesisGuiInline* UNoesisGuiInline::GetNextInline()
@@ -44,13 +43,23 @@ class UNoesisGuiInlineCollection* UNoesisGuiInline::GetSiblingInlines()
 	return CastChecked<UNoesisGuiInlineCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisInline->GetSiblingInlines()));
 }
 
-	void UNoesisGuiInline::BeginDestroy()
+void UNoesisGuiInline::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::Inline* NoesisInline = NsDynamicCast<Noesis::Gui::Inline*>(NoesisComponent.GetPtr());
-	if (!NoesisInline)
-		return Super::BeginDestroy();
+	check(NoesisInline)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiInline::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::Inline* NoesisInline = NsDynamicCast<Noesis::Gui::Inline*>(NoesisComponent.GetPtr());
+	check(NoesisInline)
+
+
 }
 

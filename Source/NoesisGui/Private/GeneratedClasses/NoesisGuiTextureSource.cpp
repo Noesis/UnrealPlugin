@@ -20,21 +20,6 @@ void UNoesisGuiTextureSource::SetNoesisComponent(Noesis::Core::BaseComponent* In
 
 	Noesis::Gui::TextureSource* NoesisTextureSource = NsDynamicCast<Noesis::Gui::TextureSource*>(InNoesisComponent);
 	check(NoesisTextureSource);
-
-}
-
-float UNoesisGuiTextureSource::GetDpiX()
-{
-	Noesis::Gui::TextureSource* NoesisTextureSource = NsDynamicCast<Noesis::Gui::TextureSource*>(NoesisComponent.GetPtr());
-	check(NoesisTextureSource);
-	return (float)NoesisTextureSource->GetDpiX();
-}
-
-float UNoesisGuiTextureSource::GetDpiY()
-{
-	Noesis::Gui::TextureSource* NoesisTextureSource = NsDynamicCast<Noesis::Gui::TextureSource*>(NoesisComponent.GetPtr());
-	check(NoesisTextureSource);
-	return (float)NoesisTextureSource->GetDpiY();
 }
 
 int32 UNoesisGuiTextureSource::GetPixelHeight()
@@ -51,27 +36,23 @@ int32 UNoesisGuiTextureSource::GetPixelWidth()
 	return NoesisTextureSource->GetPixelWidth();
 }
 
-FString UNoesisGuiTextureSource::GetSource()
+void UNoesisGuiTextureSource::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::TextureSource* NoesisTextureSource = NsDynamicCast<Noesis::Gui::TextureSource*>(NoesisComponent.GetPtr());
-	check(NoesisTextureSource);
-	return NsStringToFString(NoesisTextureSource->GetSource());
+	check(NoesisTextureSource)
+
+
 }
 
-void UNoesisGuiTextureSource::SetSource(FString InSource)
+void UNoesisGuiTextureSource::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::TextureSource* NoesisTextureSource = NsDynamicCast<Noesis::Gui::TextureSource*>(NoesisComponent.GetPtr());
-	check(NoesisTextureSource);
-	NoesisTextureSource->SetSource(StringCast<NsChar>(*InSource).Get());
-}
-
-	void UNoesisGuiTextureSource::BeginDestroy()
-{
-	Noesis::Gui::TextureSource* NoesisTextureSource = NsDynamicCast<Noesis::Gui::TextureSource*>(NoesisComponent.GetPtr());
-	if (!NoesisTextureSource)
-		return Super::BeginDestroy();
+	check(NoesisTextureSource)
 
 
-	Super::BeginDestroy();
 }
 

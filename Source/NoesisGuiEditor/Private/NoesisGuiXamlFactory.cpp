@@ -288,6 +288,11 @@ public:
 		return 16 * 1024;
 	}
 
+	virtual Noesis::Render::TextureFormat::Enum GetFormat() const override
+	{
+		return Noesis::Render::TextureFormat::BGRA8;
+	}
+
 	virtual NsBool HasMipMaps() const override
 	{
 		return false;
@@ -317,7 +322,7 @@ public:
 class FNoesisGuiNullRenderDevice : public Noesis::Render::RenderDevice
 {
 	// RenderDevice interface
-	virtual const Noesis::Render::DeviceCaps& GetCaps() const override { static Noesis::Render::DeviceCaps Caps = { 0.f, 1024 * 1024, 1024 * 1024, true, 1,{ true, true } }; return Caps; }
+	virtual const Noesis::Render::DeviceCaps& GetCaps() const override { static Noesis::Render::DeviceCaps Caps = { 0.f, 1024 * 1024, 1024 * 1024, true, false, 1,{ true, true } }; return Caps; }
 	virtual Noesis::Ptr<Noesis::Render::RenderTarget> CreateRenderTarget(const NsChar* Label, NsSize Width, NsSize Height, NsSize SampleCount) override { FNoesisGuiNullRenderTarget* RT = new FNoesisGuiNullRenderTarget(); RT->NoesisGuiTexture = *new FNoesisGuiNullTexture(); return Noesis::Ptr<Noesis::Render::RenderTarget>(*RT); }
 	virtual Noesis::Ptr<Noesis::Render::RenderTarget> CloneRenderTarget(const NsChar* Label, Noesis::Render::RenderTarget* SharedRenderTarget) override { FNoesisGuiNullRenderTarget* RT = new FNoesisGuiNullRenderTarget(); RT->NoesisGuiTexture = ((FNoesisGuiNullRenderTarget*)SharedRenderTarget)->NoesisGuiTexture; return Noesis::Ptr<Noesis::Render::RenderTarget>(*RT); }
 	virtual Noesis::Ptr<Noesis::Render::Texture> CreateTexture(const NsChar* Label, NsSize Width, NsSize Height, NsSize NumLevels, Noesis::Render::TextureFormat::Enum TextureFormat) override { return Noesis::Ptr<Noesis::Render::Texture>(*new FNoesisGuiNullTexture()); }

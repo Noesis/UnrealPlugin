@@ -27,15 +27,12 @@ bool CanExecute(class UNoesisGuiBaseComponent* Param);
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void Execute(class UNoesisGuiBaseComponent* Param);
 
-	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
-	FNoesisGuiEventHandler CanExecuteChanged;
+protected:
 
-	void CanExecuteChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs);
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
 
-	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs)> CanExecuteChanged_Delegate;
+private:
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
 };
 

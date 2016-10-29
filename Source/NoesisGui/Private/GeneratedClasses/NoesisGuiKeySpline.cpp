@@ -20,7 +20,6 @@ void UNoesisGuiKeySpline::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	Noesis::Gui::KeySpline* NoesisKeySpline = NsDynamicCast<Noesis::Gui::KeySpline*>(InNoesisComponent);
 	check(NoesisKeySpline);
-
 }
 
 FNoesisGuiDrawingPoint UNoesisGuiKeySpline::GetControlPoint1()
@@ -59,13 +58,23 @@ float UNoesisGuiKeySpline::GetSplineProgress(float InLinearProgress)
 	return (float)NoesisKeySpline->GetSplineProgress(NoesisInLinearProgress);
 }
 
-	void UNoesisGuiKeySpline::BeginDestroy()
+void UNoesisGuiKeySpline::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::KeySpline* NoesisKeySpline = NsDynamicCast<Noesis::Gui::KeySpline*>(NoesisComponent.GetPtr());
-	if (!NoesisKeySpline)
-		return Super::BeginDestroy();
+	check(NoesisKeySpline)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiKeySpline::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::KeySpline* NoesisKeySpline = NsDynamicCast<Noesis::Gui::KeySpline*>(NoesisComponent.GetPtr());
+	check(NoesisKeySpline)
+
+
 }
 

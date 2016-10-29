@@ -20,25 +20,6 @@ void UNoesisGuiFrameworkElement::SetNoesisComponent(Noesis::Core::BaseComponent*
 
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(InNoesisComponent);
 	check(NoesisFrameworkElement);
-
-	ContextMenuClosing_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::ContextMenuClosing_Private);
-	NoesisFrameworkElement->ContextMenuClosing() += ContextMenuClosing_Delegate;
-	ContextMenuOpening_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::ContextMenuOpening_Private);
-	NoesisFrameworkElement->ContextMenuOpening() += ContextMenuOpening_Delegate;
-	DataContextChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::DataContextChanged_Private);
-	NoesisFrameworkElement->DataContextChanged() += DataContextChanged_Delegate;
-	Initialized_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::Initialized_Private);
-	NoesisFrameworkElement->Initialized() += Initialized_Delegate;
-	Loaded_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::Loaded_Private);
-	NoesisFrameworkElement->Loaded() += Loaded_Delegate;
-	SizeChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::SizeChanged_Private);
-	NoesisFrameworkElement->SizeChanged() += SizeChanged_Delegate;
-	ToolTipClosing_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::ToolTipClosing_Private);
-	NoesisFrameworkElement->ToolTipClosing() += ToolTipClosing_Delegate;
-	ToolTipOpening_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::ToolTipOpening_Private);
-	NoesisFrameworkElement->ToolTipOpening() += ToolTipOpening_Delegate;
-	Unloaded_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::Unloaded_Private);
-	NoesisFrameworkElement->Unloaded() += Unloaded_Delegate;
 }
 
 class UNoesisGuiFrameworkElement* UNoesisGuiFrameworkElement::GetParent()
@@ -126,14 +107,6 @@ class UNoesisGuiBaseComponent* UNoesisGuiFrameworkElement::FindResource(class UN
 	return CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->FindResource(NoesisInKey)));
 }
 
-class UNoesisGuiBaseExpression* UNoesisGuiFrameworkElement::GetBindingExpression(const class UNoesisGuiDependencyProperty* InDp)
-{
-	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
-	check(NoesisFrameworkElement);
-	const DependencyProperty* NoesisInDp = NsDynamicCast<const DependencyProperty*>(InDp->NoesisComponent.GetPtr());
-	return CastChecked<UNoesisGuiBaseExpression>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetBindingExpression(NoesisInDp)));
-}
-
 class UNoesisGuiFrameworkTemplate* UNoesisGuiFrameworkElement::GetFrameworkTemplate()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
@@ -184,121 +157,185 @@ bool UNoesisGuiFrameworkElement::IsLoaded()
 	return NoesisFrameworkElement->IsLoaded();
 }
 
-class UNoesisGuiBaseExpression* UNoesisGuiFrameworkElement::SetBinding(const class UNoesisGuiDependencyProperty* InDp, class UNoesisGuiBaseBinding* InBinding)
+void UNoesisGuiFrameworkElement::ContextMenuClosing_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ContextMenuEventArgs& InArgs)
 {
-	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
-	check(NoesisFrameworkElement);
-	const DependencyProperty* NoesisInDp = NsDynamicCast<const DependencyProperty*>(InDp->NoesisComponent.GetPtr());
-	BaseBinding* NoesisInBinding = NsDynamicCast<BaseBinding*>(InBinding->NoesisComponent.GetPtr());
-	return CastChecked<UNoesisGuiBaseExpression>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->SetBinding(NoesisInDp, NoesisInBinding)));
-}
-
-class UNoesisGuiBaseExpression* UNoesisGuiFrameworkElement::SetBinding_(const class UNoesisGuiDependencyProperty* InDp, FString InPath)
-{
-	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
-	check(NoesisFrameworkElement);
-	const DependencyProperty* NoesisInDp = NsDynamicCast<const DependencyProperty*>(InDp->NoesisComponent.GetPtr());
-	const NsChar* NoesisInPath = StringCast<NsChar>(*InPath).Get();
-	return CastChecked<UNoesisGuiBaseExpression>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->SetBinding(NoesisInDp, NoesisInPath)));
-}
-
-	void UNoesisGuiFrameworkElement::ContextMenuClosing_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ContextMenuEventArgs& InArgs)
-{
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!ContextMenuClosing.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiContextMenuEventArgs Args(Instance, InArgs);
 	ContextMenuClosing.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiFrameworkElement::ContextMenuOpening_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ContextMenuEventArgs& InArgs)
+void UNoesisGuiFrameworkElement::ContextMenuOpening_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ContextMenuEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!ContextMenuOpening.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiContextMenuEventArgs Args(Instance, InArgs);
 	ContextMenuOpening.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiFrameworkElement::DataContextChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
+void UNoesisGuiFrameworkElement::DataContextChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!DataContextChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiDependencyPropertyChangedEventArgs Args(Instance, InArgs);
 	DataContextChanged.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiFrameworkElement::Initialized_Private(Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs)
+void UNoesisGuiFrameworkElement::Initialized_Private(Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Initialized.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiEventArgs Args(Instance, InArgs);
 	Initialized.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiFrameworkElement::Loaded_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
+void UNoesisGuiFrameworkElement::Loaded_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Loaded.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Loaded.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiFrameworkElement::SizeChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::SizeChangedEventArgs& InArgs)
+void UNoesisGuiFrameworkElement::SizeChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::SizeChangedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!SizeChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiSizeChangedEventArgs Args(Instance, InArgs);
 	SizeChanged.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiFrameworkElement::ToolTipClosing_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ToolTipEventArgs& InArgs)
+void UNoesisGuiFrameworkElement::ToolTipClosing_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ToolTipEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!ToolTipClosing.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiToolTipEventArgs Args(Instance, InArgs);
 	ToolTipClosing.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiFrameworkElement::ToolTipOpening_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ToolTipEventArgs& InArgs)
+void UNoesisGuiFrameworkElement::ToolTipOpening_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ToolTipEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!ToolTipOpening.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiToolTipEventArgs Args(Instance, InArgs);
 	ToolTipOpening.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiFrameworkElement::Unloaded_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
+void UNoesisGuiFrameworkElement::Unloaded_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Unloaded.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Unloaded.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiFrameworkElement::BeginDestroy()
+void UNoesisGuiFrameworkElement::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
-	if (!NoesisFrameworkElement)
-		return Super::BeginDestroy();
+	check(NoesisFrameworkElement)
 
-	NoesisFrameworkElement->ContextMenuClosing() -= ContextMenuClosing_Delegate;
-	NoesisFrameworkElement->ContextMenuOpening() -= ContextMenuOpening_Delegate;
-	NoesisFrameworkElement->DataContextChanged() -= DataContextChanged_Delegate;
-	NoesisFrameworkElement->Initialized() -= Initialized_Delegate;
-	NoesisFrameworkElement->Loaded() -= Loaded_Delegate;
-	NoesisFrameworkElement->SizeChanged() -= SizeChanged_Delegate;
-	NoesisFrameworkElement->ToolTipClosing() -= ToolTipClosing_Delegate;
-	NoesisFrameworkElement->ToolTipOpening() -= ToolTipOpening_Delegate;
-	NoesisFrameworkElement->Unloaded() -= Unloaded_Delegate;
+	ContextMenuClosing_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::ContextMenuClosing_Private);
+	if (ContextMenuClosing.IsBound())
+	{
+		NoesisFrameworkElement->ContextMenuClosing() += ContextMenuClosing_Delegate;
+	}
+	ContextMenuOpening_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::ContextMenuOpening_Private);
+	if (ContextMenuOpening.IsBound())
+	{
+		NoesisFrameworkElement->ContextMenuOpening() += ContextMenuOpening_Delegate;
+	}
+	DataContextChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::DataContextChanged_Private);
+	if (DataContextChanged.IsBound())
+	{
+		NoesisFrameworkElement->DataContextChanged() += DataContextChanged_Delegate;
+	}
+	Initialized_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::Initialized_Private);
+	if (Initialized.IsBound())
+	{
+		NoesisFrameworkElement->Initialized() += Initialized_Delegate;
+	}
+	Loaded_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::Loaded_Private);
+	if (Loaded.IsBound())
+	{
+		NoesisFrameworkElement->Loaded() += Loaded_Delegate;
+	}
+	SizeChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::SizeChanged_Private);
+	if (SizeChanged.IsBound())
+	{
+		NoesisFrameworkElement->SizeChanged() += SizeChanged_Delegate;
+	}
+	ToolTipClosing_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::ToolTipClosing_Private);
+	if (ToolTipClosing.IsBound())
+	{
+		NoesisFrameworkElement->ToolTipClosing() += ToolTipClosing_Delegate;
+	}
+	ToolTipOpening_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::ToolTipOpening_Private);
+	if (ToolTipOpening.IsBound())
+	{
+		NoesisFrameworkElement->ToolTipOpening() += ToolTipOpening_Delegate;
+	}
+	Unloaded_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiFrameworkElement::Unloaded_Private);
+	if (Unloaded.IsBound())
+	{
+		NoesisFrameworkElement->Unloaded() += Unloaded_Delegate;
+	}
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiFrameworkElement::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
+	check(NoesisFrameworkElement)
+
+	if (ContextMenuClosing.IsBound())
+	{
+		NoesisFrameworkElement->ContextMenuClosing() -= ContextMenuClosing_Delegate;
+	}
+	if (ContextMenuOpening.IsBound())
+	{
+		NoesisFrameworkElement->ContextMenuOpening() -= ContextMenuOpening_Delegate;
+	}
+	if (DataContextChanged.IsBound())
+	{
+		NoesisFrameworkElement->DataContextChanged() -= DataContextChanged_Delegate;
+	}
+	if (Initialized.IsBound())
+	{
+		NoesisFrameworkElement->Initialized() -= Initialized_Delegate;
+	}
+	if (Loaded.IsBound())
+	{
+		NoesisFrameworkElement->Loaded() -= Loaded_Delegate;
+	}
+	if (SizeChanged.IsBound())
+	{
+		NoesisFrameworkElement->SizeChanged() -= SizeChanged_Delegate;
+	}
+	if (ToolTipClosing.IsBound())
+	{
+		NoesisFrameworkElement->ToolTipClosing() -= ToolTipClosing_Delegate;
+	}
+	if (ToolTipOpening.IsBound())
+	{
+		NoesisFrameworkElement->ToolTipOpening() -= ToolTipOpening_Delegate;
+	}
+	if (Unloaded.IsBound())
+	{
+		NoesisFrameworkElement->Unloaded() -= Unloaded_Delegate;
+	}
+
 }
 

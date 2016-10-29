@@ -29,8 +29,12 @@ void SelectAll();
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void UnselectAll();
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

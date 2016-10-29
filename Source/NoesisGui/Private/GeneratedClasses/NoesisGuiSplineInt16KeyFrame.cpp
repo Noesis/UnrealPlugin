@@ -20,16 +20,25 @@ void UNoesisGuiSplineInt16KeyFrame::SetNoesisComponent(Noesis::Core::BaseCompone
 
 	Noesis::Gui::SplineKeyFrame<NsInt16>* NoesisSplineInt16KeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<NsInt16>*>(InNoesisComponent);
 	check(NoesisSplineInt16KeyFrame);
+}
+
+void UNoesisGuiSplineInt16KeyFrame::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::SplineKeyFrame<NsInt16>* NoesisSplineInt16KeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<NsInt16>*>(NoesisComponent.GetPtr());
+	check(NoesisSplineInt16KeyFrame)
+
 
 }
 
-	void UNoesisGuiSplineInt16KeyFrame::BeginDestroy()
+void UNoesisGuiSplineInt16KeyFrame::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::SplineKeyFrame<NsInt16>* NoesisSplineInt16KeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<NsInt16>*>(NoesisComponent.GetPtr());
-	if (!NoesisSplineInt16KeyFrame)
-		return Super::BeginDestroy();
+	check(NoesisSplineInt16KeyFrame)
 
 
-	Super::BeginDestroy();
 }
 

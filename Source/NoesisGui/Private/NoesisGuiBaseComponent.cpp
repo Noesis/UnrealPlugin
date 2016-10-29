@@ -20,5 +20,17 @@ void UNoesisGuiBaseComponent::BeginDestroy()
 {
 	Super::BeginDestroy();
 
-	NoesisComponent.Reset();
+	if (NoesisComponent)
+	{
+		UnbindEvents();
+		NoesisComponent.Reset();
+	}
+}
+
+void UNoesisGuiBaseComponent::BindEvents()
+{
+}
+
+void UNoesisGuiBaseComponent::UnbindEvents()
+{
 }

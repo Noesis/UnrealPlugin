@@ -20,16 +20,25 @@ void UNoesisGuiRotateTransform::SetNoesisComponent(Noesis::Core::BaseComponent* 
 
 	Noesis::Gui::RotateTransform* NoesisRotateTransform = NsDynamicCast<Noesis::Gui::RotateTransform*>(InNoesisComponent);
 	check(NoesisRotateTransform);
+}
+
+void UNoesisGuiRotateTransform::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::RotateTransform* NoesisRotateTransform = NsDynamicCast<Noesis::Gui::RotateTransform*>(NoesisComponent.GetPtr());
+	check(NoesisRotateTransform)
+
 
 }
 
-	void UNoesisGuiRotateTransform::BeginDestroy()
+void UNoesisGuiRotateTransform::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::RotateTransform* NoesisRotateTransform = NsDynamicCast<Noesis::Gui::RotateTransform*>(NoesisComponent.GetPtr());
-	if (!NoesisRotateTransform)
-		return Super::BeginDestroy();
+	check(NoesisRotateTransform)
 
 
-	Super::BeginDestroy();
 }
 

@@ -20,16 +20,25 @@ void UNoesisGuiInt16Animation::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	Noesis::Gui::Animation<NsInt16>* NoesisInt16Animation = NsDynamicCast<Noesis::Gui::Animation<NsInt16>*>(InNoesisComponent);
 	check(NoesisInt16Animation);
+}
+
+void UNoesisGuiInt16Animation::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Animation<NsInt16>* NoesisInt16Animation = NsDynamicCast<Noesis::Gui::Animation<NsInt16>*>(NoesisComponent.GetPtr());
+	check(NoesisInt16Animation)
+
 
 }
 
-	void UNoesisGuiInt16Animation::BeginDestroy()
+void UNoesisGuiInt16Animation::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Animation<NsInt16>* NoesisInt16Animation = NsDynamicCast<Noesis::Gui::Animation<NsInt16>*>(NoesisComponent.GetPtr());
-	if (!NoesisInt16Animation)
-		return Super::BeginDestroy();
+	check(NoesisInt16Animation)
 
 
-	Super::BeginDestroy();
 }
 

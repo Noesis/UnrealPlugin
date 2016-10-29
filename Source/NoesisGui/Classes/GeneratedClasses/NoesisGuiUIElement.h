@@ -87,6 +87,13 @@ bool ReleaseTouchCapture(int32 TouchDevice);
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void UpdateLayout();
 
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
 	FNoesisGuiDependencyPropertyChangedEventHandler FocusableChanged;
 
@@ -479,8 +486,5 @@ void UpdateLayout();
 
 	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)> TouchUp_Delegate;
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
 };
 

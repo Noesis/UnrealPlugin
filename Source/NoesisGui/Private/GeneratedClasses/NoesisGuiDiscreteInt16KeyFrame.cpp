@@ -20,16 +20,25 @@ void UNoesisGuiDiscreteInt16KeyFrame::SetNoesisComponent(Noesis::Core::BaseCompo
 
 	Noesis::Gui::DiscreteKeyFrame<NsInt16>* NoesisDiscreteInt16KeyFrame = NsDynamicCast<Noesis::Gui::DiscreteKeyFrame<NsInt16>*>(InNoesisComponent);
 	check(NoesisDiscreteInt16KeyFrame);
+}
+
+void UNoesisGuiDiscreteInt16KeyFrame::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::DiscreteKeyFrame<NsInt16>* NoesisDiscreteInt16KeyFrame = NsDynamicCast<Noesis::Gui::DiscreteKeyFrame<NsInt16>*>(NoesisComponent.GetPtr());
+	check(NoesisDiscreteInt16KeyFrame)
+
 
 }
 
-	void UNoesisGuiDiscreteInt16KeyFrame::BeginDestroy()
+void UNoesisGuiDiscreteInt16KeyFrame::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::DiscreteKeyFrame<NsInt16>* NoesisDiscreteInt16KeyFrame = NsDynamicCast<Noesis::Gui::DiscreteKeyFrame<NsInt16>*>(NoesisComponent.GetPtr());
-	if (!NoesisDiscreteInt16KeyFrame)
-		return Super::BeginDestroy();
+	check(NoesisDiscreteInt16KeyFrame)
 
 
-	Super::BeginDestroy();
 }
 

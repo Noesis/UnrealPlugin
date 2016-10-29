@@ -20,16 +20,25 @@ void UNoesisGuiTileBrush::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	Noesis::Gui::TileBrush* NoesisTileBrush = NsDynamicCast<Noesis::Gui::TileBrush*>(InNoesisComponent);
 	check(NoesisTileBrush);
+}
+
+void UNoesisGuiTileBrush::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::TileBrush* NoesisTileBrush = NsDynamicCast<Noesis::Gui::TileBrush*>(NoesisComponent.GetPtr());
+	check(NoesisTileBrush)
+
 
 }
 
-	void UNoesisGuiTileBrush::BeginDestroy()
+void UNoesisGuiTileBrush::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::TileBrush* NoesisTileBrush = NsDynamicCast<Noesis::Gui::TileBrush*>(NoesisComponent.GetPtr());
-	if (!NoesisTileBrush)
-		return Super::BeginDestroy();
+	check(NoesisTileBrush)
 
 
-	Super::BeginDestroy();
 }
 

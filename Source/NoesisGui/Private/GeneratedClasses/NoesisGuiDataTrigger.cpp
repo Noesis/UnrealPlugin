@@ -20,7 +20,6 @@ void UNoesisGuiDataTrigger::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	Noesis::Gui::DataTrigger* NoesisDataTrigger = NsDynamicCast<Noesis::Gui::DataTrigger*>(InNoesisComponent);
 	check(NoesisDataTrigger);
-
 }
 
 class UNoesisGuiBaseBinding* UNoesisGuiDataTrigger::GetBinding()
@@ -58,13 +57,23 @@ void UNoesisGuiDataTrigger::SetValue(class UNoesisGuiBaseComponent* InValue)
 	NoesisDataTrigger->SetValue(NsDynamicCast<Core::BaseComponent*>(InValue->NoesisComponent.GetPtr()));
 }
 
-	void UNoesisGuiDataTrigger::BeginDestroy()
+void UNoesisGuiDataTrigger::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::DataTrigger* NoesisDataTrigger = NsDynamicCast<Noesis::Gui::DataTrigger*>(NoesisComponent.GetPtr());
-	if (!NoesisDataTrigger)
-		return Super::BeginDestroy();
+	check(NoesisDataTrigger)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiDataTrigger::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::DataTrigger* NoesisDataTrigger = NsDynamicCast<Noesis::Gui::DataTrigger*>(NoesisComponent.GetPtr());
+	check(NoesisDataTrigger)
+
+
 }
 

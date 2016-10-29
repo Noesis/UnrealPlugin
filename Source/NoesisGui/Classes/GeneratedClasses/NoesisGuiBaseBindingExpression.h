@@ -6,23 +6,41 @@
 #pragma once
 
 #include "NoesisGuiTypes.h"
-#include "GeneratedClasses/NoesisGuiBaseExpression.h"
+#include "GeneratedClasses/NoesisGuiExpression.h"
 #include "NoesisGuiBaseBindingExpression.generated.h"
 
 UCLASS()
-class NOESISGUI_API UNoesisGuiBaseBindingExpression : public UNoesisGuiBaseExpression
+class NOESISGUI_API UNoesisGuiBaseBindingExpression : public UNoesisGuiExpression
 {
 public:
 	GENERATED_UCLASS_BODY()
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
-	// Property Binding
+	// Property ParentBindingBase
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-	class UNoesisGuiBaseBinding* GetBinding();
+	class UNoesisGuiBaseBinding* GetParentBindingBase();
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+	// Property Target
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+	class UNoesisGuiDependencyObject* GetTarget();
+
+	// Property TargetProperty
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+	class UNoesisGuiDependencyProperty* GetTargetProperty();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+void UpdateSource();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+void UpdateTarget();
+
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

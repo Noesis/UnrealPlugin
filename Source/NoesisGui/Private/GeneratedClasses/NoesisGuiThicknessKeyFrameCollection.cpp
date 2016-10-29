@@ -20,16 +20,25 @@ void UNoesisGuiThicknessKeyFrameCollection::SetNoesisComponent(Noesis::Core::Bas
 
 	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Drawing::Thickness>>* NoesisThicknessKeyFrameCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Drawing::Thickness>>*>(InNoesisComponent);
 	check(NoesisThicknessKeyFrameCollection);
+}
+
+void UNoesisGuiThicknessKeyFrameCollection::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Drawing::Thickness>>* NoesisThicknessKeyFrameCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Drawing::Thickness>>*>(NoesisComponent.GetPtr());
+	check(NoesisThicknessKeyFrameCollection)
+
 
 }
 
-	void UNoesisGuiThicknessKeyFrameCollection::BeginDestroy()
+void UNoesisGuiThicknessKeyFrameCollection::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Drawing::Thickness>>* NoesisThicknessKeyFrameCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Drawing::Thickness>>*>(NoesisComponent.GetPtr());
-	if (!NoesisThicknessKeyFrameCollection)
-		return Super::BeginDestroy();
+	check(NoesisThicknessKeyFrameCollection)
 
 
-	Super::BeginDestroy();
 }
 

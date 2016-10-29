@@ -20,16 +20,25 @@ void UNoesisGuiEasingPointKeyFrame::SetNoesisComponent(Noesis::Core::BaseCompone
 
 	Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Point>* NoesisEasingPointKeyFrame = NsDynamicCast<Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Point>*>(InNoesisComponent);
 	check(NoesisEasingPointKeyFrame);
+}
+
+void UNoesisGuiEasingPointKeyFrame::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Point>* NoesisEasingPointKeyFrame = NsDynamicCast<Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Point>*>(NoesisComponent.GetPtr());
+	check(NoesisEasingPointKeyFrame)
+
 
 }
 
-	void UNoesisGuiEasingPointKeyFrame::BeginDestroy()
+void UNoesisGuiEasingPointKeyFrame::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Point>* NoesisEasingPointKeyFrame = NsDynamicCast<Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Point>*>(NoesisComponent.GetPtr());
-	if (!NoesisEasingPointKeyFrame)
-		return Super::BeginDestroy();
+	check(NoesisEasingPointKeyFrame)
 
 
-	Super::BeginDestroy();
 }
 

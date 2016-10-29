@@ -20,16 +20,25 @@ void UNoesisGuiQuadraticEase::SetNoesisComponent(Noesis::Core::BaseComponent* In
 
 	Noesis::Gui::QuadraticEase* NoesisQuadraticEase = NsDynamicCast<Noesis::Gui::QuadraticEase*>(InNoesisComponent);
 	check(NoesisQuadraticEase);
+}
+
+void UNoesisGuiQuadraticEase::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::QuadraticEase* NoesisQuadraticEase = NsDynamicCast<Noesis::Gui::QuadraticEase*>(NoesisComponent.GetPtr());
+	check(NoesisQuadraticEase)
+
 
 }
 
-	void UNoesisGuiQuadraticEase::BeginDestroy()
+void UNoesisGuiQuadraticEase::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::QuadraticEase* NoesisQuadraticEase = NsDynamicCast<Noesis::Gui::QuadraticEase*>(NoesisComponent.GetPtr());
-	if (!NoesisQuadraticEase)
-		return Super::BeginDestroy();
+	check(NoesisQuadraticEase)
 
 
-	Super::BeginDestroy();
 }
 

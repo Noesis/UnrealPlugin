@@ -46,6 +46,13 @@ ENoesisGuiClockState GetCurrentState();
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 bool HasControllableRoot();
 
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
 	FNoesisGuiEventHandler Completed;
 
@@ -53,9 +60,6 @@ bool HasControllableRoot();
 
 	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs)> Completed_Delegate;
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
 };
 
 #pragma pop_macro("GetCurrentTime")

@@ -20,16 +20,25 @@ void UNoesisGuiRowDefinitionCollection::SetNoesisComponent(Noesis::Core::BaseCom
 
 	Noesis::Gui::TypedCollection<Noesis::Gui::RowDefinition>* NoesisRowDefinitionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::RowDefinition>*>(InNoesisComponent);
 	check(NoesisRowDefinitionCollection);
+}
+
+void UNoesisGuiRowDefinitionCollection::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::TypedCollection<Noesis::Gui::RowDefinition>* NoesisRowDefinitionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::RowDefinition>*>(NoesisComponent.GetPtr());
+	check(NoesisRowDefinitionCollection)
+
 
 }
 
-	void UNoesisGuiRowDefinitionCollection::BeginDestroy()
+void UNoesisGuiRowDefinitionCollection::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::TypedCollection<Noesis::Gui::RowDefinition>* NoesisRowDefinitionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::RowDefinition>*>(NoesisComponent.GetPtr());
-	if (!NoesisRowDefinitionCollection)
-		return Super::BeginDestroy();
+	check(NoesisRowDefinitionCollection)
 
 
-	Super::BeginDestroy();
 }
 

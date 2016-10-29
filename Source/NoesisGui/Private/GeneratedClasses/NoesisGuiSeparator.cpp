@@ -20,16 +20,25 @@ void UNoesisGuiSeparator::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	Noesis::Gui::Separator* NoesisSeparator = NsDynamicCast<Noesis::Gui::Separator*>(InNoesisComponent);
 	check(NoesisSeparator);
+}
+
+void UNoesisGuiSeparator::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Separator* NoesisSeparator = NsDynamicCast<Noesis::Gui::Separator*>(NoesisComponent.GetPtr());
+	check(NoesisSeparator)
+
 
 }
 
-	void UNoesisGuiSeparator::BeginDestroy()
+void UNoesisGuiSeparator::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Separator* NoesisSeparator = NsDynamicCast<Noesis::Gui::Separator*>(NoesisComponent.GetPtr());
-	if (!NoesisSeparator)
-		return Super::BeginDestroy();
+	check(NoesisSeparator)
 
 
-	Super::BeginDestroy();
 }
 

@@ -60,22 +60,12 @@ void RemoveAll();
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void Stop();
 
-	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
-	FNoesisGuiItemsChangedEventHandler ItemsChanged;
+protected:
 
-	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
-	FNoesisGuiEventHandler StatusChanged;
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
 
-	void ItemsChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ItemsChangedEventArgs& InArgs);
+private:
 
-	void StatusChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs);
-
-	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::ItemsChangedEventArgs& InArgs)> ItemsChanged_Delegate;
-
-	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs)> StatusChanged_Delegate;
-
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
 };
 

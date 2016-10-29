@@ -20,7 +20,6 @@ void UNoesisGuiMultiDataTrigger::SetNoesisComponent(Noesis::Core::BaseComponent*
 
 	Noesis::Gui::MultiDataTrigger* NoesisMultiDataTrigger = NsDynamicCast<Noesis::Gui::MultiDataTrigger*>(InNoesisComponent);
 	check(NoesisMultiDataTrigger);
-
 }
 
 class UNoesisGuiConditionCollection* UNoesisGuiMultiDataTrigger::GetConditions()
@@ -37,13 +36,23 @@ class UNoesisGuiBaseSetterCollection* UNoesisGuiMultiDataTrigger::GetSetters()
 	return CastChecked<UNoesisGuiBaseSetterCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisMultiDataTrigger->GetSetters()));
 }
 
-	void UNoesisGuiMultiDataTrigger::BeginDestroy()
+void UNoesisGuiMultiDataTrigger::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::MultiDataTrigger* NoesisMultiDataTrigger = NsDynamicCast<Noesis::Gui::MultiDataTrigger*>(NoesisComponent.GetPtr());
-	if (!NoesisMultiDataTrigger)
-		return Super::BeginDestroy();
+	check(NoesisMultiDataTrigger)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiMultiDataTrigger::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::MultiDataTrigger* NoesisMultiDataTrigger = NsDynamicCast<Noesis::Gui::MultiDataTrigger*>(NoesisComponent.GetPtr());
+	check(NoesisMultiDataTrigger)
+
+
 }
 

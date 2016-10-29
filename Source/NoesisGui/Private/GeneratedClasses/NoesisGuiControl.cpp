@@ -20,40 +20,61 @@ void UNoesisGuiControl::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesis
 
 	Noesis::Gui::Control* NoesisControl = NsDynamicCast<Noesis::Gui::Control*>(InNoesisComponent);
 	check(NoesisControl);
-
-	MouseDoubleClick_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiControl::MouseDoubleClick_Private);
-	NoesisControl->MouseDoubleClick() += MouseDoubleClick_Delegate;
-	PreviewMouseDoubleClick_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiControl::PreviewMouseDoubleClick_Private);
-	NoesisControl->PreviewMouseDoubleClick() += PreviewMouseDoubleClick_Delegate;
 }
 
-	void UNoesisGuiControl::MouseDoubleClick_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
+void UNoesisGuiControl::MouseDoubleClick_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!MouseDoubleClick.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseButtonEventArgs Args(Instance, InArgs);
 	MouseDoubleClick.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiControl::PreviewMouseDoubleClick_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
+void UNoesisGuiControl::PreviewMouseDoubleClick_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewMouseDoubleClick.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseButtonEventArgs Args(Instance, InArgs);
 	PreviewMouseDoubleClick.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiControl::BeginDestroy()
+void UNoesisGuiControl::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::Control* NoesisControl = NsDynamicCast<Noesis::Gui::Control*>(NoesisComponent.GetPtr());
-	if (!NoesisControl)
-		return Super::BeginDestroy();
+	check(NoesisControl)
 
-	NoesisControl->MouseDoubleClick() -= MouseDoubleClick_Delegate;
-	NoesisControl->PreviewMouseDoubleClick() -= PreviewMouseDoubleClick_Delegate;
+	MouseDoubleClick_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiControl::MouseDoubleClick_Private);
+	if (MouseDoubleClick.IsBound())
+	{
+		NoesisControl->MouseDoubleClick() += MouseDoubleClick_Delegate;
+	}
+	PreviewMouseDoubleClick_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiControl::PreviewMouseDoubleClick_Private);
+	if (PreviewMouseDoubleClick.IsBound())
+	{
+		NoesisControl->PreviewMouseDoubleClick() += PreviewMouseDoubleClick_Delegate;
+	}
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiControl::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::Control* NoesisControl = NsDynamicCast<Noesis::Gui::Control*>(NoesisComponent.GetPtr());
+	check(NoesisControl)
+
+	if (MouseDoubleClick.IsBound())
+	{
+		NoesisControl->MouseDoubleClick() -= MouseDoubleClick_Delegate;
+	}
+	if (PreviewMouseDoubleClick.IsBound())
+	{
+		NoesisControl->PreviewMouseDoubleClick() -= PreviewMouseDoubleClick_Delegate;
+	}
+
 }
 

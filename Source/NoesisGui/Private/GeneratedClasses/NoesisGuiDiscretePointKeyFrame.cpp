@@ -20,16 +20,25 @@ void UNoesisGuiDiscretePointKeyFrame::SetNoesisComponent(Noesis::Core::BaseCompo
 
 	Noesis::Gui::DiscreteKeyFrame<Noesis::Drawing::Point>* NoesisDiscretePointKeyFrame = NsDynamicCast<Noesis::Gui::DiscreteKeyFrame<Noesis::Drawing::Point>*>(InNoesisComponent);
 	check(NoesisDiscretePointKeyFrame);
+}
+
+void UNoesisGuiDiscretePointKeyFrame::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::DiscreteKeyFrame<Noesis::Drawing::Point>* NoesisDiscretePointKeyFrame = NsDynamicCast<Noesis::Gui::DiscreteKeyFrame<Noesis::Drawing::Point>*>(NoesisComponent.GetPtr());
+	check(NoesisDiscretePointKeyFrame)
+
 
 }
 
-	void UNoesisGuiDiscretePointKeyFrame::BeginDestroy()
+void UNoesisGuiDiscretePointKeyFrame::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::DiscreteKeyFrame<Noesis::Drawing::Point>* NoesisDiscretePointKeyFrame = NsDynamicCast<Noesis::Gui::DiscreteKeyFrame<Noesis::Drawing::Point>*>(NoesisComponent.GetPtr());
-	if (!NoesisDiscretePointKeyFrame)
-		return Super::BeginDestroy();
+	check(NoesisDiscretePointKeyFrame)
 
 
-	Super::BeginDestroy();
 }
 

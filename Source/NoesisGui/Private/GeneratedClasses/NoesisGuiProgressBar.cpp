@@ -20,16 +20,25 @@ void UNoesisGuiProgressBar::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	Noesis::Gui::ProgressBar* NoesisProgressBar = NsDynamicCast<Noesis::Gui::ProgressBar*>(InNoesisComponent);
 	check(NoesisProgressBar);
+}
+
+void UNoesisGuiProgressBar::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::ProgressBar* NoesisProgressBar = NsDynamicCast<Noesis::Gui::ProgressBar*>(NoesisComponent.GetPtr());
+	check(NoesisProgressBar)
+
 
 }
 
-	void UNoesisGuiProgressBar::BeginDestroy()
+void UNoesisGuiProgressBar::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::ProgressBar* NoesisProgressBar = NsDynamicCast<Noesis::Gui::ProgressBar*>(NoesisComponent.GetPtr());
-	if (!NoesisProgressBar)
-		return Super::BeginDestroy();
+	check(NoesisProgressBar)
 
 
-	Super::BeginDestroy();
 }
 

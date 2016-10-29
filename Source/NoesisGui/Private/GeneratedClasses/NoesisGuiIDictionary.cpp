@@ -20,7 +20,6 @@ void UNoesisGuiIDictionary::SetNoesisInterface(Noesis::Core::Interface* InNoesis
 
 	Noesis::Gui::IDictionary* NoesisIDictionary = NsDynamicCast<Noesis::Gui::IDictionary*>(InNoesisInterface);
 	check(NoesisIDictionary);
-
 }
 
 void UNoesisGuiIDictionary::Add(class UNoesisGuiIResourceKey* InKey, class UNoesisGuiBaseComponent* InValue)
@@ -79,13 +78,23 @@ void UNoesisGuiIDictionary::Remove(class UNoesisGuiIResourceKey* InKey)
 	return NoesisIDictionary->Remove(NoesisInKey);
 }
 
-	void UNoesisGuiIDictionary::BeginDestroy()
+void UNoesisGuiIDictionary::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::IDictionary* NoesisIDictionary = NsDynamicCast<Noesis::Gui::IDictionary*>(NoesisInterface.GetPtr());
-	if (!NoesisIDictionary)
-		return Super::BeginDestroy();
+	check(NoesisIDictionary)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiIDictionary::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::IDictionary* NoesisIDictionary = NsDynamicCast<Noesis::Gui::IDictionary*>(NoesisInterface.GetPtr());
+	check(NoesisIDictionary)
+
+
 }
 

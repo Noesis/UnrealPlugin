@@ -20,7 +20,6 @@ void UNoesisGuiHierarchicalDataTemplate::SetNoesisComponent(Noesis::Core::BaseCo
 
 	Noesis::Gui::HierarchicalDataTemplate* NoesisHierarchicalDataTemplate = NsDynamicCast<Noesis::Gui::HierarchicalDataTemplate*>(InNoesisComponent);
 	check(NoesisHierarchicalDataTemplate);
-
 }
 
 class UNoesisGuiStyle* UNoesisGuiHierarchicalDataTemplate::GetItemContainerStyle()
@@ -79,13 +78,23 @@ void UNoesisGuiHierarchicalDataTemplate::SetItemsSource(class UNoesisGuiBaseBind
 	NoesisHierarchicalDataTemplate->SetItemsSource(NsDynamicCast<BaseBinding*>(InItemsSource->NoesisComponent.GetPtr()));
 }
 
-	void UNoesisGuiHierarchicalDataTemplate::BeginDestroy()
+void UNoesisGuiHierarchicalDataTemplate::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::HierarchicalDataTemplate* NoesisHierarchicalDataTemplate = NsDynamicCast<Noesis::Gui::HierarchicalDataTemplate*>(NoesisComponent.GetPtr());
-	if (!NoesisHierarchicalDataTemplate)
-		return Super::BeginDestroy();
+	check(NoesisHierarchicalDataTemplate)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiHierarchicalDataTemplate::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::HierarchicalDataTemplate* NoesisHierarchicalDataTemplate = NsDynamicCast<Noesis::Gui::HierarchicalDataTemplate*>(NoesisComponent.GetPtr());
+	check(NoesisHierarchicalDataTemplate)
+
+
 }
 

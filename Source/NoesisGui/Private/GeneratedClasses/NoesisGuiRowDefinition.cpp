@@ -20,16 +20,25 @@ void UNoesisGuiRowDefinition::SetNoesisComponent(Noesis::Core::BaseComponent* In
 
 	Noesis::Gui::RowDefinition* NoesisRowDefinition = NsDynamicCast<Noesis::Gui::RowDefinition*>(InNoesisComponent);
 	check(NoesisRowDefinition);
+}
+
+void UNoesisGuiRowDefinition::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::RowDefinition* NoesisRowDefinition = NsDynamicCast<Noesis::Gui::RowDefinition*>(NoesisComponent.GetPtr());
+	check(NoesisRowDefinition)
+
 
 }
 
-	void UNoesisGuiRowDefinition::BeginDestroy()
+void UNoesisGuiRowDefinition::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::RowDefinition* NoesisRowDefinition = NsDynamicCast<Noesis::Gui::RowDefinition*>(NoesisComponent.GetPtr());
-	if (!NoesisRowDefinition)
-		return Super::BeginDestroy();
+	check(NoesisRowDefinition)
 
 
-	Super::BeginDestroy();
 }
 

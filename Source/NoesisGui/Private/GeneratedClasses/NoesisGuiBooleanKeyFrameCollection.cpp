@@ -20,16 +20,25 @@ void UNoesisGuiBooleanKeyFrameCollection::SetNoesisComponent(Noesis::Core::BaseC
 
 	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<NsBool>>* NoesisBooleanKeyFrameCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<NsBool>>*>(InNoesisComponent);
 	check(NoesisBooleanKeyFrameCollection);
+}
+
+void UNoesisGuiBooleanKeyFrameCollection::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<NsBool>>* NoesisBooleanKeyFrameCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<NsBool>>*>(NoesisComponent.GetPtr());
+	check(NoesisBooleanKeyFrameCollection)
+
 
 }
 
-	void UNoesisGuiBooleanKeyFrameCollection::BeginDestroy()
+void UNoesisGuiBooleanKeyFrameCollection::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<NsBool>>* NoesisBooleanKeyFrameCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<NsBool>>*>(NoesisComponent.GetPtr());
-	if (!NoesisBooleanKeyFrameCollection)
-		return Super::BeginDestroy();
+	check(NoesisBooleanKeyFrameCollection)
 
 
-	Super::BeginDestroy();
 }
 

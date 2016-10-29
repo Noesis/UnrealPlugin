@@ -20,16 +20,25 @@ void UNoesisGuiBaseSetterCollection::SetNoesisComponent(Noesis::Core::BaseCompon
 
 	Noesis::Gui::TypedCollection<Noesis::Gui::BaseSetter>* NoesisBaseSetterCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::BaseSetter>*>(InNoesisComponent);
 	check(NoesisBaseSetterCollection);
+}
+
+void UNoesisGuiBaseSetterCollection::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::TypedCollection<Noesis::Gui::BaseSetter>* NoesisBaseSetterCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::BaseSetter>*>(NoesisComponent.GetPtr());
+	check(NoesisBaseSetterCollection)
+
 
 }
 
-	void UNoesisGuiBaseSetterCollection::BeginDestroy()
+void UNoesisGuiBaseSetterCollection::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::TypedCollection<Noesis::Gui::BaseSetter>* NoesisBaseSetterCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::BaseSetter>*>(NoesisComponent.GetPtr());
-	if (!NoesisBaseSetterCollection)
-		return Super::BeginDestroy();
+	check(NoesisBaseSetterCollection)
 
 
-	Super::BeginDestroy();
 }
 

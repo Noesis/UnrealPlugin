@@ -20,16 +20,25 @@ void UNoesisGuiTabPanel::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesi
 
 	Noesis::Gui::TabPanel* NoesisTabPanel = NsDynamicCast<Noesis::Gui::TabPanel*>(InNoesisComponent);
 	check(NoesisTabPanel);
+}
+
+void UNoesisGuiTabPanel::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::TabPanel* NoesisTabPanel = NsDynamicCast<Noesis::Gui::TabPanel*>(NoesisComponent.GetPtr());
+	check(NoesisTabPanel)
+
 
 }
 
-	void UNoesisGuiTabPanel::BeginDestroy()
+void UNoesisGuiTabPanel::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::TabPanel* NoesisTabPanel = NsDynamicCast<Noesis::Gui::TabPanel*>(NoesisComponent.GetPtr());
-	if (!NoesisTabPanel)
-		return Super::BeginDestroy();
+	check(NoesisTabPanel)
 
 
-	Super::BeginDestroy();
 }
 

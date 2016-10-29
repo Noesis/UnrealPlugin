@@ -20,16 +20,25 @@ void UNoesisGuiMatrix3DProjection::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	Noesis::Gui::Matrix3DProjection* NoesisMatrix3DProjection = NsDynamicCast<Noesis::Gui::Matrix3DProjection*>(InNoesisComponent);
 	check(NoesisMatrix3DProjection);
+}
+
+void UNoesisGuiMatrix3DProjection::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Matrix3DProjection* NoesisMatrix3DProjection = NsDynamicCast<Noesis::Gui::Matrix3DProjection*>(NoesisComponent.GetPtr());
+	check(NoesisMatrix3DProjection)
+
 
 }
 
-	void UNoesisGuiMatrix3DProjection::BeginDestroy()
+void UNoesisGuiMatrix3DProjection::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Matrix3DProjection* NoesisMatrix3DProjection = NsDynamicCast<Noesis::Gui::Matrix3DProjection*>(NoesisComponent.GetPtr());
-	if (!NoesisMatrix3DProjection)
-		return Super::BeginDestroy();
+	check(NoesisMatrix3DProjection)
 
 
-	Super::BeginDestroy();
 }
 

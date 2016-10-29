@@ -20,7 +20,6 @@ void UNoesisGuiIScrollInfo::SetNoesisInterface(Noesis::Core::Interface* InNoesis
 
 	Noesis::Gui::IScrollInfo* NoesisIScrollInfo = NsDynamicCast<Noesis::Gui::IScrollInfo*>(InNoesisInterface);
 	check(NoesisIScrollInfo);
-
 }
 
 void UNoesisGuiIScrollInfo::LineDown()
@@ -60,32 +59,36 @@ FNoesisGuiDrawingRect UNoesisGuiIScrollInfo::MakeVisible(class UNoesisGuiVisual*
 	return FNoesisGuiDrawingRect(NoesisIScrollInfo->MakeVisible(NoesisInVisual, NoesisInRectangle));
 }
 
-void UNoesisGuiIScrollInfo::MouseWheelDown()
+void UNoesisGuiIScrollInfo::MouseWheelDown(float InDelta)
 {
 	Noesis::Gui::IScrollInfo* NoesisIScrollInfo = NsDynamicCast<Noesis::Gui::IScrollInfo*>(NoesisInterface.GetPtr());
 	check(NoesisIScrollInfo);
-	return NoesisIScrollInfo->MouseWheelDown();
+	NsFloat32 NoesisInDelta = InDelta;
+	return NoesisIScrollInfo->MouseWheelDown(NoesisInDelta);
 }
 
-void UNoesisGuiIScrollInfo::MouseWheelLeft()
+void UNoesisGuiIScrollInfo::MouseWheelLeft(float InDelta)
 {
 	Noesis::Gui::IScrollInfo* NoesisIScrollInfo = NsDynamicCast<Noesis::Gui::IScrollInfo*>(NoesisInterface.GetPtr());
 	check(NoesisIScrollInfo);
-	return NoesisIScrollInfo->MouseWheelLeft();
+	NsFloat32 NoesisInDelta = InDelta;
+	return NoesisIScrollInfo->MouseWheelLeft(NoesisInDelta);
 }
 
-void UNoesisGuiIScrollInfo::MouseWheelRight()
+void UNoesisGuiIScrollInfo::MouseWheelRight(float InDelta)
 {
 	Noesis::Gui::IScrollInfo* NoesisIScrollInfo = NsDynamicCast<Noesis::Gui::IScrollInfo*>(NoesisInterface.GetPtr());
 	check(NoesisIScrollInfo);
-	return NoesisIScrollInfo->MouseWheelRight();
+	NsFloat32 NoesisInDelta = InDelta;
+	return NoesisIScrollInfo->MouseWheelRight(NoesisInDelta);
 }
 
-void UNoesisGuiIScrollInfo::MouseWheelUp()
+void UNoesisGuiIScrollInfo::MouseWheelUp(float InDelta)
 {
 	Noesis::Gui::IScrollInfo* NoesisIScrollInfo = NsDynamicCast<Noesis::Gui::IScrollInfo*>(NoesisInterface.GetPtr());
 	check(NoesisIScrollInfo);
-	return NoesisIScrollInfo->MouseWheelUp();
+	NsFloat32 NoesisInDelta = InDelta;
+	return NoesisIScrollInfo->MouseWheelUp(NoesisInDelta);
 }
 
 void UNoesisGuiIScrollInfo::PageDown()
@@ -116,13 +119,23 @@ void UNoesisGuiIScrollInfo::PageUp()
 	return NoesisIScrollInfo->PageUp();
 }
 
-	void UNoesisGuiIScrollInfo::BeginDestroy()
+void UNoesisGuiIScrollInfo::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::IScrollInfo* NoesisIScrollInfo = NsDynamicCast<Noesis::Gui::IScrollInfo*>(NoesisInterface.GetPtr());
-	if (!NoesisIScrollInfo)
-		return Super::BeginDestroy();
+	check(NoesisIScrollInfo)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiIScrollInfo::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::IScrollInfo* NoesisIScrollInfo = NsDynamicCast<Noesis::Gui::IScrollInfo*>(NoesisInterface.GetPtr());
+	check(NoesisIScrollInfo)
+
+
 }
 

@@ -20,7 +20,6 @@ void UNoesisGuiEventTrigger::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 
 	Noesis::Gui::EventTrigger* NoesisEventTrigger = NsDynamicCast<Noesis::Gui::EventTrigger*>(InNoesisComponent);
 	check(NoesisEventTrigger);
-
 }
 
 class UNoesisGuiTriggerActionCollection* UNoesisGuiEventTrigger::GetActions()
@@ -58,13 +57,23 @@ void UNoesisGuiEventTrigger::SetSourceName(FString InSourceName)
 	NoesisEventTrigger->SetSourceName(StringCast<NsChar>(*InSourceName).Get());
 }
 
-	void UNoesisGuiEventTrigger::BeginDestroy()
+void UNoesisGuiEventTrigger::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::EventTrigger* NoesisEventTrigger = NsDynamicCast<Noesis::Gui::EventTrigger*>(NoesisComponent.GetPtr());
-	if (!NoesisEventTrigger)
-		return Super::BeginDestroy();
+	check(NoesisEventTrigger)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiEventTrigger::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::EventTrigger* NoesisEventTrigger = NsDynamicCast<Noesis::Gui::EventTrigger*>(NoesisComponent.GetPtr());
+	check(NoesisEventTrigger)
+
+
 }
 

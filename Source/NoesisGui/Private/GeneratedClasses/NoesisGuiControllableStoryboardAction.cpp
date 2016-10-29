@@ -20,7 +20,6 @@ void UNoesisGuiControllableStoryboardAction::SetNoesisComponent(Noesis::Core::Ba
 
 	Noesis::Gui::ControllableStoryboardAction* NoesisControllableStoryboardAction = NsDynamicCast<Noesis::Gui::ControllableStoryboardAction*>(InNoesisComponent);
 	check(NoesisControllableStoryboardAction);
-
 }
 
 FString UNoesisGuiControllableStoryboardAction::GetBeginStoryboardName()
@@ -37,13 +36,23 @@ void UNoesisGuiControllableStoryboardAction::SetBeginStoryboardName(FString InBe
 	NoesisControllableStoryboardAction->SetBeginStoryboardName(StringCast<NsChar>(*InBeginStoryboardName).Get());
 }
 
-	void UNoesisGuiControllableStoryboardAction::BeginDestroy()
+void UNoesisGuiControllableStoryboardAction::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::ControllableStoryboardAction* NoesisControllableStoryboardAction = NsDynamicCast<Noesis::Gui::ControllableStoryboardAction*>(NoesisComponent.GetPtr());
-	if (!NoesisControllableStoryboardAction)
-		return Super::BeginDestroy();
+	check(NoesisControllableStoryboardAction)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiControllableStoryboardAction::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::ControllableStoryboardAction* NoesisControllableStoryboardAction = NsDynamicCast<Noesis::Gui::ControllableStoryboardAction*>(NoesisComponent.GetPtr());
+	check(NoesisControllableStoryboardAction)
+
+
 }
 

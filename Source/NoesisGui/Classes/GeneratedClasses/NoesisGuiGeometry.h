@@ -33,8 +33,12 @@ bool IsEmpty();
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 bool StrokeContains(class UNoesisGuiPen* Pen, FNoesisGuiDrawingPoint Point);
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

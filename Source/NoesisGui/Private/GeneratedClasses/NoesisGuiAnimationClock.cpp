@@ -20,16 +20,25 @@ void UNoesisGuiAnimationClock::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	Noesis::Gui::AnimationClock* NoesisAnimationClock = NsDynamicCast<Noesis::Gui::AnimationClock*>(InNoesisComponent);
 	check(NoesisAnimationClock);
+}
+
+void UNoesisGuiAnimationClock::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::AnimationClock* NoesisAnimationClock = NsDynamicCast<Noesis::Gui::AnimationClock*>(NoesisComponent.GetPtr());
+	check(NoesisAnimationClock)
+
 
 }
 
-	void UNoesisGuiAnimationClock::BeginDestroy()
+void UNoesisGuiAnimationClock::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::AnimationClock* NoesisAnimationClock = NsDynamicCast<Noesis::Gui::AnimationClock*>(NoesisComponent.GetPtr());
-	if (!NoesisAnimationClock)
-		return Super::BeginDestroy();
+	check(NoesisAnimationClock)
 
 
-	Super::BeginDestroy();
 }
 

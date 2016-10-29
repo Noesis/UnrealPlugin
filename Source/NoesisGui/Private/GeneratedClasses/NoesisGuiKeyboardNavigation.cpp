@@ -20,16 +20,25 @@ void UNoesisGuiKeyboardNavigation::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	Noesis::Gui::KeyboardNavigation* NoesisKeyboardNavigation = NsDynamicCast<Noesis::Gui::KeyboardNavigation*>(InNoesisComponent);
 	check(NoesisKeyboardNavigation);
+}
+
+void UNoesisGuiKeyboardNavigation::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::KeyboardNavigation* NoesisKeyboardNavigation = NsDynamicCast<Noesis::Gui::KeyboardNavigation*>(NoesisComponent.GetPtr());
+	check(NoesisKeyboardNavigation)
+
 
 }
 
-	void UNoesisGuiKeyboardNavigation::BeginDestroy()
+void UNoesisGuiKeyboardNavigation::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::KeyboardNavigation* NoesisKeyboardNavigation = NsDynamicCast<Noesis::Gui::KeyboardNavigation*>(NoesisComponent.GetPtr());
-	if (!NoesisKeyboardNavigation)
-		return Super::BeginDestroy();
+	check(NoesisKeyboardNavigation)
 
 
-	Super::BeginDestroy();
 }
 

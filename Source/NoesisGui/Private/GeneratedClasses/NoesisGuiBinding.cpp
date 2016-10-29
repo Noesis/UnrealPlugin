@@ -20,7 +20,6 @@ void UNoesisGuiBinding::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesis
 
 	Noesis::Gui::Binding* NoesisBinding = NsDynamicCast<Noesis::Gui::Binding*>(InNoesisComponent);
 	check(NoesisBinding);
-
 }
 
 UNoesisGuiIValueConverter* UNoesisGuiBinding::GetConverter()
@@ -144,13 +143,23 @@ FNoesisGuiObjectWithNameScope UNoesisGuiBinding::GetSourceObject(class UNoesisGu
 	return FNoesisGuiObjectWithNameScope(Instance, NoesisBinding->GetSourceObject(NoesisInTarget, NoesisInTargetProperty));
 }
 
-	void UNoesisGuiBinding::BeginDestroy()
+void UNoesisGuiBinding::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::Binding* NoesisBinding = NsDynamicCast<Noesis::Gui::Binding*>(NoesisComponent.GetPtr());
-	if (!NoesisBinding)
-		return Super::BeginDestroy();
+	check(NoesisBinding)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiBinding::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::Binding* NoesisBinding = NsDynamicCast<Noesis::Gui::Binding*>(NoesisComponent.GetPtr());
+	check(NoesisBinding)
+
+
 }
 

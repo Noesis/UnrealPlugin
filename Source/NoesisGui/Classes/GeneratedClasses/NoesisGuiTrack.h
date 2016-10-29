@@ -41,8 +41,12 @@ float ValueFromDistance(float Horizontal, float Vertical);
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 float ValueFromPoint(FNoesisGuiDrawingPoint Point);
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

@@ -20,16 +20,25 @@ void UNoesisGuiLabel::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisCo
 
 	Noesis::Gui::Label* NoesisLabel = NsDynamicCast<Noesis::Gui::Label*>(InNoesisComponent);
 	check(NoesisLabel);
+}
+
+void UNoesisGuiLabel::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Label* NoesisLabel = NsDynamicCast<Noesis::Gui::Label*>(NoesisComponent.GetPtr());
+	check(NoesisLabel)
+
 
 }
 
-	void UNoesisGuiLabel::BeginDestroy()
+void UNoesisGuiLabel::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Label* NoesisLabel = NsDynamicCast<Noesis::Gui::Label*>(NoesisComponent.GetPtr());
-	if (!NoesisLabel)
-		return Super::BeginDestroy();
+	check(NoesisLabel)
 
 
-	Super::BeginDestroy();
 }
 

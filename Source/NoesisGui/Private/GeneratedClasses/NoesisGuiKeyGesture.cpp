@@ -20,7 +20,6 @@ void UNoesisGuiKeyGesture::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 
 	Noesis::Gui::KeyGesture* NoesisKeyGesture = NsDynamicCast<Noesis::Gui::KeyGesture*>(InNoesisComponent);
 	check(NoesisKeyGesture);
-
 }
 
 FString UNoesisGuiKeyGesture::GetDisplayString()
@@ -44,13 +43,23 @@ int32 UNoesisGuiKeyGesture::GetModifiers()
 	return NoesisKeyGesture->GetModifiers();
 }
 
-	void UNoesisGuiKeyGesture::BeginDestroy()
+void UNoesisGuiKeyGesture::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::KeyGesture* NoesisKeyGesture = NsDynamicCast<Noesis::Gui::KeyGesture*>(NoesisComponent.GetPtr());
-	if (!NoesisKeyGesture)
-		return Super::BeginDestroy();
+	check(NoesisKeyGesture)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiKeyGesture::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::KeyGesture* NoesisKeyGesture = NsDynamicCast<Noesis::Gui::KeyGesture*>(NoesisComponent.GetPtr());
+	check(NoesisKeyGesture)
+
+
 }
 

@@ -20,16 +20,25 @@ void UNoesisGuiItemsPresenter::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	Noesis::Gui::ItemsPresenter* NoesisItemsPresenter = NsDynamicCast<Noesis::Gui::ItemsPresenter*>(InNoesisComponent);
 	check(NoesisItemsPresenter);
+}
+
+void UNoesisGuiItemsPresenter::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::ItemsPresenter* NoesisItemsPresenter = NsDynamicCast<Noesis::Gui::ItemsPresenter*>(NoesisComponent.GetPtr());
+	check(NoesisItemsPresenter)
+
 
 }
 
-	void UNoesisGuiItemsPresenter::BeginDestroy()
+void UNoesisGuiItemsPresenter::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::ItemsPresenter* NoesisItemsPresenter = NsDynamicCast<Noesis::Gui::ItemsPresenter*>(NoesisComponent.GetPtr());
-	if (!NoesisItemsPresenter)
-		return Super::BeginDestroy();
+	check(NoesisItemsPresenter)
 
 
-	Super::BeginDestroy();
 }
 

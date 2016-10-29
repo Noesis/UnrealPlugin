@@ -20,16 +20,25 @@ void UNoesisGuiResumeStoryboard::SetNoesisComponent(Noesis::Core::BaseComponent*
 
 	Noesis::Gui::ResumeStoryboard* NoesisResumeStoryboard = NsDynamicCast<Noesis::Gui::ResumeStoryboard*>(InNoesisComponent);
 	check(NoesisResumeStoryboard);
+}
+
+void UNoesisGuiResumeStoryboard::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::ResumeStoryboard* NoesisResumeStoryboard = NsDynamicCast<Noesis::Gui::ResumeStoryboard*>(NoesisComponent.GetPtr());
+	check(NoesisResumeStoryboard)
+
 
 }
 
-	void UNoesisGuiResumeStoryboard::BeginDestroy()
+void UNoesisGuiResumeStoryboard::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::ResumeStoryboard* NoesisResumeStoryboard = NsDynamicCast<Noesis::Gui::ResumeStoryboard*>(NoesisComponent.GetPtr());
-	if (!NoesisResumeStoryboard)
-		return Super::BeginDestroy();
+	check(NoesisResumeStoryboard)
 
 
-	Super::BeginDestroy();
 }
 

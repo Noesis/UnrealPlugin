@@ -20,7 +20,6 @@ void UNoesisGuiBrush::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisCo
 
 	Noesis::Gui::Brush* NoesisBrush = NsDynamicCast<Noesis::Gui::Brush*>(InNoesisComponent);
 	check(NoesisBrush);
-
 }
 
 bool UNoesisGuiBrush::IsTransparent()
@@ -30,13 +29,23 @@ bool UNoesisGuiBrush::IsTransparent()
 	return NoesisBrush->IsTransparent();
 }
 
-	void UNoesisGuiBrush::BeginDestroy()
+void UNoesisGuiBrush::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::Brush* NoesisBrush = NsDynamicCast<Noesis::Gui::Brush*>(NoesisComponent.GetPtr());
-	if (!NoesisBrush)
-		return Super::BeginDestroy();
+	check(NoesisBrush)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiBrush::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::Brush* NoesisBrush = NsDynamicCast<Noesis::Gui::Brush*>(NoesisComponent.GetPtr());
+	check(NoesisBrush)
+
+
 }
 

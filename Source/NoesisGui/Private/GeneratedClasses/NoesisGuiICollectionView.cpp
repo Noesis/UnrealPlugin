@@ -20,7 +20,6 @@ void UNoesisGuiICollectionView::SetNoesisInterface(Noesis::Core::Interface* InNo
 
 	Noesis::Gui::ICollectionView* NoesisICollectionView = NsDynamicCast<Noesis::Gui::ICollectionView*>(InNoesisInterface);
 	check(NoesisICollectionView);
-
 }
 
 bool UNoesisGuiICollectionView::CanFilter()
@@ -95,13 +94,23 @@ bool UNoesisGuiICollectionView::MoveCurrentTo(class UNoesisGuiBaseComponent* InI
 	return NoesisICollectionView->MoveCurrentTo(NoesisInItem);
 }
 
-	void UNoesisGuiICollectionView::BeginDestroy()
+void UNoesisGuiICollectionView::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::ICollectionView* NoesisICollectionView = NsDynamicCast<Noesis::Gui::ICollectionView*>(NoesisInterface.GetPtr());
-	if (!NoesisICollectionView)
-		return Super::BeginDestroy();
+	check(NoesisICollectionView)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiICollectionView::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::ICollectionView* NoesisICollectionView = NsDynamicCast<Noesis::Gui::ICollectionView*>(NoesisInterface.GetPtr());
+	check(NoesisICollectionView)
+
+
 }
 

@@ -20,16 +20,25 @@ void UNoesisGuiDoubleAnimationUsingKeyFrames::SetNoesisComponent(Noesis::Core::B
 
 	Noesis::Gui::AnimationUsingKeyFrames<NsFloat32>* NoesisDoubleAnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<NsFloat32>*>(InNoesisComponent);
 	check(NoesisDoubleAnimationUsingKeyFrames);
+}
+
+void UNoesisGuiDoubleAnimationUsingKeyFrames::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::AnimationUsingKeyFrames<NsFloat32>* NoesisDoubleAnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<NsFloat32>*>(NoesisComponent.GetPtr());
+	check(NoesisDoubleAnimationUsingKeyFrames)
+
 
 }
 
-	void UNoesisGuiDoubleAnimationUsingKeyFrames::BeginDestroy()
+void UNoesisGuiDoubleAnimationUsingKeyFrames::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::AnimationUsingKeyFrames<NsFloat32>* NoesisDoubleAnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<NsFloat32>*>(NoesisComponent.GetPtr());
-	if (!NoesisDoubleAnimationUsingKeyFrames)
-		return Super::BeginDestroy();
+	check(NoesisDoubleAnimationUsingKeyFrames)
 
 
-	Super::BeginDestroy();
 }
 

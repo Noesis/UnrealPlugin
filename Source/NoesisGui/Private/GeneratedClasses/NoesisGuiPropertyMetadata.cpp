@@ -20,7 +20,6 @@ void UNoesisGuiPropertyMetadata::SetNoesisComponent(Noesis::Core::BaseComponent*
 
 	Noesis::Gui::PropertyMetadata* NoesisPropertyMetadata = NsDynamicCast<Noesis::Gui::PropertyMetadata*>(InNoesisComponent);
 	check(NoesisPropertyMetadata);
-
 }
 
 void UNoesisGuiPropertyMetadata::ClearInheritedValues()
@@ -30,13 +29,23 @@ void UNoesisGuiPropertyMetadata::ClearInheritedValues()
 	return NoesisPropertyMetadata->ClearInheritedValues();
 }
 
-	void UNoesisGuiPropertyMetadata::BeginDestroy()
+void UNoesisGuiPropertyMetadata::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::PropertyMetadata* NoesisPropertyMetadata = NsDynamicCast<Noesis::Gui::PropertyMetadata*>(NoesisComponent.GetPtr());
-	if (!NoesisPropertyMetadata)
-		return Super::BeginDestroy();
+	check(NoesisPropertyMetadata)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiPropertyMetadata::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::PropertyMetadata* NoesisPropertyMetadata = NsDynamicCast<Noesis::Gui::PropertyMetadata*>(NoesisComponent.GetPtr());
+	check(NoesisPropertyMetadata)
+
+
 }
 

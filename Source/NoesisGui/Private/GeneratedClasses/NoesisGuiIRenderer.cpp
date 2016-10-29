@@ -20,7 +20,6 @@ void UNoesisGuiIRenderer::SetNoesisInterface(Noesis::Core::Interface* InNoesisIn
 
 	Noesis::Gui::IRenderer* NoesisIRenderer = NsDynamicCast<Noesis::Gui::IRenderer*>(InNoesisInterface);
 	check(NoesisIRenderer);
-
 }
 
 bool UNoesisGuiIRenderer::NeedsOffscreen()
@@ -69,13 +68,23 @@ bool UNoesisGuiIRenderer::UpdateRenderTree()
 	return NoesisIRenderer->UpdateRenderTree();
 }
 
-	void UNoesisGuiIRenderer::BeginDestroy()
+void UNoesisGuiIRenderer::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::IRenderer* NoesisIRenderer = NsDynamicCast<Noesis::Gui::IRenderer*>(NoesisInterface.GetPtr());
-	if (!NoesisIRenderer)
-		return Super::BeginDestroy();
+	check(NoesisIRenderer)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiIRenderer::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::IRenderer* NoesisIRenderer = NsDynamicCast<Noesis::Gui::IRenderer*>(NoesisInterface.GetPtr());
+	check(NoesisIRenderer)
+
+
 }
 

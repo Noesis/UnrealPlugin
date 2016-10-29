@@ -20,16 +20,25 @@ void UNoesisGuiEasingFunctionBase::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	Noesis::Gui::EasingFunctionBase* NoesisEasingFunctionBase = NsDynamicCast<Noesis::Gui::EasingFunctionBase*>(InNoesisComponent);
 	check(NoesisEasingFunctionBase);
+}
+
+void UNoesisGuiEasingFunctionBase::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::EasingFunctionBase* NoesisEasingFunctionBase = NsDynamicCast<Noesis::Gui::EasingFunctionBase*>(NoesisComponent.GetPtr());
+	check(NoesisEasingFunctionBase)
+
 
 }
 
-	void UNoesisGuiEasingFunctionBase::BeginDestroy()
+void UNoesisGuiEasingFunctionBase::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::EasingFunctionBase* NoesisEasingFunctionBase = NsDynamicCast<Noesis::Gui::EasingFunctionBase*>(NoesisComponent.GetPtr());
-	if (!NoesisEasingFunctionBase)
-		return Super::BeginDestroy();
+	check(NoesisEasingFunctionBase)
 
 
-	Super::BeginDestroy();
 }
 

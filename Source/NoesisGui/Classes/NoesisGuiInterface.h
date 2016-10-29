@@ -21,4 +21,11 @@ class NOESISGUI_API UNoesisGuiInterface : public UObject
 	Noesis::Ptr<Noesis::Interface> NoesisInterface;
 
 	class UNoesisGuiInstance* Instance;
+
+	// UObject interface
+	virtual void BeginDestroy() override;
+	// End of UObject interface
+
+	virtual void BindEvents();
+	virtual void UnbindEvents();
 };

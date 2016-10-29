@@ -20,16 +20,25 @@ void UNoesisGuiCheckBox::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesi
 
 	Noesis::Gui::CheckBox* NoesisCheckBox = NsDynamicCast<Noesis::Gui::CheckBox*>(InNoesisComponent);
 	check(NoesisCheckBox);
+}
+
+void UNoesisGuiCheckBox::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::CheckBox* NoesisCheckBox = NsDynamicCast<Noesis::Gui::CheckBox*>(NoesisComponent.GetPtr());
+	check(NoesisCheckBox)
+
 
 }
 
-	void UNoesisGuiCheckBox::BeginDestroy()
+void UNoesisGuiCheckBox::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::CheckBox* NoesisCheckBox = NsDynamicCast<Noesis::Gui::CheckBox*>(NoesisComponent.GetPtr());
-	if (!NoesisCheckBox)
-		return Super::BeginDestroy();
+	check(NoesisCheckBox)
 
 
-	Super::BeginDestroy();
 }
 

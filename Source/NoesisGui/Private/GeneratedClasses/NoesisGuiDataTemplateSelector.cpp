@@ -20,7 +20,6 @@ void UNoesisGuiDataTemplateSelector::SetNoesisComponent(Noesis::Core::BaseCompon
 
 	Noesis::Gui::DataTemplateSelector* NoesisDataTemplateSelector = NsDynamicCast<Noesis::Gui::DataTemplateSelector*>(InNoesisComponent);
 	check(NoesisDataTemplateSelector);
-
 }
 
 class UNoesisGuiDataTemplate* UNoesisGuiDataTemplateSelector::SelectTemplate(class UNoesisGuiBaseComponent* InItem, class UNoesisGuiDependencyObject* InContainer)
@@ -32,13 +31,23 @@ class UNoesisGuiDataTemplate* UNoesisGuiDataTemplateSelector::SelectTemplate(cla
 	return CastChecked<UNoesisGuiDataTemplate>(Instance->FindUnrealComponentForNoesisComponent(NoesisDataTemplateSelector->SelectTemplate(NoesisInItem, NoesisInContainer)));
 }
 
-	void UNoesisGuiDataTemplateSelector::BeginDestroy()
+void UNoesisGuiDataTemplateSelector::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::DataTemplateSelector* NoesisDataTemplateSelector = NsDynamicCast<Noesis::Gui::DataTemplateSelector*>(NoesisComponent.GetPtr());
-	if (!NoesisDataTemplateSelector)
-		return Super::BeginDestroy();
+	check(NoesisDataTemplateSelector)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiDataTemplateSelector::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::DataTemplateSelector* NoesisDataTemplateSelector = NsDynamicCast<Noesis::Gui::DataTemplateSelector*>(NoesisComponent.GetPtr());
+	check(NoesisDataTemplateSelector)
+
+
 }
 

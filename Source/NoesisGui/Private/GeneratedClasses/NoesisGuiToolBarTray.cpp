@@ -20,16 +20,25 @@ void UNoesisGuiToolBarTray::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	Noesis::Gui::ToolBarTray* NoesisToolBarTray = NsDynamicCast<Noesis::Gui::ToolBarTray*>(InNoesisComponent);
 	check(NoesisToolBarTray);
+}
+
+void UNoesisGuiToolBarTray::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::ToolBarTray* NoesisToolBarTray = NsDynamicCast<Noesis::Gui::ToolBarTray*>(NoesisComponent.GetPtr());
+	check(NoesisToolBarTray)
+
 
 }
 
-	void UNoesisGuiToolBarTray::BeginDestroy()
+void UNoesisGuiToolBarTray::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::ToolBarTray* NoesisToolBarTray = NsDynamicCast<Noesis::Gui::ToolBarTray*>(NoesisComponent.GetPtr());
-	if (!NoesisToolBarTray)
-		return Super::BeginDestroy();
+	check(NoesisToolBarTray)
 
 
-	Super::BeginDestroy();
 }
 

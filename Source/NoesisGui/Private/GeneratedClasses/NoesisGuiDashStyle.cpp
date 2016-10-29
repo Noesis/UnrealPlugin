@@ -20,16 +20,25 @@ void UNoesisGuiDashStyle::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	Noesis::Gui::DashStyle* NoesisDashStyle = NsDynamicCast<Noesis::Gui::DashStyle*>(InNoesisComponent);
 	check(NoesisDashStyle);
+}
+
+void UNoesisGuiDashStyle::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::DashStyle* NoesisDashStyle = NsDynamicCast<Noesis::Gui::DashStyle*>(NoesisComponent.GetPtr());
+	check(NoesisDashStyle)
+
 
 }
 
-	void UNoesisGuiDashStyle::BeginDestroy()
+void UNoesisGuiDashStyle::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::DashStyle* NoesisDashStyle = NsDynamicCast<Noesis::Gui::DashStyle*>(NoesisComponent.GetPtr());
-	if (!NoesisDashStyle)
-		return Super::BeginDestroy();
+	check(NoesisDashStyle)
 
 
-	Super::BeginDestroy();
 }
 

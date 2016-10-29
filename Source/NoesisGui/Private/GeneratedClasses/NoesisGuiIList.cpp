@@ -20,7 +20,6 @@ void UNoesisGuiIList::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterf
 
 	Noesis::Gui::IList* NoesisIList = NsDynamicCast<Noesis::Gui::IList*>(InNoesisInterface);
 	check(NoesisIList);
-
 }
 
 int32 UNoesisGuiIList::Add(class UNoesisGuiBaseComponent* InItem)
@@ -94,13 +93,23 @@ void UNoesisGuiIList::RemoveAt(int32 InIndex)
 	return NoesisIList->RemoveAt(NoesisInIndex);
 }
 
-	void UNoesisGuiIList::BeginDestroy()
+void UNoesisGuiIList::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::IList* NoesisIList = NsDynamicCast<Noesis::Gui::IList*>(NoesisInterface.GetPtr());
-	if (!NoesisIList)
-		return Super::BeginDestroy();
+	check(NoesisIList)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiIList::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::IList* NoesisIList = NsDynamicCast<Noesis::Gui::IList*>(NoesisInterface.GetPtr());
+	check(NoesisIList)
+
+
 }
 

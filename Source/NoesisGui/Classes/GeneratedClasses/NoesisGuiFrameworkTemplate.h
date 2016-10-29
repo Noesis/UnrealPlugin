@@ -38,8 +38,12 @@ class UNoesisGuiBaseComponent* FindName(FString Name, class UNoesisGuiFrameworkE
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 class UNoesisGuiTriggerCollection* GetAvailableTriggers();
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

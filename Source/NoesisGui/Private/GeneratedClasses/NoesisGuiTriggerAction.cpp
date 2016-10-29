@@ -20,7 +20,6 @@ void UNoesisGuiTriggerAction::SetNoesisComponent(Noesis::Core::BaseComponent* In
 
 	Noesis::Gui::TriggerAction* NoesisTriggerAction = NsDynamicCast<Noesis::Gui::TriggerAction*>(InNoesisComponent);
 	check(NoesisTriggerAction);
-
 }
 
 void UNoesisGuiTriggerAction::Invoke(class UNoesisGuiFrameworkElement* InTarget, class UNoesisGuiFrameworkElement* InNameScope)
@@ -32,13 +31,23 @@ void UNoesisGuiTriggerAction::Invoke(class UNoesisGuiFrameworkElement* InTarget,
 	return NoesisTriggerAction->Invoke(NoesisInTarget, NoesisInNameScope);
 }
 
-	void UNoesisGuiTriggerAction::BeginDestroy()
+void UNoesisGuiTriggerAction::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::TriggerAction* NoesisTriggerAction = NsDynamicCast<Noesis::Gui::TriggerAction*>(NoesisComponent.GetPtr());
-	if (!NoesisTriggerAction)
-		return Super::BeginDestroy();
+	check(NoesisTriggerAction)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiTriggerAction::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::TriggerAction* NoesisTriggerAction = NsDynamicCast<Noesis::Gui::TriggerAction*>(NoesisComponent.GetPtr());
+	check(NoesisTriggerAction)
+
+
 }
 

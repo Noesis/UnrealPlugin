@@ -20,7 +20,6 @@ void UNoesisGuiICommandSource::SetNoesisInterface(Noesis::Core::Interface* InNoe
 
 	Noesis::Gui::ICommandSource* NoesisICommandSource = NsDynamicCast<Noesis::Gui::ICommandSource*>(InNoesisInterface);
 	check(NoesisICommandSource);
-
 }
 
 class UNoesisGuiICommand* UNoesisGuiICommandSource::GetCommand()
@@ -44,13 +43,23 @@ class UNoesisGuiUIElement* UNoesisGuiICommandSource::GetCommandTarget()
 	return CastChecked<UNoesisGuiUIElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisICommandSource->GetCommandTarget()));
 }
 
-	void UNoesisGuiICommandSource::BeginDestroy()
+void UNoesisGuiICommandSource::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::ICommandSource* NoesisICommandSource = NsDynamicCast<Noesis::Gui::ICommandSource*>(NoesisInterface.GetPtr());
-	if (!NoesisICommandSource)
-		return Super::BeginDestroy();
+	check(NoesisICommandSource)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiICommandSource::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::ICommandSource* NoesisICommandSource = NsDynamicCast<Noesis::Gui::ICommandSource*>(NoesisInterface.GetPtr());
+	check(NoesisICommandSource)
+
+
 }
 

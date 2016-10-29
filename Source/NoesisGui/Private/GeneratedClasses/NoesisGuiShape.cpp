@@ -20,16 +20,25 @@ void UNoesisGuiShape::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisCo
 
 	Noesis::Gui::Shape* NoesisShape = NsDynamicCast<Noesis::Gui::Shape*>(InNoesisComponent);
 	check(NoesisShape);
+}
+
+void UNoesisGuiShape::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Shape* NoesisShape = NsDynamicCast<Noesis::Gui::Shape*>(NoesisComponent.GetPtr());
+	check(NoesisShape)
+
 
 }
 
-	void UNoesisGuiShape::BeginDestroy()
+void UNoesisGuiShape::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Shape* NoesisShape = NsDynamicCast<Noesis::Gui::Shape*>(NoesisComponent.GetPtr());
-	if (!NoesisShape)
-		return Super::BeginDestroy();
+	check(NoesisShape)
 
 
-	Super::BeginDestroy();
 }
 

@@ -20,16 +20,25 @@ void UNoesisGuiObjectKeyFrameCollection::SetNoesisComponent(Noesis::Core::BaseCo
 
 	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent> >>* NoesisObjectKeyFrameCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent> >>*>(InNoesisComponent);
 	check(NoesisObjectKeyFrameCollection);
+}
+
+void UNoesisGuiObjectKeyFrameCollection::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent> >>* NoesisObjectKeyFrameCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent> >>*>(NoesisComponent.GetPtr());
+	check(NoesisObjectKeyFrameCollection)
+
 
 }
 
-	void UNoesisGuiObjectKeyFrameCollection::BeginDestroy()
+void UNoesisGuiObjectKeyFrameCollection::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent> >>* NoesisObjectKeyFrameCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent> >>*>(NoesisComponent.GetPtr());
-	if (!NoesisObjectKeyFrameCollection)
-		return Super::BeginDestroy();
+	check(NoesisObjectKeyFrameCollection)
 
 
-	Super::BeginDestroy();
 }
 

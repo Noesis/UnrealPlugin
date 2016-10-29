@@ -20,7 +20,6 @@ void UNoesisGuiRelativeSource::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	Noesis::Gui::RelativeSource* NoesisRelativeSource = NsDynamicCast<Noesis::Gui::RelativeSource*>(InNoesisComponent);
 	check(NoesisRelativeSource);
-
 }
 
 int32 UNoesisGuiRelativeSource::GetAncestorLevel()
@@ -65,13 +64,23 @@ void UNoesisGuiRelativeSource::SetMode(ENoesisGuiRelativeSourceMode InMode)
 	NoesisRelativeSource->SetMode((RelativeSourceMode)InMode);
 }
 
-	void UNoesisGuiRelativeSource::BeginDestroy()
+void UNoesisGuiRelativeSource::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::RelativeSource* NoesisRelativeSource = NsDynamicCast<Noesis::Gui::RelativeSource*>(NoesisComponent.GetPtr());
-	if (!NoesisRelativeSource)
-		return Super::BeginDestroy();
+	check(NoesisRelativeSource)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiRelativeSource::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::RelativeSource* NoesisRelativeSource = NsDynamicCast<Noesis::Gui::RelativeSource*>(NoesisComponent.GetPtr());
+	check(NoesisRelativeSource)
+
+
 }
 

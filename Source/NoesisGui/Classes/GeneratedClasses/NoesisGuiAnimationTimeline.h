@@ -26,8 +26,12 @@ class UNoesisGuiBaseComponent* GetAnimatedValue(class UNoesisGuiBaseComponent* D
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void Start(class UNoesisGuiDependencyObject* Target, const class UNoesisGuiDependencyProperty* Dp, class UNoesisGuiITimeManager* TimeManager, ENoesisGuiHandoffBehavior Handoff);
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

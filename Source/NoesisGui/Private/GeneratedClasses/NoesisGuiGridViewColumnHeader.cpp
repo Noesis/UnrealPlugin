@@ -20,16 +20,25 @@ void UNoesisGuiGridViewColumnHeader::SetNoesisComponent(Noesis::Core::BaseCompon
 
 	Noesis::Gui::GridViewColumnHeader* NoesisGridViewColumnHeader = NsDynamicCast<Noesis::Gui::GridViewColumnHeader*>(InNoesisComponent);
 	check(NoesisGridViewColumnHeader);
+}
+
+void UNoesisGuiGridViewColumnHeader::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::GridViewColumnHeader* NoesisGridViewColumnHeader = NsDynamicCast<Noesis::Gui::GridViewColumnHeader*>(NoesisComponent.GetPtr());
+	check(NoesisGridViewColumnHeader)
+
 
 }
 
-	void UNoesisGuiGridViewColumnHeader::BeginDestroy()
+void UNoesisGuiGridViewColumnHeader::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::GridViewColumnHeader* NoesisGridViewColumnHeader = NsDynamicCast<Noesis::Gui::GridViewColumnHeader*>(NoesisComponent.GetPtr());
-	if (!NoesisGridViewColumnHeader)
-		return Super::BeginDestroy();
+	check(NoesisGridViewColumnHeader)
 
 
-	Super::BeginDestroy();
 }
 

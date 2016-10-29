@@ -20,7 +20,6 @@ void UNoesisGuiItemsControl::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 
 	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(InNoesisComponent);
 	check(NoesisItemsControl);
-
 }
 
 class UNoesisGuiItemCollection* UNoesisGuiItemsControl::GetItems()
@@ -60,13 +59,23 @@ bool UNoesisGuiItemsControl::IsItemItsOwnContainer(class UNoesisGuiBaseComponent
 	return NoesisItemsControl->IsItemItsOwnContainer(NoesisInItem);
 }
 
-	void UNoesisGuiItemsControl::BeginDestroy()
+void UNoesisGuiItemsControl::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
-	if (!NoesisItemsControl)
-		return Super::BeginDestroy();
+	check(NoesisItemsControl)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiItemsControl::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
+	check(NoesisItemsControl)
+
+
 }
 

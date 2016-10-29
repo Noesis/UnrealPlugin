@@ -20,16 +20,25 @@ void UNoesisGuiDockPanel::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	Noesis::Gui::DockPanel* NoesisDockPanel = NsDynamicCast<Noesis::Gui::DockPanel*>(InNoesisComponent);
 	check(NoesisDockPanel);
+}
+
+void UNoesisGuiDockPanel::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::DockPanel* NoesisDockPanel = NsDynamicCast<Noesis::Gui::DockPanel*>(NoesisComponent.GetPtr());
+	check(NoesisDockPanel)
+
 
 }
 
-	void UNoesisGuiDockPanel::BeginDestroy()
+void UNoesisGuiDockPanel::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::DockPanel* NoesisDockPanel = NsDynamicCast<Noesis::Gui::DockPanel*>(NoesisComponent.GetPtr());
-	if (!NoesisDockPanel)
-		return Super::BeginDestroy();
+	check(NoesisDockPanel)
 
 
-	Super::BeginDestroy();
 }
 

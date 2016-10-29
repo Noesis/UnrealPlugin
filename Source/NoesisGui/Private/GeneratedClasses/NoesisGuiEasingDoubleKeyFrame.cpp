@@ -20,16 +20,25 @@ void UNoesisGuiEasingDoubleKeyFrame::SetNoesisComponent(Noesis::Core::BaseCompon
 
 	Noesis::Gui::EasingKeyFrame<NsFloat32>* NoesisEasingDoubleKeyFrame = NsDynamicCast<Noesis::Gui::EasingKeyFrame<NsFloat32>*>(InNoesisComponent);
 	check(NoesisEasingDoubleKeyFrame);
+}
+
+void UNoesisGuiEasingDoubleKeyFrame::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::EasingKeyFrame<NsFloat32>* NoesisEasingDoubleKeyFrame = NsDynamicCast<Noesis::Gui::EasingKeyFrame<NsFloat32>*>(NoesisComponent.GetPtr());
+	check(NoesisEasingDoubleKeyFrame)
+
 
 }
 
-	void UNoesisGuiEasingDoubleKeyFrame::BeginDestroy()
+void UNoesisGuiEasingDoubleKeyFrame::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::EasingKeyFrame<NsFloat32>* NoesisEasingDoubleKeyFrame = NsDynamicCast<Noesis::Gui::EasingKeyFrame<NsFloat32>*>(NoesisComponent.GetPtr());
-	if (!NoesisEasingDoubleKeyFrame)
-		return Super::BeginDestroy();
+	check(NoesisEasingDoubleKeyFrame)
 
 
-	Super::BeginDestroy();
 }
 

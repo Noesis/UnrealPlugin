@@ -68,6 +68,13 @@ void ScrollToTop();
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void ScrollToVerticalOffset(float Offset);
 
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
 	FNoesisGuiScrollChangedEventHandler ScrollChanged;
 
@@ -75,8 +82,5 @@ void ScrollToVerticalOffset(float Offset);
 
 	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::ScrollChangedEventArgs& InArgs)> ScrollChanged_Delegate;
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
 };
 

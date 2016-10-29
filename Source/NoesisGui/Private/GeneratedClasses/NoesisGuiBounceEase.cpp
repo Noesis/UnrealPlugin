@@ -20,16 +20,25 @@ void UNoesisGuiBounceEase::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 
 	Noesis::Gui::BounceEase* NoesisBounceEase = NsDynamicCast<Noesis::Gui::BounceEase*>(InNoesisComponent);
 	check(NoesisBounceEase);
+}
+
+void UNoesisGuiBounceEase::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::BounceEase* NoesisBounceEase = NsDynamicCast<Noesis::Gui::BounceEase*>(NoesisComponent.GetPtr());
+	check(NoesisBounceEase)
+
 
 }
 
-	void UNoesisGuiBounceEase::BeginDestroy()
+void UNoesisGuiBounceEase::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::BounceEase* NoesisBounceEase = NsDynamicCast<Noesis::Gui::BounceEase*>(NoesisComponent.GetPtr());
-	if (!NoesisBounceEase)
-		return Super::BeginDestroy();
+	check(NoesisBounceEase)
 
 
-	Super::BeginDestroy();
 }
 

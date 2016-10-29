@@ -20,16 +20,25 @@ void UNoesisGuiElasticEase::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	Noesis::Gui::ElasticEase* NoesisElasticEase = NsDynamicCast<Noesis::Gui::ElasticEase*>(InNoesisComponent);
 	check(NoesisElasticEase);
+}
+
+void UNoesisGuiElasticEase::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::ElasticEase* NoesisElasticEase = NsDynamicCast<Noesis::Gui::ElasticEase*>(NoesisComponent.GetPtr());
+	check(NoesisElasticEase)
+
 
 }
 
-	void UNoesisGuiElasticEase::BeginDestroy()
+void UNoesisGuiElasticEase::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::ElasticEase* NoesisElasticEase = NsDynamicCast<Noesis::Gui::ElasticEase*>(NoesisComponent.GetPtr());
-	if (!NoesisElasticEase)
-		return Super::BeginDestroy();
+	check(NoesisElasticEase)
 
 
-	Super::BeginDestroy();
 }
 

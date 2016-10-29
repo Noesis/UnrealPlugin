@@ -20,16 +20,25 @@ void UNoesisGuiEasingThicknessKeyFrame::SetNoesisComponent(Noesis::Core::BaseCom
 
 	Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Thickness>* NoesisEasingThicknessKeyFrame = NsDynamicCast<Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Thickness>*>(InNoesisComponent);
 	check(NoesisEasingThicknessKeyFrame);
+}
+
+void UNoesisGuiEasingThicknessKeyFrame::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Thickness>* NoesisEasingThicknessKeyFrame = NsDynamicCast<Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Thickness>*>(NoesisComponent.GetPtr());
+	check(NoesisEasingThicknessKeyFrame)
+
 
 }
 
-	void UNoesisGuiEasingThicknessKeyFrame::BeginDestroy()
+void UNoesisGuiEasingThicknessKeyFrame::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Thickness>* NoesisEasingThicknessKeyFrame = NsDynamicCast<Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Thickness>*>(NoesisComponent.GetPtr());
-	if (!NoesisEasingThicknessKeyFrame)
-		return Super::BeginDestroy();
+	check(NoesisEasingThicknessKeyFrame)
 
 
-	Super::BeginDestroy();
 }
 

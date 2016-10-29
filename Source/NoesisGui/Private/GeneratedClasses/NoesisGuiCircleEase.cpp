@@ -20,16 +20,25 @@ void UNoesisGuiCircleEase::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 
 	Noesis::Gui::CircleEase* NoesisCircleEase = NsDynamicCast<Noesis::Gui::CircleEase*>(InNoesisComponent);
 	check(NoesisCircleEase);
+}
+
+void UNoesisGuiCircleEase::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::CircleEase* NoesisCircleEase = NsDynamicCast<Noesis::Gui::CircleEase*>(NoesisComponent.GetPtr());
+	check(NoesisCircleEase)
+
 
 }
 
-	void UNoesisGuiCircleEase::BeginDestroy()
+void UNoesisGuiCircleEase::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::CircleEase* NoesisCircleEase = NsDynamicCast<Noesis::Gui::CircleEase*>(NoesisComponent.GetPtr());
-	if (!NoesisCircleEase)
-		return Super::BeginDestroy();
+	check(NoesisCircleEase)
 
 
-	Super::BeginDestroy();
 }
 

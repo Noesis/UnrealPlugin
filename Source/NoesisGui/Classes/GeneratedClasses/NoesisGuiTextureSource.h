@@ -17,14 +17,6 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
-	// Property DpiX
-	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-	float GetDpiX();
-
-	// Property DpiY
-	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-	float GetDpiY();
-
 	// Property PixelHeight
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	int32 GetPixelHeight();
@@ -33,14 +25,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	int32 GetPixelWidth();
 
-	// Property Source
-	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-	FString GetSource();
-	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-	void SetSource(FString InSource);
+protected:
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

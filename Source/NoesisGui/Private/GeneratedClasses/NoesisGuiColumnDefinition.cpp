@@ -20,16 +20,25 @@ void UNoesisGuiColumnDefinition::SetNoesisComponent(Noesis::Core::BaseComponent*
 
 	Noesis::Gui::ColumnDefinition* NoesisColumnDefinition = NsDynamicCast<Noesis::Gui::ColumnDefinition*>(InNoesisComponent);
 	check(NoesisColumnDefinition);
+}
+
+void UNoesisGuiColumnDefinition::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::ColumnDefinition* NoesisColumnDefinition = NsDynamicCast<Noesis::Gui::ColumnDefinition*>(NoesisComponent.GetPtr());
+	check(NoesisColumnDefinition)
+
 
 }
 
-	void UNoesisGuiColumnDefinition::BeginDestroy()
+void UNoesisGuiColumnDefinition::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::ColumnDefinition* NoesisColumnDefinition = NsDynamicCast<Noesis::Gui::ColumnDefinition*>(NoesisComponent.GetPtr());
-	if (!NoesisColumnDefinition)
-		return Super::BeginDestroy();
+	check(NoesisColumnDefinition)
 
 
-	Super::BeginDestroy();
 }
 

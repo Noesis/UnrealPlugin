@@ -68,8 +68,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 FNoesisGuiObjectWithNameScope GetSourceObject(class UNoesisGuiBaseComponent* Target, const class UNoesisGuiDependencyProperty* TargetProperty);
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

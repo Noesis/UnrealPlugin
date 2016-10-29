@@ -20,7 +20,6 @@ void UNoesisGuiViewbox::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesis
 
 	Noesis::Gui::Viewbox* NoesisViewbox = NsDynamicCast<Noesis::Gui::Viewbox*>(InNoesisComponent);
 	check(NoesisViewbox);
-
 }
 
 class UNoesisGuiUIElement* UNoesisGuiViewbox::GetChild()
@@ -37,13 +36,23 @@ void UNoesisGuiViewbox::SetChild(class UNoesisGuiUIElement* InChild)
 	NoesisViewbox->SetChild(NsDynamicCast<UIElement*>(InChild->NoesisComponent.GetPtr()));
 }
 
-	void UNoesisGuiViewbox::BeginDestroy()
+void UNoesisGuiViewbox::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::Viewbox* NoesisViewbox = NsDynamicCast<Noesis::Gui::Viewbox*>(NoesisComponent.GetPtr());
-	if (!NoesisViewbox)
-		return Super::BeginDestroy();
+	check(NoesisViewbox)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiViewbox::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::Viewbox* NoesisViewbox = NsDynamicCast<Noesis::Gui::Viewbox*>(NoesisComponent.GetPtr());
+	check(NoesisViewbox)
+
+
 }
 

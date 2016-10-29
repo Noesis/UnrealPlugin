@@ -56,15 +56,12 @@ void SetExpression(const class UNoesisGuiDependencyProperty* Dp, class UNoesisGu
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void SetValueObject(const class UNoesisGuiDependencyProperty* Dp, const class UNoesisGuiBaseComponent* Value);
 
-	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
-	FNoesisGuiDependencyPropertyChangedEventHandler DependencyPropertyChanged;
+protected:
 
-	void DependencyPropertyChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs);
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
 
-	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)> DependencyPropertyChanged_Delegate;
+private:
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
 };
 

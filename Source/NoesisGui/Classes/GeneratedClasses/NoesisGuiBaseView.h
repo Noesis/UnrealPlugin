@@ -23,8 +23,12 @@ void ClearItem(class UNoesisGuiListViewItem* Item);
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void PrepareItem(class UNoesisGuiListViewItem* Item);
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

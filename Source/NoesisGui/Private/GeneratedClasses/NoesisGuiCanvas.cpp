@@ -20,16 +20,25 @@ void UNoesisGuiCanvas::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisC
 
 	Noesis::Gui::Canvas* NoesisCanvas = NsDynamicCast<Noesis::Gui::Canvas*>(InNoesisComponent);
 	check(NoesisCanvas);
+}
+
+void UNoesisGuiCanvas::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Canvas* NoesisCanvas = NsDynamicCast<Noesis::Gui::Canvas*>(NoesisComponent.GetPtr());
+	check(NoesisCanvas)
+
 
 }
 
-	void UNoesisGuiCanvas::BeginDestroy()
+void UNoesisGuiCanvas::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Canvas* NoesisCanvas = NsDynamicCast<Noesis::Gui::Canvas*>(NoesisComponent.GetPtr());
-	if (!NoesisCanvas)
-		return Super::BeginDestroy();
+	check(NoesisCanvas)
 
 
-	Super::BeginDestroy();
 }
 

@@ -20,16 +20,25 @@ void UNoesisGuiConditionCollection::SetNoesisComponent(Noesis::Core::BaseCompone
 
 	Noesis::Gui::TypedCollection<Noesis::Gui::Condition>* NoesisConditionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::Condition>*>(InNoesisComponent);
 	check(NoesisConditionCollection);
+}
+
+void UNoesisGuiConditionCollection::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::TypedCollection<Noesis::Gui::Condition>* NoesisConditionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::Condition>*>(NoesisComponent.GetPtr());
+	check(NoesisConditionCollection)
+
 
 }
 
-	void UNoesisGuiConditionCollection::BeginDestroy()
+void UNoesisGuiConditionCollection::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::TypedCollection<Noesis::Gui::Condition>* NoesisConditionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::Condition>*>(NoesisComponent.GetPtr());
-	if (!NoesisConditionCollection)
-		return Super::BeginDestroy();
+	check(NoesisConditionCollection)
 
 
-	Super::BeginDestroy();
 }
 

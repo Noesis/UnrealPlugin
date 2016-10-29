@@ -20,9 +20,6 @@ void UNoesisGuiScrollViewer::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 
 	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(InNoesisComponent);
 	check(NoesisScrollViewer);
-
-	ScrollChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiScrollViewer::ScrollChanged_Private);
-	NoesisScrollViewer->ScrollChanged() += ScrollChanged_Delegate;
 }
 
 void UNoesisGuiScrollViewer::InvalidateScrollInfo()
@@ -146,23 +143,41 @@ void UNoesisGuiScrollViewer::ScrollToVerticalOffset(float InOffset)
 	return NoesisScrollViewer->ScrollToVerticalOffset(NoesisInOffset);
 }
 
-	void UNoesisGuiScrollViewer::ScrollChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ScrollChangedEventArgs& InArgs)
+void UNoesisGuiScrollViewer::ScrollChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ScrollChangedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!ScrollChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiScrollChangedEventArgs Args(Instance, InArgs);
 	ScrollChanged.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiScrollViewer::BeginDestroy()
+void UNoesisGuiScrollViewer::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
-	if (!NoesisScrollViewer)
-		return Super::BeginDestroy();
+	check(NoesisScrollViewer)
 
-	NoesisScrollViewer->ScrollChanged() -= ScrollChanged_Delegate;
+	ScrollChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiScrollViewer::ScrollChanged_Private);
+	if (ScrollChanged.IsBound())
+	{
+		NoesisScrollViewer->ScrollChanged() += ScrollChanged_Delegate;
+	}
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiScrollViewer::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::ScrollViewer* NoesisScrollViewer = NsDynamicCast<Noesis::Gui::ScrollViewer*>(NoesisComponent.GetPtr());
+	check(NoesisScrollViewer)
+
+	if (ScrollChanged.IsBound())
+	{
+		NoesisScrollViewer->ScrollChanged() -= ScrollChanged_Delegate;
+	}
+
 }
 

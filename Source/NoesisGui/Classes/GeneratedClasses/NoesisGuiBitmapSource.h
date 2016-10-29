@@ -6,25 +6,39 @@
 #pragma once
 
 #include "NoesisGuiTypes.h"
-#include "NoesisGuiBaseComponent.h"
-#include "NoesisGuiTemplateBinding.generated.h"
+#include "GeneratedClasses/NoesisGuiImageSource.h"
+#include "NoesisGuiBitmapSource.generated.h"
 
 UCLASS()
-class NOESISGUI_API UNoesisGuiTemplateBinding : public UNoesisGuiBaseComponent
+class NOESISGUI_API UNoesisGuiBitmapSource : public UNoesisGuiImageSource
 {
 public:
 	GENERATED_UCLASS_BODY()
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
-	// Property Property
+	// Property DpiX
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-	class UNoesisGuiDependencyProperty* GetProperty();
-	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-	void SetProperty(class UNoesisGuiDependencyProperty* InProperty);
+	float GetDpiX();
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+	// Property DpiY
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+	float GetDpiY();
+
+	// Property PixelHeight
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+	int32 GetPixelHeight();
+
+	// Property PixelWidth
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+	int32 GetPixelWidth();
+
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

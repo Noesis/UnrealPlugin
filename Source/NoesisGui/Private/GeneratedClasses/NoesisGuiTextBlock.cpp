@@ -20,7 +20,6 @@ void UNoesisGuiTextBlock::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	Noesis::Gui::TextBlock* NoesisTextBlock = NsDynamicCast<Noesis::Gui::TextBlock*>(InNoesisComponent);
 	check(NoesisTextBlock);
-
 }
 
 class UNoesisGuiInlineCollection* UNoesisGuiTextBlock::GetInlines()
@@ -30,13 +29,23 @@ class UNoesisGuiInlineCollection* UNoesisGuiTextBlock::GetInlines()
 	return CastChecked<UNoesisGuiInlineCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisTextBlock->GetInlines()));
 }
 
-	void UNoesisGuiTextBlock::BeginDestroy()
+void UNoesisGuiTextBlock::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::TextBlock* NoesisTextBlock = NsDynamicCast<Noesis::Gui::TextBlock*>(NoesisComponent.GetPtr());
-	if (!NoesisTextBlock)
-		return Super::BeginDestroy();
+	check(NoesisTextBlock)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiTextBlock::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::TextBlock* NoesisTextBlock = NsDynamicCast<Noesis::Gui::TextBlock*>(NoesisComponent.GetPtr());
+	check(NoesisTextBlock)
+
+
 }
 

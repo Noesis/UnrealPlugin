@@ -14,13 +14,15 @@ UNoesisGuiBlueprintGeneratedClass::UNoesisGuiBlueprintGeneratedClass(const FObje
 {
 }
 
-void UNoesisGuiBlueprintGeneratedClass::InitInstance(class UNoesisGuiInstance* NoesisGuiInstance)
+void UNoesisGuiBlueprintGeneratedClass::InitComponents(class UNoesisGuiInstance* NoesisGuiInstance)
 {
 	check(NoesisGuiInstance->Xaml);
 	TArray<Noesis::FrameworkElement*> Elements;
 	CollectElements(NoesisGuiInstance->Xaml.GetPtr(), Elements);
 	check(Elements.Num() == NoesisGuiInstance->BaseXaml->Components.Num());
 	int32 ElementIndex = 0;
+	Components.Empty();
+	Components.Reserve(NoesisGuiInstance->BaseXaml->Components.Num());
 	for (auto Component : NoesisGuiInstance->BaseXaml->Components)
 	{
 		UNoesisGuiBaseComponent* DuplicatedComponent = DuplicateObject<UNoesisGuiBaseComponent>(Component, NoesisGuiInstance);
@@ -38,5 +40,15 @@ void UNoesisGuiBlueprintGeneratedClass::InitInstance(class UNoesisGuiInstance* N
 				check(Property->GetObjectPropertyValue_InContainer(NoesisGuiInstance) == DuplicatedComponent);
 			}
 		}
+
+		Components.Add(DuplicatedComponent);
+	}
+}
+
+void UNoesisGuiBlueprintGeneratedClass::BindEvents()
+{
+	for (auto Component : Components)
+	{
+		Component->BindEvents();
 	}
 }

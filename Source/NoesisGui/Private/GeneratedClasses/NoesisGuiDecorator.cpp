@@ -20,7 +20,6 @@ void UNoesisGuiDecorator::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	Noesis::Gui::Decorator* NoesisDecorator = NsDynamicCast<Noesis::Gui::Decorator*>(InNoesisComponent);
 	check(NoesisDecorator);
-
 }
 
 class UNoesisGuiUIElement* UNoesisGuiDecorator::GetChild()
@@ -30,13 +29,23 @@ class UNoesisGuiUIElement* UNoesisGuiDecorator::GetChild()
 	return CastChecked<UNoesisGuiUIElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisDecorator->GetChild()));
 }
 
-	void UNoesisGuiDecorator::BeginDestroy()
+void UNoesisGuiDecorator::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::Decorator* NoesisDecorator = NsDynamicCast<Noesis::Gui::Decorator*>(NoesisComponent.GetPtr());
-	if (!NoesisDecorator)
-		return Super::BeginDestroy();
+	check(NoesisDecorator)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiDecorator::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::Decorator* NoesisDecorator = NsDynamicCast<Noesis::Gui::Decorator*>(NoesisComponent.GetPtr());
+	check(NoesisDecorator)
+
+
 }
 

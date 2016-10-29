@@ -20,7 +20,6 @@ void UNoesisGuiImageSource::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	Noesis::Gui::ImageSource* NoesisImageSource = NsDynamicCast<Noesis::Gui::ImageSource*>(InNoesisComponent);
 	check(NoesisImageSource);
-
 }
 
 float UNoesisGuiImageSource::GetHeight()
@@ -37,13 +36,23 @@ float UNoesisGuiImageSource::GetWidth()
 	return (float)NoesisImageSource->GetWidth();
 }
 
-	void UNoesisGuiImageSource::BeginDestroy()
+void UNoesisGuiImageSource::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::ImageSource* NoesisImageSource = NsDynamicCast<Noesis::Gui::ImageSource*>(NoesisComponent.GetPtr());
-	if (!NoesisImageSource)
-		return Super::BeginDestroy();
+	check(NoesisImageSource)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiImageSource::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::ImageSource* NoesisImageSource = NsDynamicCast<Noesis::Gui::ImageSource*>(NoesisComponent.GetPtr());
+	check(NoesisImageSource)
+
+
 }
 

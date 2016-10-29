@@ -20,16 +20,25 @@ void UNoesisGuiSizeAnimation::SetNoesisComponent(Noesis::Core::BaseComponent* In
 
 	Noesis::Gui::Animation<Noesis::Drawing::Size>* NoesisSizeAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Size>*>(InNoesisComponent);
 	check(NoesisSizeAnimation);
+}
+
+void UNoesisGuiSizeAnimation::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Animation<Noesis::Drawing::Size>* NoesisSizeAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Size>*>(NoesisComponent.GetPtr());
+	check(NoesisSizeAnimation)
+
 
 }
 
-	void UNoesisGuiSizeAnimation::BeginDestroy()
+void UNoesisGuiSizeAnimation::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Animation<Noesis::Drawing::Size>* NoesisSizeAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Size>*>(NoesisComponent.GetPtr());
-	if (!NoesisSizeAnimation)
-		return Super::BeginDestroy();
+	check(NoesisSizeAnimation)
 
 
-	Super::BeginDestroy();
 }
 

@@ -20,7 +20,6 @@ void UNoesisGuiRoutedCommand::SetNoesisComponent(Noesis::Core::BaseComponent* In
 
 	Noesis::Gui::RoutedCommand* NoesisRoutedCommand = NsDynamicCast<Noesis::Gui::RoutedCommand*>(InNoesisComponent);
 	check(NoesisRoutedCommand);
-
 }
 
 class UNoesisGuiInputGestureCollection* UNoesisGuiRoutedCommand::GetInputGestures()
@@ -48,13 +47,23 @@ void UNoesisGuiRoutedCommand::Execute(class UNoesisGuiBaseComponent* InParam, cl
 	return NoesisRoutedCommand->Execute(NoesisInParam, NoesisInTarget);
 }
 
-	void UNoesisGuiRoutedCommand::BeginDestroy()
+void UNoesisGuiRoutedCommand::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::RoutedCommand* NoesisRoutedCommand = NsDynamicCast<Noesis::Gui::RoutedCommand*>(NoesisComponent.GetPtr());
-	if (!NoesisRoutedCommand)
-		return Super::BeginDestroy();
+	check(NoesisRoutedCommand)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiRoutedCommand::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::RoutedCommand* NoesisRoutedCommand = NsDynamicCast<Noesis::Gui::RoutedCommand*>(NoesisComponent.GetPtr());
+	check(NoesisRoutedCommand)
+
+
 }
 

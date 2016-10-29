@@ -20,16 +20,25 @@ void UNoesisGuiQuarticEase::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	Noesis::Gui::QuarticEase* NoesisQuarticEase = NsDynamicCast<Noesis::Gui::QuarticEase*>(InNoesisComponent);
 	check(NoesisQuarticEase);
+}
+
+void UNoesisGuiQuarticEase::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::QuarticEase* NoesisQuarticEase = NsDynamicCast<Noesis::Gui::QuarticEase*>(NoesisComponent.GetPtr());
+	check(NoesisQuarticEase)
+
 
 }
 
-	void UNoesisGuiQuarticEase::BeginDestroy()
+void UNoesisGuiQuarticEase::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::QuarticEase* NoesisQuarticEase = NsDynamicCast<Noesis::Gui::QuarticEase*>(NoesisComponent.GetPtr());
-	if (!NoesisQuarticEase)
-		return Super::BeginDestroy();
+	check(NoesisQuarticEase)
 
 
-	Super::BeginDestroy();
 }
 

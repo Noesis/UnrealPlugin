@@ -23,6 +23,13 @@ void CalculateEffectiveDurations();
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 FNoesisGuiDuration GetNaturalDuration(class UNoesisGuiClock* Clock);
 
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
 	FNoesisGuiTimelineEventHandler Completed;
 
@@ -30,8 +37,5 @@ FNoesisGuiDuration GetNaturalDuration(class UNoesisGuiClock* Clock);
 
 	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::TimelineEventArgs& InArgs)> Completed_Delegate;
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
 };
 

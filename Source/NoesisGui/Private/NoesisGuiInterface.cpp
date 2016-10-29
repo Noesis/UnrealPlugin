@@ -15,3 +15,22 @@ void UNoesisGuiInterface::SetNoesisInterface(Noesis::Core::Interface* InNoesisIn
 {
 	NoesisInterface = Noesis::Ptr<Noesis::Core::Interface>(InNoesisInterface);
 }
+
+void UNoesisGuiInterface::BeginDestroy()
+{
+	Super::BeginDestroy();
+
+	if (NoesisInterface)
+	{
+		UnbindEvents();
+		NoesisInterface.Reset();
+	}
+}
+
+void UNoesisGuiInterface::BindEvents()
+{
+}
+
+void UNoesisGuiInterface::UnbindEvents()
+{
+}

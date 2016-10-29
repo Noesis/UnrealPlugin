@@ -20,7 +20,6 @@ void UNoesisGuiVisualTransition::SetNoesisComponent(Noesis::Core::BaseComponent*
 
 	Noesis::Gui::VisualTransition* NoesisVisualTransition = NsDynamicCast<Noesis::Gui::VisualTransition*>(InNoesisComponent);
 	check(NoesisVisualTransition);
-
 }
 
 FName UNoesisGuiVisualTransition::GetFrom()
@@ -100,13 +99,23 @@ bool UNoesisGuiVisualTransition::IsDefault()
 	return NoesisVisualTransition->IsDefault();
 }
 
-	void UNoesisGuiVisualTransition::BeginDestroy()
+void UNoesisGuiVisualTransition::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::VisualTransition* NoesisVisualTransition = NsDynamicCast<Noesis::Gui::VisualTransition*>(NoesisComponent.GetPtr());
-	if (!NoesisVisualTransition)
-		return Super::BeginDestroy();
+	check(NoesisVisualTransition)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiVisualTransition::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::VisualTransition* NoesisVisualTransition = NsDynamicCast<Noesis::Gui::VisualTransition*>(NoesisComponent.GetPtr());
+	check(NoesisVisualTransition)
+
+
 }
 

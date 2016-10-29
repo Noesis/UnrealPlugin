@@ -20,7 +20,6 @@ void UNoesisGuiRoutedUICommand::SetNoesisComponent(Noesis::Core::BaseComponent* 
 
 	Noesis::Gui::RoutedUICommand* NoesisRoutedUICommand = NsDynamicCast<Noesis::Gui::RoutedUICommand*>(InNoesisComponent);
 	check(NoesisRoutedUICommand);
-
 }
 
 FString UNoesisGuiRoutedUICommand::GetText()
@@ -37,13 +36,23 @@ void UNoesisGuiRoutedUICommand::SetText(FString InText)
 	NoesisRoutedUICommand->SetText(StringCast<NsChar>(*InText).Get());
 }
 
-	void UNoesisGuiRoutedUICommand::BeginDestroy()
+void UNoesisGuiRoutedUICommand::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::RoutedUICommand* NoesisRoutedUICommand = NsDynamicCast<Noesis::Gui::RoutedUICommand*>(NoesisComponent.GetPtr());
-	if (!NoesisRoutedUICommand)
-		return Super::BeginDestroy();
+	check(NoesisRoutedUICommand)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiRoutedUICommand::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::RoutedUICommand* NoesisRoutedUICommand = NsDynamicCast<Noesis::Gui::RoutedUICommand*>(NoesisComponent.GetPtr());
+	check(NoesisRoutedUICommand)
+
+
 }
 

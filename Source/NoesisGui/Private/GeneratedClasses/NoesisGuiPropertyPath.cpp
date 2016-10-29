@@ -20,7 +20,6 @@ void UNoesisGuiPropertyPath::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 
 	Noesis::Gui::PropertyPath* NoesisPropertyPath = NsDynamicCast<Noesis::Gui::PropertyPath*>(InNoesisComponent);
 	check(NoesisPropertyPath);
-
 }
 
 FString UNoesisGuiPropertyPath::GetPath()
@@ -37,13 +36,23 @@ void UNoesisGuiPropertyPath::SetPath(FString InPath)
 	NoesisPropertyPath->SetPath(StringCast<NsChar>(*InPath).Get());
 }
 
-	void UNoesisGuiPropertyPath::BeginDestroy()
+void UNoesisGuiPropertyPath::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::PropertyPath* NoesisPropertyPath = NsDynamicCast<Noesis::Gui::PropertyPath*>(NoesisComponent.GetPtr());
-	if (!NoesisPropertyPath)
-		return Super::BeginDestroy();
+	check(NoesisPropertyPath)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiPropertyPath::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::PropertyPath* NoesisPropertyPath = NsDynamicCast<Noesis::Gui::PropertyPath*>(NoesisComponent.GetPtr());
+	check(NoesisPropertyPath)
+
+
 }
 

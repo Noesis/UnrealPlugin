@@ -20,16 +20,25 @@ void UNoesisGuiInlineCollection::SetNoesisComponent(Noesis::Core::BaseComponent*
 
 	Noesis::Gui::TypedCollection<Noesis::Gui::Inline>* NoesisInlineCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::Inline>*>(InNoesisComponent);
 	check(NoesisInlineCollection);
+}
+
+void UNoesisGuiInlineCollection::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::TypedCollection<Noesis::Gui::Inline>* NoesisInlineCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::Inline>*>(NoesisComponent.GetPtr());
+	check(NoesisInlineCollection)
+
 
 }
 
-	void UNoesisGuiInlineCollection::BeginDestroy()
+void UNoesisGuiInlineCollection::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::TypedCollection<Noesis::Gui::Inline>* NoesisInlineCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::Inline>*>(NoesisComponent.GetPtr());
-	if (!NoesisInlineCollection)
-		return Super::BeginDestroy();
+	check(NoesisInlineCollection)
 
 
-	Super::BeginDestroy();
 }
 

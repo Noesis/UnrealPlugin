@@ -20,8 +20,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 class UNoesisGuiDataTemplate* SelectTemplate(class UNoesisGuiBaseComponent* Item, class UNoesisGuiDependencyObject* Container);
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

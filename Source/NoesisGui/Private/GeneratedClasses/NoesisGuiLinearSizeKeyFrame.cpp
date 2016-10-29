@@ -20,16 +20,25 @@ void UNoesisGuiLinearSizeKeyFrame::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Size>* NoesisLinearSizeKeyFrame = NsDynamicCast<Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Size>*>(InNoesisComponent);
 	check(NoesisLinearSizeKeyFrame);
+}
+
+void UNoesisGuiLinearSizeKeyFrame::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Size>* NoesisLinearSizeKeyFrame = NsDynamicCast<Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Size>*>(NoesisComponent.GetPtr());
+	check(NoesisLinearSizeKeyFrame)
+
 
 }
 
-	void UNoesisGuiLinearSizeKeyFrame::BeginDestroy()
+void UNoesisGuiLinearSizeKeyFrame::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Size>* NoesisLinearSizeKeyFrame = NsDynamicCast<Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Size>*>(NoesisComponent.GetPtr());
-	if (!NoesisLinearSizeKeyFrame)
-		return Super::BeginDestroy();
+	check(NoesisLinearSizeKeyFrame)
 
 
-	Super::BeginDestroy();
 }
 

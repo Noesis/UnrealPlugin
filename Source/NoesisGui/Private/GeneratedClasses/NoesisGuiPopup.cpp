@@ -20,16 +20,43 @@ void UNoesisGuiPopup::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisCo
 
 	Noesis::Gui::Popup* NoesisPopup = NsDynamicCast<Noesis::Gui::Popup*>(InNoesisComponent);
 	check(NoesisPopup);
+}
+
+void UNoesisGuiPopup::Closed_Private(Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs)
+{
+	if (!Closed.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+		return;
+	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
+	FNoesisGuiEventArgs Args(Instance, InArgs);
+	Closed.Broadcast(Sender, Args);
+}
+
+void UNoesisGuiPopup::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Popup* NoesisPopup = NsDynamicCast<Noesis::Gui::Popup*>(NoesisComponent.GetPtr());
+	check(NoesisPopup)
+
+	Closed_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiPopup::Closed_Private);
+	if (Closed.IsBound())
+	{
+		NoesisPopup->Closed() += Closed_Delegate;
+	}
 
 }
 
-	void UNoesisGuiPopup::BeginDestroy()
+void UNoesisGuiPopup::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Popup* NoesisPopup = NsDynamicCast<Noesis::Gui::Popup*>(NoesisComponent.GetPtr());
-	if (!NoesisPopup)
-		return Super::BeginDestroy();
+	check(NoesisPopup)
 
+	if (Closed.IsBound())
+	{
+		NoesisPopup->Closed() -= Closed_Delegate;
+	}
 
-	Super::BeginDestroy();
 }
 

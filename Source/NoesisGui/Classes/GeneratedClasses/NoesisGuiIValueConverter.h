@@ -17,8 +17,12 @@ public:
 
 	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface) override;
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

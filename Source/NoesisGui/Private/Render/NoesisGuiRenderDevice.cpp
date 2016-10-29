@@ -21,17 +21,24 @@ public:
 	{
 		return (NsSize)ShaderResourceTexture->GetSizeX();
 	}
-	
+
 	virtual NsSize GetHeight() const override
 	{
 		return (NsSize)ShaderResourceTexture->GetSizeY();
 	}
-	
+
+	virtual Noesis::Render::TextureFormat::Enum GetFormat() const override
+	{
+		EPixelFormat PixelFormat = ShaderResourceTexture->GetFormat();
+		check(PixelFormat == PF_B8G8R8A8 || PixelFormat == PF_B8G8R8A8 || PixelFormat == PF_G8 || PixelFormat == PF_DXT1 || PixelFormat == PF_DXT3 || PixelFormat == PF_DXT5);
+		return Format;
+	}
+
 	virtual NsBool HasMipMaps() const override
 	{
 		return (NsBool)(ShaderResourceTexture->GetNumMips() > 1);
 	}
-	
+
 	virtual NsBool IsInverted() const override
 	{
 		return (NsBool)false;
@@ -39,6 +46,7 @@ public:
 	// End of Texture interface
 
 	FTexture2DRHIRef ShaderResourceTexture;
+	Noesis::Render::TextureFormat::Enum Format;
 };
 
 class FNoesisGuiRenderTarget : public Noesis::Render::RenderTarget
@@ -82,7 +90,7 @@ FNoesisGuiRenderDevice::FNoesisGuiRenderDevice()
 	VertexStrides[16] = FNoesisGuiMaskNoneVertexDeclaration::Stride;
 	VertexShaders[16] = (FNoesisGuiVSBase*)ShaderMap->GetShader<FNoesisGuiMaskNoneVS>();
 	PixelShaders[16] = (FNoesisGuiPSBase*)ShaderMap->GetShader<FNoesisGuiMaskNonePS>();
-	
+
 	VertexDeclarations[32] = GNoesisGuiPathSolidVertexDeclaration.VertexDeclarationRHI;
 	VertexStrides[32] = FNoesisGuiPathSolidVertexDeclaration::Stride;
 	VertexShaders[32] = (FNoesisGuiVSBase*)ShaderMap->GetShader<FNoesisGuiPathSolidVS>();
@@ -172,13 +180,31 @@ Noesis::Ptr<Noesis::Render::Texture> FNoesisGuiRenderDevice::CreateTexture(UText
 {
 	FNoesisGuiTexture* NoesisGuiTexture = new FNoesisGuiTexture();
 	NoesisGuiTexture->ShaderResourceTexture = ((FTexture2DResource*)Texture->Resource)->GetTexture2DRHI();
+	switch (NoesisGuiTexture->ShaderResourceTexture->GetFormat())
+	{
+	case PF_B8G8R8A8:
+		NoesisGuiTexture->Format = Noesis::Render::TextureFormat::BGRA8;
+		break;
+	case PF_G8:
+		NoesisGuiTexture->Format = Noesis::Render::TextureFormat::R8;
+		break;
+	case PF_DXT1:
+		NoesisGuiTexture->Format = Noesis::Render::TextureFormat::BC1;
+		break;
+	case PF_DXT3:
+		NoesisGuiTexture->Format = Noesis::Render::TextureFormat::BC2;
+		break;
+	case PF_DXT5:
+		NoesisGuiTexture->Format = Noesis::Render::TextureFormat::BC3;
+		break;
+	}
 
 	return Noesis::Ptr<Noesis::Render::Texture>(*NoesisGuiTexture);
 }
 
 const Noesis::Render::DeviceCaps& FNoesisGuiRenderDevice::GetCaps() const
 {
-	static Noesis::Render::DeviceCaps Caps = { 0.f, VertexBufferSize, IndexBufferSize, true, 1, { true, true } };
+	static Noesis::Render::DeviceCaps Caps = { 0.f, VertexBufferSize, IndexBufferSize, true, false, 1,{ true, true, true, true, true, true } };
 	return Caps;
 }
 
@@ -205,6 +231,7 @@ Noesis::Ptr<Noesis::Render::RenderTarget> FNoesisGuiRenderDevice::CreateRenderTa
 	NoesisGuiRenderTarget->NoesisGuiTexture = *new FNoesisGuiTexture();
 	NoesisGuiRenderTarget->ColorTarget = ColorTarget;
 	NoesisGuiRenderTarget->NoesisGuiTexture->ShaderResourceTexture = ShaderResourceTexture;
+	NoesisGuiRenderTarget->NoesisGuiTexture->Format = Noesis::Render::TextureFormat::BGRA8;
 	NoesisGuiRenderTarget->DepthStencilTarget = DepthStencilTarget;
 
 	FName TextureName = FName(Label);
@@ -222,6 +249,7 @@ Noesis::Ptr<Noesis::Render::RenderTarget> FNoesisGuiRenderDevice::CloneRenderTar
 	NoesisGuiRenderTarget->NoesisGuiTexture = *new FNoesisGuiTexture();
 	NoesisGuiRenderTarget->ColorTarget = SharedNoesisGuiRenderTarget->ColorTarget;
 	NoesisGuiRenderTarget->NoesisGuiTexture->ShaderResourceTexture = SharedNoesisGuiRenderTarget->NoesisGuiTexture->ShaderResourceTexture;
+	NoesisGuiRenderTarget->NoesisGuiTexture->Format = SharedNoesisGuiRenderTarget->NoesisGuiTexture->Format;
 	NoesisGuiRenderTarget->DepthStencilTarget = SharedNoesisGuiRenderTarget->DepthStencilTarget;
 
 	return Noesis::Ptr<Noesis::Render::RenderTarget>(*NoesisGuiRenderTarget);
@@ -231,7 +259,7 @@ Noesis::Ptr<Noesis::Render::Texture> FNoesisGuiRenderDevice::CreateTexture(const
 {
 	uint32 SizeX = (uint32)Width;
 	uint32 SizeY = (uint32)Height;
-	EPixelFormat Formats[Noesis::Render::TextureFormat::Count] = { PF_B8G8R8A8, PF_G8 };
+	EPixelFormat Formats[Noesis::Render::TextureFormat::Count] = { PF_B8G8R8A8, PF_B8G8R8A8, PF_G8, PF_DXT1, PF_DXT3, PF_DXT5 };
 	uint8 Format = (uint8)Formats[TextureFormat];
 	uint32 NumMips = (uint32)NumLevels;
 	uint32 NumSamples = 1;
@@ -241,6 +269,7 @@ Noesis::Ptr<Noesis::Render::Texture> FNoesisGuiRenderDevice::CreateTexture(const
 
 	FNoesisGuiTexture* NoesisGuiTexture = new FNoesisGuiTexture();
 	NoesisGuiTexture->ShaderResourceTexture = ShaderResourceTexture;
+	NoesisGuiTexture->Format = TextureFormat;
 
 	FName TextureName = FName(Label);
 	ShaderResourceTexture->SetName(TextureName);
@@ -359,73 +388,73 @@ static FSamplerStateRHIParamRef GetSamplerState(uint32 SamplerCode)
 {
 	switch (SamplerCode & 63)
 	{
-		case 0:  return TStaticSamplerState<SF_Point, AM_Wrap, AM_Wrap>::GetRHI();
-		case 1:  return TStaticSamplerState<SF_Point, AM_Mirror, AM_Wrap>::GetRHI();
-		case 2:  return TStaticSamplerState<SF_Point, AM_Clamp, AM_Wrap>::GetRHI();
-		case 3:  return TStaticSamplerState<SF_Point, AM_Border, AM_Wrap>::GetRHI();
-		case 4:  return TStaticSamplerState<SF_Point, AM_Wrap, AM_Mirror>::GetRHI();
-		case 5:  return TStaticSamplerState<SF_Point, AM_Mirror, AM_Mirror>::GetRHI();
-		case 6:  return TStaticSamplerState<SF_Point, AM_Clamp, AM_Mirror>::GetRHI();
-		case 7:  return TStaticSamplerState<SF_Point, AM_Border, AM_Mirror>::GetRHI();
-		case 8:  return TStaticSamplerState<SF_Point, AM_Wrap, AM_Clamp>::GetRHI();
-		case 9:  return TStaticSamplerState<SF_Point, AM_Mirror, AM_Clamp>::GetRHI();
-		case 10: return TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp>::GetRHI();
-		case 11: return TStaticSamplerState<SF_Point, AM_Border, AM_Clamp>::GetRHI();
-		case 12: return TStaticSamplerState<SF_Point, AM_Wrap, AM_Border>::GetRHI();
-		case 13: return TStaticSamplerState<SF_Point, AM_Mirror, AM_Border>::GetRHI();
-		case 14: return TStaticSamplerState<SF_Point, AM_Clamp, AM_Border>::GetRHI();
-		case 15: return TStaticSamplerState<SF_Point, AM_Border, AM_Border>::GetRHI();
+	case 0:  return TStaticSamplerState<SF_Point, AM_Wrap, AM_Wrap>::GetRHI();
+	case 1:  return TStaticSamplerState<SF_Point, AM_Mirror, AM_Wrap>::GetRHI();
+	case 2:  return TStaticSamplerState<SF_Point, AM_Clamp, AM_Wrap>::GetRHI();
+	case 3:  return TStaticSamplerState<SF_Point, AM_Border, AM_Wrap>::GetRHI();
+	case 4:  return TStaticSamplerState<SF_Point, AM_Wrap, AM_Mirror>::GetRHI();
+	case 5:  return TStaticSamplerState<SF_Point, AM_Mirror, AM_Mirror>::GetRHI();
+	case 6:  return TStaticSamplerState<SF_Point, AM_Clamp, AM_Mirror>::GetRHI();
+	case 7:  return TStaticSamplerState<SF_Point, AM_Border, AM_Mirror>::GetRHI();
+	case 8:  return TStaticSamplerState<SF_Point, AM_Wrap, AM_Clamp>::GetRHI();
+	case 9:  return TStaticSamplerState<SF_Point, AM_Mirror, AM_Clamp>::GetRHI();
+	case 10: return TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp>::GetRHI();
+	case 11: return TStaticSamplerState<SF_Point, AM_Border, AM_Clamp>::GetRHI();
+	case 12: return TStaticSamplerState<SF_Point, AM_Wrap, AM_Border>::GetRHI();
+	case 13: return TStaticSamplerState<SF_Point, AM_Mirror, AM_Border>::GetRHI();
+	case 14: return TStaticSamplerState<SF_Point, AM_Clamp, AM_Border>::GetRHI();
+	case 15: return TStaticSamplerState<SF_Point, AM_Border, AM_Border>::GetRHI();
 
-		case 16: return TStaticSamplerState<SF_Bilinear, AM_Wrap, AM_Wrap>::GetRHI();
-		case 17: return TStaticSamplerState<SF_Bilinear, AM_Mirror, AM_Wrap>::GetRHI();
-		case 18: return TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Wrap>::GetRHI();
-		case 19: return TStaticSamplerState<SF_Bilinear, AM_Border, AM_Wrap>::GetRHI();
-		case 20: return TStaticSamplerState<SF_Bilinear, AM_Wrap, AM_Mirror>::GetRHI();
-		case 21: return TStaticSamplerState<SF_Bilinear, AM_Mirror, AM_Mirror>::GetRHI();
-		case 22: return TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Mirror>::GetRHI();
-		case 23: return TStaticSamplerState<SF_Bilinear, AM_Border, AM_Mirror>::GetRHI();
-		case 24: return TStaticSamplerState<SF_Bilinear, AM_Wrap, AM_Clamp>::GetRHI();
-		case 25: return TStaticSamplerState<SF_Bilinear, AM_Mirror, AM_Clamp>::GetRHI();
-		case 26: return TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp>::GetRHI();
-		case 27: return TStaticSamplerState<SF_Bilinear, AM_Border, AM_Clamp>::GetRHI();
-		case 28: return TStaticSamplerState<SF_Bilinear, AM_Wrap, AM_Border>::GetRHI();
-		case 29: return TStaticSamplerState<SF_Bilinear, AM_Mirror, AM_Border>::GetRHI();
-		case 30: return TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Border>::GetRHI();
-		case 31: return TStaticSamplerState<SF_Bilinear, AM_Border, AM_Border>::GetRHI();
+	case 16: return TStaticSamplerState<SF_Bilinear, AM_Wrap, AM_Wrap>::GetRHI();
+	case 17: return TStaticSamplerState<SF_Bilinear, AM_Mirror, AM_Wrap>::GetRHI();
+	case 18: return TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Wrap>::GetRHI();
+	case 19: return TStaticSamplerState<SF_Bilinear, AM_Border, AM_Wrap>::GetRHI();
+	case 20: return TStaticSamplerState<SF_Bilinear, AM_Wrap, AM_Mirror>::GetRHI();
+	case 21: return TStaticSamplerState<SF_Bilinear, AM_Mirror, AM_Mirror>::GetRHI();
+	case 22: return TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Mirror>::GetRHI();
+	case 23: return TStaticSamplerState<SF_Bilinear, AM_Border, AM_Mirror>::GetRHI();
+	case 24: return TStaticSamplerState<SF_Bilinear, AM_Wrap, AM_Clamp>::GetRHI();
+	case 25: return TStaticSamplerState<SF_Bilinear, AM_Mirror, AM_Clamp>::GetRHI();
+	case 26: return TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp>::GetRHI();
+	case 27: return TStaticSamplerState<SF_Bilinear, AM_Border, AM_Clamp>::GetRHI();
+	case 28: return TStaticSamplerState<SF_Bilinear, AM_Wrap, AM_Border>::GetRHI();
+	case 29: return TStaticSamplerState<SF_Bilinear, AM_Mirror, AM_Border>::GetRHI();
+	case 30: return TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Border>::GetRHI();
+	case 31: return TStaticSamplerState<SF_Bilinear, AM_Border, AM_Border>::GetRHI();
 
-		case 32: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Wrap>::GetRHI();
-		case 33: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Wrap>::GetRHI();
-		case 34: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Wrap>::GetRHI();
-		case 35: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Wrap>::GetRHI();
-		case 36: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Mirror>::GetRHI();
-		case 37: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Mirror>::GetRHI();
-		case 38: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Mirror>::GetRHI();
-		case 39: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Mirror>::GetRHI();
-		case 40: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Clamp>::GetRHI();
-		case 41: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Clamp>::GetRHI();
-		case 42: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Clamp>::GetRHI();
-		case 43: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Clamp>::GetRHI();
-		case 44: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Border>::GetRHI();
-		case 45: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Border>::GetRHI();
-		case 46: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Border>::GetRHI();
-		case 47: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Border>::GetRHI();
+	case 32: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Wrap>::GetRHI();
+	case 33: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Wrap>::GetRHI();
+	case 34: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Wrap>::GetRHI();
+	case 35: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Wrap>::GetRHI();
+	case 36: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Mirror>::GetRHI();
+	case 37: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Mirror>::GetRHI();
+	case 38: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Mirror>::GetRHI();
+	case 39: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Mirror>::GetRHI();
+	case 40: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Clamp>::GetRHI();
+	case 41: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Clamp>::GetRHI();
+	case 42: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Clamp>::GetRHI();
+	case 43: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Clamp>::GetRHI();
+	case 44: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Border>::GetRHI();
+	case 45: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Border>::GetRHI();
+	case 46: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Border>::GetRHI();
+	case 47: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Border>::GetRHI();
 
-		case 48: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Wrap>::GetRHI();
-		case 49: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Wrap>::GetRHI();
-		case 50: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Wrap>::GetRHI();
-		case 51: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Wrap>::GetRHI();
-		case 52: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Mirror>::GetRHI();
-		case 53: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Mirror>::GetRHI();
-		case 54: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Mirror>::GetRHI();
-		case 55: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Mirror>::GetRHI();
-		case 56: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Clamp>::GetRHI();
-		case 57: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Clamp>::GetRHI();
-		case 58: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Clamp>::GetRHI();
-		case 59: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Clamp>::GetRHI();
-		case 60: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Border>::GetRHI();
-		case 61: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Border>::GetRHI();
-		case 62: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Border>::GetRHI();
-		case 63: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Border>::GetRHI();
+	case 48: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Wrap>::GetRHI();
+	case 49: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Wrap>::GetRHI();
+	case 50: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Wrap>::GetRHI();
+	case 51: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Wrap>::GetRHI();
+	case 52: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Mirror>::GetRHI();
+	case 53: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Mirror>::GetRHI();
+	case 54: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Mirror>::GetRHI();
+	case 55: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Mirror>::GetRHI();
+	case 56: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Clamp>::GetRHI();
+	case 57: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Clamp>::GetRHI();
+	case 58: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Clamp>::GetRHI();
+	case 59: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Clamp>::GetRHI();
+	case 60: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Border>::GetRHI();
+	case 61: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Border>::GetRHI();
+	case 62: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Border>::GetRHI();
+	case 63: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Border>::GetRHI();
 	}
 
 	return 0;
@@ -437,25 +466,25 @@ void FNoesisGuiRenderDevice::DrawBatch(const Noesis::Render::Batch& Batch)
 	{
 		switch (Batch.renderState.f.stencilMode)
 		{
-			case Noesis::Render::StencilMode::Disabled:
-			{
-				RHICmdList->SetDepthStencilState(TStaticDepthStencilState<false, CF_Always>::GetRHI(), 0);
-			} break;
-			case Noesis::Render::StencilMode::Equal_Keep:
-			{
-				RHICmdList->SetDepthStencilState(TStaticDepthStencilState<false, CF_Always, true, CF_Equal>::GetRHI(), Batch.stencilRef);
-			} break;
-			case Noesis::Render::StencilMode::Equal_Incr:
-			{
-				RHICmdList->SetDepthStencilState(TStaticDepthStencilState<false, CF_Always, true, CF_Equal, SO_Keep, SO_Keep, SO_Increment>::GetRHI(), Batch.stencilRef);
-			} break;
-			case Noesis::Render::StencilMode::Equal_Decr:
-			{
-				RHICmdList->SetDepthStencilState(TStaticDepthStencilState<false, CF_Always, true, CF_Equal, SO_Keep, SO_Keep, SO_Decrement>::GetRHI(), Batch.stencilRef);
-			} break;
-			default:
-			{
-			} break;
+		case Noesis::Render::StencilMode::Disabled:
+		{
+			RHICmdList->SetDepthStencilState(TStaticDepthStencilState<false, CF_Always>::GetRHI(), 0);
+		} break;
+		case Noesis::Render::StencilMode::Equal_Keep:
+		{
+			RHICmdList->SetDepthStencilState(TStaticDepthStencilState<false, CF_Always, true, CF_Equal>::GetRHI(), Batch.stencilRef);
+		} break;
+		case Noesis::Render::StencilMode::Equal_Incr:
+		{
+			RHICmdList->SetDepthStencilState(TStaticDepthStencilState<false, CF_Always, true, CF_Equal, SO_Keep, SO_Keep, SO_Increment>::GetRHI(), Batch.stencilRef);
+		} break;
+		case Noesis::Render::StencilMode::Equal_Decr:
+		{
+			RHICmdList->SetDepthStencilState(TStaticDepthStencilState<false, CF_Always, true, CF_Equal, SO_Keep, SO_Keep, SO_Decrement>::GetRHI(), Batch.stencilRef);
+		} break;
+		default:
+		{
+		} break;
 		}
 
 		FTextureRHIParamRef PatternTexture = 0;

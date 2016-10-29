@@ -20,11 +20,6 @@ void UNoesisGuiItemContainerGenerator::SetNoesisComponent(Noesis::Core::BaseComp
 
 	Noesis::Gui::ItemContainerGenerator* NoesisItemContainerGenerator = NsDynamicCast<Noesis::Gui::ItemContainerGenerator*>(InNoesisComponent);
 	check(NoesisItemContainerGenerator);
-
-	ItemsChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiItemContainerGenerator::ItemsChanged_Private);
-	NoesisItemContainerGenerator->ItemsChanged() += ItemsChanged_Delegate;
-	StatusChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiItemContainerGenerator::StatusChanged_Private);
-	NoesisItemContainerGenerator->StatusChanged() += StatusChanged_Delegate;
 }
 
 ENoesisGuiGeneratorStatus UNoesisGuiItemContainerGenerator::GetStatus()
@@ -136,33 +131,23 @@ void UNoesisGuiItemContainerGenerator::Stop()
 	return NoesisItemContainerGenerator->Stop();
 }
 
-	void UNoesisGuiItemContainerGenerator::ItemsChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ItemsChangedEventArgs& InArgs)
+void UNoesisGuiItemContainerGenerator::BindEvents()
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
-		return;
-	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiItemsChangedEventArgs Args(Instance, InArgs);
-	ItemsChanged.Broadcast(Sender, Args);
-}
+	Super::BindEvents();
 
-	void UNoesisGuiItemContainerGenerator::StatusChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs)
-{
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
-		return;
-	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiEventArgs Args(Instance, InArgs);
-	StatusChanged.Broadcast(Sender, Args);
-}
-
-	void UNoesisGuiItemContainerGenerator::BeginDestroy()
-{
 	Noesis::Gui::ItemContainerGenerator* NoesisItemContainerGenerator = NsDynamicCast<Noesis::Gui::ItemContainerGenerator*>(NoesisComponent.GetPtr());
-	if (!NoesisItemContainerGenerator)
-		return Super::BeginDestroy();
+	check(NoesisItemContainerGenerator)
 
-	NoesisItemContainerGenerator->ItemsChanged() -= ItemsChanged_Delegate;
-	NoesisItemContainerGenerator->StatusChanged() -= StatusChanged_Delegate;
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiItemContainerGenerator::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::ItemContainerGenerator* NoesisItemContainerGenerator = NsDynamicCast<Noesis::Gui::ItemContainerGenerator*>(NoesisComponent.GetPtr());
+	check(NoesisItemContainerGenerator)
+
+
 }
 

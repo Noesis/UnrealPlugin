@@ -20,7 +20,6 @@ void UNoesisGuiMouse::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisCo
 
 	Noesis::Gui::Mouse* NoesisMouse = NsDynamicCast<Noesis::Gui::Mouse*>(InNoesisComponent);
 	check(NoesisMouse);
-
 }
 
 class UNoesisGuiUIElement* UNoesisGuiMouse::GetCaptured()
@@ -44,13 +43,23 @@ void UNoesisGuiMouse::ResetState()
 	return NoesisMouse->ResetState();
 }
 
-	void UNoesisGuiMouse::BeginDestroy()
+void UNoesisGuiMouse::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::Mouse* NoesisMouse = NsDynamicCast<Noesis::Gui::Mouse*>(NoesisComponent.GetPtr());
-	if (!NoesisMouse)
-		return Super::BeginDestroy();
+	check(NoesisMouse)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiMouse::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::Mouse* NoesisMouse = NsDynamicCast<Noesis::Gui::Mouse*>(NoesisComponent.GetPtr());
+	check(NoesisMouse)
+
+
 }
 

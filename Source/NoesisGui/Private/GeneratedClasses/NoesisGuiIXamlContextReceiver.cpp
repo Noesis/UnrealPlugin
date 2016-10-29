@@ -20,16 +20,25 @@ void UNoesisGuiIXamlContextReceiver::SetNoesisInterface(Noesis::Core::Interface*
 
 	Noesis::Gui::IXamlContextReceiver* NoesisIXamlContextReceiver = NsDynamicCast<Noesis::Gui::IXamlContextReceiver*>(InNoesisInterface);
 	check(NoesisIXamlContextReceiver);
+}
+
+void UNoesisGuiIXamlContextReceiver::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::IXamlContextReceiver* NoesisIXamlContextReceiver = NsDynamicCast<Noesis::Gui::IXamlContextReceiver*>(NoesisInterface.GetPtr());
+	check(NoesisIXamlContextReceiver)
+
 
 }
 
-	void UNoesisGuiIXamlContextReceiver::BeginDestroy()
+void UNoesisGuiIXamlContextReceiver::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::IXamlContextReceiver* NoesisIXamlContextReceiver = NsDynamicCast<Noesis::Gui::IXamlContextReceiver*>(NoesisInterface.GetPtr());
-	if (!NoesisIXamlContextReceiver)
-		return Super::BeginDestroy();
+	check(NoesisIXamlContextReceiver)
 
 
-	Super::BeginDestroy();
 }
 

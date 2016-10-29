@@ -20,16 +20,25 @@ void UNoesisGuiColorAnimationUsingKeyFrames::SetNoesisComponent(Noesis::Core::Ba
 
 	Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Color>* NoesisColorAnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Color>*>(InNoesisComponent);
 	check(NoesisColorAnimationUsingKeyFrames);
+}
+
+void UNoesisGuiColorAnimationUsingKeyFrames::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Color>* NoesisColorAnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Color>*>(NoesisComponent.GetPtr());
+	check(NoesisColorAnimationUsingKeyFrames)
+
 
 }
 
-	void UNoesisGuiColorAnimationUsingKeyFrames::BeginDestroy()
+void UNoesisGuiColorAnimationUsingKeyFrames::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Color>* NoesisColorAnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Color>*>(NoesisComponent.GetPtr());
-	if (!NoesisColorAnimationUsingKeyFrames)
-		return Super::BeginDestroy();
+	check(NoesisColorAnimationUsingKeyFrames)
 
 
-	Super::BeginDestroy();
 }
 

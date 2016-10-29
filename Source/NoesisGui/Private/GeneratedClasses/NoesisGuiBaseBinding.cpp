@@ -20,7 +20,6 @@ void UNoesisGuiBaseBinding::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	Noesis::Gui::BaseBinding* NoesisBaseBinding = NsDynamicCast<Noesis::Gui::BaseBinding*>(InNoesisComponent);
 	check(NoesisBaseBinding);
-
 }
 
 class UNoesisGuiBaseComponent* UNoesisGuiBaseBinding::GetFallbackValue()
@@ -51,13 +50,23 @@ void UNoesisGuiBaseBinding::SetStringFormat(FString InStringFormat)
 	NoesisBaseBinding->SetStringFormat(StringCast<NsChar>(*InStringFormat).Get());
 }
 
-	void UNoesisGuiBaseBinding::BeginDestroy()
+void UNoesisGuiBaseBinding::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::BaseBinding* NoesisBaseBinding = NsDynamicCast<Noesis::Gui::BaseBinding*>(NoesisComponent.GetPtr());
-	if (!NoesisBaseBinding)
-		return Super::BeginDestroy();
+	check(NoesisBaseBinding)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiBaseBinding::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::BaseBinding* NoesisBaseBinding = NsDynamicCast<Noesis::Gui::BaseBinding*>(NoesisComponent.GetPtr());
+	check(NoesisBaseBinding)
+
+
 }
 

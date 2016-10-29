@@ -20,7 +20,6 @@ void UNoesisGuiTextBox::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesis
 
 	Noesis::Gui::TextBox* NoesisTextBox = NsDynamicCast<Noesis::Gui::TextBox*>(InNoesisComponent);
 	check(NoesisTextBox);
-
 }
 
 FString UNoesisGuiTextBox::GetSelectedText()
@@ -79,13 +78,23 @@ void UNoesisGuiTextBox::SelectAll()
 	return NoesisTextBox->SelectAll();
 }
 
-	void UNoesisGuiTextBox::BeginDestroy()
+void UNoesisGuiTextBox::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::TextBox* NoesisTextBox = NsDynamicCast<Noesis::Gui::TextBox*>(NoesisComponent.GetPtr());
-	if (!NoesisTextBox)
-		return Super::BeginDestroy();
+	check(NoesisTextBox)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiTextBox::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::TextBox* NoesisTextBox = NsDynamicCast<Noesis::Gui::TextBox*>(NoesisComponent.GetPtr());
+	check(NoesisTextBox)
+
+
 }
 

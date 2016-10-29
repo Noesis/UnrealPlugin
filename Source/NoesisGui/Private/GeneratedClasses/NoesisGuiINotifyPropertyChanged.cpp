@@ -20,16 +20,25 @@ void UNoesisGuiINotifyPropertyChanged::SetNoesisInterface(Noesis::Core::Interfac
 
 	Noesis::Gui::INotifyPropertyChanged* NoesisINotifyPropertyChanged = NsDynamicCast<Noesis::Gui::INotifyPropertyChanged*>(InNoesisInterface);
 	check(NoesisINotifyPropertyChanged);
+}
+
+void UNoesisGuiINotifyPropertyChanged::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::INotifyPropertyChanged* NoesisINotifyPropertyChanged = NsDynamicCast<Noesis::Gui::INotifyPropertyChanged*>(NoesisInterface.GetPtr());
+	check(NoesisINotifyPropertyChanged)
+
 
 }
 
-	void UNoesisGuiINotifyPropertyChanged::BeginDestroy()
+void UNoesisGuiINotifyPropertyChanged::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::INotifyPropertyChanged* NoesisINotifyPropertyChanged = NsDynamicCast<Noesis::Gui::INotifyPropertyChanged*>(NoesisInterface.GetPtr());
-	if (!NoesisINotifyPropertyChanged)
-		return Super::BeginDestroy();
+	check(NoesisINotifyPropertyChanged)
 
 
-	Super::BeginDestroy();
 }
 

@@ -20,7 +20,6 @@ void UNoesisGuiParallelTimeline::SetNoesisComponent(Noesis::Core::BaseComponent*
 
 	Noesis::Gui::ParallelTimeline* NoesisParallelTimeline = NsDynamicCast<Noesis::Gui::ParallelTimeline*>(InNoesisComponent);
 	check(NoesisParallelTimeline);
-
 }
 
 FNoesisGuiDuration UNoesisGuiParallelTimeline::GetNaturalDuration(class UNoesisGuiClock* InClock)
@@ -31,13 +30,23 @@ FNoesisGuiDuration UNoesisGuiParallelTimeline::GetNaturalDuration(class UNoesisG
 	return FNoesisGuiDuration(NoesisParallelTimeline->GetNaturalDuration(NoesisInClock));
 }
 
-	void UNoesisGuiParallelTimeline::BeginDestroy()
+void UNoesisGuiParallelTimeline::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::ParallelTimeline* NoesisParallelTimeline = NsDynamicCast<Noesis::Gui::ParallelTimeline*>(NoesisComponent.GetPtr());
-	if (!NoesisParallelTimeline)
-		return Super::BeginDestroy();
+	check(NoesisParallelTimeline)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiParallelTimeline::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::ParallelTimeline* NoesisParallelTimeline = NsDynamicCast<Noesis::Gui::ParallelTimeline*>(NoesisComponent.GetPtr());
+	check(NoesisParallelTimeline)
+
+
 }
 

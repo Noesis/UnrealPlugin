@@ -20,7 +20,6 @@ void UNoesisGuiVisualStateGroup::SetNoesisComponent(Noesis::Core::BaseComponent*
 
 	Noesis::Gui::VisualStateGroup* NoesisVisualStateGroup = NsDynamicCast<Noesis::Gui::VisualStateGroup*>(InNoesisComponent);
 	check(NoesisVisualStateGroup);
-
 }
 
 FString UNoesisGuiVisualStateGroup::GetName()
@@ -70,13 +69,23 @@ void UNoesisGuiVisualStateGroup::UpdateAnimations(class UNoesisGuiFrameworkEleme
 	return NoesisVisualStateGroup->UpdateAnimations(NoesisInFe, NoesisInStoryboard1, NoesisInStoryboard2);
 }
 
-	void UNoesisGuiVisualStateGroup::BeginDestroy()
+void UNoesisGuiVisualStateGroup::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::VisualStateGroup* NoesisVisualStateGroup = NsDynamicCast<Noesis::Gui::VisualStateGroup*>(NoesisComponent.GetPtr());
-	if (!NoesisVisualStateGroup)
-		return Super::BeginDestroy();
+	check(NoesisVisualStateGroup)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiVisualStateGroup::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::VisualStateGroup* NoesisVisualStateGroup = NsDynamicCast<Noesis::Gui::VisualStateGroup*>(NoesisComponent.GetPtr());
+	check(NoesisVisualStateGroup)
+
+
 }
 

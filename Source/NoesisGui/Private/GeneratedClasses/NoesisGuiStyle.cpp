@@ -20,7 +20,6 @@ void UNoesisGuiStyle::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisCo
 
 	Noesis::Gui::Style* NoesisStyle = NsDynamicCast<Noesis::Gui::Style*>(InNoesisComponent);
 	check(NoesisStyle);
-
 }
 
 class UNoesisGuiStyle* UNoesisGuiStyle::GetBasedOn()
@@ -79,13 +78,23 @@ class UNoesisGuiTriggerCollection* UNoesisGuiStyle::GetTriggers()
 	return CastChecked<UNoesisGuiTriggerCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisStyle->GetTriggers()));
 }
 
-	void UNoesisGuiStyle::BeginDestroy()
+void UNoesisGuiStyle::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::Style* NoesisStyle = NsDynamicCast<Noesis::Gui::Style*>(NoesisComponent.GetPtr());
-	if (!NoesisStyle)
-		return Super::BeginDestroy();
+	check(NoesisStyle)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiStyle::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::Style* NoesisStyle = NsDynamicCast<Noesis::Gui::Style*>(NoesisComponent.GetPtr());
+	check(NoesisStyle)
+
+
 }
 

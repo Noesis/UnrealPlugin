@@ -17,6 +17,13 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
 	FNoesisGuiMouseButtonEventHandler MouseDoubleClick;
 
@@ -31,8 +38,5 @@ public:
 
 	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)> PreviewMouseDoubleClick_Delegate;
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
 };
 

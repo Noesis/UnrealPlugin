@@ -20,16 +20,25 @@ void UNoesisGuiVisualTransitionCollection::SetNoesisComponent(Noesis::Core::Base
 
 	Noesis::Gui::TypedCollection<Noesis::Gui::VisualTransition>* NoesisVisualTransitionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::VisualTransition>*>(InNoesisComponent);
 	check(NoesisVisualTransitionCollection);
+}
+
+void UNoesisGuiVisualTransitionCollection::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::TypedCollection<Noesis::Gui::VisualTransition>* NoesisVisualTransitionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::VisualTransition>*>(NoesisComponent.GetPtr());
+	check(NoesisVisualTransitionCollection)
+
 
 }
 
-	void UNoesisGuiVisualTransitionCollection::BeginDestroy()
+void UNoesisGuiVisualTransitionCollection::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::TypedCollection<Noesis::Gui::VisualTransition>* NoesisVisualTransitionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::VisualTransition>*>(NoesisComponent.GetPtr());
-	if (!NoesisVisualTransitionCollection)
-		return Super::BeginDestroy();
+	check(NoesisVisualTransitionCollection)
 
 
-	Super::BeginDestroy();
 }
 

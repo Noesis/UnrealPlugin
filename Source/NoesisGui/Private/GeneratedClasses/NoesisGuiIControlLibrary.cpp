@@ -20,7 +20,6 @@ void UNoesisGuiIControlLibrary::SetNoesisInterface(Noesis::Core::Interface* InNo
 
 	Noesis::Gui::IControlLibrary* NoesisIControlLibrary = NsDynamicCast<Noesis::Gui::IControlLibrary*>(InNoesisInterface);
 	check(NoesisIControlLibrary);
-
 }
 
 FString UNoesisGuiIControlLibrary::GetResourceFile(FString InThemeName)
@@ -31,13 +30,23 @@ FString UNoesisGuiIControlLibrary::GetResourceFile(FString InThemeName)
 	return NsStringToFString(NoesisIControlLibrary->GetResourceFile(NoesisInThemeName));
 }
 
-	void UNoesisGuiIControlLibrary::BeginDestroy()
+void UNoesisGuiIControlLibrary::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::IControlLibrary* NoesisIControlLibrary = NsDynamicCast<Noesis::Gui::IControlLibrary*>(NoesisInterface.GetPtr());
-	if (!NoesisIControlLibrary)
-		return Super::BeginDestroy();
+	check(NoesisIControlLibrary)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiIControlLibrary::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::IControlLibrary* NoesisIControlLibrary = NsDynamicCast<Noesis::Gui::IControlLibrary*>(NoesisInterface.GetPtr());
+	check(NoesisIControlLibrary)
+
+
 }
 

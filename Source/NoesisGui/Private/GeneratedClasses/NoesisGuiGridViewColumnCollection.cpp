@@ -20,16 +20,25 @@ void UNoesisGuiGridViewColumnCollection::SetNoesisComponent(Noesis::Core::BaseCo
 
 	Noesis::Gui::TypedCollection<Noesis::Gui::GridViewColumn>* NoesisGridViewColumnCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::GridViewColumn>*>(InNoesisComponent);
 	check(NoesisGridViewColumnCollection);
+}
+
+void UNoesisGuiGridViewColumnCollection::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::TypedCollection<Noesis::Gui::GridViewColumn>* NoesisGridViewColumnCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::GridViewColumn>*>(NoesisComponent.GetPtr());
+	check(NoesisGridViewColumnCollection)
+
 
 }
 
-	void UNoesisGuiGridViewColumnCollection::BeginDestroy()
+void UNoesisGuiGridViewColumnCollection::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::TypedCollection<Noesis::Gui::GridViewColumn>* NoesisGridViewColumnCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::GridViewColumn>*>(NoesisComponent.GetPtr());
-	if (!NoesisGridViewColumnCollection)
-		return Super::BeginDestroy();
+	check(NoesisGridViewColumnCollection)
 
 
-	Super::BeginDestroy();
 }
 

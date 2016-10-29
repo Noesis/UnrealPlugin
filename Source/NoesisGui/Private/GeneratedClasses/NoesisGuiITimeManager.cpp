@@ -20,7 +20,6 @@ void UNoesisGuiITimeManager::SetNoesisInterface(Noesis::Core::Interface* InNoesi
 
 	Noesis::Gui::ITimeManager* NoesisITimeManager = NsDynamicCast<Noesis::Gui::ITimeManager*>(InNoesisInterface);
 	check(NoesisITimeManager);
-
 }
 
 bool UNoesisGuiITimeManager::GoToState(class UNoesisGuiFrameworkElement* InTarget, FName InStateName)
@@ -62,13 +61,23 @@ void UNoesisGuiITimeManager::TransferTo(class UNoesisGuiITimeManager* InOther)
 	return NoesisITimeManager->TransferTo(NoesisInOther);
 }
 
-	void UNoesisGuiITimeManager::BeginDestroy()
+void UNoesisGuiITimeManager::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::ITimeManager* NoesisITimeManager = NsDynamicCast<Noesis::Gui::ITimeManager*>(NoesisInterface.GetPtr());
-	if (!NoesisITimeManager)
-		return Super::BeginDestroy();
+	check(NoesisITimeManager)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiITimeManager::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::ITimeManager* NoesisITimeManager = NsDynamicCast<Noesis::Gui::ITimeManager*>(NoesisInterface.GetPtr());
+	check(NoesisITimeManager)
+
+
 }
 

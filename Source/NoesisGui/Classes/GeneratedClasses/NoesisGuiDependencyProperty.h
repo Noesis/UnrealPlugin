@@ -52,8 +52,12 @@ bool IsValidValue(const class UNoesisGuiBaseComponent* Value);
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void SetAnimationObject(class UNoesisGuiDependencyObject* Obj, const class UNoesisGuiBaseComponent* Value);
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

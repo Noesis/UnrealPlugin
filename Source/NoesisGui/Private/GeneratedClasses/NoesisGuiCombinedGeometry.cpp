@@ -20,16 +20,25 @@ void UNoesisGuiCombinedGeometry::SetNoesisComponent(Noesis::Core::BaseComponent*
 
 	Noesis::Gui::CombinedGeometry* NoesisCombinedGeometry = NsDynamicCast<Noesis::Gui::CombinedGeometry*>(InNoesisComponent);
 	check(NoesisCombinedGeometry);
+}
+
+void UNoesisGuiCombinedGeometry::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::CombinedGeometry* NoesisCombinedGeometry = NsDynamicCast<Noesis::Gui::CombinedGeometry*>(NoesisComponent.GetPtr());
+	check(NoesisCombinedGeometry)
+
 
 }
 
-	void UNoesisGuiCombinedGeometry::BeginDestroy()
+void UNoesisGuiCombinedGeometry::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::CombinedGeometry* NoesisCombinedGeometry = NsDynamicCast<Noesis::Gui::CombinedGeometry*>(NoesisComponent.GetPtr());
-	if (!NoesisCombinedGeometry)
-		return Super::BeginDestroy();
+	check(NoesisCombinedGeometry)
 
 
-	Super::BeginDestroy();
 }
 

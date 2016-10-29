@@ -20,16 +20,25 @@ void UNoesisGuiSkewTransform::SetNoesisComponent(Noesis::Core::BaseComponent* In
 
 	Noesis::Gui::SkewTransform* NoesisSkewTransform = NsDynamicCast<Noesis::Gui::SkewTransform*>(InNoesisComponent);
 	check(NoesisSkewTransform);
+}
+
+void UNoesisGuiSkewTransform::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::SkewTransform* NoesisSkewTransform = NsDynamicCast<Noesis::Gui::SkewTransform*>(NoesisComponent.GetPtr());
+	check(NoesisSkewTransform)
+
 
 }
 
-	void UNoesisGuiSkewTransform::BeginDestroy()
+void UNoesisGuiSkewTransform::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::SkewTransform* NoesisSkewTransform = NsDynamicCast<Noesis::Gui::SkewTransform*>(NoesisComponent.GetPtr());
-	if (!NoesisSkewTransform)
-		return Super::BeginDestroy();
+	check(NoesisSkewTransform)
 
 
-	Super::BeginDestroy();
 }
 

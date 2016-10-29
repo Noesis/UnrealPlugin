@@ -20,7 +20,6 @@ void UNoesisGuiUIElementCollection::SetNoesisComponent(Noesis::Core::BaseCompone
 
 	Noesis::Gui::UIElementCollection* NoesisUIElementCollection = NsDynamicCast<Noesis::Gui::UIElementCollection*>(InNoesisComponent);
 	check(NoesisUIElementCollection);
-
 }
 
 class UNoesisGuiFrameworkElement* UNoesisGuiUIElementCollection::GetLogicalParent()
@@ -37,13 +36,23 @@ void UNoesisGuiUIElementCollection::SetLogicalParent(class UNoesisGuiFrameworkEl
 	NoesisUIElementCollection->SetLogicalParent(NsDynamicCast<FrameworkElement*>(InLogicalParent->NoesisComponent.GetPtr()));
 }
 
-	void UNoesisGuiUIElementCollection::BeginDestroy()
+void UNoesisGuiUIElementCollection::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::UIElementCollection* NoesisUIElementCollection = NsDynamicCast<Noesis::Gui::UIElementCollection*>(NoesisComponent.GetPtr());
-	if (!NoesisUIElementCollection)
-		return Super::BeginDestroy();
+	check(NoesisUIElementCollection)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiUIElementCollection::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::UIElementCollection* NoesisUIElementCollection = NsDynamicCast<Noesis::Gui::UIElementCollection*>(NoesisComponent.GetPtr());
+	check(NoesisUIElementCollection)
+
+
 }
 

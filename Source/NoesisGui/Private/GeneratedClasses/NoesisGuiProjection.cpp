@@ -20,7 +20,6 @@ void UNoesisGuiProjection::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 
 	Noesis::Gui::Projection* NoesisProjection = NsDynamicCast<Noesis::Gui::Projection*>(InNoesisComponent);
 	check(NoesisProjection);
-
 }
 
 bool UNoesisGuiProjection::IsIdentity()
@@ -30,13 +29,23 @@ bool UNoesisGuiProjection::IsIdentity()
 	return NoesisProjection->IsIdentity();
 }
 
-	void UNoesisGuiProjection::BeginDestroy()
+void UNoesisGuiProjection::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::Projection* NoesisProjection = NsDynamicCast<Noesis::Gui::Projection*>(NoesisComponent.GetPtr());
-	if (!NoesisProjection)
-		return Super::BeginDestroy();
+	check(NoesisProjection)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiProjection::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::Projection* NoesisProjection = NsDynamicCast<Noesis::Gui::Projection*>(NoesisComponent.GetPtr());
+	check(NoesisProjection)
+
+
 }
 

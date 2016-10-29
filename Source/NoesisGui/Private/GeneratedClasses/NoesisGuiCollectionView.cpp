@@ -20,7 +20,6 @@ void UNoesisGuiCollectionView::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	Noesis::Gui::CollectionView* NoesisCollectionView = NsDynamicCast<Noesis::Gui::CollectionView*>(InNoesisComponent);
 	check(NoesisCollectionView);
-
 }
 
 int32 UNoesisGuiCollectionView::Count()
@@ -53,13 +52,23 @@ int32 UNoesisGuiCollectionView::IndexOf(class UNoesisGuiBaseComponent* InItem)
 	return NoesisCollectionView->IndexOf(NoesisInItem);
 }
 
-	void UNoesisGuiCollectionView::BeginDestroy()
+void UNoesisGuiCollectionView::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::CollectionView* NoesisCollectionView = NsDynamicCast<Noesis::Gui::CollectionView*>(NoesisComponent.GetPtr());
-	if (!NoesisCollectionView)
-		return Super::BeginDestroy();
+	check(NoesisCollectionView)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiCollectionView::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::CollectionView* NoesisCollectionView = NsDynamicCast<Noesis::Gui::CollectionView*>(NoesisComponent.GetPtr());
+	check(NoesisCollectionView)
+
+
 }
 

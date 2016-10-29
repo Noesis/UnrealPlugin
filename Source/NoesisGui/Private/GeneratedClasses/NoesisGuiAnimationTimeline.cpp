@@ -20,7 +20,6 @@ void UNoesisGuiAnimationTimeline::SetNoesisComponent(Noesis::Core::BaseComponent
 
 	Noesis::Gui::AnimationTimeline* NoesisAnimationTimeline = NsDynamicCast<Noesis::Gui::AnimationTimeline*>(InNoesisComponent);
 	check(NoesisAnimationTimeline);
-
 }
 
 class UNoesisGuiAnimationTimeline* UNoesisGuiAnimationTimeline::CreateTransitionFrom()
@@ -51,13 +50,23 @@ void UNoesisGuiAnimationTimeline::Start(class UNoesisGuiDependencyObject* InTarg
 	return NoesisAnimationTimeline->Start(NoesisInTarget, NoesisInDp, NoesisInTimeManager, NoesisInHandoff);
 }
 
-	void UNoesisGuiAnimationTimeline::BeginDestroy()
+void UNoesisGuiAnimationTimeline::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::AnimationTimeline* NoesisAnimationTimeline = NsDynamicCast<Noesis::Gui::AnimationTimeline*>(NoesisComponent.GetPtr());
-	if (!NoesisAnimationTimeline)
-		return Super::BeginDestroy();
+	check(NoesisAnimationTimeline)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiAnimationTimeline::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::AnimationTimeline* NoesisAnimationTimeline = NsDynamicCast<Noesis::Gui::AnimationTimeline*>(NoesisComponent.GetPtr());
+	check(NoesisAnimationTimeline)
+
+
 }
 

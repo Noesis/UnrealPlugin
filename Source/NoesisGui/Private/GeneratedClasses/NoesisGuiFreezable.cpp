@@ -20,7 +20,6 @@ void UNoesisGuiFreezable::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	Noesis::Gui::Freezable* NoesisFreezable = NsDynamicCast<Noesis::Gui::Freezable*>(InNoesisComponent);
 	check(NoesisFreezable);
-
 }
 
 bool UNoesisGuiFreezable::CanFreeze()
@@ -72,13 +71,23 @@ bool UNoesisGuiFreezable::IsFrozen()
 	return NoesisFreezable->IsFrozen();
 }
 
-	void UNoesisGuiFreezable::BeginDestroy()
+void UNoesisGuiFreezable::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::Freezable* NoesisFreezable = NsDynamicCast<Noesis::Gui::Freezable*>(NoesisComponent.GetPtr());
-	if (!NoesisFreezable)
-		return Super::BeginDestroy();
+	check(NoesisFreezable)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiFreezable::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::Freezable* NoesisFreezable = NsDynamicCast<Noesis::Gui::Freezable*>(NoesisComponent.GetPtr());
+	check(NoesisFreezable)
+
+
 }
 

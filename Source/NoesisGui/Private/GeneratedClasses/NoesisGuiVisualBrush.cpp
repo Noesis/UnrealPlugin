@@ -20,16 +20,25 @@ void UNoesisGuiVisualBrush::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	Noesis::Gui::VisualBrush* NoesisVisualBrush = NsDynamicCast<Noesis::Gui::VisualBrush*>(InNoesisComponent);
 	check(NoesisVisualBrush);
+}
+
+void UNoesisGuiVisualBrush::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::VisualBrush* NoesisVisualBrush = NsDynamicCast<Noesis::Gui::VisualBrush*>(NoesisComponent.GetPtr());
+	check(NoesisVisualBrush)
+
 
 }
 
-	void UNoesisGuiVisualBrush::BeginDestroy()
+void UNoesisGuiVisualBrush::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::VisualBrush* NoesisVisualBrush = NsDynamicCast<Noesis::Gui::VisualBrush*>(NoesisComponent.GetPtr());
-	if (!NoesisVisualBrush)
-		return Super::BeginDestroy();
+	check(NoesisVisualBrush)
 
 
-	Super::BeginDestroy();
 }
 

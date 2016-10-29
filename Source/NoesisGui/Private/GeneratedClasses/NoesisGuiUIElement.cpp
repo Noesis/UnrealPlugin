@@ -20,119 +20,6 @@ void UNoesisGuiUIElement::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	Noesis::Gui::UIElement* NoesisUIElement = NsDynamicCast<Noesis::Gui::UIElement*>(InNoesisComponent);
 	check(NoesisUIElement);
-
-	FocusableChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::FocusableChanged_Private);
-	NoesisUIElement->FocusableChanged() += FocusableChanged_Delegate;
-	GotFocus_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::GotFocus_Private);
-	NoesisUIElement->GotFocus() += GotFocus_Delegate;
-	GotKeyboardFocus_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::GotKeyboardFocus_Private);
-	NoesisUIElement->GotKeyboardFocus() += GotKeyboardFocus_Delegate;
-	GotMouseCapture_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::GotMouseCapture_Private);
-	NoesisUIElement->GotMouseCapture() += GotMouseCapture_Delegate;
-	GotTouchCapture_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::GotTouchCapture_Private);
-	NoesisUIElement->GotTouchCapture() += GotTouchCapture_Delegate;
-	IsEnabledChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::IsEnabledChanged_Private);
-	NoesisUIElement->IsEnabledChanged() += IsEnabledChanged_Delegate;
-	IsHitTestVisibleChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::IsHitTestVisibleChanged_Private);
-	NoesisUIElement->IsHitTestVisibleChanged() += IsHitTestVisibleChanged_Delegate;
-	IsKeyboardFocusWithinChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::IsKeyboardFocusWithinChanged_Private);
-	NoesisUIElement->IsKeyboardFocusWithinChanged() += IsKeyboardFocusWithinChanged_Delegate;
-	IsKeyboardFocusedChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::IsKeyboardFocusedChanged_Private);
-	NoesisUIElement->IsKeyboardFocusedChanged() += IsKeyboardFocusedChanged_Delegate;
-	IsMouseCaptureWithinChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::IsMouseCaptureWithinChanged_Private);
-	NoesisUIElement->IsMouseCaptureWithinChanged() += IsMouseCaptureWithinChanged_Delegate;
-	IsMouseCapturedChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::IsMouseCapturedChanged_Private);
-	NoesisUIElement->IsMouseCapturedChanged() += IsMouseCapturedChanged_Delegate;
-	IsMouseDirectlyOverChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::IsMouseDirectlyOverChanged_Private);
-	NoesisUIElement->IsMouseDirectlyOverChanged() += IsMouseDirectlyOverChanged_Delegate;
-	IsVisibleChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::IsVisibleChanged_Private);
-	NoesisUIElement->IsVisibleChanged() += IsVisibleChanged_Delegate;
-	KeyDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::KeyDown_Private);
-	NoesisUIElement->KeyDown() += KeyDown_Delegate;
-	KeyUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::KeyUp_Private);
-	NoesisUIElement->KeyUp() += KeyUp_Delegate;
-	LostFocus_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::LostFocus_Private);
-	NoesisUIElement->LostFocus() += LostFocus_Delegate;
-	LostKeyboardFocus_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::LostKeyboardFocus_Private);
-	NoesisUIElement->LostKeyboardFocus() += LostKeyboardFocus_Delegate;
-	LostMouseCapture_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::LostMouseCapture_Private);
-	NoesisUIElement->LostMouseCapture() += LostMouseCapture_Delegate;
-	LostTouchCapture_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::LostTouchCapture_Private);
-	NoesisUIElement->LostTouchCapture() += LostTouchCapture_Delegate;
-	ManipulationCompleted_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::ManipulationCompleted_Private);
-	NoesisUIElement->ManipulationCompleted() += ManipulationCompleted_Delegate;
-	ManipulationDelta_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::ManipulationDelta_Private);
-	NoesisUIElement->ManipulationDelta() += ManipulationDelta_Delegate;
-	ManipulationInertiaStarting_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::ManipulationInertiaStarting_Private);
-	NoesisUIElement->ManipulationInertiaStarting() += ManipulationInertiaStarting_Delegate;
-	ManipulationStarted_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::ManipulationStarted_Private);
-	NoesisUIElement->ManipulationStarted() += ManipulationStarted_Delegate;
-	ManipulationStarting_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::ManipulationStarting_Private);
-	NoesisUIElement->ManipulationStarting() += ManipulationStarting_Delegate;
-	MouseDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseDown_Private);
-	NoesisUIElement->MouseDown() += MouseDown_Delegate;
-	MouseEnter_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseEnter_Private);
-	NoesisUIElement->MouseEnter() += MouseEnter_Delegate;
-	MouseLeave_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseLeave_Private);
-	NoesisUIElement->MouseLeave() += MouseLeave_Delegate;
-	MouseLeftButtonDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseLeftButtonDown_Private);
-	NoesisUIElement->MouseLeftButtonDown() += MouseLeftButtonDown_Delegate;
-	MouseLeftButtonUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseLeftButtonUp_Private);
-	NoesisUIElement->MouseLeftButtonUp() += MouseLeftButtonUp_Delegate;
-	MouseMove_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseMove_Private);
-	NoesisUIElement->MouseMove() += MouseMove_Delegate;
-	MouseRightButtonDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseRightButtonDown_Private);
-	NoesisUIElement->MouseRightButtonDown() += MouseRightButtonDown_Delegate;
-	MouseRightButtonUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseRightButtonUp_Private);
-	NoesisUIElement->MouseRightButtonUp() += MouseRightButtonUp_Delegate;
-	MouseUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseUp_Private);
-	NoesisUIElement->MouseUp() += MouseUp_Delegate;
-	MouseWheel_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseWheel_Private);
-	NoesisUIElement->MouseWheel() += MouseWheel_Delegate;
-	PreviewGotKeyboardFocus_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewGotKeyboardFocus_Private);
-	NoesisUIElement->PreviewGotKeyboardFocus() += PreviewGotKeyboardFocus_Delegate;
-	PreviewKeyDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewKeyDown_Private);
-	NoesisUIElement->PreviewKeyDown() += PreviewKeyDown_Delegate;
-	PreviewKeyUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewKeyUp_Private);
-	NoesisUIElement->PreviewKeyUp() += PreviewKeyUp_Delegate;
-	PreviewLostKeyboardFocus_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewLostKeyboardFocus_Private);
-	NoesisUIElement->PreviewLostKeyboardFocus() += PreviewLostKeyboardFocus_Delegate;
-	PreviewMouseDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewMouseDown_Private);
-	NoesisUIElement->PreviewMouseDown() += PreviewMouseDown_Delegate;
-	PreviewMouseLeftButtonDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewMouseLeftButtonDown_Private);
-	NoesisUIElement->PreviewMouseLeftButtonDown() += PreviewMouseLeftButtonDown_Delegate;
-	PreviewMouseLeftButtonUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewMouseLeftButtonUp_Private);
-	NoesisUIElement->PreviewMouseLeftButtonUp() += PreviewMouseLeftButtonUp_Delegate;
-	PreviewMouseMove_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewMouseMove_Private);
-	NoesisUIElement->PreviewMouseMove() += PreviewMouseMove_Delegate;
-	PreviewMouseRightButtonDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewMouseRightButtonDown_Private);
-	NoesisUIElement->PreviewMouseRightButtonDown() += PreviewMouseRightButtonDown_Delegate;
-	PreviewMouseRightButtonUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewMouseRightButtonUp_Private);
-	NoesisUIElement->PreviewMouseRightButtonUp() += PreviewMouseRightButtonUp_Delegate;
-	PreviewMouseUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewMouseUp_Private);
-	NoesisUIElement->PreviewMouseUp() += PreviewMouseUp_Delegate;
-	PreviewMouseWheel_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewMouseWheel_Private);
-	NoesisUIElement->PreviewMouseWheel() += PreviewMouseWheel_Delegate;
-	PreviewTextInput_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewTextInput_Private);
-	NoesisUIElement->PreviewTextInput() += PreviewTextInput_Delegate;
-	PreviewTouchDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewTouchDown_Private);
-	NoesisUIElement->PreviewTouchDown() += PreviewTouchDown_Delegate;
-	PreviewTouchMove_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewTouchMove_Private);
-	NoesisUIElement->PreviewTouchMove() += PreviewTouchMove_Delegate;
-	PreviewTouchUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewTouchUp_Private);
-	NoesisUIElement->PreviewTouchUp() += PreviewTouchUp_Delegate;
-	TextInput_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::TextInput_Private);
-	NoesisUIElement->TextInput() += TextInput_Delegate;
-	TouchDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::TouchDown_Private);
-	NoesisUIElement->TouchDown() += TouchDown_Delegate;
-	TouchEnter_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::TouchEnter_Private);
-	NoesisUIElement->TouchEnter() += TouchEnter_Delegate;
-	TouchLeave_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::TouchLeave_Private);
-	NoesisUIElement->TouchLeave() += TouchLeave_Delegate;
-	TouchMove_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::TouchMove_Private);
-	NoesisUIElement->TouchMove() += TouchMove_Delegate;
-	TouchUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::TouchUp_Private);
-	NoesisUIElement->TouchUp() += TouchUp_Delegate;
 }
 
 class UNoesisGuiCommandBindingCollection* UNoesisGuiUIElement::GetCommandBindings()
@@ -293,180 +180,180 @@ void UNoesisGuiUIElement::UpdateLayout()
 	return NoesisUIElement->UpdateLayout();
 }
 
-	void UNoesisGuiUIElement::FocusableChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
+void UNoesisGuiUIElement::FocusableChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!FocusableChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiDependencyPropertyChangedEventArgs Args(Instance, InArgs);
 	FocusableChanged.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::GotFocus_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
+void UNoesisGuiUIElement::GotFocus_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!GotFocus.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	GotFocus.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::GotKeyboardFocus_Private(Noesis::Core::BaseComponent* InSender, const Noesis::KeyboardFocusChangedEventArgs& InArgs)
+void UNoesisGuiUIElement::GotKeyboardFocus_Private(Noesis::Core::BaseComponent* InSender, const Noesis::KeyboardFocusChangedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!GotKeyboardFocus.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiKeyboardFocusChangedEventArgs Args(Instance, InArgs);
 	GotKeyboardFocus.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::GotMouseCapture_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseEventArgs& InArgs)
+void UNoesisGuiUIElement::GotMouseCapture_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!GotMouseCapture.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseEventArgs Args(Instance, InArgs);
 	GotMouseCapture.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::GotTouchCapture_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
+void UNoesisGuiUIElement::GotTouchCapture_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!GotTouchCapture.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiTouchEventArgs Args(Instance, InArgs);
 	GotTouchCapture.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::IsEnabledChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
+void UNoesisGuiUIElement::IsEnabledChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!IsEnabledChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiDependencyPropertyChangedEventArgs Args(Instance, InArgs);
 	IsEnabledChanged.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::IsHitTestVisibleChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
+void UNoesisGuiUIElement::IsHitTestVisibleChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!IsHitTestVisibleChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiDependencyPropertyChangedEventArgs Args(Instance, InArgs);
 	IsHitTestVisibleChanged.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::IsKeyboardFocusWithinChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
+void UNoesisGuiUIElement::IsKeyboardFocusWithinChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!IsKeyboardFocusWithinChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiDependencyPropertyChangedEventArgs Args(Instance, InArgs);
 	IsKeyboardFocusWithinChanged.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::IsKeyboardFocusedChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
+void UNoesisGuiUIElement::IsKeyboardFocusedChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!IsKeyboardFocusedChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiDependencyPropertyChangedEventArgs Args(Instance, InArgs);
 	IsKeyboardFocusedChanged.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::IsMouseCaptureWithinChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
+void UNoesisGuiUIElement::IsMouseCaptureWithinChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!IsMouseCaptureWithinChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiDependencyPropertyChangedEventArgs Args(Instance, InArgs);
 	IsMouseCaptureWithinChanged.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::IsMouseCapturedChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
+void UNoesisGuiUIElement::IsMouseCapturedChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!IsMouseCapturedChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiDependencyPropertyChangedEventArgs Args(Instance, InArgs);
 	IsMouseCapturedChanged.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::IsMouseDirectlyOverChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
+void UNoesisGuiUIElement::IsMouseDirectlyOverChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!IsMouseDirectlyOverChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiDependencyPropertyChangedEventArgs Args(Instance, InArgs);
 	IsMouseDirectlyOverChanged.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::IsVisibleChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
+void UNoesisGuiUIElement::IsVisibleChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!IsVisibleChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiDependencyPropertyChangedEventArgs Args(Instance, InArgs);
 	IsVisibleChanged.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::KeyDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::KeyEventArgs& InArgs)
+void UNoesisGuiUIElement::KeyDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::KeyEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!KeyDown.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiKeyEventArgs Args(Instance, InArgs);
 	KeyDown.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::KeyUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::KeyEventArgs& InArgs)
+void UNoesisGuiUIElement::KeyUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::KeyEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!KeyUp.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiKeyEventArgs Args(Instance, InArgs);
 	KeyUp.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::LostFocus_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
+void UNoesisGuiUIElement::LostFocus_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!LostFocus.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	LostFocus.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::LostKeyboardFocus_Private(Noesis::Core::BaseComponent* InSender, const Noesis::KeyboardFocusChangedEventArgs& InArgs)
+void UNoesisGuiUIElement::LostKeyboardFocus_Private(Noesis::Core::BaseComponent* InSender, const Noesis::KeyboardFocusChangedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!LostKeyboardFocus.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiKeyboardFocusChangedEventArgs Args(Instance, InArgs);
 	LostKeyboardFocus.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::LostMouseCapture_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseEventArgs& InArgs)
+void UNoesisGuiUIElement::LostMouseCapture_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!LostMouseCapture.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseEventArgs Args(Instance, InArgs);
 	LostMouseCapture.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::LostTouchCapture_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
+void UNoesisGuiUIElement::LostTouchCapture_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!LostTouchCapture.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiTouchEventArgs Args(Instance, InArgs);
 	LostTouchCapture.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::ManipulationCompleted_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ManipulationCompletedEventArgs& InArgs)
+void UNoesisGuiUIElement::ManipulationCompleted_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ManipulationCompletedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!ManipulationCompleted.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiManipulationCompletedEventArgs Args(Instance, InArgs);
@@ -474,9 +361,9 @@ void UNoesisGuiUIElement::UpdateLayout()
 	Args.ToNoesis(InArgs);
 }
 
-	void UNoesisGuiUIElement::ManipulationDelta_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ManipulationDeltaEventArgs& InArgs)
+void UNoesisGuiUIElement::ManipulationDelta_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ManipulationDeltaEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!ManipulationDelta.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiManipulationDeltaEventArgs Args(Instance, InArgs);
@@ -484,9 +371,9 @@ void UNoesisGuiUIElement::UpdateLayout()
 	Args.ToNoesis(InArgs);
 }
 
-	void UNoesisGuiUIElement::ManipulationInertiaStarting_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ManipulationInertiaStartingEventArgs& InArgs)
+void UNoesisGuiUIElement::ManipulationInertiaStarting_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ManipulationInertiaStartingEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!ManipulationInertiaStarting.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiManipulationInertiaStartingEventArgs Args(Instance, InArgs);
@@ -494,9 +381,9 @@ void UNoesisGuiUIElement::UpdateLayout()
 	Args.ToNoesis(InArgs);
 }
 
-	void UNoesisGuiUIElement::ManipulationStarted_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ManipulationStartedEventArgs& InArgs)
+void UNoesisGuiUIElement::ManipulationStarted_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ManipulationStartedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!ManipulationStarted.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiManipulationStartedEventArgs Args(Instance, InArgs);
@@ -504,9 +391,9 @@ void UNoesisGuiUIElement::UpdateLayout()
 	Args.ToNoesis(InArgs);
 }
 
-	void UNoesisGuiUIElement::ManipulationStarting_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ManipulationStartingEventArgs& InArgs)
+void UNoesisGuiUIElement::ManipulationStarting_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ManipulationStartingEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!ManipulationStarting.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiManipulationStartingEventArgs Args(Instance, InArgs);
@@ -514,357 +401,815 @@ void UNoesisGuiUIElement::UpdateLayout()
 	Args.ToNoesis(InArgs);
 }
 
-	void UNoesisGuiUIElement::MouseDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
+void UNoesisGuiUIElement::MouseDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!MouseDown.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseButtonEventArgs Args(Instance, InArgs);
 	MouseDown.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::MouseEnter_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseEventArgs& InArgs)
+void UNoesisGuiUIElement::MouseEnter_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!MouseEnter.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseEventArgs Args(Instance, InArgs);
 	MouseEnter.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::MouseLeave_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseEventArgs& InArgs)
+void UNoesisGuiUIElement::MouseLeave_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!MouseLeave.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseEventArgs Args(Instance, InArgs);
 	MouseLeave.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::MouseLeftButtonDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
+void UNoesisGuiUIElement::MouseLeftButtonDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!MouseLeftButtonDown.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseButtonEventArgs Args(Instance, InArgs);
 	MouseLeftButtonDown.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::MouseLeftButtonUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
+void UNoesisGuiUIElement::MouseLeftButtonUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!MouseLeftButtonUp.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseButtonEventArgs Args(Instance, InArgs);
 	MouseLeftButtonUp.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::MouseMove_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseEventArgs& InArgs)
+void UNoesisGuiUIElement::MouseMove_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!MouseMove.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseEventArgs Args(Instance, InArgs);
 	MouseMove.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::MouseRightButtonDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
+void UNoesisGuiUIElement::MouseRightButtonDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!MouseRightButtonDown.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseButtonEventArgs Args(Instance, InArgs);
 	MouseRightButtonDown.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::MouseRightButtonUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
+void UNoesisGuiUIElement::MouseRightButtonUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!MouseRightButtonUp.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseButtonEventArgs Args(Instance, InArgs);
 	MouseRightButtonUp.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::MouseUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
+void UNoesisGuiUIElement::MouseUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!MouseUp.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseButtonEventArgs Args(Instance, InArgs);
 	MouseUp.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::MouseWheel_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseWheelEventArgs& InArgs)
+void UNoesisGuiUIElement::MouseWheel_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseWheelEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!MouseWheel.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseWheelEventArgs Args(Instance, InArgs);
 	MouseWheel.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::PreviewGotKeyboardFocus_Private(Noesis::Core::BaseComponent* InSender, const Noesis::KeyboardFocusChangedEventArgs& InArgs)
+void UNoesisGuiUIElement::PreviewGotKeyboardFocus_Private(Noesis::Core::BaseComponent* InSender, const Noesis::KeyboardFocusChangedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewGotKeyboardFocus.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiKeyboardFocusChangedEventArgs Args(Instance, InArgs);
 	PreviewGotKeyboardFocus.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::PreviewKeyDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::KeyEventArgs& InArgs)
+void UNoesisGuiUIElement::PreviewKeyDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::KeyEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewKeyDown.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiKeyEventArgs Args(Instance, InArgs);
 	PreviewKeyDown.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::PreviewKeyUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::KeyEventArgs& InArgs)
+void UNoesisGuiUIElement::PreviewKeyUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::KeyEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewKeyUp.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiKeyEventArgs Args(Instance, InArgs);
 	PreviewKeyUp.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::PreviewLostKeyboardFocus_Private(Noesis::Core::BaseComponent* InSender, const Noesis::KeyboardFocusChangedEventArgs& InArgs)
+void UNoesisGuiUIElement::PreviewLostKeyboardFocus_Private(Noesis::Core::BaseComponent* InSender, const Noesis::KeyboardFocusChangedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewLostKeyboardFocus.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiKeyboardFocusChangedEventArgs Args(Instance, InArgs);
 	PreviewLostKeyboardFocus.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::PreviewMouseDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
+void UNoesisGuiUIElement::PreviewMouseDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewMouseDown.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseButtonEventArgs Args(Instance, InArgs);
 	PreviewMouseDown.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::PreviewMouseLeftButtonDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
+void UNoesisGuiUIElement::PreviewMouseLeftButtonDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewMouseLeftButtonDown.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseButtonEventArgs Args(Instance, InArgs);
 	PreviewMouseLeftButtonDown.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::PreviewMouseLeftButtonUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
+void UNoesisGuiUIElement::PreviewMouseLeftButtonUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewMouseLeftButtonUp.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseButtonEventArgs Args(Instance, InArgs);
 	PreviewMouseLeftButtonUp.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::PreviewMouseMove_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseEventArgs& InArgs)
+void UNoesisGuiUIElement::PreviewMouseMove_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewMouseMove.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseEventArgs Args(Instance, InArgs);
 	PreviewMouseMove.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::PreviewMouseRightButtonDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
+void UNoesisGuiUIElement::PreviewMouseRightButtonDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewMouseRightButtonDown.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseButtonEventArgs Args(Instance, InArgs);
 	PreviewMouseRightButtonDown.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::PreviewMouseRightButtonUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
+void UNoesisGuiUIElement::PreviewMouseRightButtonUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewMouseRightButtonUp.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseButtonEventArgs Args(Instance, InArgs);
 	PreviewMouseRightButtonUp.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::PreviewMouseUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
+void UNoesisGuiUIElement::PreviewMouseUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewMouseUp.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseButtonEventArgs Args(Instance, InArgs);
 	PreviewMouseUp.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::PreviewMouseWheel_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseWheelEventArgs& InArgs)
+void UNoesisGuiUIElement::PreviewMouseWheel_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseWheelEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewMouseWheel.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiMouseWheelEventArgs Args(Instance, InArgs);
 	PreviewMouseWheel.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::PreviewTextInput_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TextCompositionEventArgs& InArgs)
+void UNoesisGuiUIElement::PreviewTextInput_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TextCompositionEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewTextInput.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiTextCompositionEventArgs Args(Instance, InArgs);
 	PreviewTextInput.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::PreviewTouchDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
+void UNoesisGuiUIElement::PreviewTouchDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewTouchDown.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiTouchEventArgs Args(Instance, InArgs);
 	PreviewTouchDown.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::PreviewTouchMove_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
+void UNoesisGuiUIElement::PreviewTouchMove_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewTouchMove.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiTouchEventArgs Args(Instance, InArgs);
 	PreviewTouchMove.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::PreviewTouchUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
+void UNoesisGuiUIElement::PreviewTouchUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewTouchUp.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiTouchEventArgs Args(Instance, InArgs);
 	PreviewTouchUp.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::TextInput_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TextCompositionEventArgs& InArgs)
+void UNoesisGuiUIElement::TextInput_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TextCompositionEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!TextInput.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiTextCompositionEventArgs Args(Instance, InArgs);
 	TextInput.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::TouchDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
+void UNoesisGuiUIElement::TouchDown_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!TouchDown.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiTouchEventArgs Args(Instance, InArgs);
 	TouchDown.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::TouchEnter_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
+void UNoesisGuiUIElement::TouchEnter_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!TouchEnter.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiTouchEventArgs Args(Instance, InArgs);
 	TouchEnter.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::TouchLeave_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
+void UNoesisGuiUIElement::TouchLeave_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!TouchLeave.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiTouchEventArgs Args(Instance, InArgs);
 	TouchLeave.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::TouchMove_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
+void UNoesisGuiUIElement::TouchMove_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!TouchMove.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiTouchEventArgs Args(Instance, InArgs);
 	TouchMove.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::TouchUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
+void UNoesisGuiUIElement::TouchUp_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TouchEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!TouchUp.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiTouchEventArgs Args(Instance, InArgs);
 	TouchUp.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiUIElement::BeginDestroy()
+void UNoesisGuiUIElement::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::UIElement* NoesisUIElement = NsDynamicCast<Noesis::Gui::UIElement*>(NoesisComponent.GetPtr());
-	if (!NoesisUIElement)
-		return Super::BeginDestroy();
+	check(NoesisUIElement)
 
-	NoesisUIElement->FocusableChanged() -= FocusableChanged_Delegate;
-	NoesisUIElement->GotFocus() -= GotFocus_Delegate;
-	NoesisUIElement->GotKeyboardFocus() -= GotKeyboardFocus_Delegate;
-	NoesisUIElement->GotMouseCapture() -= GotMouseCapture_Delegate;
-	NoesisUIElement->GotTouchCapture() -= GotTouchCapture_Delegate;
-	NoesisUIElement->IsEnabledChanged() -= IsEnabledChanged_Delegate;
-	NoesisUIElement->IsHitTestVisibleChanged() -= IsHitTestVisibleChanged_Delegate;
-	NoesisUIElement->IsKeyboardFocusWithinChanged() -= IsKeyboardFocusWithinChanged_Delegate;
-	NoesisUIElement->IsKeyboardFocusedChanged() -= IsKeyboardFocusedChanged_Delegate;
-	NoesisUIElement->IsMouseCaptureWithinChanged() -= IsMouseCaptureWithinChanged_Delegate;
-	NoesisUIElement->IsMouseCapturedChanged() -= IsMouseCapturedChanged_Delegate;
-	NoesisUIElement->IsMouseDirectlyOverChanged() -= IsMouseDirectlyOverChanged_Delegate;
-	NoesisUIElement->IsVisibleChanged() -= IsVisibleChanged_Delegate;
-	NoesisUIElement->KeyDown() -= KeyDown_Delegate;
-	NoesisUIElement->KeyUp() -= KeyUp_Delegate;
-	NoesisUIElement->LostFocus() -= LostFocus_Delegate;
-	NoesisUIElement->LostKeyboardFocus() -= LostKeyboardFocus_Delegate;
-	NoesisUIElement->LostMouseCapture() -= LostMouseCapture_Delegate;
-	NoesisUIElement->LostTouchCapture() -= LostTouchCapture_Delegate;
-	NoesisUIElement->ManipulationCompleted() -= ManipulationCompleted_Delegate;
-	NoesisUIElement->ManipulationDelta() -= ManipulationDelta_Delegate;
-	NoesisUIElement->ManipulationInertiaStarting() -= ManipulationInertiaStarting_Delegate;
-	NoesisUIElement->ManipulationStarted() -= ManipulationStarted_Delegate;
-	NoesisUIElement->ManipulationStarting() -= ManipulationStarting_Delegate;
-	NoesisUIElement->MouseDown() -= MouseDown_Delegate;
-	NoesisUIElement->MouseEnter() -= MouseEnter_Delegate;
-	NoesisUIElement->MouseLeave() -= MouseLeave_Delegate;
-	NoesisUIElement->MouseLeftButtonDown() -= MouseLeftButtonDown_Delegate;
-	NoesisUIElement->MouseLeftButtonUp() -= MouseLeftButtonUp_Delegate;
-	NoesisUIElement->MouseMove() -= MouseMove_Delegate;
-	NoesisUIElement->MouseRightButtonDown() -= MouseRightButtonDown_Delegate;
-	NoesisUIElement->MouseRightButtonUp() -= MouseRightButtonUp_Delegate;
-	NoesisUIElement->MouseUp() -= MouseUp_Delegate;
-	NoesisUIElement->MouseWheel() -= MouseWheel_Delegate;
-	NoesisUIElement->PreviewGotKeyboardFocus() -= PreviewGotKeyboardFocus_Delegate;
-	NoesisUIElement->PreviewKeyDown() -= PreviewKeyDown_Delegate;
-	NoesisUIElement->PreviewKeyUp() -= PreviewKeyUp_Delegate;
-	NoesisUIElement->PreviewLostKeyboardFocus() -= PreviewLostKeyboardFocus_Delegate;
-	NoesisUIElement->PreviewMouseDown() -= PreviewMouseDown_Delegate;
-	NoesisUIElement->PreviewMouseLeftButtonDown() -= PreviewMouseLeftButtonDown_Delegate;
-	NoesisUIElement->PreviewMouseLeftButtonUp() -= PreviewMouseLeftButtonUp_Delegate;
-	NoesisUIElement->PreviewMouseMove() -= PreviewMouseMove_Delegate;
-	NoesisUIElement->PreviewMouseRightButtonDown() -= PreviewMouseRightButtonDown_Delegate;
-	NoesisUIElement->PreviewMouseRightButtonUp() -= PreviewMouseRightButtonUp_Delegate;
-	NoesisUIElement->PreviewMouseUp() -= PreviewMouseUp_Delegate;
-	NoesisUIElement->PreviewMouseWheel() -= PreviewMouseWheel_Delegate;
-	NoesisUIElement->PreviewTextInput() -= PreviewTextInput_Delegate;
-	NoesisUIElement->PreviewTouchDown() -= PreviewTouchDown_Delegate;
-	NoesisUIElement->PreviewTouchMove() -= PreviewTouchMove_Delegate;
-	NoesisUIElement->PreviewTouchUp() -= PreviewTouchUp_Delegate;
-	NoesisUIElement->TextInput() -= TextInput_Delegate;
-	NoesisUIElement->TouchDown() -= TouchDown_Delegate;
-	NoesisUIElement->TouchEnter() -= TouchEnter_Delegate;
-	NoesisUIElement->TouchLeave() -= TouchLeave_Delegate;
-	NoesisUIElement->TouchMove() -= TouchMove_Delegate;
-	NoesisUIElement->TouchUp() -= TouchUp_Delegate;
+	FocusableChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::FocusableChanged_Private);
+	if (FocusableChanged.IsBound())
+	{
+		NoesisUIElement->FocusableChanged() += FocusableChanged_Delegate;
+	}
+	GotFocus_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::GotFocus_Private);
+	if (GotFocus.IsBound())
+	{
+		NoesisUIElement->GotFocus() += GotFocus_Delegate;
+	}
+	GotKeyboardFocus_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::GotKeyboardFocus_Private);
+	if (GotKeyboardFocus.IsBound())
+	{
+		NoesisUIElement->GotKeyboardFocus() += GotKeyboardFocus_Delegate;
+	}
+	GotMouseCapture_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::GotMouseCapture_Private);
+	if (GotMouseCapture.IsBound())
+	{
+		NoesisUIElement->GotMouseCapture() += GotMouseCapture_Delegate;
+	}
+	GotTouchCapture_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::GotTouchCapture_Private);
+	if (GotTouchCapture.IsBound())
+	{
+		NoesisUIElement->GotTouchCapture() += GotTouchCapture_Delegate;
+	}
+	IsEnabledChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::IsEnabledChanged_Private);
+	if (IsEnabledChanged.IsBound())
+	{
+		NoesisUIElement->IsEnabledChanged() += IsEnabledChanged_Delegate;
+	}
+	IsHitTestVisibleChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::IsHitTestVisibleChanged_Private);
+	if (IsHitTestVisibleChanged.IsBound())
+	{
+		NoesisUIElement->IsHitTestVisibleChanged() += IsHitTestVisibleChanged_Delegate;
+	}
+	IsKeyboardFocusWithinChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::IsKeyboardFocusWithinChanged_Private);
+	if (IsKeyboardFocusWithinChanged.IsBound())
+	{
+		NoesisUIElement->IsKeyboardFocusWithinChanged() += IsKeyboardFocusWithinChanged_Delegate;
+	}
+	IsKeyboardFocusedChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::IsKeyboardFocusedChanged_Private);
+	if (IsKeyboardFocusedChanged.IsBound())
+	{
+		NoesisUIElement->IsKeyboardFocusedChanged() += IsKeyboardFocusedChanged_Delegate;
+	}
+	IsMouseCaptureWithinChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::IsMouseCaptureWithinChanged_Private);
+	if (IsMouseCaptureWithinChanged.IsBound())
+	{
+		NoesisUIElement->IsMouseCaptureWithinChanged() += IsMouseCaptureWithinChanged_Delegate;
+	}
+	IsMouseCapturedChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::IsMouseCapturedChanged_Private);
+	if (IsMouseCapturedChanged.IsBound())
+	{
+		NoesisUIElement->IsMouseCapturedChanged() += IsMouseCapturedChanged_Delegate;
+	}
+	IsMouseDirectlyOverChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::IsMouseDirectlyOverChanged_Private);
+	if (IsMouseDirectlyOverChanged.IsBound())
+	{
+		NoesisUIElement->IsMouseDirectlyOverChanged() += IsMouseDirectlyOverChanged_Delegate;
+	}
+	IsVisibleChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::IsVisibleChanged_Private);
+	if (IsVisibleChanged.IsBound())
+	{
+		NoesisUIElement->IsVisibleChanged() += IsVisibleChanged_Delegate;
+	}
+	KeyDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::KeyDown_Private);
+	if (KeyDown.IsBound())
+	{
+		NoesisUIElement->KeyDown() += KeyDown_Delegate;
+	}
+	KeyUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::KeyUp_Private);
+	if (KeyUp.IsBound())
+	{
+		NoesisUIElement->KeyUp() += KeyUp_Delegate;
+	}
+	LostFocus_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::LostFocus_Private);
+	if (LostFocus.IsBound())
+	{
+		NoesisUIElement->LostFocus() += LostFocus_Delegate;
+	}
+	LostKeyboardFocus_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::LostKeyboardFocus_Private);
+	if (LostKeyboardFocus.IsBound())
+	{
+		NoesisUIElement->LostKeyboardFocus() += LostKeyboardFocus_Delegate;
+	}
+	LostMouseCapture_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::LostMouseCapture_Private);
+	if (LostMouseCapture.IsBound())
+	{
+		NoesisUIElement->LostMouseCapture() += LostMouseCapture_Delegate;
+	}
+	LostTouchCapture_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::LostTouchCapture_Private);
+	if (LostTouchCapture.IsBound())
+	{
+		NoesisUIElement->LostTouchCapture() += LostTouchCapture_Delegate;
+	}
+	ManipulationCompleted_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::ManipulationCompleted_Private);
+	if (ManipulationCompleted.IsBound())
+	{
+		NoesisUIElement->ManipulationCompleted() += ManipulationCompleted_Delegate;
+	}
+	ManipulationDelta_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::ManipulationDelta_Private);
+	if (ManipulationDelta.IsBound())
+	{
+		NoesisUIElement->ManipulationDelta() += ManipulationDelta_Delegate;
+	}
+	ManipulationInertiaStarting_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::ManipulationInertiaStarting_Private);
+	if (ManipulationInertiaStarting.IsBound())
+	{
+		NoesisUIElement->ManipulationInertiaStarting() += ManipulationInertiaStarting_Delegate;
+	}
+	ManipulationStarted_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::ManipulationStarted_Private);
+	if (ManipulationStarted.IsBound())
+	{
+		NoesisUIElement->ManipulationStarted() += ManipulationStarted_Delegate;
+	}
+	ManipulationStarting_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::ManipulationStarting_Private);
+	if (ManipulationStarting.IsBound())
+	{
+		NoesisUIElement->ManipulationStarting() += ManipulationStarting_Delegate;
+	}
+	MouseDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseDown_Private);
+	if (MouseDown.IsBound())
+	{
+		NoesisUIElement->MouseDown() += MouseDown_Delegate;
+	}
+	MouseEnter_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseEnter_Private);
+	if (MouseEnter.IsBound())
+	{
+		NoesisUIElement->MouseEnter() += MouseEnter_Delegate;
+	}
+	MouseLeave_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseLeave_Private);
+	if (MouseLeave.IsBound())
+	{
+		NoesisUIElement->MouseLeave() += MouseLeave_Delegate;
+	}
+	MouseLeftButtonDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseLeftButtonDown_Private);
+	if (MouseLeftButtonDown.IsBound())
+	{
+		NoesisUIElement->MouseLeftButtonDown() += MouseLeftButtonDown_Delegate;
+	}
+	MouseLeftButtonUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseLeftButtonUp_Private);
+	if (MouseLeftButtonUp.IsBound())
+	{
+		NoesisUIElement->MouseLeftButtonUp() += MouseLeftButtonUp_Delegate;
+	}
+	MouseMove_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseMove_Private);
+	if (MouseMove.IsBound())
+	{
+		NoesisUIElement->MouseMove() += MouseMove_Delegate;
+	}
+	MouseRightButtonDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseRightButtonDown_Private);
+	if (MouseRightButtonDown.IsBound())
+	{
+		NoesisUIElement->MouseRightButtonDown() += MouseRightButtonDown_Delegate;
+	}
+	MouseRightButtonUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseRightButtonUp_Private);
+	if (MouseRightButtonUp.IsBound())
+	{
+		NoesisUIElement->MouseRightButtonUp() += MouseRightButtonUp_Delegate;
+	}
+	MouseUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseUp_Private);
+	if (MouseUp.IsBound())
+	{
+		NoesisUIElement->MouseUp() += MouseUp_Delegate;
+	}
+	MouseWheel_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::MouseWheel_Private);
+	if (MouseWheel.IsBound())
+	{
+		NoesisUIElement->MouseWheel() += MouseWheel_Delegate;
+	}
+	PreviewGotKeyboardFocus_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewGotKeyboardFocus_Private);
+	if (PreviewGotKeyboardFocus.IsBound())
+	{
+		NoesisUIElement->PreviewGotKeyboardFocus() += PreviewGotKeyboardFocus_Delegate;
+	}
+	PreviewKeyDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewKeyDown_Private);
+	if (PreviewKeyDown.IsBound())
+	{
+		NoesisUIElement->PreviewKeyDown() += PreviewKeyDown_Delegate;
+	}
+	PreviewKeyUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewKeyUp_Private);
+	if (PreviewKeyUp.IsBound())
+	{
+		NoesisUIElement->PreviewKeyUp() += PreviewKeyUp_Delegate;
+	}
+	PreviewLostKeyboardFocus_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewLostKeyboardFocus_Private);
+	if (PreviewLostKeyboardFocus.IsBound())
+	{
+		NoesisUIElement->PreviewLostKeyboardFocus() += PreviewLostKeyboardFocus_Delegate;
+	}
+	PreviewMouseDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewMouseDown_Private);
+	if (PreviewMouseDown.IsBound())
+	{
+		NoesisUIElement->PreviewMouseDown() += PreviewMouseDown_Delegate;
+	}
+	PreviewMouseLeftButtonDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewMouseLeftButtonDown_Private);
+	if (PreviewMouseLeftButtonDown.IsBound())
+	{
+		NoesisUIElement->PreviewMouseLeftButtonDown() += PreviewMouseLeftButtonDown_Delegate;
+	}
+	PreviewMouseLeftButtonUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewMouseLeftButtonUp_Private);
+	if (PreviewMouseLeftButtonUp.IsBound())
+	{
+		NoesisUIElement->PreviewMouseLeftButtonUp() += PreviewMouseLeftButtonUp_Delegate;
+	}
+	PreviewMouseMove_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewMouseMove_Private);
+	if (PreviewMouseMove.IsBound())
+	{
+		NoesisUIElement->PreviewMouseMove() += PreviewMouseMove_Delegate;
+	}
+	PreviewMouseRightButtonDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewMouseRightButtonDown_Private);
+	if (PreviewMouseRightButtonDown.IsBound())
+	{
+		NoesisUIElement->PreviewMouseRightButtonDown() += PreviewMouseRightButtonDown_Delegate;
+	}
+	PreviewMouseRightButtonUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewMouseRightButtonUp_Private);
+	if (PreviewMouseRightButtonUp.IsBound())
+	{
+		NoesisUIElement->PreviewMouseRightButtonUp() += PreviewMouseRightButtonUp_Delegate;
+	}
+	PreviewMouseUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewMouseUp_Private);
+	if (PreviewMouseUp.IsBound())
+	{
+		NoesisUIElement->PreviewMouseUp() += PreviewMouseUp_Delegate;
+	}
+	PreviewMouseWheel_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewMouseWheel_Private);
+	if (PreviewMouseWheel.IsBound())
+	{
+		NoesisUIElement->PreviewMouseWheel() += PreviewMouseWheel_Delegate;
+	}
+	PreviewTextInput_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewTextInput_Private);
+	if (PreviewTextInput.IsBound())
+	{
+		NoesisUIElement->PreviewTextInput() += PreviewTextInput_Delegate;
+	}
+	PreviewTouchDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewTouchDown_Private);
+	if (PreviewTouchDown.IsBound())
+	{
+		NoesisUIElement->PreviewTouchDown() += PreviewTouchDown_Delegate;
+	}
+	PreviewTouchMove_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewTouchMove_Private);
+	if (PreviewTouchMove.IsBound())
+	{
+		NoesisUIElement->PreviewTouchMove() += PreviewTouchMove_Delegate;
+	}
+	PreviewTouchUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::PreviewTouchUp_Private);
+	if (PreviewTouchUp.IsBound())
+	{
+		NoesisUIElement->PreviewTouchUp() += PreviewTouchUp_Delegate;
+	}
+	TextInput_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::TextInput_Private);
+	if (TextInput.IsBound())
+	{
+		NoesisUIElement->TextInput() += TextInput_Delegate;
+	}
+	TouchDown_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::TouchDown_Private);
+	if (TouchDown.IsBound())
+	{
+		NoesisUIElement->TouchDown() += TouchDown_Delegate;
+	}
+	TouchEnter_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::TouchEnter_Private);
+	if (TouchEnter.IsBound())
+	{
+		NoesisUIElement->TouchEnter() += TouchEnter_Delegate;
+	}
+	TouchLeave_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::TouchLeave_Private);
+	if (TouchLeave.IsBound())
+	{
+		NoesisUIElement->TouchLeave() += TouchLeave_Delegate;
+	}
+	TouchMove_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::TouchMove_Private);
+	if (TouchMove.IsBound())
+	{
+		NoesisUIElement->TouchMove() += TouchMove_Delegate;
+	}
+	TouchUp_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiUIElement::TouchUp_Private);
+	if (TouchUp.IsBound())
+	{
+		NoesisUIElement->TouchUp() += TouchUp_Delegate;
+	}
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiUIElement::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::UIElement* NoesisUIElement = NsDynamicCast<Noesis::Gui::UIElement*>(NoesisComponent.GetPtr());
+	check(NoesisUIElement)
+
+	if (FocusableChanged.IsBound())
+	{
+		NoesisUIElement->FocusableChanged() -= FocusableChanged_Delegate;
+	}
+	if (GotFocus.IsBound())
+	{
+		NoesisUIElement->GotFocus() -= GotFocus_Delegate;
+	}
+	if (GotKeyboardFocus.IsBound())
+	{
+		NoesisUIElement->GotKeyboardFocus() -= GotKeyboardFocus_Delegate;
+	}
+	if (GotMouseCapture.IsBound())
+	{
+		NoesisUIElement->GotMouseCapture() -= GotMouseCapture_Delegate;
+	}
+	if (GotTouchCapture.IsBound())
+	{
+		NoesisUIElement->GotTouchCapture() -= GotTouchCapture_Delegate;
+	}
+	if (IsEnabledChanged.IsBound())
+	{
+		NoesisUIElement->IsEnabledChanged() -= IsEnabledChanged_Delegate;
+	}
+	if (IsHitTestVisibleChanged.IsBound())
+	{
+		NoesisUIElement->IsHitTestVisibleChanged() -= IsHitTestVisibleChanged_Delegate;
+	}
+	if (IsKeyboardFocusWithinChanged.IsBound())
+	{
+		NoesisUIElement->IsKeyboardFocusWithinChanged() -= IsKeyboardFocusWithinChanged_Delegate;
+	}
+	if (IsKeyboardFocusedChanged.IsBound())
+	{
+		NoesisUIElement->IsKeyboardFocusedChanged() -= IsKeyboardFocusedChanged_Delegate;
+	}
+	if (IsMouseCaptureWithinChanged.IsBound())
+	{
+		NoesisUIElement->IsMouseCaptureWithinChanged() -= IsMouseCaptureWithinChanged_Delegate;
+	}
+	if (IsMouseCapturedChanged.IsBound())
+	{
+		NoesisUIElement->IsMouseCapturedChanged() -= IsMouseCapturedChanged_Delegate;
+	}
+	if (IsMouseDirectlyOverChanged.IsBound())
+	{
+		NoesisUIElement->IsMouseDirectlyOverChanged() -= IsMouseDirectlyOverChanged_Delegate;
+	}
+	if (IsVisibleChanged.IsBound())
+	{
+		NoesisUIElement->IsVisibleChanged() -= IsVisibleChanged_Delegate;
+	}
+	if (KeyDown.IsBound())
+	{
+		NoesisUIElement->KeyDown() -= KeyDown_Delegate;
+	}
+	if (KeyUp.IsBound())
+	{
+		NoesisUIElement->KeyUp() -= KeyUp_Delegate;
+	}
+	if (LostFocus.IsBound())
+	{
+		NoesisUIElement->LostFocus() -= LostFocus_Delegate;
+	}
+	if (LostKeyboardFocus.IsBound())
+	{
+		NoesisUIElement->LostKeyboardFocus() -= LostKeyboardFocus_Delegate;
+	}
+	if (LostMouseCapture.IsBound())
+	{
+		NoesisUIElement->LostMouseCapture() -= LostMouseCapture_Delegate;
+	}
+	if (LostTouchCapture.IsBound())
+	{
+		NoesisUIElement->LostTouchCapture() -= LostTouchCapture_Delegate;
+	}
+	if (ManipulationCompleted.IsBound())
+	{
+		NoesisUIElement->ManipulationCompleted() -= ManipulationCompleted_Delegate;
+	}
+	if (ManipulationDelta.IsBound())
+	{
+		NoesisUIElement->ManipulationDelta() -= ManipulationDelta_Delegate;
+	}
+	if (ManipulationInertiaStarting.IsBound())
+	{
+		NoesisUIElement->ManipulationInertiaStarting() -= ManipulationInertiaStarting_Delegate;
+	}
+	if (ManipulationStarted.IsBound())
+	{
+		NoesisUIElement->ManipulationStarted() -= ManipulationStarted_Delegate;
+	}
+	if (ManipulationStarting.IsBound())
+	{
+		NoesisUIElement->ManipulationStarting() -= ManipulationStarting_Delegate;
+	}
+	if (MouseDown.IsBound())
+	{
+		NoesisUIElement->MouseDown() -= MouseDown_Delegate;
+	}
+	if (MouseEnter.IsBound())
+	{
+		NoesisUIElement->MouseEnter() -= MouseEnter_Delegate;
+	}
+	if (MouseLeave.IsBound())
+	{
+		NoesisUIElement->MouseLeave() -= MouseLeave_Delegate;
+	}
+	if (MouseLeftButtonDown.IsBound())
+	{
+		NoesisUIElement->MouseLeftButtonDown() -= MouseLeftButtonDown_Delegate;
+	}
+	if (MouseLeftButtonUp.IsBound())
+	{
+		NoesisUIElement->MouseLeftButtonUp() -= MouseLeftButtonUp_Delegate;
+	}
+	if (MouseMove.IsBound())
+	{
+		NoesisUIElement->MouseMove() -= MouseMove_Delegate;
+	}
+	if (MouseRightButtonDown.IsBound())
+	{
+		NoesisUIElement->MouseRightButtonDown() -= MouseRightButtonDown_Delegate;
+	}
+	if (MouseRightButtonUp.IsBound())
+	{
+		NoesisUIElement->MouseRightButtonUp() -= MouseRightButtonUp_Delegate;
+	}
+	if (MouseUp.IsBound())
+	{
+		NoesisUIElement->MouseUp() -= MouseUp_Delegate;
+	}
+	if (MouseWheel.IsBound())
+	{
+		NoesisUIElement->MouseWheel() -= MouseWheel_Delegate;
+	}
+	if (PreviewGotKeyboardFocus.IsBound())
+	{
+		NoesisUIElement->PreviewGotKeyboardFocus() -= PreviewGotKeyboardFocus_Delegate;
+	}
+	if (PreviewKeyDown.IsBound())
+	{
+		NoesisUIElement->PreviewKeyDown() -= PreviewKeyDown_Delegate;
+	}
+	if (PreviewKeyUp.IsBound())
+	{
+		NoesisUIElement->PreviewKeyUp() -= PreviewKeyUp_Delegate;
+	}
+	if (PreviewLostKeyboardFocus.IsBound())
+	{
+		NoesisUIElement->PreviewLostKeyboardFocus() -= PreviewLostKeyboardFocus_Delegate;
+	}
+	if (PreviewMouseDown.IsBound())
+	{
+		NoesisUIElement->PreviewMouseDown() -= PreviewMouseDown_Delegate;
+	}
+	if (PreviewMouseLeftButtonDown.IsBound())
+	{
+		NoesisUIElement->PreviewMouseLeftButtonDown() -= PreviewMouseLeftButtonDown_Delegate;
+	}
+	if (PreviewMouseLeftButtonUp.IsBound())
+	{
+		NoesisUIElement->PreviewMouseLeftButtonUp() -= PreviewMouseLeftButtonUp_Delegate;
+	}
+	if (PreviewMouseMove.IsBound())
+	{
+		NoesisUIElement->PreviewMouseMove() -= PreviewMouseMove_Delegate;
+	}
+	if (PreviewMouseRightButtonDown.IsBound())
+	{
+		NoesisUIElement->PreviewMouseRightButtonDown() -= PreviewMouseRightButtonDown_Delegate;
+	}
+	if (PreviewMouseRightButtonUp.IsBound())
+	{
+		NoesisUIElement->PreviewMouseRightButtonUp() -= PreviewMouseRightButtonUp_Delegate;
+	}
+	if (PreviewMouseUp.IsBound())
+	{
+		NoesisUIElement->PreviewMouseUp() -= PreviewMouseUp_Delegate;
+	}
+	if (PreviewMouseWheel.IsBound())
+	{
+		NoesisUIElement->PreviewMouseWheel() -= PreviewMouseWheel_Delegate;
+	}
+	if (PreviewTextInput.IsBound())
+	{
+		NoesisUIElement->PreviewTextInput() -= PreviewTextInput_Delegate;
+	}
+	if (PreviewTouchDown.IsBound())
+	{
+		NoesisUIElement->PreviewTouchDown() -= PreviewTouchDown_Delegate;
+	}
+	if (PreviewTouchMove.IsBound())
+	{
+		NoesisUIElement->PreviewTouchMove() -= PreviewTouchMove_Delegate;
+	}
+	if (PreviewTouchUp.IsBound())
+	{
+		NoesisUIElement->PreviewTouchUp() -= PreviewTouchUp_Delegate;
+	}
+	if (TextInput.IsBound())
+	{
+		NoesisUIElement->TextInput() -= TextInput_Delegate;
+	}
+	if (TouchDown.IsBound())
+	{
+		NoesisUIElement->TouchDown() -= TouchDown_Delegate;
+	}
+	if (TouchEnter.IsBound())
+	{
+		NoesisUIElement->TouchEnter() -= TouchEnter_Delegate;
+	}
+	if (TouchLeave.IsBound())
+	{
+		NoesisUIElement->TouchLeave() -= TouchLeave_Delegate;
+	}
+	if (TouchMove.IsBound())
+	{
+		NoesisUIElement->TouchMove() -= TouchMove_Delegate;
+	}
+	if (TouchUp.IsBound())
+	{
+		NoesisUIElement->TouchUp() -= TouchUp_Delegate;
+	}
+
 }
 

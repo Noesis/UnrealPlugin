@@ -20,8 +20,6 @@ void UNoesisGuiICommand::SetNoesisInterface(Noesis::Core::Interface* InNoesisInt
 
 	Noesis::Gui::ICommand* NoesisICommand = NsDynamicCast<Noesis::Gui::ICommand*>(InNoesisInterface);
 	check(NoesisICommand);
-
-	NoesisICommand->CanExecuteChanged() += Noesis::MakeDelegate(this, &UNoesisGuiICommand::CanExecuteChanged_Private);
 }
 
 FName UNoesisGuiICommand::GetName()
@@ -47,23 +45,23 @@ void UNoesisGuiICommand::Execute(class UNoesisGuiBaseComponent* InParam)
 	return NoesisICommand->Execute(NoesisInParam);
 }
 
-	void UNoesisGuiICommand::CanExecuteChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs)
+void UNoesisGuiICommand::BindEvents()
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
-		return;
-	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiEventArgs Args(Instance, InArgs);
-	CanExecuteChanged.Broadcast(Sender, Args);
+	Super::BindEvents();
+
+	Noesis::Gui::ICommand* NoesisICommand = NsDynamicCast<Noesis::Gui::ICommand*>(NoesisInterface.GetPtr());
+	check(NoesisICommand)
+
+
 }
 
-	void UNoesisGuiICommand::BeginDestroy()
+void UNoesisGuiICommand::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::ICommand* NoesisICommand = NsDynamicCast<Noesis::Gui::ICommand*>(NoesisInterface.GetPtr());
-	if (!NoesisICommand)
-		return Super::BeginDestroy();
+	check(NoesisICommand)
 
-	NoesisICommand->CanExecuteChanged() -= CanExecuteChanged_Delegate;
 
-	Super::BeginDestroy();
 }
 

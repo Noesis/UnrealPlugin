@@ -23,6 +23,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	void SetCommand(UNoesisGuiICommand* InCommand);
 
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
 	FNoesisGuiCanExecuteRoutedEventHandler CanExecute;
 
@@ -51,8 +58,5 @@ public:
 
 	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::ExecutedRoutedEventArgs& InArgs)> PreviewExecuted_Delegate;
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
 };
 

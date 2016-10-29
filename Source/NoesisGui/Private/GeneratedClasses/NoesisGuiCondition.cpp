@@ -20,7 +20,6 @@ void UNoesisGuiCondition::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	Noesis::Gui::Condition* NoesisCondition = NsDynamicCast<Noesis::Gui::Condition*>(InNoesisComponent);
 	check(NoesisCondition);
-
 }
 
 class UNoesisGuiBaseBinding* UNoesisGuiCondition::GetBinding()
@@ -79,13 +78,23 @@ void UNoesisGuiCondition::SetValue(class UNoesisGuiBaseComponent* InValue)
 	NoesisCondition->SetValue(NsDynamicCast<Core::BaseComponent*>(InValue->NoesisComponent.GetPtr()));
 }
 
-	void UNoesisGuiCondition::BeginDestroy()
+void UNoesisGuiCondition::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::Condition* NoesisCondition = NsDynamicCast<Noesis::Gui::Condition*>(NoesisComponent.GetPtr());
-	if (!NoesisCondition)
-		return Super::BeginDestroy();
+	check(NoesisCondition)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiCondition::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::Condition* NoesisCondition = NsDynamicCast<Noesis::Gui::Condition*>(NoesisComponent.GetPtr());
+	check(NoesisCondition)
+
+
 }
 

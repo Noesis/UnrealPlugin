@@ -20,16 +20,25 @@ void UNoesisGuiResourceKeyType::SetNoesisComponent(Noesis::Core::BaseComponent* 
 
 	Noesis::Gui::ResourceKeyType* NoesisResourceKeyType = NsDynamicCast<Noesis::Gui::ResourceKeyType*>(InNoesisComponent);
 	check(NoesisResourceKeyType);
+}
+
+void UNoesisGuiResourceKeyType::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::ResourceKeyType* NoesisResourceKeyType = NsDynamicCast<Noesis::Gui::ResourceKeyType*>(NoesisComponent.GetPtr());
+	check(NoesisResourceKeyType)
+
 
 }
 
-	void UNoesisGuiResourceKeyType::BeginDestroy()
+void UNoesisGuiResourceKeyType::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::ResourceKeyType* NoesisResourceKeyType = NsDynamicCast<Noesis::Gui::ResourceKeyType*>(NoesisComponent.GetPtr());
-	if (!NoesisResourceKeyType)
-		return Super::BeginDestroy();
+	check(NoesisResourceKeyType)
 
 
-	Super::BeginDestroy();
 }
 

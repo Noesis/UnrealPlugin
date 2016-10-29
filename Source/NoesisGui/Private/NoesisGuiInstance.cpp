@@ -75,9 +75,11 @@ void UNoesisGuiInstance::InitInstance()
 			}
 		}
 
-		NoesisGuiBlueprintGeneratedClass->InitInstance(this);
+		NoesisGuiBlueprintGeneratedClass->InitComponents(this);
 
 		EventInitInstance();
+
+		NoesisGuiBlueprintGeneratedClass->BindEvents();
 	}
 }
 

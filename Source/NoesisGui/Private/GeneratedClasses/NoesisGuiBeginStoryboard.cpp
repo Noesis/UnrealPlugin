@@ -20,7 +20,6 @@ void UNoesisGuiBeginStoryboard::SetNoesisComponent(Noesis::Core::BaseComponent* 
 
 	Noesis::Gui::BeginStoryboard* NoesisBeginStoryboard = NsDynamicCast<Noesis::Gui::BeginStoryboard*>(InNoesisComponent);
 	check(NoesisBeginStoryboard);
-
 }
 
 ENoesisGuiHandoffBehavior UNoesisGuiBeginStoryboard::GetHandoffBehavior()
@@ -51,13 +50,23 @@ void UNoesisGuiBeginStoryboard::SetName(FString InName)
 	NoesisBeginStoryboard->SetName(StringCast<NsChar>(*InName).Get());
 }
 
-	void UNoesisGuiBeginStoryboard::BeginDestroy()
+void UNoesisGuiBeginStoryboard::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::BeginStoryboard* NoesisBeginStoryboard = NsDynamicCast<Noesis::Gui::BeginStoryboard*>(NoesisComponent.GetPtr());
-	if (!NoesisBeginStoryboard)
-		return Super::BeginDestroy();
+	check(NoesisBeginStoryboard)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiBeginStoryboard::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::BeginStoryboard* NoesisBeginStoryboard = NsDynamicCast<Noesis::Gui::BeginStoryboard*>(NoesisComponent.GetPtr());
+	check(NoesisBeginStoryboard)
+
+
 }
 

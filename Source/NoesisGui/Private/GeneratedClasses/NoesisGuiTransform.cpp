@@ -20,16 +20,25 @@ void UNoesisGuiTransform::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	Noesis::Gui::Transform* NoesisTransform = NsDynamicCast<Noesis::Gui::Transform*>(InNoesisComponent);
 	check(NoesisTransform);
+}
+
+void UNoesisGuiTransform::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Transform* NoesisTransform = NsDynamicCast<Noesis::Gui::Transform*>(NoesisComponent.GetPtr());
+	check(NoesisTransform)
+
 
 }
 
-	void UNoesisGuiTransform::BeginDestroy()
+void UNoesisGuiTransform::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Transform* NoesisTransform = NsDynamicCast<Noesis::Gui::Transform*>(NoesisComponent.GetPtr());
-	if (!NoesisTransform)
-		return Super::BeginDestroy();
+	check(NoesisTransform)
 
 
-	Super::BeginDestroy();
 }
 

@@ -20,7 +20,6 @@ void UNoesisGuiINameScope::SetNoesisInterface(Noesis::Core::Interface* InNoesisI
 
 	Noesis::Gui::INameScope* NoesisINameScope = NsDynamicCast<Noesis::Gui::INameScope*>(InNoesisInterface);
 	check(NoesisINameScope);
-
 }
 
 class UNoesisGuiBaseComponent* UNoesisGuiINameScope::FindName(FString InName)
@@ -57,13 +56,23 @@ void UNoesisGuiINameScope::UpdateName(FString InName, class UNoesisGuiBaseCompon
 	return NoesisINameScope->UpdateName(NoesisInName, NoesisInObject);
 }
 
-	void UNoesisGuiINameScope::BeginDestroy()
+void UNoesisGuiINameScope::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::INameScope* NoesisINameScope = NsDynamicCast<Noesis::Gui::INameScope*>(NoesisInterface.GetPtr());
-	if (!NoesisINameScope)
-		return Super::BeginDestroy();
+	check(NoesisINameScope)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiINameScope::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::INameScope* NoesisINameScope = NsDynamicCast<Noesis::Gui::INameScope*>(NoesisInterface.GetPtr());
+	check(NoesisINameScope)
+
+
 }
 

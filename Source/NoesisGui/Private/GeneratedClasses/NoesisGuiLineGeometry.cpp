@@ -20,16 +20,25 @@ void UNoesisGuiLineGeometry::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 
 	Noesis::Gui::LineGeometry* NoesisLineGeometry = NsDynamicCast<Noesis::Gui::LineGeometry*>(InNoesisComponent);
 	check(NoesisLineGeometry);
+}
+
+void UNoesisGuiLineGeometry::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::LineGeometry* NoesisLineGeometry = NsDynamicCast<Noesis::Gui::LineGeometry*>(NoesisComponent.GetPtr());
+	check(NoesisLineGeometry)
+
 
 }
 
-	void UNoesisGuiLineGeometry::BeginDestroy()
+void UNoesisGuiLineGeometry::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::LineGeometry* NoesisLineGeometry = NsDynamicCast<Noesis::Gui::LineGeometry*>(NoesisComponent.GetPtr());
-	if (!NoesisLineGeometry)
-		return Super::BeginDestroy();
+	check(NoesisLineGeometry)
 
 
-	Super::BeginDestroy();
 }
 

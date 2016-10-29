@@ -20,16 +20,25 @@ void UNoesisGuiGroupBox::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesi
 
 	Noesis::Gui::GroupBox* NoesisGroupBox = NsDynamicCast<Noesis::Gui::GroupBox*>(InNoesisComponent);
 	check(NoesisGroupBox);
+}
+
+void UNoesisGuiGroupBox::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::GroupBox* NoesisGroupBox = NsDynamicCast<Noesis::Gui::GroupBox*>(NoesisComponent.GetPtr());
+	check(NoesisGroupBox)
+
 
 }
 
-	void UNoesisGuiGroupBox::BeginDestroy()
+void UNoesisGuiGroupBox::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::GroupBox* NoesisGroupBox = NsDynamicCast<Noesis::Gui::GroupBox*>(NoesisComponent.GetPtr());
-	if (!NoesisGroupBox)
-		return Super::BeginDestroy();
+	check(NoesisGroupBox)
 
 
-	Super::BeginDestroy();
 }
 

@@ -20,16 +20,25 @@ void UNoesisGuiScaleTransform::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	Noesis::Gui::ScaleTransform* NoesisScaleTransform = NsDynamicCast<Noesis::Gui::ScaleTransform*>(InNoesisComponent);
 	check(NoesisScaleTransform);
+}
+
+void UNoesisGuiScaleTransform::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::ScaleTransform* NoesisScaleTransform = NsDynamicCast<Noesis::Gui::ScaleTransform*>(NoesisComponent.GetPtr());
+	check(NoesisScaleTransform)
+
 
 }
 
-	void UNoesisGuiScaleTransform::BeginDestroy()
+void UNoesisGuiScaleTransform::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::ScaleTransform* NoesisScaleTransform = NsDynamicCast<Noesis::Gui::ScaleTransform*>(NoesisComponent.GetPtr());
-	if (!NoesisScaleTransform)
-		return Super::BeginDestroy();
+	check(NoesisScaleTransform)
 
 
-	Super::BeginDestroy();
 }
 

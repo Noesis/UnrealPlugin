@@ -44,8 +44,12 @@ void RemoveAll();
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void Stop();
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

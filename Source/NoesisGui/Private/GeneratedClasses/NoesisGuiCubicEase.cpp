@@ -20,16 +20,25 @@ void UNoesisGuiCubicEase::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	Noesis::Gui::CubicEase* NoesisCubicEase = NsDynamicCast<Noesis::Gui::CubicEase*>(InNoesisComponent);
 	check(NoesisCubicEase);
+}
+
+void UNoesisGuiCubicEase::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::CubicEase* NoesisCubicEase = NsDynamicCast<Noesis::Gui::CubicEase*>(NoesisComponent.GetPtr());
+	check(NoesisCubicEase)
+
 
 }
 
-	void UNoesisGuiCubicEase::BeginDestroy()
+void UNoesisGuiCubicEase::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::CubicEase* NoesisCubicEase = NsDynamicCast<Noesis::Gui::CubicEase*>(NoesisComponent.GetPtr());
-	if (!NoesisCubicEase)
-		return Super::BeginDestroy();
+	check(NoesisCubicEase)
 
 
-	Super::BeginDestroy();
 }
 

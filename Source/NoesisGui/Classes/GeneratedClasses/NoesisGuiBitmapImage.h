@@ -6,19 +6,29 @@
 #pragma once
 
 #include "NoesisGuiTypes.h"
-#include "NoesisGuiBaseComponent.h"
-#include "NoesisGuiBaseExpression.generated.h"
+#include "GeneratedClasses/NoesisGuiBitmapSource.h"
+#include "NoesisGuiBitmapImage.generated.h"
 
 UCLASS()
-class NOESISGUI_API UNoesisGuiBaseExpression : public UNoesisGuiBaseComponent
+class NOESISGUI_API UNoesisGuiBitmapImage : public UNoesisGuiBitmapSource
 {
 public:
 	GENERATED_UCLASS_BODY()
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+	// Property UriSource
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+	FString GetUriSource();
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+	void SetUriSource(FString InUriSource);
+
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

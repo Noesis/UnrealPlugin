@@ -20,16 +20,25 @@ void UNoesisGuiRectAnimation::SetNoesisComponent(Noesis::Core::BaseComponent* In
 
 	Noesis::Gui::Animation<Noesis::Drawing::Rect>* NoesisRectAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Rect>*>(InNoesisComponent);
 	check(NoesisRectAnimation);
+}
+
+void UNoesisGuiRectAnimation::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Animation<Noesis::Drawing::Rect>* NoesisRectAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Rect>*>(NoesisComponent.GetPtr());
+	check(NoesisRectAnimation)
+
 
 }
 
-	void UNoesisGuiRectAnimation::BeginDestroy()
+void UNoesisGuiRectAnimation::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Animation<Noesis::Drawing::Rect>* NoesisRectAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Rect>*>(NoesisComponent.GetPtr());
-	if (!NoesisRectAnimation)
-		return Super::BeginDestroy();
+	check(NoesisRectAnimation)
 
 
-	Super::BeginDestroy();
 }
 

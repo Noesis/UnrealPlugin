@@ -20,16 +20,25 @@ void UNoesisGuiIValueConverter::SetNoesisInterface(Noesis::Core::Interface* InNo
 
 	Noesis::Gui::IValueConverter* NoesisIValueConverter = NsDynamicCast<Noesis::Gui::IValueConverter*>(InNoesisInterface);
 	check(NoesisIValueConverter);
+}
+
+void UNoesisGuiIValueConverter::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::IValueConverter* NoesisIValueConverter = NsDynamicCast<Noesis::Gui::IValueConverter*>(NoesisInterface.GetPtr());
+	check(NoesisIValueConverter)
+
 
 }
 
-	void UNoesisGuiIValueConverter::BeginDestroy()
+void UNoesisGuiIValueConverter::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::IValueConverter* NoesisIValueConverter = NsDynamicCast<Noesis::Gui::IValueConverter*>(NoesisInterface.GetPtr());
-	if (!NoesisIValueConverter)
-		return Super::BeginDestroy();
+	check(NoesisIValueConverter)
 
 
-	Super::BeginDestroy();
 }
 

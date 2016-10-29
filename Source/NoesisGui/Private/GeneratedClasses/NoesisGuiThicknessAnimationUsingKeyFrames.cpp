@@ -20,16 +20,25 @@ void UNoesisGuiThicknessAnimationUsingKeyFrames::SetNoesisComponent(Noesis::Core
 
 	Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Thickness>* NoesisThicknessAnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Thickness>*>(InNoesisComponent);
 	check(NoesisThicknessAnimationUsingKeyFrames);
+}
+
+void UNoesisGuiThicknessAnimationUsingKeyFrames::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Thickness>* NoesisThicknessAnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Thickness>*>(NoesisComponent.GetPtr());
+	check(NoesisThicknessAnimationUsingKeyFrames)
+
 
 }
 
-	void UNoesisGuiThicknessAnimationUsingKeyFrames::BeginDestroy()
+void UNoesisGuiThicknessAnimationUsingKeyFrames::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Thickness>* NoesisThicknessAnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Thickness>*>(NoesisComponent.GetPtr());
-	if (!NoesisThicknessAnimationUsingKeyFrames)
-		return Super::BeginDestroy();
+	check(NoesisThicknessAnimationUsingKeyFrames)
 
 
-	Super::BeginDestroy();
 }
 

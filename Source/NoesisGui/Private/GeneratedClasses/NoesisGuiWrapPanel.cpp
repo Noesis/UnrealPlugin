@@ -20,16 +20,25 @@ void UNoesisGuiWrapPanel::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	Noesis::Gui::WrapPanel* NoesisWrapPanel = NsDynamicCast<Noesis::Gui::WrapPanel*>(InNoesisComponent);
 	check(NoesisWrapPanel);
+}
+
+void UNoesisGuiWrapPanel::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::WrapPanel* NoesisWrapPanel = NsDynamicCast<Noesis::Gui::WrapPanel*>(NoesisComponent.GetPtr());
+	check(NoesisWrapPanel)
+
 
 }
 
-	void UNoesisGuiWrapPanel::BeginDestroy()
+void UNoesisGuiWrapPanel::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::WrapPanel* NoesisWrapPanel = NsDynamicCast<Noesis::Gui::WrapPanel*>(NoesisComponent.GetPtr());
-	if (!NoesisWrapPanel)
-		return Super::BeginDestroy();
+	check(NoesisWrapPanel)
 
 
-	Super::BeginDestroy();
 }
 

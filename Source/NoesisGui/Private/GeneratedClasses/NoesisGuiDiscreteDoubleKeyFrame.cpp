@@ -20,16 +20,25 @@ void UNoesisGuiDiscreteDoubleKeyFrame::SetNoesisComponent(Noesis::Core::BaseComp
 
 	Noesis::Gui::DiscreteKeyFrame<NsFloat32>* NoesisDiscreteDoubleKeyFrame = NsDynamicCast<Noesis::Gui::DiscreteKeyFrame<NsFloat32>*>(InNoesisComponent);
 	check(NoesisDiscreteDoubleKeyFrame);
+}
+
+void UNoesisGuiDiscreteDoubleKeyFrame::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::DiscreteKeyFrame<NsFloat32>* NoesisDiscreteDoubleKeyFrame = NsDynamicCast<Noesis::Gui::DiscreteKeyFrame<NsFloat32>*>(NoesisComponent.GetPtr());
+	check(NoesisDiscreteDoubleKeyFrame)
+
 
 }
 
-	void UNoesisGuiDiscreteDoubleKeyFrame::BeginDestroy()
+void UNoesisGuiDiscreteDoubleKeyFrame::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::DiscreteKeyFrame<NsFloat32>* NoesisDiscreteDoubleKeyFrame = NsDynamicCast<Noesis::Gui::DiscreteKeyFrame<NsFloat32>*>(NoesisComponent.GetPtr());
-	if (!NoesisDiscreteDoubleKeyFrame)
-		return Super::BeginDestroy();
+	check(NoesisDiscreteDoubleKeyFrame)
 
 
-	Super::BeginDestroy();
 }
 

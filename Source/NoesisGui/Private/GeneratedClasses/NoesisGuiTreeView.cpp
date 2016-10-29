@@ -20,9 +20,6 @@ void UNoesisGuiTreeView::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesi
 
 	Noesis::Gui::TreeView* NoesisTreeView = NsDynamicCast<Noesis::Gui::TreeView*>(InNoesisComponent);
 	check(NoesisTreeView);
-
-	SelectedItemChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiTreeView::SelectedItemChanged_Private);
-	NoesisTreeView->SelectedItemChanged() += SelectedItemChanged_Delegate;
 }
 
 void UNoesisGuiTreeView::ItemClicked(class UNoesisGuiTreeViewItem* InTvi)
@@ -33,23 +30,41 @@ void UNoesisGuiTreeView::ItemClicked(class UNoesisGuiTreeViewItem* InTvi)
 	return NoesisTreeView->ItemClicked(NoesisInTvi);
 }
 
-	void UNoesisGuiTreeView::SelectedItemChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedPropertyChangedEventArgs<Noesis::Ptr<Noesis::BaseComponent> >& InArgs)
+void UNoesisGuiTreeView::SelectedItemChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedPropertyChangedEventArgs<Noesis::Ptr<Noesis::BaseComponent> >& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!SelectedItemChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiBaseComponentPropertyChangedEventArgs Args(Instance, InArgs);
 	SelectedItemChanged.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiTreeView::BeginDestroy()
+void UNoesisGuiTreeView::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::TreeView* NoesisTreeView = NsDynamicCast<Noesis::Gui::TreeView*>(NoesisComponent.GetPtr());
-	if (!NoesisTreeView)
-		return Super::BeginDestroy();
+	check(NoesisTreeView)
 
-	NoesisTreeView->SelectedItemChanged() -= SelectedItemChanged_Delegate;
+	SelectedItemChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiTreeView::SelectedItemChanged_Private);
+	if (SelectedItemChanged.IsBound())
+	{
+		NoesisTreeView->SelectedItemChanged() += SelectedItemChanged_Delegate;
+	}
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiTreeView::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::TreeView* NoesisTreeView = NsDynamicCast<Noesis::Gui::TreeView*>(NoesisComponent.GetPtr());
+	check(NoesisTreeView)
+
+	if (SelectedItemChanged.IsBound())
+	{
+		NoesisTreeView->SelectedItemChanged() -= SelectedItemChanged_Delegate;
+	}
+
 }
 

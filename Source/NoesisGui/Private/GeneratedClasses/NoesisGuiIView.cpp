@@ -20,7 +20,6 @@ void UNoesisGuiIView::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterf
 
 	Noesis::Gui::IView* NoesisIView = NsDynamicCast<Noesis::Gui::IView*>(InNoesisInterface);
 	check(NoesisIView);
-
 }
 
 void UNoesisGuiIView::Char(int32 InCh)
@@ -133,13 +132,23 @@ void UNoesisGuiIView::Update(float InTimeInSeconds)
 	return NoesisIView->Update(NoesisInTimeInSeconds);
 }
 
-	void UNoesisGuiIView::BeginDestroy()
+void UNoesisGuiIView::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::IView* NoesisIView = NsDynamicCast<Noesis::Gui::IView*>(NoesisInterface.GetPtr());
-	if (!NoesisIView)
-		return Super::BeginDestroy();
+	check(NoesisIView)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiIView::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::IView* NoesisIView = NsDynamicCast<Noesis::Gui::IView*>(NoesisInterface.GetPtr());
+	check(NoesisIView)
+
+
 }
 

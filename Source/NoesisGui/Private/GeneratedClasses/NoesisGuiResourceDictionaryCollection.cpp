@@ -20,16 +20,25 @@ void UNoesisGuiResourceDictionaryCollection::SetNoesisComponent(Noesis::Core::Ba
 
 	Noesis::Gui::TypedCollection<Noesis::Gui::ResourceDictionary>* NoesisResourceDictionaryCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::ResourceDictionary>*>(InNoesisComponent);
 	check(NoesisResourceDictionaryCollection);
+}
+
+void UNoesisGuiResourceDictionaryCollection::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::TypedCollection<Noesis::Gui::ResourceDictionary>* NoesisResourceDictionaryCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::ResourceDictionary>*>(NoesisComponent.GetPtr());
+	check(NoesisResourceDictionaryCollection)
+
 
 }
 
-	void UNoesisGuiResourceDictionaryCollection::BeginDestroy()
+void UNoesisGuiResourceDictionaryCollection::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::TypedCollection<Noesis::Gui::ResourceDictionary>* NoesisResourceDictionaryCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::ResourceDictionary>*>(NoesisComponent.GetPtr());
-	if (!NoesisResourceDictionaryCollection)
-		return Super::BeginDestroy();
+	check(NoesisResourceDictionaryCollection)
 
 
-	Super::BeginDestroy();
 }
 

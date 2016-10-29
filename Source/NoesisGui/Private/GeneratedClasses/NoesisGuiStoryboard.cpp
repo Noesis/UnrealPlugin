@@ -20,16 +20,25 @@ void UNoesisGuiStoryboard::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 
 	Noesis::Gui::Storyboard* NoesisStoryboard = NsDynamicCast<Noesis::Gui::Storyboard*>(InNoesisComponent);
 	check(NoesisStoryboard);
+}
+
+void UNoesisGuiStoryboard::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Storyboard* NoesisStoryboard = NsDynamicCast<Noesis::Gui::Storyboard*>(NoesisComponent.GetPtr());
+	check(NoesisStoryboard)
+
 
 }
 
-	void UNoesisGuiStoryboard::BeginDestroy()
+void UNoesisGuiStoryboard::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Storyboard* NoesisStoryboard = NsDynamicCast<Noesis::Gui::Storyboard*>(NoesisComponent.GetPtr());
-	if (!NoesisStoryboard)
-		return Super::BeginDestroy();
+	check(NoesisStoryboard)
 
 
-	Super::BeginDestroy();
 }
 

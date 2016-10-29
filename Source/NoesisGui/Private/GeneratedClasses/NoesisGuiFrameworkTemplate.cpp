@@ -20,7 +20,6 @@ void UNoesisGuiFrameworkTemplate::SetNoesisComponent(Noesis::Core::BaseComponent
 
 	Noesis::Gui::FrameworkTemplate* NoesisFrameworkTemplate = NsDynamicCast<Noesis::Gui::FrameworkTemplate*>(InNoesisComponent);
 	check(NoesisFrameworkTemplate);
-
 }
 
 class UNoesisGuiResourceDictionary* UNoesisGuiFrameworkTemplate::GetResources()
@@ -76,13 +75,23 @@ class UNoesisGuiTriggerCollection* UNoesisGuiFrameworkTemplate::GetAvailableTrig
 	return CastChecked<UNoesisGuiTriggerCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkTemplate->GetAvailableTriggers()));
 }
 
-	void UNoesisGuiFrameworkTemplate::BeginDestroy()
+void UNoesisGuiFrameworkTemplate::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::FrameworkTemplate* NoesisFrameworkTemplate = NsDynamicCast<Noesis::Gui::FrameworkTemplate*>(NoesisComponent.GetPtr());
-	if (!NoesisFrameworkTemplate)
-		return Super::BeginDestroy();
+	check(NoesisFrameworkTemplate)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiFrameworkTemplate::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::FrameworkTemplate* NoesisFrameworkTemplate = NsDynamicCast<Noesis::Gui::FrameworkTemplate*>(NoesisComponent.GetPtr());
+	check(NoesisFrameworkTemplate)
+
+
 }
 

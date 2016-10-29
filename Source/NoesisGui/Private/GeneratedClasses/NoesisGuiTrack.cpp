@@ -20,7 +20,6 @@ void UNoesisGuiTrack::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisCo
 
 	Noesis::Gui::Track* NoesisTrack = NsDynamicCast<Noesis::Gui::Track*>(InNoesisComponent);
 	check(NoesisTrack);
-
 }
 
 class UNoesisGuiRepeatButton* UNoesisGuiTrack::GetDecreaseRepeatButton()
@@ -82,13 +81,23 @@ float UNoesisGuiTrack::ValueFromPoint(FNoesisGuiDrawingPoint InPoint)
 	return (float)NoesisTrack->ValueFromPoint(NoesisInPoint);
 }
 
-	void UNoesisGuiTrack::BeginDestroy()
+void UNoesisGuiTrack::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::Track* NoesisTrack = NsDynamicCast<Noesis::Gui::Track*>(NoesisComponent.GetPtr());
-	if (!NoesisTrack)
-		return Super::BeginDestroy();
+	check(NoesisTrack)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiTrack::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::Track* NoesisTrack = NsDynamicCast<Noesis::Gui::Track*>(NoesisComponent.GetPtr());
+	check(NoesisTrack)
+
+
 }
 

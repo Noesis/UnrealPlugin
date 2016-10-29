@@ -19,5 +19,9 @@ class NOESISGUI_API UNoesisGuiBlueprintGeneratedClass : public UBlueprintGenerat
 	UPROPERTY()
 	class UNoesisGuiXaml* BaseXaml;
 
-	void InitInstance(class UNoesisGuiInstance* NoesisGuiInstance);
+	UPROPERTY()
+	TArray<UNoesisGuiBaseComponent*> Components;
+
+	void InitComponents(class UNoesisGuiInstance* NoesisGuiInstance);
+	void BindEvents();
 };

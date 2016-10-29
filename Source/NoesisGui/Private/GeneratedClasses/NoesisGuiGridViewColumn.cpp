@@ -20,7 +20,6 @@ void UNoesisGuiGridViewColumn::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	Noesis::Gui::GridViewColumn* NoesisGridViewColumn = NsDynamicCast<Noesis::Gui::GridViewColumn*>(InNoesisComponent);
 	check(NoesisGridViewColumn);
-
 }
 
 float UNoesisGuiGridViewColumn::GetActualWidth()
@@ -51,13 +50,23 @@ void UNoesisGuiGridViewColumn::SetDisplayMemberBinding(class UNoesisGuiBaseBindi
 	NoesisGridViewColumn->SetDisplayMemberBinding(NsDynamicCast<BaseBindingExpression*>(InDisplayMemberBinding->NoesisComponent.GetPtr()));
 }
 
-	void UNoesisGuiGridViewColumn::BeginDestroy()
+void UNoesisGuiGridViewColumn::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::GridViewColumn* NoesisGridViewColumn = NsDynamicCast<Noesis::Gui::GridViewColumn*>(NoesisComponent.GetPtr());
-	if (!NoesisGridViewColumn)
-		return Super::BeginDestroy();
+	check(NoesisGridViewColumn)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiGridViewColumn::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::GridViewColumn* NoesisGridViewColumn = NsDynamicCast<Noesis::Gui::GridViewColumn*>(NoesisComponent.GetPtr());
+	check(NoesisGridViewColumn)
+
+
 }
 

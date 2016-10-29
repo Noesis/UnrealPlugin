@@ -20,7 +20,6 @@ void UNoesisGuiTransformGroup::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	Noesis::Gui::TransformGroup* NoesisTransformGroup = NsDynamicCast<Noesis::Gui::TransformGroup*>(InNoesisComponent);
 	check(NoesisTransformGroup);
-
 }
 
 class UNoesisGuiTransform* UNoesisGuiTransformGroup::GetChild(int32 InIndex)
@@ -38,13 +37,23 @@ int32 UNoesisGuiTransformGroup::GetNumChildren()
 	return (int32)NoesisTransformGroup->GetNumChildren();
 }
 
-	void UNoesisGuiTransformGroup::BeginDestroy()
+void UNoesisGuiTransformGroup::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::TransformGroup* NoesisTransformGroup = NsDynamicCast<Noesis::Gui::TransformGroup*>(NoesisComponent.GetPtr());
-	if (!NoesisTransformGroup)
-		return Super::BeginDestroy();
+	check(NoesisTransformGroup)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiTransformGroup::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::TransformGroup* NoesisTransformGroup = NsDynamicCast<Noesis::Gui::TransformGroup*>(NoesisComponent.GetPtr());
+	check(NoesisTransformGroup)
+
+
 }
 

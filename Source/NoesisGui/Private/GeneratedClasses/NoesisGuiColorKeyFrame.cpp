@@ -20,16 +20,25 @@ void UNoesisGuiColorKeyFrame::SetNoesisComponent(Noesis::Core::BaseComponent* In
 
 	Noesis::Gui::KeyFrame<Noesis::Drawing::Color>* NoesisColorKeyFrame = NsDynamicCast<Noesis::Gui::KeyFrame<Noesis::Drawing::Color>*>(InNoesisComponent);
 	check(NoesisColorKeyFrame);
+}
+
+void UNoesisGuiColorKeyFrame::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::KeyFrame<Noesis::Drawing::Color>* NoesisColorKeyFrame = NsDynamicCast<Noesis::Gui::KeyFrame<Noesis::Drawing::Color>*>(NoesisComponent.GetPtr());
+	check(NoesisColorKeyFrame)
+
 
 }
 
-	void UNoesisGuiColorKeyFrame::BeginDestroy()
+void UNoesisGuiColorKeyFrame::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::KeyFrame<Noesis::Drawing::Color>* NoesisColorKeyFrame = NsDynamicCast<Noesis::Gui::KeyFrame<Noesis::Drawing::Color>*>(NoesisComponent.GetPtr());
-	if (!NoesisColorKeyFrame)
-		return Super::BeginDestroy();
+	check(NoesisColorKeyFrame)
 
 
-	Super::BeginDestroy();
 }
 

@@ -20,7 +20,6 @@ void UNoesisGuiResourceDictionary::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	Noesis::Gui::ResourceDictionary* NoesisResourceDictionary = NsDynamicCast<Noesis::Gui::ResourceDictionary*>(InNoesisComponent);
 	check(NoesisResourceDictionary);
-
 }
 
 FString UNoesisGuiResourceDictionary::GetSource()
@@ -107,13 +106,23 @@ void UNoesisGuiResourceDictionary::Remove(class UNoesisGuiIResourceKey* InKey)
 	return NoesisResourceDictionary->Remove(NoesisInKey);
 }
 
-	void UNoesisGuiResourceDictionary::BeginDestroy()
+void UNoesisGuiResourceDictionary::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::ResourceDictionary* NoesisResourceDictionary = NsDynamicCast<Noesis::Gui::ResourceDictionary*>(NoesisComponent.GetPtr());
-	if (!NoesisResourceDictionary)
-		return Super::BeginDestroy();
+	check(NoesisResourceDictionary)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiResourceDictionary::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::ResourceDictionary* NoesisResourceDictionary = NsDynamicCast<Noesis::Gui::ResourceDictionary*>(NoesisComponent.GetPtr());
+	check(NoesisResourceDictionary)
+
+
 }
 

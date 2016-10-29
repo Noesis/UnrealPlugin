@@ -20,16 +20,25 @@ void UNoesisGuiBorder::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisC
 
 	Noesis::Gui::Border* NoesisBorder = NsDynamicCast<Noesis::Gui::Border*>(InNoesisComponent);
 	check(NoesisBorder);
+}
+
+void UNoesisGuiBorder::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Border* NoesisBorder = NsDynamicCast<Noesis::Gui::Border*>(NoesisComponent.GetPtr());
+	check(NoesisBorder)
+
 
 }
 
-	void UNoesisGuiBorder::BeginDestroy()
+void UNoesisGuiBorder::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Border* NoesisBorder = NsDynamicCast<Noesis::Gui::Border*>(NoesisComponent.GetPtr());
-	if (!NoesisBorder)
-		return Super::BeginDestroy();
+	check(NoesisBorder)
 
 
-	Super::BeginDestroy();
 }
 

@@ -20,7 +20,6 @@ void UNoesisGuiInputBinding::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 
 	Noesis::Gui::InputBinding* NoesisInputBinding = NsDynamicCast<Noesis::Gui::InputBinding*>(InNoesisComponent);
 	check(NoesisInputBinding);
-
 }
 
 class UNoesisGuiInputGesture* UNoesisGuiInputBinding::GetGesture()
@@ -37,13 +36,23 @@ void UNoesisGuiInputBinding::SetGesture(class UNoesisGuiInputGesture* InGesture)
 	NoesisInputBinding->SetGesture(NsDynamicCast<InputGesture*>(InGesture->NoesisComponent.GetPtr()));
 }
 
-	void UNoesisGuiInputBinding::BeginDestroy()
+void UNoesisGuiInputBinding::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::InputBinding* NoesisInputBinding = NsDynamicCast<Noesis::Gui::InputBinding*>(NoesisComponent.GetPtr());
-	if (!NoesisInputBinding)
-		return Super::BeginDestroy();
+	check(NoesisInputBinding)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiInputBinding::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::InputBinding* NoesisInputBinding = NsDynamicCast<Noesis::Gui::InputBinding*>(NoesisComponent.GetPtr());
+	check(NoesisInputBinding)
+
+
 }
 

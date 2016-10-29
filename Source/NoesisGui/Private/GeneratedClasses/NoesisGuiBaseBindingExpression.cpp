@@ -20,23 +20,60 @@ void UNoesisGuiBaseBindingExpression::SetNoesisComponent(Noesis::Core::BaseCompo
 
 	Noesis::Gui::BaseBindingExpression* NoesisBaseBindingExpression = NsDynamicCast<Noesis::Gui::BaseBindingExpression*>(InNoesisComponent);
 	check(NoesisBaseBindingExpression);
-
 }
 
-class UNoesisGuiBaseBinding* UNoesisGuiBaseBindingExpression::GetBinding()
+class UNoesisGuiBaseBinding* UNoesisGuiBaseBindingExpression::GetParentBindingBase()
 {
 	Noesis::Gui::BaseBindingExpression* NoesisBaseBindingExpression = NsDynamicCast<Noesis::Gui::BaseBindingExpression*>(NoesisComponent.GetPtr());
 	check(NoesisBaseBindingExpression);
-	return CastChecked<UNoesisGuiBaseBinding>(Instance->FindUnrealComponentForNoesisComponent(NoesisBaseBindingExpression->GetBinding()));
+	return CastChecked<UNoesisGuiBaseBinding>(Instance->FindUnrealComponentForNoesisComponent(NoesisBaseBindingExpression->GetParentBindingBase()));
 }
 
-	void UNoesisGuiBaseBindingExpression::BeginDestroy()
+class UNoesisGuiDependencyObject* UNoesisGuiBaseBindingExpression::GetTarget()
 {
 	Noesis::Gui::BaseBindingExpression* NoesisBaseBindingExpression = NsDynamicCast<Noesis::Gui::BaseBindingExpression*>(NoesisComponent.GetPtr());
-	if (!NoesisBaseBindingExpression)
-		return Super::BeginDestroy();
+	check(NoesisBaseBindingExpression);
+	return CastChecked<UNoesisGuiDependencyObject>(Instance->FindUnrealComponentForNoesisComponent(NoesisBaseBindingExpression->GetTarget()));
+}
+
+class UNoesisGuiDependencyProperty* UNoesisGuiBaseBindingExpression::GetTargetProperty()
+{
+	Noesis::Gui::BaseBindingExpression* NoesisBaseBindingExpression = NsDynamicCast<Noesis::Gui::BaseBindingExpression*>(NoesisComponent.GetPtr());
+	check(NoesisBaseBindingExpression);
+	return CastChecked<UNoesisGuiDependencyProperty>(Instance->FindUnrealComponentForNoesisComponent(NoesisBaseBindingExpression->GetTargetProperty()));
+}
+
+void UNoesisGuiBaseBindingExpression::UpdateSource()
+{
+	Noesis::Gui::BaseBindingExpression* NoesisBaseBindingExpression = NsDynamicCast<Noesis::Gui::BaseBindingExpression*>(NoesisComponent.GetPtr());
+	check(NoesisBaseBindingExpression);
+	return NoesisBaseBindingExpression->UpdateSource();
+}
+
+void UNoesisGuiBaseBindingExpression::UpdateTarget()
+{
+	Noesis::Gui::BaseBindingExpression* NoesisBaseBindingExpression = NsDynamicCast<Noesis::Gui::BaseBindingExpression*>(NoesisComponent.GetPtr());
+	check(NoesisBaseBindingExpression);
+	return NoesisBaseBindingExpression->UpdateTarget();
+}
+
+void UNoesisGuiBaseBindingExpression::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::BaseBindingExpression* NoesisBaseBindingExpression = NsDynamicCast<Noesis::Gui::BaseBindingExpression*>(NoesisComponent.GetPtr());
+	check(NoesisBaseBindingExpression)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiBaseBindingExpression::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::BaseBindingExpression* NoesisBaseBindingExpression = NsDynamicCast<Noesis::Gui::BaseBindingExpression*>(NoesisComponent.GetPtr());
+	check(NoesisBaseBindingExpression)
+
+
 }
 

@@ -20,7 +20,6 @@ void UNoesisGuiVirtualizationCacheLength::SetNoesisComponent(Noesis::Core::BaseC
 
 	Noesis::Gui::VirtualizationCacheLength* NoesisVirtualizationCacheLength = NsDynamicCast<Noesis::Gui::VirtualizationCacheLength*>(InNoesisComponent);
 	check(NoesisVirtualizationCacheLength);
-
 }
 
 float UNoesisGuiVirtualizationCacheLength::GetCacheAfterViewport()
@@ -37,13 +36,23 @@ float UNoesisGuiVirtualizationCacheLength::GetCacheBeforeViewport()
 	return (float)NoesisVirtualizationCacheLength->GetCacheBeforeViewport();
 }
 
-	void UNoesisGuiVirtualizationCacheLength::BeginDestroy()
+void UNoesisGuiVirtualizationCacheLength::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::VirtualizationCacheLength* NoesisVirtualizationCacheLength = NsDynamicCast<Noesis::Gui::VirtualizationCacheLength*>(NoesisComponent.GetPtr());
-	if (!NoesisVirtualizationCacheLength)
-		return Super::BeginDestroy();
+	check(NoesisVirtualizationCacheLength)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiVirtualizationCacheLength::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::VirtualizationCacheLength* NoesisVirtualizationCacheLength = NsDynamicCast<Noesis::Gui::VirtualizationCacheLength*>(NoesisComponent.GetPtr());
+	check(NoesisVirtualizationCacheLength)
+
+
 }
 

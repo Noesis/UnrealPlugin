@@ -20,6 +20,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void CancelDrag();
 
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
 	FNoesisGuiDragCompletedEventHandler DragCompleted;
 
@@ -41,8 +48,5 @@ void CancelDrag();
 
 	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::DragStartedEventArgs& InArgs)> DragStarted_Delegate;
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
 };
 

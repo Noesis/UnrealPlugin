@@ -20,16 +20,25 @@ void UNoesisGuiRadioButton::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	Noesis::Gui::RadioButton* NoesisRadioButton = NsDynamicCast<Noesis::Gui::RadioButton*>(InNoesisComponent);
 	check(NoesisRadioButton);
+}
+
+void UNoesisGuiRadioButton::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::RadioButton* NoesisRadioButton = NsDynamicCast<Noesis::Gui::RadioButton*>(NoesisComponent.GetPtr());
+	check(NoesisRadioButton)
+
 
 }
 
-	void UNoesisGuiRadioButton::BeginDestroy()
+void UNoesisGuiRadioButton::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::RadioButton* NoesisRadioButton = NsDynamicCast<Noesis::Gui::RadioButton*>(NoesisComponent.GetPtr());
-	if (!NoesisRadioButton)
-		return Super::BeginDestroy();
+	check(NoesisRadioButton)
 
 
-	Super::BeginDestroy();
 }
 

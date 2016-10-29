@@ -20,7 +20,6 @@ void UNoesisGuiListBox::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesis
 
 	Noesis::Gui::ListBox* NoesisListBox = NsDynamicCast<Noesis::Gui::ListBox*>(InNoesisComponent);
 	check(NoesisListBox);
-
 }
 
 class UNoesisGuiPanel* UNoesisGuiListBox::GetDefaultItemsPanel()
@@ -52,13 +51,23 @@ void UNoesisGuiListBox::UnselectAll()
 	return NoesisListBox->UnselectAll();
 }
 
-	void UNoesisGuiListBox::BeginDestroy()
+void UNoesisGuiListBox::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::ListBox* NoesisListBox = NsDynamicCast<Noesis::Gui::ListBox*>(NoesisComponent.GetPtr());
-	if (!NoesisListBox)
-		return Super::BeginDestroy();
+	check(NoesisListBox)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiListBox::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::ListBox* NoesisListBox = NsDynamicCast<Noesis::Gui::ListBox*>(NoesisComponent.GetPtr());
+	check(NoesisListBox)
+
+
 }
 

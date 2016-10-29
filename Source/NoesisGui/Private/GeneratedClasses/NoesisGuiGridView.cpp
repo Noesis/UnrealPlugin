@@ -20,7 +20,6 @@ void UNoesisGuiGridView::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesi
 
 	Noesis::Gui::GridView* NoesisGridView = NsDynamicCast<Noesis::Gui::GridView*>(InNoesisComponent);
 	check(NoesisGridView);
-
 }
 
 class UNoesisGuiGridViewColumnCollection* UNoesisGuiGridView::GetColumns()
@@ -30,13 +29,23 @@ class UNoesisGuiGridViewColumnCollection* UNoesisGuiGridView::GetColumns()
 	return CastChecked<UNoesisGuiGridViewColumnCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisGridView->GetColumns()));
 }
 
-	void UNoesisGuiGridView::BeginDestroy()
+void UNoesisGuiGridView::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::GridView* NoesisGridView = NsDynamicCast<Noesis::Gui::GridView*>(NoesisComponent.GetPtr());
-	if (!NoesisGridView)
-		return Super::BeginDestroy();
+	check(NoesisGridView)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiGridView::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::GridView* NoesisGridView = NsDynamicCast<Noesis::Gui::GridView*>(NoesisComponent.GetPtr());
+	check(NoesisGridView)
+
+
 }
 

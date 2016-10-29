@@ -20,16 +20,25 @@ void UNoesisGuiAnimatable::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 
 	Noesis::Gui::Animatable* NoesisAnimatable = NsDynamicCast<Noesis::Gui::Animatable*>(InNoesisComponent);
 	check(NoesisAnimatable);
+}
+
+void UNoesisGuiAnimatable::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Animatable* NoesisAnimatable = NsDynamicCast<Noesis::Gui::Animatable*>(NoesisComponent.GetPtr());
+	check(NoesisAnimatable)
+
 
 }
 
-	void UNoesisGuiAnimatable::BeginDestroy()
+void UNoesisGuiAnimatable::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Animatable* NoesisAnimatable = NsDynamicCast<Noesis::Gui::Animatable*>(NoesisComponent.GetPtr());
-	if (!NoesisAnimatable)
-		return Super::BeginDestroy();
+	check(NoesisAnimatable)
 
 
-	Super::BeginDestroy();
 }
 

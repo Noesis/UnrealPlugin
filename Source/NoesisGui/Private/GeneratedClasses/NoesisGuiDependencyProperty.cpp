@@ -20,7 +20,6 @@ void UNoesisGuiDependencyProperty::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	Noesis::Gui::DependencyProperty* NoesisDependencyProperty = NsDynamicCast<Noesis::Gui::DependencyProperty*>(InNoesisComponent);
 	check(NoesisDependencyProperty);
-
 }
 
 FName UNoesisGuiDependencyProperty::GetName()
@@ -111,13 +110,23 @@ void UNoesisGuiDependencyProperty::SetAnimationObject(class UNoesisGuiDependency
 	return NoesisDependencyProperty->SetAnimationObject(NoesisInObj, NoesisInValue);
 }
 
-	void UNoesisGuiDependencyProperty::BeginDestroy()
+void UNoesisGuiDependencyProperty::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::DependencyProperty* NoesisDependencyProperty = NsDynamicCast<Noesis::Gui::DependencyProperty*>(NoesisComponent.GetPtr());
-	if (!NoesisDependencyProperty)
-		return Super::BeginDestroy();
+	check(NoesisDependencyProperty)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiDependencyProperty::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::DependencyProperty* NoesisDependencyProperty = NsDynamicCast<Noesis::Gui::DependencyProperty*>(NoesisComponent.GetPtr());
+	check(NoesisDependencyProperty)
+
+
 }
 

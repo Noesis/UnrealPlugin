@@ -26,8 +26,12 @@ void SetItemsControlOwner(class UNoesisGuiItemsControl* ItemsControl);
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void SetView(class UNoesisGuiCollectionView* View);
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

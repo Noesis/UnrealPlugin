@@ -20,16 +20,25 @@ void UNoesisGuiAdornerDecorator::SetNoesisComponent(Noesis::Core::BaseComponent*
 
 	Noesis::Gui::AdornerDecorator* NoesisAdornerDecorator = NsDynamicCast<Noesis::Gui::AdornerDecorator*>(InNoesisComponent);
 	check(NoesisAdornerDecorator);
+}
+
+void UNoesisGuiAdornerDecorator::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::AdornerDecorator* NoesisAdornerDecorator = NsDynamicCast<Noesis::Gui::AdornerDecorator*>(NoesisComponent.GetPtr());
+	check(NoesisAdornerDecorator)
+
 
 }
 
-	void UNoesisGuiAdornerDecorator::BeginDestroy()
+void UNoesisGuiAdornerDecorator::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::AdornerDecorator* NoesisAdornerDecorator = NsDynamicCast<Noesis::Gui::AdornerDecorator*>(NoesisComponent.GetPtr());
-	if (!NoesisAdornerDecorator)
-		return Super::BeginDestroy();
+	check(NoesisAdornerDecorator)
 
 
-	Super::BeginDestroy();
 }
 

@@ -20,7 +20,6 @@ void UNoesisGuiBaseView::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesi
 
 	Noesis::Gui::BaseView* NoesisBaseView = NsDynamicCast<Noesis::Gui::BaseView*>(InNoesisComponent);
 	check(NoesisBaseView);
-
 }
 
 void UNoesisGuiBaseView::ClearItem(class UNoesisGuiListViewItem* InItem)
@@ -39,13 +38,23 @@ void UNoesisGuiBaseView::PrepareItem(class UNoesisGuiListViewItem* InItem)
 	return NoesisBaseView->PrepareItem(NoesisInItem);
 }
 
-	void UNoesisGuiBaseView::BeginDestroy()
+void UNoesisGuiBaseView::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::BaseView* NoesisBaseView = NsDynamicCast<Noesis::Gui::BaseView*>(NoesisComponent.GetPtr());
-	if (!NoesisBaseView)
-		return Super::BeginDestroy();
+	check(NoesisBaseView)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiBaseView::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::BaseView* NoesisBaseView = NsDynamicCast<Noesis::Gui::BaseView*>(NoesisComponent.GetPtr());
+	check(NoesisBaseView)
+
+
 }
 

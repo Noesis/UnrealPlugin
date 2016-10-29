@@ -57,8 +57,12 @@ FNoesisGuiDrawingPoint PointToScreen(FNoesisGuiDrawingPoint Point);
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void SetVisualBrushFlag();
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

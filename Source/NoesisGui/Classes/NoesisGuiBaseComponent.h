@@ -28,4 +28,7 @@ class NOESISGUI_API UNoesisGuiBaseComponent : public UObject
 	// UObject interface
 	virtual void BeginDestroy() override;
 	// End of UObject interface
+
+	virtual void BindEvents();
+	virtual void UnbindEvents();
 };

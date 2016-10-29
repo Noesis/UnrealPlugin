@@ -20,16 +20,25 @@ void UNoesisGuiScrollContentPresenter::SetNoesisComponent(Noesis::Core::BaseComp
 
 	Noesis::Gui::ScrollContentPresenter* NoesisScrollContentPresenter = NsDynamicCast<Noesis::Gui::ScrollContentPresenter*>(InNoesisComponent);
 	check(NoesisScrollContentPresenter);
+}
+
+void UNoesisGuiScrollContentPresenter::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::ScrollContentPresenter* NoesisScrollContentPresenter = NsDynamicCast<Noesis::Gui::ScrollContentPresenter*>(NoesisComponent.GetPtr());
+	check(NoesisScrollContentPresenter)
+
 
 }
 
-	void UNoesisGuiScrollContentPresenter::BeginDestroy()
+void UNoesisGuiScrollContentPresenter::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::ScrollContentPresenter* NoesisScrollContentPresenter = NsDynamicCast<Noesis::Gui::ScrollContentPresenter*>(NoesisComponent.GetPtr());
-	if (!NoesisScrollContentPresenter)
-		return Super::BeginDestroy();
+	check(NoesisScrollContentPresenter)
 
 
-	Super::BeginDestroy();
 }
 

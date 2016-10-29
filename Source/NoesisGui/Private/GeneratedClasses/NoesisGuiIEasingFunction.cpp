@@ -20,7 +20,6 @@ void UNoesisGuiIEasingFunction::SetNoesisInterface(Noesis::Core::Interface* InNo
 
 	Noesis::Gui::IEasingFunction* NoesisIEasingFunction = NsDynamicCast<Noesis::Gui::IEasingFunction*>(InNoesisInterface);
 	check(NoesisIEasingFunction);
-
 }
 
 float UNoesisGuiIEasingFunction::Ease(float InNormalizedTime)
@@ -31,13 +30,23 @@ float UNoesisGuiIEasingFunction::Ease(float InNormalizedTime)
 	return (float)NoesisIEasingFunction->Ease(NoesisInNormalizedTime);
 }
 
-	void UNoesisGuiIEasingFunction::BeginDestroy()
+void UNoesisGuiIEasingFunction::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::IEasingFunction* NoesisIEasingFunction = NsDynamicCast<Noesis::Gui::IEasingFunction*>(NoesisInterface.GetPtr());
-	if (!NoesisIEasingFunction)
-		return Super::BeginDestroy();
+	check(NoesisIEasingFunction)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiIEasingFunction::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::IEasingFunction* NoesisIEasingFunction = NsDynamicCast<Noesis::Gui::IEasingFunction*>(NoesisInterface.GetPtr());
+	check(NoesisIEasingFunction)
+
+
 }
 

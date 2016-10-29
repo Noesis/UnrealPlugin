@@ -20,16 +20,25 @@ void UNoesisGuiVirtualizingStackPanel::SetNoesisComponent(Noesis::Core::BaseComp
 
 	Noesis::Gui::VirtualizingStackPanel* NoesisVirtualizingStackPanel = NsDynamicCast<Noesis::Gui::VirtualizingStackPanel*>(InNoesisComponent);
 	check(NoesisVirtualizingStackPanel);
+}
+
+void UNoesisGuiVirtualizingStackPanel::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::VirtualizingStackPanel* NoesisVirtualizingStackPanel = NsDynamicCast<Noesis::Gui::VirtualizingStackPanel*>(NoesisComponent.GetPtr());
+	check(NoesisVirtualizingStackPanel)
+
 
 }
 
-	void UNoesisGuiVirtualizingStackPanel::BeginDestroy()
+void UNoesisGuiVirtualizingStackPanel::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::VirtualizingStackPanel* NoesisVirtualizingStackPanel = NsDynamicCast<Noesis::Gui::VirtualizingStackPanel*>(NoesisComponent.GetPtr());
-	if (!NoesisVirtualizingStackPanel)
-		return Super::BeginDestroy();
+	check(NoesisVirtualizingStackPanel)
 
 
-	Super::BeginDestroy();
 }
 

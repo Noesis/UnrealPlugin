@@ -20,16 +20,25 @@ void UNoesisGuiPath::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisCom
 
 	Noesis::Gui::Path* NoesisPath = NsDynamicCast<Noesis::Gui::Path*>(InNoesisComponent);
 	check(NoesisPath);
+}
+
+void UNoesisGuiPath::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Path* NoesisPath = NsDynamicCast<Noesis::Gui::Path*>(NoesisComponent.GetPtr());
+	check(NoesisPath)
+
 
 }
 
-	void UNoesisGuiPath::BeginDestroy()
+void UNoesisGuiPath::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Path* NoesisPath = NsDynamicCast<Noesis::Gui::Path*>(NoesisComponent.GetPtr());
-	if (!NoesisPath)
-		return Super::BeginDestroy();
+	check(NoesisPath)
 
 
-	Super::BeginDestroy();
 }
 

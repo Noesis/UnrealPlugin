@@ -20,9 +20,6 @@ void UNoesisGuiDependencyObject::SetNoesisComponent(Noesis::Core::BaseComponent*
 
 	Noesis::Gui::DependencyObject* NoesisDependencyObject = NsDynamicCast<Noesis::Gui::DependencyObject*>(InNoesisComponent);
 	check(NoesisDependencyObject);
-
-	DependencyPropertyChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiDependencyObject::DependencyPropertyChanged_Private);
-	NoesisDependencyObject->DependencyPropertyChanged() += DependencyPropertyChanged_Delegate;
 }
 
 void UNoesisGuiDependencyObject::ClearAnimation(const class UNoesisGuiDependencyProperty* InDp)
@@ -132,23 +129,23 @@ void UNoesisGuiDependencyObject::SetValueObject(const class UNoesisGuiDependency
 	return NoesisDependencyObject->SetValueObject(NoesisInDp, NoesisInValue);
 }
 
-	void UNoesisGuiDependencyObject::DependencyPropertyChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
+void UNoesisGuiDependencyObject::BindEvents()
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
-		return;
-	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisGuiDependencyPropertyChangedEventArgs Args(Instance, InArgs);
-	DependencyPropertyChanged.Broadcast(Sender, Args);
+	Super::BindEvents();
+
+	Noesis::Gui::DependencyObject* NoesisDependencyObject = NsDynamicCast<Noesis::Gui::DependencyObject*>(NoesisComponent.GetPtr());
+	check(NoesisDependencyObject)
+
+
 }
 
-	void UNoesisGuiDependencyObject::BeginDestroy()
+void UNoesisGuiDependencyObject::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::DependencyObject* NoesisDependencyObject = NsDynamicCast<Noesis::Gui::DependencyObject*>(NoesisComponent.GetPtr());
-	if (!NoesisDependencyObject)
-		return Super::BeginDestroy();
+	check(NoesisDependencyObject)
 
-	NoesisDependencyObject->DependencyPropertyChanged() -= DependencyPropertyChanged_Delegate;
 
-	Super::BeginDestroy();
 }
 

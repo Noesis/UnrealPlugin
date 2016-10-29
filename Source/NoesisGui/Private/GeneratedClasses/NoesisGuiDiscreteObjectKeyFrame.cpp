@@ -20,16 +20,25 @@ void UNoesisGuiDiscreteObjectKeyFrame::SetNoesisComponent(Noesis::Core::BaseComp
 
 	Noesis::Gui::DiscreteKeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent>>* NoesisDiscreteObjectKeyFrame = NsDynamicCast<Noesis::Gui::DiscreteKeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent>>*>(InNoesisComponent);
 	check(NoesisDiscreteObjectKeyFrame);
+}
+
+void UNoesisGuiDiscreteObjectKeyFrame::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::DiscreteKeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent>>* NoesisDiscreteObjectKeyFrame = NsDynamicCast<Noesis::Gui::DiscreteKeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent>>*>(NoesisComponent.GetPtr());
+	check(NoesisDiscreteObjectKeyFrame)
+
 
 }
 
-	void UNoesisGuiDiscreteObjectKeyFrame::BeginDestroy()
+void UNoesisGuiDiscreteObjectKeyFrame::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::DiscreteKeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent>>* NoesisDiscreteObjectKeyFrame = NsDynamicCast<Noesis::Gui::DiscreteKeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent>>*>(NoesisComponent.GetPtr());
-	if (!NoesisDiscreteObjectKeyFrame)
-		return Super::BeginDestroy();
+	check(NoesisDiscreteObjectKeyFrame)
 
 
-	Super::BeginDestroy();
 }
 

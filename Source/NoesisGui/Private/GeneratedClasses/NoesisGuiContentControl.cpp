@@ -20,16 +20,25 @@ void UNoesisGuiContentControl::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	Noesis::Gui::ContentControl* NoesisContentControl = NsDynamicCast<Noesis::Gui::ContentControl*>(InNoesisComponent);
 	check(NoesisContentControl);
+}
+
+void UNoesisGuiContentControl::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::ContentControl* NoesisContentControl = NsDynamicCast<Noesis::Gui::ContentControl*>(NoesisComponent.GetPtr());
+	check(NoesisContentControl)
+
 
 }
 
-	void UNoesisGuiContentControl::BeginDestroy()
+void UNoesisGuiContentControl::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::ContentControl* NoesisContentControl = NsDynamicCast<Noesis::Gui::ContentControl*>(NoesisComponent.GetPtr());
-	if (!NoesisContentControl)
-		return Super::BeginDestroy();
+	check(NoesisContentControl)
 
 
-	Super::BeginDestroy();
 }
 

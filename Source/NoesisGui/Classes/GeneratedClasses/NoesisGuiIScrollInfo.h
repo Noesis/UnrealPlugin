@@ -33,16 +33,16 @@ void LineUp();
 FNoesisGuiDrawingRect MakeVisible(class UNoesisGuiVisual* Visual, FNoesisGuiDrawingRect Rectangle);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void MouseWheelDown();
+void MouseWheelDown(float Delta);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void MouseWheelLeft();
+void MouseWheelLeft(float Delta);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void MouseWheelRight();
+void MouseWheelRight(float Delta);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void MouseWheelUp();
+void MouseWheelUp(float Delta);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void PageDown();
@@ -56,8 +56,12 @@ void PageRight();
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void PageUp();
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

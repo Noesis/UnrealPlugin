@@ -20,7 +20,6 @@ void UNoesisGuiIStoryboard::SetNoesisInterface(Noesis::Core::Interface* InNoesis
 
 	Noesis::Gui::IStoryboard* NoesisIStoryboard = NsDynamicCast<Noesis::Gui::IStoryboard*>(InNoesisInterface);
 	check(NoesisIStoryboard);
-
 }
 
 void UNoesisGuiIStoryboard::Begin()
@@ -72,13 +71,23 @@ void UNoesisGuiIStoryboard::Stop()
 	return NoesisIStoryboard->Stop();
 }
 
-	void UNoesisGuiIStoryboard::BeginDestroy()
+void UNoesisGuiIStoryboard::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::IStoryboard* NoesisIStoryboard = NsDynamicCast<Noesis::Gui::IStoryboard*>(NoesisInterface.GetPtr());
-	if (!NoesisIStoryboard)
-		return Super::BeginDestroy();
+	check(NoesisIStoryboard)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiIStoryboard::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::IStoryboard* NoesisIStoryboard = NsDynamicCast<Noesis::Gui::IStoryboard*>(NoesisInterface.GetPtr());
+	check(NoesisIStoryboard)
+
+
 }
 

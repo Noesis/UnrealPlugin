@@ -31,14 +31,6 @@ UNoesisGuiBaseComponent* CreateClassFor(Noesis::Core::BaseComponent* BaseCompone
 	{
 		Class = UNoesisGuiResourceDictionary::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::BaseExpression::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseExpression::StaticGetClassType()))
-	{
-		Class = UNoesisGuiBaseExpression::StaticClass();
-	}
-	if (BaseComponentClass == Noesis::Gui::BaseBindingExpression::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseBindingExpression::StaticGetClassType()))
-	{
-		Class = UNoesisGuiBaseBindingExpression::StaticClass();
-	}
 	if (BaseComponentClass == Noesis::Gui::BaseSetter::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseSetter::StaticGetClassType()))
 	{
 		Class = UNoesisGuiBaseSetter::StaticClass();
@@ -266,6 +258,14 @@ UNoesisGuiBaseComponent* CreateClassFor(Noesis::Core::BaseComponent* BaseCompone
 	if (BaseComponentClass == Noesis::Gui::ImageSource::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ImageSource::StaticGetClassType()))
 	{
 		Class = UNoesisGuiImageSource::StaticClass();
+	}
+	if (BaseComponentClass == Noesis::Gui::BitmapSource::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BitmapSource::StaticGetClassType()))
+	{
+		Class = UNoesisGuiBitmapSource::StaticClass();
+	}
+	if (BaseComponentClass == Noesis::Gui::BitmapImage::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BitmapImage::StaticGetClassType()))
+	{
+		Class = UNoesisGuiBitmapImage::StaticClass();
 	}
 	if (BaseComponentClass == Noesis::Gui::TextureSource::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TextureSource::StaticGetClassType()))
 	{
@@ -1067,6 +1067,22 @@ UNoesisGuiBaseComponent* CreateClassFor(Noesis::Core::BaseComponent* BaseCompone
 	{
 		Class = UNoesisGuiDependencyProperty::StaticClass();
 	}
+	if (BaseComponentClass == Noesis::Gui::Expression::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::Expression::StaticGetClassType()))
+	{
+		Class = UNoesisGuiExpression::StaticClass();
+	}
+	if (BaseComponentClass == Noesis::Gui::BaseBindingExpression::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BaseBindingExpression::StaticGetClassType()))
+	{
+		Class = UNoesisGuiBaseBindingExpression::StaticClass();
+	}
+	if (BaseComponentClass == Noesis::Gui::BindingExpression::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::BindingExpression::StaticGetClassType()))
+	{
+		Class = UNoesisGuiBindingExpression::StaticClass();
+	}
+	if (BaseComponentClass == Noesis::Gui::TemplateBindingExpression::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TemplateBindingExpression::StaticGetClassType()))
+	{
+		Class = UNoesisGuiTemplateBindingExpression::StaticClass();
+	}
 	if (BaseComponentClass == Noesis::Gui::FrameworkTemplate::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::FrameworkTemplate::StaticGetClassType()))
 	{
 		Class = UNoesisGuiFrameworkTemplate::StaticClass();
@@ -1147,9 +1163,9 @@ UNoesisGuiBaseComponent* CreateClassFor(Noesis::Core::BaseComponent* BaseCompone
 	{
 		Class = UNoesisGuiStyle::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TemplateBinding::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TemplateBinding::StaticGetClassType()))
+	if (BaseComponentClass == Noesis::Gui::TemplateBindingExtension::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TemplateBindingExtension::StaticGetClassType()))
 	{
-		Class = UNoesisGuiTemplateBinding::StaticClass();
+		Class = UNoesisGuiTemplateBindingExtension::StaticClass();
 	}
 	if (BaseComponentClass == Noesis::Gui::ToolTipService::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::ToolTipService::StaticGetClassType()))
 	{

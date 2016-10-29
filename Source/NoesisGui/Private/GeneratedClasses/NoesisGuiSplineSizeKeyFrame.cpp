@@ -20,16 +20,25 @@ void UNoesisGuiSplineSizeKeyFrame::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Size>* NoesisSplineSizeKeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Size>*>(InNoesisComponent);
 	check(NoesisSplineSizeKeyFrame);
+}
+
+void UNoesisGuiSplineSizeKeyFrame::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Size>* NoesisSplineSizeKeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Size>*>(NoesisComponent.GetPtr());
+	check(NoesisSplineSizeKeyFrame)
+
 
 }
 
-	void UNoesisGuiSplineSizeKeyFrame::BeginDestroy()
+void UNoesisGuiSplineSizeKeyFrame::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Size>* NoesisSplineSizeKeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Size>*>(NoesisComponent.GetPtr());
-	if (!NoesisSplineSizeKeyFrame)
-		return Super::BeginDestroy();
+	check(NoesisSplineSizeKeyFrame)
 
 
-	Super::BeginDestroy();
 }
 

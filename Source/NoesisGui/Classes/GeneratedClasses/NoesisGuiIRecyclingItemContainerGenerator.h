@@ -20,8 +20,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void Recycle(FNoesisGuiGeneratorPosition Position, int32 Count);
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

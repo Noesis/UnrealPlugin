@@ -20,16 +20,25 @@ void UNoesisGuiSolidColorBrush::SetNoesisComponent(Noesis::Core::BaseComponent* 
 
 	Noesis::Gui::SolidColorBrush* NoesisSolidColorBrush = NsDynamicCast<Noesis::Gui::SolidColorBrush*>(InNoesisComponent);
 	check(NoesisSolidColorBrush);
+}
+
+void UNoesisGuiSolidColorBrush::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::SolidColorBrush* NoesisSolidColorBrush = NsDynamicCast<Noesis::Gui::SolidColorBrush*>(NoesisComponent.GetPtr());
+	check(NoesisSolidColorBrush)
+
 
 }
 
-	void UNoesisGuiSolidColorBrush::BeginDestroy()
+void UNoesisGuiSolidColorBrush::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::SolidColorBrush* NoesisSolidColorBrush = NsDynamicCast<Noesis::Gui::SolidColorBrush*>(NoesisComponent.GetPtr());
-	if (!NoesisSolidColorBrush)
-		return Super::BeginDestroy();
+	check(NoesisSolidColorBrush)
 
 
-	Super::BeginDestroy();
 }
 

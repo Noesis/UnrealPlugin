@@ -23,8 +23,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	void SetBullet(class UNoesisGuiUIElement* InBullet);
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

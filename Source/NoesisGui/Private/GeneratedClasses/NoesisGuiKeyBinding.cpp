@@ -20,7 +20,6 @@ void UNoesisGuiKeyBinding::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 
 	Noesis::Gui::KeyBinding* NoesisKeyBinding = NsDynamicCast<Noesis::Gui::KeyBinding*>(InNoesisComponent);
 	check(NoesisKeyBinding);
-
 }
 
 int32 UNoesisGuiKeyBinding::GetKey()
@@ -37,13 +36,23 @@ int32 UNoesisGuiKeyBinding::GetModifiers()
 	return NoesisKeyBinding->GetModifiers();
 }
 
-	void UNoesisGuiKeyBinding::BeginDestroy()
+void UNoesisGuiKeyBinding::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::KeyBinding* NoesisKeyBinding = NsDynamicCast<Noesis::Gui::KeyBinding*>(NoesisComponent.GetPtr());
-	if (!NoesisKeyBinding)
-		return Super::BeginDestroy();
+	check(NoesisKeyBinding)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiKeyBinding::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::KeyBinding* NoesisKeyBinding = NsDynamicCast<Noesis::Gui::KeyBinding*>(NoesisComponent.GetPtr());
+	check(NoesisKeyBinding)
+
+
 }
 

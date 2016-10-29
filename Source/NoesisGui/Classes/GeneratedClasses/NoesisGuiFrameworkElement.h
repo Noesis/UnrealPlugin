@@ -54,9 +54,6 @@ class UNoesisGuiBaseComponent* FindName(FString Name);
 class UNoesisGuiBaseComponent* FindResource(class UNoesisGuiIResourceKey* Key);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisGuiBaseExpression* GetBindingExpression(const class UNoesisGuiDependencyProperty* Dp);
-
-	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 class UNoesisGuiFrameworkTemplate* GetFrameworkTemplate();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
@@ -77,11 +74,12 @@ class UNoesisGuiITimeManager* GetTimeManager();
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 bool IsLoaded();
 
-	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisGuiBaseExpression* SetBinding(const class UNoesisGuiDependencyProperty* Dp, class UNoesisGuiBaseBinding* Binding);
+protected:
 
-	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisGuiBaseExpression* SetBinding_(const class UNoesisGuiDependencyProperty* Dp, FString Path);
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
 
 	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
 	FNoesisGuiContextMenuEventHandler ContextMenuClosing;
@@ -146,8 +144,5 @@ class UNoesisGuiBaseExpression* SetBinding_(const class UNoesisGuiDependencyProp
 
 	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)> Unloaded_Delegate;
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
 };
 

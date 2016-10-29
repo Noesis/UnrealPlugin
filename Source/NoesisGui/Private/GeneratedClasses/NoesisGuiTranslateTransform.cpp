@@ -20,16 +20,25 @@ void UNoesisGuiTranslateTransform::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	Noesis::Gui::TranslateTransform* NoesisTranslateTransform = NsDynamicCast<Noesis::Gui::TranslateTransform*>(InNoesisComponent);
 	check(NoesisTranslateTransform);
+}
+
+void UNoesisGuiTranslateTransform::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::TranslateTransform* NoesisTranslateTransform = NsDynamicCast<Noesis::Gui::TranslateTransform*>(NoesisComponent.GetPtr());
+	check(NoesisTranslateTransform)
+
 
 }
 
-	void UNoesisGuiTranslateTransform::BeginDestroy()
+void UNoesisGuiTranslateTransform::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::TranslateTransform* NoesisTranslateTransform = NsDynamicCast<Noesis::Gui::TranslateTransform*>(NoesisComponent.GetPtr());
-	if (!NoesisTranslateTransform)
-		return Super::BeginDestroy();
+	check(NoesisTranslateTransform)
 
 
-	Super::BeginDestroy();
 }
 

@@ -20,64 +20,97 @@ void UNoesisGuiTreeViewItem::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 
 	Noesis::Gui::TreeViewItem* NoesisTreeViewItem = NsDynamicCast<Noesis::Gui::TreeViewItem*>(InNoesisComponent);
 	check(NoesisTreeViewItem);
-
-	Collapsed_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiTreeViewItem::Collapsed_Private);
-	NoesisTreeViewItem->Collapsed() += Collapsed_Delegate;
-	Expanded_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiTreeViewItem::Expanded_Private);
-	NoesisTreeViewItem->Expanded() += Expanded_Delegate;
-	Selected_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiTreeViewItem::Selected_Private);
-	NoesisTreeViewItem->Selected() += Selected_Delegate;
-	Unselected_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiTreeViewItem::Unselected_Private);
-	NoesisTreeViewItem->Unselected() += Unselected_Delegate;
 }
 
-	void UNoesisGuiTreeViewItem::Collapsed_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
+void UNoesisGuiTreeViewItem::Collapsed_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Collapsed.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Collapsed.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiTreeViewItem::Expanded_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
+void UNoesisGuiTreeViewItem::Expanded_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Expanded.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Expanded.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiTreeViewItem::Selected_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
+void UNoesisGuiTreeViewItem::Selected_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Selected.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Selected.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiTreeViewItem::Unselected_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
+void UNoesisGuiTreeViewItem::Unselected_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Unselected.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	Unselected.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiTreeViewItem::BeginDestroy()
+void UNoesisGuiTreeViewItem::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::TreeViewItem* NoesisTreeViewItem = NsDynamicCast<Noesis::Gui::TreeViewItem*>(NoesisComponent.GetPtr());
-	if (!NoesisTreeViewItem)
-		return Super::BeginDestroy();
+	check(NoesisTreeViewItem)
 
-	NoesisTreeViewItem->Collapsed() -= Collapsed_Delegate;
-	NoesisTreeViewItem->Expanded() -= Expanded_Delegate;
-	NoesisTreeViewItem->Selected() -= Selected_Delegate;
-	NoesisTreeViewItem->Unselected() -= Unselected_Delegate;
+	Collapsed_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiTreeViewItem::Collapsed_Private);
+	if (Collapsed.IsBound())
+	{
+		NoesisTreeViewItem->Collapsed() += Collapsed_Delegate;
+	}
+	Expanded_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiTreeViewItem::Expanded_Private);
+	if (Expanded.IsBound())
+	{
+		NoesisTreeViewItem->Expanded() += Expanded_Delegate;
+	}
+	Selected_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiTreeViewItem::Selected_Private);
+	if (Selected.IsBound())
+	{
+		NoesisTreeViewItem->Selected() += Selected_Delegate;
+	}
+	Unselected_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiTreeViewItem::Unselected_Private);
+	if (Unselected.IsBound())
+	{
+		NoesisTreeViewItem->Unselected() += Unselected_Delegate;
+	}
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiTreeViewItem::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::TreeViewItem* NoesisTreeViewItem = NsDynamicCast<Noesis::Gui::TreeViewItem*>(NoesisComponent.GetPtr());
+	check(NoesisTreeViewItem)
+
+	if (Collapsed.IsBound())
+	{
+		NoesisTreeViewItem->Collapsed() -= Collapsed_Delegate;
+	}
+	if (Expanded.IsBound())
+	{
+		NoesisTreeViewItem->Expanded() -= Expanded_Delegate;
+	}
+	if (Selected.IsBound())
+	{
+		NoesisTreeViewItem->Selected() -= Selected_Delegate;
+	}
+	if (Unselected.IsBound())
+	{
+		NoesisTreeViewItem->Unselected() -= Unselected_Delegate;
+	}
+
 }
 

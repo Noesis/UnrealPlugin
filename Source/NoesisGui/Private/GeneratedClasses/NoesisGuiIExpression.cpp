@@ -20,7 +20,6 @@ void UNoesisGuiIExpression::SetNoesisInterface(Noesis::Core::Interface* InNoesis
 
 	Noesis::Gui::IExpression* NoesisIExpression = NsDynamicCast<Noesis::Gui::IExpression*>(InNoesisInterface);
 	check(NoesisIExpression);
-
 }
 
 class UNoesisGuiBaseComponent* UNoesisGuiIExpression::Evaluate()
@@ -46,13 +45,23 @@ class UNoesisGuiIExpression* UNoesisGuiIExpression::Reapply(class UNoesisGuiDepe
 	return CastChecked<UNoesisGuiIExpression>(Instance->FindUnrealInterfaceForNoesisInterface(NoesisIExpression->Reapply(NoesisInTargetObject, NoesisInTargetProperty)));
 }
 
-	void UNoesisGuiIExpression::BeginDestroy()
+void UNoesisGuiIExpression::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::IExpression* NoesisIExpression = NsDynamicCast<Noesis::Gui::IExpression*>(NoesisInterface.GetPtr());
-	if (!NoesisIExpression)
-		return Super::BeginDestroy();
+	check(NoesisIExpression)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiIExpression::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::IExpression* NoesisIExpression = NsDynamicCast<Noesis::Gui::IExpression*>(NoesisInterface.GetPtr());
+	check(NoesisIExpression)
+
+
 }
 

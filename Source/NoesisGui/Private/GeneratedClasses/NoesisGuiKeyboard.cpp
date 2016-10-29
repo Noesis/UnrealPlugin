@@ -20,7 +20,6 @@ void UNoesisGuiKeyboard::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesi
 
 	Noesis::Gui::Keyboard* NoesisKeyboard = NsDynamicCast<Noesis::Gui::Keyboard*>(InNoesisComponent);
 	check(NoesisKeyboard);
-
 }
 
 class UNoesisGuiUIElement* UNoesisGuiKeyboard::Focus(class UNoesisGuiUIElement* InElement)
@@ -52,13 +51,23 @@ void UNoesisGuiKeyboard::ResetState()
 	return NoesisKeyboard->ResetState();
 }
 
-	void UNoesisGuiKeyboard::BeginDestroy()
+void UNoesisGuiKeyboard::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::Keyboard* NoesisKeyboard = NsDynamicCast<Noesis::Gui::Keyboard*>(NoesisComponent.GetPtr());
-	if (!NoesisKeyboard)
-		return Super::BeginDestroy();
+	check(NoesisKeyboard)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiKeyboard::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::Keyboard* NoesisKeyboard = NsDynamicCast<Noesis::Gui::Keyboard*>(NoesisComponent.GetPtr());
+	check(NoesisKeyboard)
+
+
 }
 

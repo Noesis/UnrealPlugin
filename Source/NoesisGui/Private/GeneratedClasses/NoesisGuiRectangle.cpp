@@ -20,16 +20,25 @@ void UNoesisGuiRectangle::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	Noesis::Gui::Rectangle* NoesisRectangle = NsDynamicCast<Noesis::Gui::Rectangle*>(InNoesisComponent);
 	check(NoesisRectangle);
+}
+
+void UNoesisGuiRectangle::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Rectangle* NoesisRectangle = NsDynamicCast<Noesis::Gui::Rectangle*>(NoesisComponent.GetPtr());
+	check(NoesisRectangle)
+
 
 }
 
-	void UNoesisGuiRectangle::BeginDestroy()
+void UNoesisGuiRectangle::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Rectangle* NoesisRectangle = NsDynamicCast<Noesis::Gui::Rectangle*>(NoesisComponent.GetPtr());
-	if (!NoesisRectangle)
-		return Super::BeginDestroy();
+	check(NoesisRectangle)
 
 
-	Super::BeginDestroy();
 }
 

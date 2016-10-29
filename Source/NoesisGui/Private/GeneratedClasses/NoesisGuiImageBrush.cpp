@@ -20,16 +20,25 @@ void UNoesisGuiImageBrush::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 
 	Noesis::Gui::ImageBrush* NoesisImageBrush = NsDynamicCast<Noesis::Gui::ImageBrush*>(InNoesisComponent);
 	check(NoesisImageBrush);
+}
+
+void UNoesisGuiImageBrush::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::ImageBrush* NoesisImageBrush = NsDynamicCast<Noesis::Gui::ImageBrush*>(NoesisComponent.GetPtr());
+	check(NoesisImageBrush)
+
 
 }
 
-	void UNoesisGuiImageBrush::BeginDestroy()
+void UNoesisGuiImageBrush::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::ImageBrush* NoesisImageBrush = NsDynamicCast<Noesis::Gui::ImageBrush*>(NoesisComponent.GetPtr());
-	if (!NoesisImageBrush)
-		return Super::BeginDestroy();
+	check(NoesisImageBrush)
 
 
-	Super::BeginDestroy();
 }
 

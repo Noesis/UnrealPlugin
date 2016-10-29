@@ -20,16 +20,25 @@ void UNoesisGuiLinearGradientBrush::SetNoesisComponent(Noesis::Core::BaseCompone
 
 	Noesis::Gui::LinearGradientBrush* NoesisLinearGradientBrush = NsDynamicCast<Noesis::Gui::LinearGradientBrush*>(InNoesisComponent);
 	check(NoesisLinearGradientBrush);
+}
+
+void UNoesisGuiLinearGradientBrush::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::LinearGradientBrush* NoesisLinearGradientBrush = NsDynamicCast<Noesis::Gui::LinearGradientBrush*>(NoesisComponent.GetPtr());
+	check(NoesisLinearGradientBrush)
+
 
 }
 
-	void UNoesisGuiLinearGradientBrush::BeginDestroy()
+void UNoesisGuiLinearGradientBrush::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::LinearGradientBrush* NoesisLinearGradientBrush = NsDynamicCast<Noesis::Gui::LinearGradientBrush*>(NoesisComponent.GetPtr());
-	if (!NoesisLinearGradientBrush)
-		return Super::BeginDestroy();
+	check(NoesisLinearGradientBrush)
 
 
-	Super::BeginDestroy();
 }
 

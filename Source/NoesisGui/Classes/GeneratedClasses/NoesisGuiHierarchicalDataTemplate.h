@@ -41,8 +41,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	void SetItemsSource(class UNoesisGuiBaseBinding* InItemsSource);
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

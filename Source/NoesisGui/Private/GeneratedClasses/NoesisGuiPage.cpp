@@ -20,7 +20,6 @@ void UNoesisGuiPage::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisCom
 
 	Noesis::Gui::Page* NoesisPage = NsDynamicCast<Noesis::Gui::Page*>(InNoesisComponent);
 	check(NoesisPage);
-
 }
 
 FString UNoesisGuiPage::GetTitle()
@@ -37,13 +36,23 @@ void UNoesisGuiPage::SetTitle(FString InTitle)
 	NoesisPage->SetTitle(StringCast<NsChar>(*InTitle).Get());
 }
 
-	void UNoesisGuiPage::BeginDestroy()
+void UNoesisGuiPage::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::Page* NoesisPage = NsDynamicCast<Noesis::Gui::Page*>(NoesisComponent.GetPtr());
-	if (!NoesisPage)
-		return Super::BeginDestroy();
+	check(NoesisPage)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiPage::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::Page* NoesisPage = NsDynamicCast<Noesis::Gui::Page*>(NoesisComponent.GetPtr());
+	check(NoesisPage)
+
+
 }
 

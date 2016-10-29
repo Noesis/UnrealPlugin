@@ -20,7 +20,6 @@ void UNoesisGuiIResourceKey::SetNoesisInterface(Noesis::Core::Interface* InNoesi
 
 	Noesis::Gui::IResourceKey* NoesisIResourceKey = NsDynamicCast<Noesis::Gui::IResourceKey*>(InNoesisInterface);
 	check(NoesisIResourceKey);
-
 }
 
 bool UNoesisGuiIResourceKey::Equals(const class UNoesisGuiIResourceKey* InResourceKey)
@@ -38,13 +37,23 @@ FString UNoesisGuiIResourceKey::GetStr()
 	return NsStringToFString(NoesisIResourceKey->GetStr().c_str());
 }
 
-	void UNoesisGuiIResourceKey::BeginDestroy()
+void UNoesisGuiIResourceKey::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::IResourceKey* NoesisIResourceKey = NsDynamicCast<Noesis::Gui::IResourceKey*>(NoesisInterface.GetPtr());
-	if (!NoesisIResourceKey)
-		return Super::BeginDestroy();
+	check(NoesisIResourceKey)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiIResourceKey::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::IResourceKey* NoesisIResourceKey = NsDynamicCast<Noesis::Gui::IResourceKey*>(NoesisInterface.GetPtr());
+	check(NoesisIResourceKey)
+
+
 }
 

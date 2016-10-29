@@ -20,16 +20,25 @@ void UNoesisGuiInputGesture::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 
 	Noesis::Gui::InputGesture* NoesisInputGesture = NsDynamicCast<Noesis::Gui::InputGesture*>(InNoesisComponent);
 	check(NoesisInputGesture);
+}
+
+void UNoesisGuiInputGesture::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::InputGesture* NoesisInputGesture = NsDynamicCast<Noesis::Gui::InputGesture*>(NoesisComponent.GetPtr());
+	check(NoesisInputGesture)
+
 
 }
 
-	void UNoesisGuiInputGesture::BeginDestroy()
+void UNoesisGuiInputGesture::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::InputGesture* NoesisInputGesture = NsDynamicCast<Noesis::Gui::InputGesture*>(NoesisComponent.GetPtr());
-	if (!NoesisInputGesture)
-		return Super::BeginDestroy();
+	check(NoesisInputGesture)
 
 
-	Super::BeginDestroy();
 }
 

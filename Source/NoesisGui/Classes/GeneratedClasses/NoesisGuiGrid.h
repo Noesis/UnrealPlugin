@@ -25,8 +25,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	class UNoesisGuiRowDefinitionCollection* GetRowDefinitions();
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

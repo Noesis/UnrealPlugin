@@ -20,16 +20,25 @@ void UNoesisGuiPointAnimation::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	Noesis::Gui::Animation<Noesis::Drawing::Point>* NoesisPointAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Point>*>(InNoesisComponent);
 	check(NoesisPointAnimation);
+}
+
+void UNoesisGuiPointAnimation::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Animation<Noesis::Drawing::Point>* NoesisPointAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Point>*>(NoesisComponent.GetPtr());
+	check(NoesisPointAnimation)
+
 
 }
 
-	void UNoesisGuiPointAnimation::BeginDestroy()
+void UNoesisGuiPointAnimation::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Animation<Noesis::Drawing::Point>* NoesisPointAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Point>*>(NoesisComponent.GetPtr());
-	if (!NoesisPointAnimation)
-		return Super::BeginDestroy();
+	check(NoesisPointAnimation)
 
 
-	Super::BeginDestroy();
 }
 

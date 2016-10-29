@@ -20,7 +20,6 @@ void UNoesisGuiIRecyclingItemContainerGenerator::SetNoesisInterface(Noesis::Core
 
 	Noesis::Gui::IRecyclingItemContainerGenerator* NoesisIRecyclingItemContainerGenerator = NsDynamicCast<Noesis::Gui::IRecyclingItemContainerGenerator*>(InNoesisInterface);
 	check(NoesisIRecyclingItemContainerGenerator);
-
 }
 
 void UNoesisGuiIRecyclingItemContainerGenerator::Recycle(FNoesisGuiGeneratorPosition InPosition, int32 InCount)
@@ -32,13 +31,23 @@ void UNoesisGuiIRecyclingItemContainerGenerator::Recycle(FNoesisGuiGeneratorPosi
 	return NoesisIRecyclingItemContainerGenerator->Recycle(NoesisInPosition, NoesisInCount);
 }
 
-	void UNoesisGuiIRecyclingItemContainerGenerator::BeginDestroy()
+void UNoesisGuiIRecyclingItemContainerGenerator::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::IRecyclingItemContainerGenerator* NoesisIRecyclingItemContainerGenerator = NsDynamicCast<Noesis::Gui::IRecyclingItemContainerGenerator*>(NoesisInterface.GetPtr());
-	if (!NoesisIRecyclingItemContainerGenerator)
-		return Super::BeginDestroy();
+	check(NoesisIRecyclingItemContainerGenerator)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiIRecyclingItemContainerGenerator::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::IRecyclingItemContainerGenerator* NoesisIRecyclingItemContainerGenerator = NsDynamicCast<Noesis::Gui::IRecyclingItemContainerGenerator*>(NoesisInterface.GetPtr());
+	check(NoesisIRecyclingItemContainerGenerator)
+
+
 }
 

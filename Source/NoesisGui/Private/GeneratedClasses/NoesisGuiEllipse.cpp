@@ -20,16 +20,25 @@ void UNoesisGuiEllipse::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesis
 
 	Noesis::Gui::Ellipse* NoesisEllipse = NsDynamicCast<Noesis::Gui::Ellipse*>(InNoesisComponent);
 	check(NoesisEllipse);
+}
+
+void UNoesisGuiEllipse::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Ellipse* NoesisEllipse = NsDynamicCast<Noesis::Gui::Ellipse*>(NoesisComponent.GetPtr());
+	check(NoesisEllipse)
+
 
 }
 
-	void UNoesisGuiEllipse::BeginDestroy()
+void UNoesisGuiEllipse::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Ellipse* NoesisEllipse = NsDynamicCast<Noesis::Gui::Ellipse*>(NoesisComponent.GetPtr());
-	if (!NoesisEllipse)
-		return Super::BeginDestroy();
+	check(NoesisEllipse)
 
 
-	Super::BeginDestroy();
 }
 

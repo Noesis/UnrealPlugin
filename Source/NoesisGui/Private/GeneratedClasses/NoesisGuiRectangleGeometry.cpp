@@ -20,16 +20,25 @@ void UNoesisGuiRectangleGeometry::SetNoesisComponent(Noesis::Core::BaseComponent
 
 	Noesis::Gui::RectangleGeometry* NoesisRectangleGeometry = NsDynamicCast<Noesis::Gui::RectangleGeometry*>(InNoesisComponent);
 	check(NoesisRectangleGeometry);
+}
+
+void UNoesisGuiRectangleGeometry::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::RectangleGeometry* NoesisRectangleGeometry = NsDynamicCast<Noesis::Gui::RectangleGeometry*>(NoesisComponent.GetPtr());
+	check(NoesisRectangleGeometry)
+
 
 }
 
-	void UNoesisGuiRectangleGeometry::BeginDestroy()
+void UNoesisGuiRectangleGeometry::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::RectangleGeometry* NoesisRectangleGeometry = NsDynamicCast<Noesis::Gui::RectangleGeometry*>(NoesisComponent.GetPtr());
-	if (!NoesisRectangleGeometry)
-		return Super::BeginDestroy();
+	check(NoesisRectangleGeometry)
 
 
-	Super::BeginDestroy();
 }
 

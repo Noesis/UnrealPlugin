@@ -20,28 +20,43 @@ void UNoesisGuiRangeBase::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	Noesis::Gui::RangeBase* NoesisRangeBase = NsDynamicCast<Noesis::Gui::RangeBase*>(InNoesisComponent);
 	check(NoesisRangeBase);
-
-	ValueChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiRangeBase::ValueChanged_Private);
-	NoesisRangeBase->ValueChanged() += ValueChanged_Delegate;
 }
 
-	void UNoesisGuiRangeBase::ValueChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedPropertyChangedEventArgs<NsFloat32>& InArgs)
+void UNoesisGuiRangeBase::ValueChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedPropertyChangedEventArgs<NsFloat32>& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!ValueChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiFloatPropertyChangedEventArgs Args(Instance, InArgs);
 	ValueChanged.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiRangeBase::BeginDestroy()
+void UNoesisGuiRangeBase::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::RangeBase* NoesisRangeBase = NsDynamicCast<Noesis::Gui::RangeBase*>(NoesisComponent.GetPtr());
-	if (!NoesisRangeBase)
-		return Super::BeginDestroy();
+	check(NoesisRangeBase)
 
-	NoesisRangeBase->ValueChanged() -= ValueChanged_Delegate;
+	ValueChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiRangeBase::ValueChanged_Private);
+	if (ValueChanged.IsBound())
+	{
+		NoesisRangeBase->ValueChanged() += ValueChanged_Delegate;
+	}
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiRangeBase::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::RangeBase* NoesisRangeBase = NsDynamicCast<Noesis::Gui::RangeBase*>(NoesisComponent.GetPtr());
+	check(NoesisRangeBase)
+
+	if (ValueChanged.IsBound())
+	{
+		NoesisRangeBase->ValueChanged() -= ValueChanged_Delegate;
+	}
+
 }
 

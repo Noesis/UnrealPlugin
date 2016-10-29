@@ -20,16 +20,25 @@ void UNoesisGuiComboBox::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesi
 
 	Noesis::Gui::ComboBox* NoesisComboBox = NsDynamicCast<Noesis::Gui::ComboBox*>(InNoesisComponent);
 	check(NoesisComboBox);
+}
+
+void UNoesisGuiComboBox::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::ComboBox* NoesisComboBox = NsDynamicCast<Noesis::Gui::ComboBox*>(NoesisComponent.GetPtr());
+	check(NoesisComboBox)
+
 
 }
 
-	void UNoesisGuiComboBox::BeginDestroy()
+void UNoesisGuiComboBox::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::ComboBox* NoesisComboBox = NsDynamicCast<Noesis::Gui::ComboBox*>(NoesisComponent.GetPtr());
-	if (!NoesisComboBox)
-		return Super::BeginDestroy();
+	check(NoesisComboBox)
 
 
-	Super::BeginDestroy();
 }
 

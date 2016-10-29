@@ -20,7 +20,6 @@ void UNoesisGuiBaseTrigger::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	Noesis::Gui::BaseTrigger* NoesisBaseTrigger = NsDynamicCast<Noesis::Gui::BaseTrigger*>(InNoesisComponent);
 	check(NoesisBaseTrigger);
-
 }
 
 class UNoesisGuiTriggerActionCollection* UNoesisGuiBaseTrigger::GetEnterActions()
@@ -37,13 +36,23 @@ class UNoesisGuiTriggerActionCollection* UNoesisGuiBaseTrigger::GetExitActions()
 	return CastChecked<UNoesisGuiTriggerActionCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisBaseTrigger->GetExitActions()));
 }
 
-	void UNoesisGuiBaseTrigger::BeginDestroy()
+void UNoesisGuiBaseTrigger::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::BaseTrigger* NoesisBaseTrigger = NsDynamicCast<Noesis::Gui::BaseTrigger*>(NoesisComponent.GetPtr());
-	if (!NoesisBaseTrigger)
-		return Super::BeginDestroy();
+	check(NoesisBaseTrigger)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiBaseTrigger::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::BaseTrigger* NoesisBaseTrigger = NsDynamicCast<Noesis::Gui::BaseTrigger*>(NoesisComponent.GetPtr());
+	check(NoesisBaseTrigger)
+
+
 }
 

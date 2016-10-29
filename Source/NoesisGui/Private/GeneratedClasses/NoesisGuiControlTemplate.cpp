@@ -20,7 +20,6 @@ void UNoesisGuiControlTemplate::SetNoesisComponent(Noesis::Core::BaseComponent* 
 
 	Noesis::Gui::ControlTemplate* NoesisControlTemplate = NsDynamicCast<Noesis::Gui::ControlTemplate*>(InNoesisComponent);
 	check(NoesisControlTemplate);
-
 }
 
 class UNoesisGuiResourceKeyType* UNoesisGuiControlTemplate::GetTargetType()
@@ -44,13 +43,23 @@ class UNoesisGuiTriggerCollection* UNoesisGuiControlTemplate::GetTriggers()
 	return CastChecked<UNoesisGuiTriggerCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisControlTemplate->GetTriggers()));
 }
 
-	void UNoesisGuiControlTemplate::BeginDestroy()
+void UNoesisGuiControlTemplate::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::ControlTemplate* NoesisControlTemplate = NsDynamicCast<Noesis::Gui::ControlTemplate*>(NoesisComponent.GetPtr());
-	if (!NoesisControlTemplate)
-		return Super::BeginDestroy();
+	check(NoesisControlTemplate)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiControlTemplate::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::ControlTemplate* NoesisControlTemplate = NsDynamicCast<Noesis::Gui::ControlTemplate*>(NoesisComponent.GetPtr());
+	check(NoesisControlTemplate)
+
+
 }
 

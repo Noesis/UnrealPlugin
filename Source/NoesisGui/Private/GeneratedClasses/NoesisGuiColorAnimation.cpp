@@ -20,16 +20,25 @@ void UNoesisGuiColorAnimation::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	Noesis::Gui::Animation<Noesis::Drawing::Color>* NoesisColorAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Color>*>(InNoesisComponent);
 	check(NoesisColorAnimation);
+}
+
+void UNoesisGuiColorAnimation::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Animation<Noesis::Drawing::Color>* NoesisColorAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Color>*>(NoesisComponent.GetPtr());
+	check(NoesisColorAnimation)
+
 
 }
 
-	void UNoesisGuiColorAnimation::BeginDestroy()
+void UNoesisGuiColorAnimation::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Animation<Noesis::Drawing::Color>* NoesisColorAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Color>*>(NoesisComponent.GetPtr());
-	if (!NoesisColorAnimation)
-		return Super::BeginDestroy();
+	check(NoesisColorAnimation)
 
 
-	Super::BeginDestroy();
 }
 

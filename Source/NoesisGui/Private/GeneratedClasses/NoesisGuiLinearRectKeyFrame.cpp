@@ -20,16 +20,25 @@ void UNoesisGuiLinearRectKeyFrame::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Rect>* NoesisLinearRectKeyFrame = NsDynamicCast<Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Rect>*>(InNoesisComponent);
 	check(NoesisLinearRectKeyFrame);
+}
+
+void UNoesisGuiLinearRectKeyFrame::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Rect>* NoesisLinearRectKeyFrame = NsDynamicCast<Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Rect>*>(NoesisComponent.GetPtr());
+	check(NoesisLinearRectKeyFrame)
+
 
 }
 
-	void UNoesisGuiLinearRectKeyFrame::BeginDestroy()
+void UNoesisGuiLinearRectKeyFrame::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Rect>* NoesisLinearRectKeyFrame = NsDynamicCast<Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Rect>*>(NoesisComponent.GetPtr());
-	if (!NoesisLinearRectKeyFrame)
-		return Super::BeginDestroy();
+	check(NoesisLinearRectKeyFrame)
 
 
-	Super::BeginDestroy();
 }
 

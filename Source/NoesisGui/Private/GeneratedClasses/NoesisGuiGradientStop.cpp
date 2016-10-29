@@ -20,16 +20,25 @@ void UNoesisGuiGradientStop::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 
 	Noesis::Gui::GradientStop* NoesisGradientStop = NsDynamicCast<Noesis::Gui::GradientStop*>(InNoesisComponent);
 	check(NoesisGradientStop);
+}
+
+void UNoesisGuiGradientStop::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::GradientStop* NoesisGradientStop = NsDynamicCast<Noesis::Gui::GradientStop*>(NoesisComponent.GetPtr());
+	check(NoesisGradientStop)
+
 
 }
 
-	void UNoesisGuiGradientStop::BeginDestroy()
+void UNoesisGuiGradientStop::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::GradientStop* NoesisGradientStop = NsDynamicCast<Noesis::Gui::GradientStop*>(NoesisComponent.GetPtr());
-	if (!NoesisGradientStop)
-		return Super::BeginDestroy();
+	check(NoesisGradientStop)
 
 
-	Super::BeginDestroy();
 }
 

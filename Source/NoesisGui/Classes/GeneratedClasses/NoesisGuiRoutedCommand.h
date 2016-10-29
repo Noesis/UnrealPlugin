@@ -27,8 +27,12 @@ bool CanExecute(class UNoesisGuiBaseComponent* Param, class UNoesisGuiUIElement*
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void Execute(class UNoesisGuiBaseComponent* Param, class UNoesisGuiUIElement* Target);
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

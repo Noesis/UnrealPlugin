@@ -20,7 +20,6 @@ void UNoesisGuiILayerManager::SetNoesisInterface(Noesis::Core::Interface* InNoes
 
 	Noesis::Gui::ILayerManager* NoesisILayerManager = NsDynamicCast<Noesis::Gui::ILayerManager*>(InNoesisInterface);
 	check(NoesisILayerManager);
-
 }
 
 void UNoesisGuiILayerManager::AddLayer(class UNoesisGuiVisual* InLayerRoot)
@@ -39,13 +38,23 @@ void UNoesisGuiILayerManager::RemoveLayer(class UNoesisGuiVisual* InLayerRoot)
 	return NoesisILayerManager->RemoveLayer(NoesisInLayerRoot);
 }
 
-	void UNoesisGuiILayerManager::BeginDestroy()
+void UNoesisGuiILayerManager::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::ILayerManager* NoesisILayerManager = NsDynamicCast<Noesis::Gui::ILayerManager*>(NoesisInterface.GetPtr());
-	if (!NoesisILayerManager)
-		return Super::BeginDestroy();
+	check(NoesisILayerManager)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiILayerManager::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::ILayerManager* NoesisILayerManager = NsDynamicCast<Noesis::Gui::ILayerManager*>(NoesisInterface.GetPtr());
+	check(NoesisILayerManager)
+
+
 }
 

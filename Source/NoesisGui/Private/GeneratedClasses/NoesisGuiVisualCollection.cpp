@@ -20,7 +20,6 @@ void UNoesisGuiVisualCollection::SetNoesisComponent(Noesis::Core::BaseComponent*
 
 	Noesis::Gui::VisualCollection* NoesisVisualCollection = NsDynamicCast<Noesis::Gui::VisualCollection*>(InNoesisComponent);
 	check(NoesisVisualCollection);
-
 }
 
 class UNoesisGuiVisual* UNoesisGuiVisualCollection::GetVisualParent()
@@ -37,13 +36,23 @@ void UNoesisGuiVisualCollection::SetVisualParent(class UNoesisGuiVisual* InVisua
 	NoesisVisualCollection->SetVisualParent(NsDynamicCast<Visual*>(InVisualParent->NoesisComponent.GetPtr()));
 }
 
-	void UNoesisGuiVisualCollection::BeginDestroy()
+void UNoesisGuiVisualCollection::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::VisualCollection* NoesisVisualCollection = NsDynamicCast<Noesis::Gui::VisualCollection*>(NoesisComponent.GetPtr());
-	if (!NoesisVisualCollection)
-		return Super::BeginDestroy();
+	check(NoesisVisualCollection)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiVisualCollection::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::VisualCollection* NoesisVisualCollection = NsDynamicCast<Noesis::Gui::VisualCollection*>(NoesisComponent.GetPtr());
+	check(NoesisVisualCollection)
+
+
 }
 

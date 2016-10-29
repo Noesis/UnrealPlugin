@@ -20,16 +20,25 @@ void UNoesisGuiGeometryGroup::SetNoesisComponent(Noesis::Core::BaseComponent* In
 
 	Noesis::Gui::GeometryGroup* NoesisGeometryGroup = NsDynamicCast<Noesis::Gui::GeometryGroup*>(InNoesisComponent);
 	check(NoesisGeometryGroup);
+}
+
+void UNoesisGuiGeometryGroup::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::GeometryGroup* NoesisGeometryGroup = NsDynamicCast<Noesis::Gui::GeometryGroup*>(NoesisComponent.GetPtr());
+	check(NoesisGeometryGroup)
+
 
 }
 
-	void UNoesisGuiGeometryGroup::BeginDestroy()
+void UNoesisGuiGeometryGroup::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::GeometryGroup* NoesisGeometryGroup = NsDynamicCast<Noesis::Gui::GeometryGroup*>(NoesisComponent.GetPtr());
-	if (!NoesisGeometryGroup)
-		return Super::BeginDestroy();
+	check(NoesisGeometryGroup)
 
 
-	Super::BeginDestroy();
 }
 

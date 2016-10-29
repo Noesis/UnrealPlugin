@@ -20,9 +20,6 @@ void UNoesisGuiPasswordBox::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	Noesis::Gui::PasswordBox* NoesisPasswordBox = NsDynamicCast<Noesis::Gui::PasswordBox*>(InNoesisComponent);
 	check(NoesisPasswordBox);
-
-	PasswordChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiPasswordBox::PasswordChanged_Private);
-	NoesisPasswordBox->PasswordChanged() += PasswordChanged_Delegate;
 }
 
 FString UNoesisGuiPasswordBox::GetPassword()
@@ -39,23 +36,41 @@ void UNoesisGuiPasswordBox::SetPassword(FString InPassword)
 	NoesisPasswordBox->SetPassword(StringCast<NsChar>(*InPassword).Get());
 }
 
-	void UNoesisGuiPasswordBox::PasswordChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
+void UNoesisGuiPasswordBox::PasswordChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PasswordChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiRoutedEventArgs Args(Instance, InArgs);
 	PasswordChanged.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiPasswordBox::BeginDestroy()
+void UNoesisGuiPasswordBox::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::PasswordBox* NoesisPasswordBox = NsDynamicCast<Noesis::Gui::PasswordBox*>(NoesisComponent.GetPtr());
-	if (!NoesisPasswordBox)
-		return Super::BeginDestroy();
+	check(NoesisPasswordBox)
 
-	NoesisPasswordBox->PasswordChanged() -= PasswordChanged_Delegate;
+	PasswordChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiPasswordBox::PasswordChanged_Private);
+	if (PasswordChanged.IsBound())
+	{
+		NoesisPasswordBox->PasswordChanged() += PasswordChanged_Delegate;
+	}
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiPasswordBox::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::PasswordBox* NoesisPasswordBox = NsDynamicCast<Noesis::Gui::PasswordBox*>(NoesisComponent.GetPtr());
+	check(NoesisPasswordBox)
+
+	if (PasswordChanged.IsBound())
+	{
+		NoesisPasswordBox->PasswordChanged() -= PasswordChanged_Delegate;
+	}
+
 }
 

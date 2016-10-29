@@ -20,16 +20,25 @@ void UNoesisGuiExponentialEase::SetNoesisComponent(Noesis::Core::BaseComponent* 
 
 	Noesis::Gui::ExponentialEase* NoesisExponentialEase = NsDynamicCast<Noesis::Gui::ExponentialEase*>(InNoesisComponent);
 	check(NoesisExponentialEase);
+}
+
+void UNoesisGuiExponentialEase::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::ExponentialEase* NoesisExponentialEase = NsDynamicCast<Noesis::Gui::ExponentialEase*>(NoesisComponent.GetPtr());
+	check(NoesisExponentialEase)
+
 
 }
 
-	void UNoesisGuiExponentialEase::BeginDestroy()
+void UNoesisGuiExponentialEase::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::ExponentialEase* NoesisExponentialEase = NsDynamicCast<Noesis::Gui::ExponentialEase*>(NoesisComponent.GetPtr());
-	if (!NoesisExponentialEase)
-		return Super::BeginDestroy();
+	check(NoesisExponentialEase)
 
 
-	Super::BeginDestroy();
 }
 

@@ -20,16 +20,25 @@ void UNoesisGuiToolBarOverflowPanel::SetNoesisComponent(Noesis::Core::BaseCompon
 
 	Noesis::Gui::ToolBarOverflowPanel* NoesisToolBarOverflowPanel = NsDynamicCast<Noesis::Gui::ToolBarOverflowPanel*>(InNoesisComponent);
 	check(NoesisToolBarOverflowPanel);
+}
+
+void UNoesisGuiToolBarOverflowPanel::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::ToolBarOverflowPanel* NoesisToolBarOverflowPanel = NsDynamicCast<Noesis::Gui::ToolBarOverflowPanel*>(NoesisComponent.GetPtr());
+	check(NoesisToolBarOverflowPanel)
+
 
 }
 
-	void UNoesisGuiToolBarOverflowPanel::BeginDestroy()
+void UNoesisGuiToolBarOverflowPanel::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::ToolBarOverflowPanel* NoesisToolBarOverflowPanel = NsDynamicCast<Noesis::Gui::ToolBarOverflowPanel*>(NoesisComponent.GetPtr());
-	if (!NoesisToolBarOverflowPanel)
-		return Super::BeginDestroy();
+	check(NoesisToolBarOverflowPanel)
 
 
-	Super::BeginDestroy();
 }
 

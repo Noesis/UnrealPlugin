@@ -20,16 +20,25 @@ void UNoesisGuiPlaneProjection::SetNoesisComponent(Noesis::Core::BaseComponent* 
 
 	Noesis::Gui::PlaneProjection* NoesisPlaneProjection = NsDynamicCast<Noesis::Gui::PlaneProjection*>(InNoesisComponent);
 	check(NoesisPlaneProjection);
+}
+
+void UNoesisGuiPlaneProjection::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::PlaneProjection* NoesisPlaneProjection = NsDynamicCast<Noesis::Gui::PlaneProjection*>(NoesisComponent.GetPtr());
+	check(NoesisPlaneProjection)
+
 
 }
 
-	void UNoesisGuiPlaneProjection::BeginDestroy()
+void UNoesisGuiPlaneProjection::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::PlaneProjection* NoesisPlaneProjection = NsDynamicCast<Noesis::Gui::PlaneProjection*>(NoesisComponent.GetPtr());
-	if (!NoesisPlaneProjection)
-		return Super::BeginDestroy();
+	check(NoesisPlaneProjection)
 
 
-	Super::BeginDestroy();
 }
 

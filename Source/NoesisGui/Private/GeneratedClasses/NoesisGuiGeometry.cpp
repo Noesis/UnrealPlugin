@@ -20,7 +20,6 @@ void UNoesisGuiGeometry::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesi
 
 	Noesis::Gui::Geometry* NoesisGeometry = NsDynamicCast<Noesis::Gui::Geometry*>(InNoesisComponent);
 	check(NoesisGeometry);
-
 }
 
 FNoesisGuiDrawingRect UNoesisGuiGeometry::GetBounds()
@@ -62,13 +61,23 @@ bool UNoesisGuiGeometry::StrokeContains(class UNoesisGuiPen* InPen, FNoesisGuiDr
 	return NoesisGeometry->StrokeContains(NoesisInPen, NoesisInPoint);
 }
 
-	void UNoesisGuiGeometry::BeginDestroy()
+void UNoesisGuiGeometry::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::Geometry* NoesisGeometry = NsDynamicCast<Noesis::Gui::Geometry*>(NoesisComponent.GetPtr());
-	if (!NoesisGeometry)
-		return Super::BeginDestroy();
+	check(NoesisGeometry)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiGeometry::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::Geometry* NoesisGeometry = NsDynamicCast<Noesis::Gui::Geometry*>(NoesisComponent.GetPtr());
+	check(NoesisGeometry)
+
+
 }
 

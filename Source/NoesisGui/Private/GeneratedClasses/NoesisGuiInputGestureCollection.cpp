@@ -20,16 +20,25 @@ void UNoesisGuiInputGestureCollection::SetNoesisComponent(Noesis::Core::BaseComp
 
 	Noesis::Gui::TypedCollection<Noesis::Gui::InputGesture>* NoesisInputGestureCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::InputGesture>*>(InNoesisComponent);
 	check(NoesisInputGestureCollection);
+}
+
+void UNoesisGuiInputGestureCollection::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::TypedCollection<Noesis::Gui::InputGesture>* NoesisInputGestureCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::InputGesture>*>(NoesisComponent.GetPtr());
+	check(NoesisInputGestureCollection)
+
 
 }
 
-	void UNoesisGuiInputGestureCollection::BeginDestroy()
+void UNoesisGuiInputGestureCollection::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::TypedCollection<Noesis::Gui::InputGesture>* NoesisInputGestureCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::InputGesture>*>(NoesisComponent.GetPtr());
-	if (!NoesisInputGestureCollection)
-		return Super::BeginDestroy();
+	check(NoesisInputGestureCollection)
 
 
-	Super::BeginDestroy();
 }
 

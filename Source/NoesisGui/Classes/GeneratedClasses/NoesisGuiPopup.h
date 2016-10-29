@@ -17,8 +17,19 @@ public:
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
+	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
+	FNoesisGuiEventHandler Closed;
+
+	void Closed_Private(Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs);
+
+	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs)> Closed_Delegate;
+
 };
 

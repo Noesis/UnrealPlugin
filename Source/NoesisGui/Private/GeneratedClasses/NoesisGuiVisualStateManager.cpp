@@ -20,16 +20,25 @@ void UNoesisGuiVisualStateManager::SetNoesisComponent(Noesis::Core::BaseComponen
 
 	Noesis::Gui::VisualStateManager* NoesisVisualStateManager = NsDynamicCast<Noesis::Gui::VisualStateManager*>(InNoesisComponent);
 	check(NoesisVisualStateManager);
+}
+
+void UNoesisGuiVisualStateManager::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::VisualStateManager* NoesisVisualStateManager = NsDynamicCast<Noesis::Gui::VisualStateManager*>(NoesisComponent.GetPtr());
+	check(NoesisVisualStateManager)
+
 
 }
 
-	void UNoesisGuiVisualStateManager::BeginDestroy()
+void UNoesisGuiVisualStateManager::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::VisualStateManager* NoesisVisualStateManager = NsDynamicCast<Noesis::Gui::VisualStateManager*>(NoesisComponent.GetPtr());
-	if (!NoesisVisualStateManager)
-		return Super::BeginDestroy();
+	check(NoesisVisualStateManager)
 
 
-	Super::BeginDestroy();
 }
 

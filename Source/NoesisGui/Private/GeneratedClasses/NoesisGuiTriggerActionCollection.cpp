@@ -20,16 +20,25 @@ void UNoesisGuiTriggerActionCollection::SetNoesisComponent(Noesis::Core::BaseCom
 
 	Noesis::Gui::TypedCollection<Noesis::Gui::TriggerAction>* NoesisTriggerActionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::TriggerAction>*>(InNoesisComponent);
 	check(NoesisTriggerActionCollection);
+}
+
+void UNoesisGuiTriggerActionCollection::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::TypedCollection<Noesis::Gui::TriggerAction>* NoesisTriggerActionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::TriggerAction>*>(NoesisComponent.GetPtr());
+	check(NoesisTriggerActionCollection)
+
 
 }
 
-	void UNoesisGuiTriggerActionCollection::BeginDestroy()
+void UNoesisGuiTriggerActionCollection::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::TypedCollection<Noesis::Gui::TriggerAction>* NoesisTriggerActionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::TriggerAction>*>(NoesisComponent.GetPtr());
-	if (!NoesisTriggerActionCollection)
-		return Super::BeginDestroy();
+	check(NoesisTriggerActionCollection)
 
 
-	Super::BeginDestroy();
 }
 

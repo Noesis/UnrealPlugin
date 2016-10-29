@@ -20,7 +20,6 @@ void UNoesisGuiStreamGeometry::SetNoesisComponent(Noesis::Core::BaseComponent* I
 
 	Noesis::Gui::StreamGeometry* NoesisStreamGeometry = NsDynamicCast<Noesis::Gui::StreamGeometry*>(InNoesisComponent);
 	check(NoesisStreamGeometry);
-
 }
 
 void UNoesisGuiStreamGeometry::SetData(FString InData)
@@ -31,13 +30,23 @@ void UNoesisGuiStreamGeometry::SetData(FString InData)
 	return NoesisStreamGeometry->SetData(NoesisInData);
 }
 
-	void UNoesisGuiStreamGeometry::BeginDestroy()
+void UNoesisGuiStreamGeometry::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::StreamGeometry* NoesisStreamGeometry = NsDynamicCast<Noesis::Gui::StreamGeometry*>(NoesisComponent.GetPtr());
-	if (!NoesisStreamGeometry)
-		return Super::BeginDestroy();
+	check(NoesisStreamGeometry)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiStreamGeometry::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::StreamGeometry* NoesisStreamGeometry = NsDynamicCast<Noesis::Gui::StreamGeometry*>(NoesisComponent.GetPtr());
+	check(NoesisStreamGeometry)
+
+
 }
 

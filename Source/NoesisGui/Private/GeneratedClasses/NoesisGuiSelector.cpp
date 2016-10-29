@@ -20,28 +20,43 @@ void UNoesisGuiSelector::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesi
 
 	Noesis::Gui::Selector* NoesisSelector = NsDynamicCast<Noesis::Gui::Selector*>(InNoesisComponent);
 	check(NoesisSelector);
-
-	SelectionChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiSelector::SelectionChanged_Private);
-	NoesisSelector->SelectionChanged() += SelectionChanged_Delegate;
 }
 
-	void UNoesisGuiSelector::SelectionChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::SelectionChangedEventArgs& InArgs)
+void UNoesisGuiSelector::SelectionChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::SelectionChangedEventArgs& InArgs)
 {
-	if (!Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!SelectionChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
 		return;
 	UNoesisGuiBaseComponent* Sender = CastChecked<UNoesisGuiBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
 	FNoesisGuiSelectionChangedEventArgs Args(Instance, InArgs);
 	SelectionChanged.Broadcast(Sender, Args);
 }
 
-	void UNoesisGuiSelector::BeginDestroy()
+void UNoesisGuiSelector::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::Selector* NoesisSelector = NsDynamicCast<Noesis::Gui::Selector*>(NoesisComponent.GetPtr());
-	if (!NoesisSelector)
-		return Super::BeginDestroy();
+	check(NoesisSelector)
 
-	NoesisSelector->SelectionChanged() -= SelectionChanged_Delegate;
+	SelectionChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisGuiSelector::SelectionChanged_Private);
+	if (SelectionChanged.IsBound())
+	{
+		NoesisSelector->SelectionChanged() += SelectionChanged_Delegate;
+	}
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiSelector::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::Selector* NoesisSelector = NsDynamicCast<Noesis::Gui::Selector*>(NoesisComponent.GetPtr());
+	check(NoesisSelector)
+
+	if (SelectionChanged.IsBound())
+	{
+		NoesisSelector->SelectionChanged() -= SelectionChanged_Delegate;
+	}
+
 }
 

@@ -20,7 +20,6 @@ void UNoesisGuiVisualState::SetNoesisComponent(Noesis::Core::BaseComponent* InNo
 
 	Noesis::Gui::VisualState* NoesisVisualState = NsDynamicCast<Noesis::Gui::VisualState*>(InNoesisComponent);
 	check(NoesisVisualState);
-
 }
 
 FName UNoesisGuiVisualState::GetName()
@@ -51,13 +50,23 @@ void UNoesisGuiVisualState::SetStoryboard(class UNoesisGuiStoryboard* InStoryboa
 	NoesisVisualState->SetStoryboard(NsDynamicCast<Storyboard*>(InStoryboard->NoesisComponent.GetPtr()));
 }
 
-	void UNoesisGuiVisualState::BeginDestroy()
+void UNoesisGuiVisualState::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::VisualState* NoesisVisualState = NsDynamicCast<Noesis::Gui::VisualState*>(NoesisComponent.GetPtr());
-	if (!NoesisVisualState)
-		return Super::BeginDestroy();
+	check(NoesisVisualState)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiVisualState::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::VisualState* NoesisVisualState = NsDynamicCast<Noesis::Gui::VisualState*>(NoesisComponent.GetPtr());
+	check(NoesisVisualState)
+
+
 }
 

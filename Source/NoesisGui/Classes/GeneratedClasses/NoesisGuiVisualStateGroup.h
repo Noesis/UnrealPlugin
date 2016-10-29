@@ -38,8 +38,12 @@ class UNoesisGuiVisualState* GetCurrentState(class UNoesisGuiFrameworkElement* F
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void UpdateAnimations(class UNoesisGuiFrameworkElement* Fe, class UNoesisGuiStoryboard* Storyboard1, class UNoesisGuiStoryboard* Storyboard2);
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

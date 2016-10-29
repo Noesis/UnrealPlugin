@@ -20,16 +20,25 @@ void UNoesisGuiListViewItem::SetNoesisComponent(Noesis::Core::BaseComponent* InN
 
 	Noesis::Gui::ListViewItem* NoesisListViewItem = NsDynamicCast<Noesis::Gui::ListViewItem*>(InNoesisComponent);
 	check(NoesisListViewItem);
+}
+
+void UNoesisGuiListViewItem::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::ListViewItem* NoesisListViewItem = NsDynamicCast<Noesis::Gui::ListViewItem*>(NoesisComponent.GetPtr());
+	check(NoesisListViewItem)
+
 
 }
 
-	void UNoesisGuiListViewItem::BeginDestroy()
+void UNoesisGuiListViewItem::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::ListViewItem* NoesisListViewItem = NsDynamicCast<Noesis::Gui::ListViewItem*>(NoesisComponent.GetPtr());
-	if (!NoesisListViewItem)
-		return Super::BeginDestroy();
+	check(NoesisListViewItem)
 
 
-	Super::BeginDestroy();
 }
 

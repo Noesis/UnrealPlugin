@@ -20,7 +20,6 @@ void UNoesisGuiIItemContainerGenerator::SetNoesisInterface(Noesis::Core::Interfa
 
 	Noesis::Gui::IItemContainerGenerator* NoesisIItemContainerGenerator = NsDynamicCast<Noesis::Gui::IItemContainerGenerator*>(InNoesisInterface);
 	check(NoesisIItemContainerGenerator);
-
 }
 
 class UNoesisGuiDependencyObject* UNoesisGuiIItemContainerGenerator::GenerateNext()
@@ -93,13 +92,23 @@ void UNoesisGuiIItemContainerGenerator::Stop()
 	return NoesisIItemContainerGenerator->Stop();
 }
 
-	void UNoesisGuiIItemContainerGenerator::BeginDestroy()
+void UNoesisGuiIItemContainerGenerator::BindEvents()
 {
+	Super::BindEvents();
+
 	Noesis::Gui::IItemContainerGenerator* NoesisIItemContainerGenerator = NsDynamicCast<Noesis::Gui::IItemContainerGenerator*>(NoesisInterface.GetPtr());
-	if (!NoesisIItemContainerGenerator)
-		return Super::BeginDestroy();
+	check(NoesisIItemContainerGenerator)
 
 
-	Super::BeginDestroy();
+}
+
+void UNoesisGuiIItemContainerGenerator::UnbindEvents()
+{
+	Super::UnbindEvents();
+
+	Noesis::Gui::IItemContainerGenerator* NoesisIItemContainerGenerator = NsDynamicCast<Noesis::Gui::IItemContainerGenerator*>(NoesisInterface.GetPtr());
+	check(NoesisIItemContainerGenerator)
+
+
 }
 

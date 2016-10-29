@@ -56,8 +56,12 @@ void TouchUp(int32 X, int32 Y, int32 Id);
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void Update(float TimeInSeconds);
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

@@ -20,16 +20,25 @@ void UNoesisGuiStatusBar::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	Noesis::Gui::StatusBar* NoesisStatusBar = NsDynamicCast<Noesis::Gui::StatusBar*>(InNoesisComponent);
 	check(NoesisStatusBar);
+}
+
+void UNoesisGuiStatusBar::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::StatusBar* NoesisStatusBar = NsDynamicCast<Noesis::Gui::StatusBar*>(NoesisComponent.GetPtr());
+	check(NoesisStatusBar)
+
 
 }
 
-	void UNoesisGuiStatusBar::BeginDestroy()
+void UNoesisGuiStatusBar::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::StatusBar* NoesisStatusBar = NsDynamicCast<Noesis::Gui::StatusBar*>(NoesisComponent.GetPtr());
-	if (!NoesisStatusBar)
-		return Super::BeginDestroy();
+	check(NoesisStatusBar)
 
 
-	Super::BeginDestroy();
 }
 

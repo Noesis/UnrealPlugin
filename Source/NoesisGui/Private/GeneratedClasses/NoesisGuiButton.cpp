@@ -20,16 +20,25 @@ void UNoesisGuiButton::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisC
 
 	Noesis::Gui::Button* NoesisButton = NsDynamicCast<Noesis::Gui::Button*>(InNoesisComponent);
 	check(NoesisButton);
+}
+
+void UNoesisGuiButton::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Button* NoesisButton = NsDynamicCast<Noesis::Gui::Button*>(NoesisComponent.GetPtr());
+	check(NoesisButton)
+
 
 }
 
-	void UNoesisGuiButton::BeginDestroy()
+void UNoesisGuiButton::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Button* NoesisButton = NsDynamicCast<Noesis::Gui::Button*>(NoesisComponent.GetPtr());
-	if (!NoesisButton)
-		return Super::BeginDestroy();
+	check(NoesisButton)
 
 
-	Super::BeginDestroy();
 }
 

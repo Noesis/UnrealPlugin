@@ -32,8 +32,12 @@ void TickPending();
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void TransferTo(class UNoesisGuiITimeManager* Other);
 
-	// UObject interface
-	virtual void BeginDestroy() override;
-	// End of UObject interface
+protected:
+
+	virtual void BindEvents() override;
+	virtual void UnbindEvents() override;
+
+private:
+
 };
 

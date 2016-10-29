@@ -20,16 +20,25 @@ void UNoesisGuiRun::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComp
 
 	Noesis::Gui::Run* NoesisRun = NsDynamicCast<Noesis::Gui::Run*>(InNoesisComponent);
 	check(NoesisRun);
+}
+
+void UNoesisGuiRun::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::Run* NoesisRun = NsDynamicCast<Noesis::Gui::Run*>(NoesisComponent.GetPtr());
+	check(NoesisRun)
+
 
 }
 
-	void UNoesisGuiRun::BeginDestroy()
+void UNoesisGuiRun::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::Run* NoesisRun = NsDynamicCast<Noesis::Gui::Run*>(NoesisComponent.GetPtr());
-	if (!NoesisRun)
-		return Super::BeginDestroy();
+	check(NoesisRun)
 
 
-	Super::BeginDestroy();
 }
 

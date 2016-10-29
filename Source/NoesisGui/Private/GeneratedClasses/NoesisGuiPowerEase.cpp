@@ -20,16 +20,25 @@ void UNoesisGuiPowerEase::SetNoesisComponent(Noesis::Core::BaseComponent* InNoes
 
 	Noesis::Gui::PowerEase* NoesisPowerEase = NsDynamicCast<Noesis::Gui::PowerEase*>(InNoesisComponent);
 	check(NoesisPowerEase);
+}
+
+void UNoesisGuiPowerEase::BindEvents()
+{
+	Super::BindEvents();
+
+	Noesis::Gui::PowerEase* NoesisPowerEase = NsDynamicCast<Noesis::Gui::PowerEase*>(NoesisComponent.GetPtr());
+	check(NoesisPowerEase)
+
 
 }
 
-	void UNoesisGuiPowerEase::BeginDestroy()
+void UNoesisGuiPowerEase::UnbindEvents()
 {
+	Super::UnbindEvents();
+
 	Noesis::Gui::PowerEase* NoesisPowerEase = NsDynamicCast<Noesis::Gui::PowerEase*>(NoesisComponent.GetPtr());
-	if (!NoesisPowerEase)
-		return Super::BeginDestroy();
+	check(NoesisPowerEase)
 
 
-	Super::BeginDestroy();
 }
 
