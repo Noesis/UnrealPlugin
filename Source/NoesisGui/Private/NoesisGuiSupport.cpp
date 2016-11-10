@@ -8,7 +8,7 @@
 
 Noesis::Ptr<Noesis::Render::Texture> NoesisGuiCreateTexture(UTexture2D* Texture)
 {
-	return FNoesisGuiRenderDevice::CreateTexture(Texture);
+	return FNoesisRenderDevice::CreateTexture(Texture);
 }
 
 void CollectElements(Noesis::FrameworkElement* Element, TArray<Noesis::FrameworkElement*>& Elements)

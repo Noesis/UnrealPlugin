@@ -14,13 +14,13 @@ public:
 	{
 		// Register asset type actions
 		IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
-		NoesisGuiBlueprintAssetTypeActions = MakeShareable(new FNoesisGuiBlueprintAssetTypeActions());
-		AssetTools.RegisterAssetTypeActions(NoesisGuiBlueprintAssetTypeActions.ToSharedRef());
+		NoesisBlueprintAssetTypeActions = MakeShareable(new FNoesisBlueprintAssetTypeActions());
+		AssetTools.RegisterAssetTypeActions(NoesisBlueprintAssetTypeActions.ToSharedRef());
 
 		// Register blueprint compiler
-		NoesisGuiBlueprintCompiler = MakeShareable(new FNoesisGuiBlueprintCompiler());
+		NoesisBlueprintCompiler = MakeShareable(new FNoesisBlueprintCompiler());
 		IKismetCompilerInterface& KismetCompilerModule = FModuleManager::LoadModuleChecked<IKismetCompilerInterface>("KismetCompiler");
-		KismetCompilerModule.GetCompilers().Add(NoesisGuiBlueprintCompiler.Get());
+		KismetCompilerModule.GetCompilers().Add(NoesisBlueprintCompiler.Get());
 
 		NoesisGuiEditorModuleInterface = this;
 	}
@@ -31,19 +31,19 @@ public:
 
 		// Unregister asset type actions
 		IAssetTools& AssetTools = FModuleManager::GetModuleChecked<FAssetToolsModule>("AssetTools").Get();
-		AssetTools.UnregisterAssetTypeActions(NoesisGuiBlueprintAssetTypeActions.ToSharedRef());
+		AssetTools.UnregisterAssetTypeActions(NoesisBlueprintAssetTypeActions.ToSharedRef());
 
 		// Unregister blueprint compiler
 		IKismetCompilerInterface& KismetCompilerModule = FModuleManager::LoadModuleChecked<IKismetCompilerInterface>("KismetCompiler");
-		KismetCompilerModule.GetCompilers().Remove(NoesisGuiBlueprintCompiler.Get());
+		KismetCompilerModule.GetCompilers().Remove(NoesisBlueprintCompiler.Get());
 	}
 	// End of IModuleInterface interface
 
 	static INoesisGuiEditorModuleInterface* NoesisGuiEditorModuleInterface;
 
 private:
-	TSharedPtr<FNoesisGuiBlueprintAssetTypeActions> NoesisGuiBlueprintAssetTypeActions;
-	TSharedPtr<FNoesisGuiBlueprintCompiler> NoesisGuiBlueprintCompiler;
+	TSharedPtr<FNoesisBlueprintAssetTypeActions> NoesisBlueprintAssetTypeActions;
+	TSharedPtr<FNoesisBlueprintCompiler> NoesisBlueprintCompiler;
 };
 
 INoesisGuiEditorModuleInterface* FNoesisGuiEditorModule::NoesisGuiEditorModuleInterface = 0;

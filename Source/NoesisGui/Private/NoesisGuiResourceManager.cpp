@@ -7,9 +7,9 @@
 #include "NoesisGuiResourceManager.h"
 
 // NoesisGui includes
-#include "NoesisGuiBlueprintGeneratedClass.h"
+#include "NoesisBlueprintGeneratedClass.h"
 
 Noesis::Ptr<Noesis::Core::Stream> FNoesisGuiResourceManager::LoadXaml(const NsChar* Filename)
 {
-	return Noesis::Ptr<Noesis::Core::Stream>(*new Noesis::Core::MemoryStream(NoesisGuiXaml->XamlText.GetData(), (NsSize)NoesisGuiXaml->XamlText.Num()));
+	return Noesis::Ptr<Noesis::Core::Stream>(*new Noesis::Core::MemoryStream(NoesisXaml->XamlText.GetData(), (NsSize)NoesisXaml->XamlText.Num()));
 }

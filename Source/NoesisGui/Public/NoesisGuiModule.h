@@ -10,7 +10,7 @@
 class NOESISGUI_API INoesisGuiModuleInterface : public IModuleInterface
 {
 public:
-	virtual void SetResourceProvider(class UNoesisGuiXaml* NoesisGuiXaml) = 0;
+	virtual void SetResourceProvider(class UNoesisXaml* NoesisXaml) = 0;
 
 	static INoesisGuiModuleInterface* Get();
 };

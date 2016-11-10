@@ -8,12 +8,12 @@
 class NOESISGUI_API FNoesisGuiResourceManager
 {
 public:
-	void SetBaseXaml(class UNoesisGuiXaml* InNoesisGuiXaml)
+	void SetBaseXaml(class UNoesisXaml* InNoesisXaml)
 	{
-		NoesisGuiXaml = InNoesisGuiXaml;
+		NoesisXaml = InNoesisXaml;
 	}
 
 	Noesis::Ptr<Noesis::Core::Stream> LoadXaml(const NsChar* Filename);
 
-	class UNoesisGuiXaml* NoesisGuiXaml;
+	class UNoesisXaml* NoesisXaml;
 };

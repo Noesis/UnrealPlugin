@@ -33,6 +33,7 @@ public class NoesisGui : ModuleRules
 				"ShaderCore",
 				"SlateCore",
 				"InputCore",
+				"UMG"
 			}
 			);
 

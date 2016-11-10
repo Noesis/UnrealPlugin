@@ -8,7 +8,7 @@
 
 // NoesisGui includes
 #include "NoesisGuiResourceManager.h"
-#include "Render/NoesisGuiRenderDevice.h"
+#include "Render/NoesisRenderDevice.h"
 
 static void NoesisErrorHandler(const NsChar* Filename, NsInt Line, const NsChar* Desc)
 {
@@ -24,7 +24,7 @@ public:
 		//check(IsInGameThread());
 	}
 
-	UNoesisGuiXaml* GetXaml(FString XamlPath);
+	UNoesisXaml* GetXaml(FString XamlPath);
 	UTexture2D* GetTexture(FString TexturePath);
 
 	// XamlProvider interface
@@ -40,19 +40,19 @@ public:
 	virtual Noesis::Drawing::FontSource MatchFont(const NsChar* BaseUri, const NsChar* FamilyName, Noesis::Drawing::FontWeight Weight, Noesis::Drawing::FontStretch Stretch, Noesis::Drawing::FontStyle Style) override;
 	// End of FontProvider interface
 
-	UNoesisGuiXaml* NoesisGuiXaml;
+	UNoesisXaml* NoesisXaml;
 };
 
-UNoesisGuiXaml* FNoesisGuiResourceProvider::GetXaml(FString XamlPath)
+UNoesisXaml* FNoesisGuiResourceProvider::GetXaml(FString XamlPath)
 {
-	//UNoesisGuiXaml** Xaml = NoesisGuiXaml->XamlMap.Find(XamlPath);
-	UNoesisGuiXaml* Xaml = LoadObject<UNoesisGuiXaml>(NULL, *FPaths::GetBaseFilename(XamlPath, false));
+	//UNoesisXaml** Xaml = NoesisXaml->XamlMap.Find(XamlPath);
+	UNoesisXaml* Xaml = LoadObject<UNoesisXaml>(NULL, *FPaths::GetBaseFilename(XamlPath, false));
 	return Xaml;
 }
 
 Noesis::Ptr<Noesis::Core::Stream> FNoesisGuiResourceProvider::LoadXaml(const NsChar* Path)
 {
-	UNoesisGuiXaml* Xaml = GetXaml(Path);
+	UNoesisXaml* Xaml = GetXaml(Path);
 	if (Xaml)
 	{
 		return Noesis::Ptr<Noesis::Core::Stream>(*new Noesis::Core::MemoryStream(Xaml->XamlText.GetData(), (NsSize)Xaml->XamlText.Num()));
@@ -63,7 +63,7 @@ Noesis::Ptr<Noesis::Core::Stream> FNoesisGuiResourceProvider::LoadXaml(const NsC
 
 UTexture2D* FNoesisGuiResourceProvider::GetTexture(FString TexturePath)
 {
-	//UTexture2D** Texture = NoesisGuiXaml->TextureMap.Find(TexturePath);
+	//UTexture2D** Texture = NoesisXaml->TextureMap.Find(TexturePath);
 	UTexture2D* Texture = LoadObject<UTexture2D>(NULL, *FPaths::GetBaseFilename(TexturePath, false));
 	return Texture;
 }
@@ -138,9 +138,9 @@ public:
 	// End of IModuleInterface interface
 
 	// INoesisGuiModuleInterface interface
-	virtual void SetResourceProvider(UNoesisGuiXaml* NoesisGuiXaml) override
+	virtual void SetResourceProvider(UNoesisXaml* NoesisXaml) override
 	{
-		NoesisGuiResourceProvider->NoesisGuiXaml = NoesisGuiXaml;
+		NoesisGuiResourceProvider->NoesisXaml = NoesisXaml;
 		Noesis::Gui::Provider NoesisGuiProvider = { NoesisGuiResourceProvider, NoesisGuiResourceProvider, NoesisGuiResourceProvider };
 		Noesis::GUI::SetResourceProvider(NoesisGuiProvider);
 	}
