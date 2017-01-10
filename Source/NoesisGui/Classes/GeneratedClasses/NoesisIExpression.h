@@ -23,9 +23,6 @@ public:
 class UNoesisBaseComponent* Evaluate();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-ENoesisEvaluateBehavior GetEvaluateBehavior();
-
-	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 class UNoesisIExpression* Reapply(class UNoesisDependencyObject* TargetObject, const class UNoesisDependencyProperty* TargetProperty);
 
 protected:

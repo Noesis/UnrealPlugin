@@ -29,13 +29,6 @@ class UNoesisBaseComponent* UNoesisIExpression::Evaluate()
 	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisIExpression->Evaluate()));
 }
 
-ENoesisEvaluateBehavior UNoesisIExpression::GetEvaluateBehavior()
-{
-	Noesis::Gui::IExpression* NoesisIExpression = NsDynamicCast<Noesis::Gui::IExpression*>(NoesisInterface.GetPtr());
-	check(NoesisIExpression);
-	return (ENoesisEvaluateBehavior)NoesisIExpression->GetEvaluateBehavior();
-}
-
 class UNoesisIExpression* UNoesisIExpression::Reapply(class UNoesisDependencyObject* InTargetObject, const class UNoesisDependencyProperty* InTargetProperty)
 {
 	Noesis::Gui::IExpression* NoesisIExpression = NsDynamicCast<Noesis::Gui::IExpression*>(NoesisInterface.GetPtr());

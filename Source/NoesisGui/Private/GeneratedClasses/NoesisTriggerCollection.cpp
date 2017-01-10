@@ -18,7 +18,7 @@ void UNoesisTriggerCollection::SetNoesisComponent(Noesis::Core::BaseComponent* I
 {
 	Super::SetNoesisComponent(InNoesisComponent);
 
-	Noesis::Gui::TriggerCollection* NoesisTriggerCollection = NsDynamicCast<Noesis::Gui::TriggerCollection*>(InNoesisComponent);
+	Noesis::Gui::TypedCollection<Noesis::Gui::BaseTrigger>* NoesisTriggerCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::BaseTrigger>*>(InNoesisComponent);
 	check(NoesisTriggerCollection);
 }
 
@@ -26,7 +26,7 @@ void UNoesisTriggerCollection::BindEvents()
 {
 	Super::BindEvents();
 
-	Noesis::Gui::TriggerCollection* NoesisTriggerCollection = NsDynamicCast<Noesis::Gui::TriggerCollection*>(NoesisComponent.GetPtr());
+	Noesis::Gui::TypedCollection<Noesis::Gui::BaseTrigger>* NoesisTriggerCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::BaseTrigger>*>(NoesisComponent.GetPtr());
 	check(NoesisTriggerCollection)
 
 
@@ -36,7 +36,7 @@ void UNoesisTriggerCollection::UnbindEvents()
 {
 	Super::UnbindEvents();
 
-	Noesis::Gui::TriggerCollection* NoesisTriggerCollection = NsDynamicCast<Noesis::Gui::TriggerCollection*>(NoesisComponent.GetPtr());
+	Noesis::Gui::TypedCollection<Noesis::Gui::BaseTrigger>* NoesisTriggerCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::BaseTrigger>*>(NoesisComponent.GetPtr());
 	check(NoesisTriggerCollection)
 
 

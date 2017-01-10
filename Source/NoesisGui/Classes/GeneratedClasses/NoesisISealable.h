@@ -8,19 +8,22 @@
 #include "NoesisEnums.h"
 #include "NoesisStructs.h"
 #include "NoesisEvents.h"
-#include "GeneratedClasses/NoesisDependencyObject.h"
-#include "NoesisTriggerAction.generated.h"
+#include "NoesisInterface.h"
+#include "NoesisISealable.generated.h"
 
 UCLASS()
-class NOESISGUI_API UNoesisTriggerAction : public UNoesisDependencyObject
+class NOESISGUI_API UNoesisISealable : public UNoesisInterface
 {
 public:
 	GENERATED_UCLASS_BODY()
 
-	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
+	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Invoke(class UNoesisFrameworkElement* Target, class UNoesisFrameworkElement* NameScope);
+bool CanSeal();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+bool IsSealed();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void Seal();

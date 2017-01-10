@@ -98,6 +98,13 @@ bool UNoesisResourceDictionary::HasResourcesDefined()
 	return NoesisResourceDictionary->HasResourcesDefined();
 }
 
+bool UNoesisResourceDictionary::IsReadOnly()
+{
+	Noesis::Gui::ResourceDictionary* NoesisResourceDictionary = NsDynamicCast<Noesis::Gui::ResourceDictionary*>(NoesisComponent.GetPtr());
+	check(NoesisResourceDictionary);
+	return NoesisResourceDictionary->IsReadOnly();
+}
+
 void UNoesisResourceDictionary::Remove(class UNoesisIResourceKey* InKey)
 {
 	Noesis::Gui::ResourceDictionary* NoesisResourceDictionary = NsDynamicCast<Noesis::Gui::ResourceDictionary*>(NoesisComponent.GetPtr());

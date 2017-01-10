@@ -23,10 +23,6 @@ UNoesisInterface* CreateInterfaceFor(Noesis::Core::Interface* BaseInterface, UOb
 	{
 		Class = UNoesisICommandSource::StaticClass();
 	}
-	if (BaseInterfaceClass == Noesis::Gui::IControlLibrary::StaticGetClassType() || BaseInterfaceClass->IsDescendantOf(Noesis::Gui::IControlLibrary::StaticGetClassType()))
-	{
-		Class = UNoesisIControlLibrary::StaticClass();
-	}
 	if (BaseInterfaceClass == Noesis::Gui::IDictionary::StaticGetClassType() || BaseInterfaceClass->IsDescendantOf(Noesis::Gui::IDictionary::StaticGetClassType()))
 	{
 		Class = UNoesisIDictionary::StaticClass();
@@ -78,6 +74,10 @@ UNoesisInterface* CreateInterfaceFor(Noesis::Core::Interface* BaseInterface, UOb
 	if (BaseInterfaceClass == Noesis::Gui::IScrollInfo::StaticGetClassType() || BaseInterfaceClass->IsDescendantOf(Noesis::Gui::IScrollInfo::StaticGetClassType()))
 	{
 		Class = UNoesisIScrollInfo::StaticClass();
+	}
+	if (BaseInterfaceClass == Noesis::Gui::ISealable::StaticGetClassType() || BaseInterfaceClass->IsDescendantOf(Noesis::Gui::ISealable::StaticGetClassType()))
+	{
+		Class = UNoesisISealable::StaticClass();
 	}
 	if (BaseInterfaceClass == Noesis::Gui::IStoryboard::StaticGetClassType() || BaseInterfaceClass->IsDescendantOf(Noesis::Gui::IStoryboard::StaticGetClassType()))
 	{

@@ -131,6 +131,24 @@ void UNoesisItemContainerGenerator::Stop()
 	return NoesisItemContainerGenerator->Stop();
 }
 
+void UNoesisItemContainerGenerator::ItemsChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ItemsChangedEventArgs& InArgs)
+{
+	if (!ItemsChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+		return;
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
+	FNoesisItemsChangedEventArgs Args(Instance, InArgs);
+	ItemsChanged.Broadcast(Sender, Args);
+}
+
+void UNoesisItemContainerGenerator::StatusChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs)
+{
+	if (!StatusChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+		return;
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
+	FNoesisEventArgs Args(Instance, InArgs);
+	StatusChanged.Broadcast(Sender, Args);
+}
+
 void UNoesisItemContainerGenerator::BindEvents()
 {
 	Super::BindEvents();
@@ -138,6 +156,16 @@ void UNoesisItemContainerGenerator::BindEvents()
 	Noesis::Gui::ItemContainerGenerator* NoesisItemContainerGenerator = NsDynamicCast<Noesis::Gui::ItemContainerGenerator*>(NoesisComponent.GetPtr());
 	check(NoesisItemContainerGenerator)
 
+	ItemsChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisItemContainerGenerator::ItemsChanged_Private);
+	if (ItemsChanged.IsBound())
+	{
+		NoesisItemContainerGenerator->ItemsChanged() += ItemsChanged_Delegate;
+	}
+	StatusChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisItemContainerGenerator::StatusChanged_Private);
+	if (StatusChanged.IsBound())
+	{
+		NoesisItemContainerGenerator->StatusChanged() += StatusChanged_Delegate;
+	}
 
 }
 
@@ -148,6 +176,14 @@ void UNoesisItemContainerGenerator::UnbindEvents()
 	Noesis::Gui::ItemContainerGenerator* NoesisItemContainerGenerator = NsDynamicCast<Noesis::Gui::ItemContainerGenerator*>(NoesisComponent.GetPtr());
 	check(NoesisItemContainerGenerator)
 
+	if (ItemsChanged.IsBound())
+	{
+		NoesisItemContainerGenerator->ItemsChanged() -= ItemsChanged_Delegate;
+	}
+	if (StatusChanged.IsBound())
+	{
+		NoesisItemContainerGenerator->StatusChanged() -= StatusChanged_Delegate;
+	}
 
 }
 

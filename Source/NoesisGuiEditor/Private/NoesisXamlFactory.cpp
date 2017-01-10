@@ -320,14 +320,14 @@ public:
 class FNoesisGuiNullRenderDevice : public Noesis::Render::RenderDevice
 {
 	// RenderDevice interface
-	virtual const Noesis::Render::DeviceCaps& GetCaps() const override { static Noesis::Render::DeviceCaps Caps = { 0.f, 1024 * 1024, 1024 * 1024, true, false, 1,{ true, true } }; return Caps; }
+	virtual const Noesis::Render::DeviceCaps& GetCaps() const override { static Noesis::Render::DeviceCaps Caps = { 0.f, 1024 * 1024, 1024 * 1024, true, false, { true, true } }; return Caps; }
 	virtual Noesis::Ptr<Noesis::Render::RenderTarget> CreateRenderTarget(const NsChar* Label, NsSize Width, NsSize Height, NsSize SampleCount) override { FNoesisGuiNullRenderTarget* RT = new FNoesisGuiNullRenderTarget(); RT->NoesisGuiTexture = *new FNoesisGuiNullTexture(); return Noesis::Ptr<Noesis::Render::RenderTarget>(*RT); }
 	virtual Noesis::Ptr<Noesis::Render::RenderTarget> CloneRenderTarget(const NsChar* Label, Noesis::Render::RenderTarget* SharedRenderTarget) override { FNoesisGuiNullRenderTarget* RT = new FNoesisGuiNullRenderTarget(); RT->NoesisGuiTexture = ((FNoesisGuiNullRenderTarget*)SharedRenderTarget)->NoesisGuiTexture; return Noesis::Ptr<Noesis::Render::RenderTarget>(*RT); }
 	virtual Noesis::Ptr<Noesis::Render::Texture> CreateTexture(const NsChar* Label, NsSize Width, NsSize Height, NsSize NumLevels, Noesis::Render::TextureFormat::Enum TextureFormat) override { return Noesis::Ptr<Noesis::Render::Texture>(*new FNoesisGuiNullTexture()); }
 	virtual void UpdateTexture(Noesis::Render::Texture* Texture, NsSize Level, NsSize X, NsSize Y, NsSize Width, NsSize Height, const void* Data) override {}
 	virtual void BeginRender(NsBool Offscreen) override {}
 	virtual void SetRenderTarget(Noesis::Render::RenderTarget* Surface) override {}
-	virtual void BeginTile(const Noesis::Render::Tile& Tile) override {}
+	virtual void BeginTile(const Noesis::Render::Tile& Tile, NsSize SurfaceWidth, NsSize SurfaceHeight) override {}
 	virtual void EndTile() override {}
 	virtual void ResolveRenderTarget(Noesis::Render::RenderTarget* Surface, const Noesis::Render::Tile* Tiles, NsSize NumTiles) override {}
 	virtual void EndRender() override {}

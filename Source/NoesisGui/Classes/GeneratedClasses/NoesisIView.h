@@ -29,9 +29,6 @@ class UNoesisFrameworkElement* GetContent();
 FNoesisDrawingSizei GetSize();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisResourceDictionary* GetThemeResources();
-
-	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void MouseMove(int32 X, int32 Y);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")

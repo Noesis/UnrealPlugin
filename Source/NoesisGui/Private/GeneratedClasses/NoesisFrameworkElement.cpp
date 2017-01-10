@@ -385,6 +385,16 @@ class UNoesisFrameworkElement* UNoesisFrameworkElement::Clone(class UNoesisFrame
 	return CastChecked<UNoesisFrameworkElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->Clone(NoesisInParent, NoesisInTemplatedParent, NoesisInTemplate_)));
 }
 
+void UNoesisFrameworkElement::Connect(class UNoesisBaseComponent* InSource, FString InEventName, FString InHandlerName)
+{
+	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
+	check(NoesisFrameworkElement);
+	Core::BaseComponent* NoesisInSource = NsDynamicCast<Core::BaseComponent*>(InSource->NoesisComponent.GetPtr());
+	const NsChar* NoesisInEventName = StringCast<NsChar>(*InEventName).Get();
+	const NsChar* NoesisInHandlerName = StringCast<NsChar>(*InHandlerName).Get();
+	return NoesisFrameworkElement->Connect(NoesisInSource, NoesisInEventName, NoesisInHandlerName);
+}
+
 class UNoesisBaseComponent* UNoesisFrameworkElement::FindName(FString InName)
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
@@ -496,6 +506,15 @@ void UNoesisFrameworkElement::Loaded_Private(Noesis::Core::BaseComponent* InSend
 	Loaded.Broadcast(Sender, Args);
 }
 
+void UNoesisFrameworkElement::RequestBringIntoView_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RequestBringIntoViewEventArgs& InArgs)
+{
+	if (!RequestBringIntoView.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+		return;
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
+	FNoesisRequestBringIntoViewEventArgs Args(Instance, InArgs);
+	RequestBringIntoView.Broadcast(Sender, Args);
+}
+
 void UNoesisFrameworkElement::SizeChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::SizeChangedEventArgs& InArgs)
 {
 	if (!SizeChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
@@ -564,6 +583,11 @@ void UNoesisFrameworkElement::BindEvents()
 	{
 		NoesisFrameworkElement->Loaded() += Loaded_Delegate;
 	}
+	RequestBringIntoView_Delegate = Noesis::MakeDelegate(this, &UNoesisFrameworkElement::RequestBringIntoView_Private);
+	if (RequestBringIntoView.IsBound())
+	{
+		NoesisFrameworkElement->RequestBringIntoView() += RequestBringIntoView_Delegate;
+	}
 	SizeChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisFrameworkElement::SizeChanged_Private);
 	if (SizeChanged.IsBound())
 	{
@@ -613,6 +637,10 @@ void UNoesisFrameworkElement::UnbindEvents()
 	if (Loaded.IsBound())
 	{
 		NoesisFrameworkElement->Loaded() -= Loaded_Delegate;
+	}
+	if (RequestBringIntoView.IsBound())
+	{
+		NoesisFrameworkElement->RequestBringIntoView() -= RequestBringIntoView_Delegate;
 	}
 	if (SizeChanged.IsBound())
 	{

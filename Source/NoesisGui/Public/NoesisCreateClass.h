@@ -59,10 +59,6 @@ UNoesisBaseComponent* CreateClassFor(Noesis::Core::BaseComponent* BaseComponent,
 	{
 		Class = UNoesisCollection::StaticClass();
 	}
-	if (BaseComponentClass == Noesis::Gui::TriggerCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TriggerCollection::StaticGetClassType()))
-	{
-		Class = UNoesisTriggerCollection::StaticClass();
-	}
 	if (BaseComponentClass == Noesis::Gui::InputBindingCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::InputBindingCollection::StaticGetClassType()))
 	{
 		Class = UNoesisInputBindingCollection::StaticClass();
@@ -78,6 +74,10 @@ UNoesisBaseComponent* CreateClassFor(Noesis::Core::BaseComponent* BaseComponent,
 	if (BaseComponentClass == Noesis::Gui::CommandBindingCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::CommandBindingCollection::StaticGetClassType()))
 	{
 		Class = UNoesisCommandBindingCollection::StaticClass();
+	}
+	if (BaseComponentClass == Noesis::Gui::TriggerCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::TriggerCollection::StaticGetClassType()))
+	{
+		Class = UNoesisTriggerCollection::StaticClass();
 	}
 	if (BaseComponentClass == Noesis::Gui::InlineCollection::StaticGetClassType() || BaseComponentClass->IsDescendantOf(Noesis::Gui::InlineCollection::StaticGetClassType()))
 	{

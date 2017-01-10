@@ -69,5 +69,19 @@ protected:
 
 private:
 
+	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
+	FNoesisItemsChangedEventHandler ItemsChanged;
+
+	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
+	FNoesisEventHandler StatusChanged;
+
+	void ItemsChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ItemsChangedEventArgs& InArgs);
+
+	void StatusChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs);
+
+	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::ItemsChangedEventArgs& InArgs)> ItemsChanged_Delegate;
+
+	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs)> StatusChanged_Delegate;
+
 };
 

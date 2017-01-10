@@ -10,9 +10,12 @@
 #include "NoesisGuiResourceManager.h"
 #include "Render/NoesisRenderDevice.h"
 
-static void NoesisErrorHandler(const NsChar* Filename, NsInt Line, const NsChar* Desc)
+static void NoesisErrorHandler(const NsChar* Filename, NsSize Line, const NsChar* Desc, NsBool Fatal)
 {
-	FPlatformMisc::RequestExit(true);
+	if (Fatal)
+	{
+		FPlatformMisc::RequestExit(true);
+	}
 }
 
 class FNoesisGuiResourceProvider : public Noesis::XamlProvider, public Noesis::TextureProvider, public Noesis::FontProvider

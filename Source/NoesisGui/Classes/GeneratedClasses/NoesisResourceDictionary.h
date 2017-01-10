@@ -50,6 +50,9 @@ class UNoesisResourceDictionaryCollection* GetMergedDictionaries();
 bool HasResourcesDefined();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+bool IsReadOnly();
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 void Remove(class UNoesisIResourceKey* Key);
 
 protected:

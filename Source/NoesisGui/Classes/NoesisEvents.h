@@ -543,6 +543,22 @@ struct FNoesisExecutedRoutedEventArgs : public FNoesisRoutedEventArgs
 };
 
 USTRUCT(BlueprintType)
+struct FNoesisRequestBringIntoViewEventArgs : public FNoesisRoutedEventArgs
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "NoesisGui")
+	const class UNoesisDependencyObject* TargetObject;
+
+	UPROPERTY(BlueprintReadOnly, Category = "NoesisGui")
+	FNoesisDrawingRect TargetRect;
+
+	FNoesisRequestBringIntoViewEventArgs() {}
+
+	FNoesisRequestBringIntoViewEventArgs(class UNoesisInstance* Instance, const Noesis::RequestBringIntoViewEventArgs& InArgs);
+};
+
+USTRUCT(BlueprintType)
 struct FNoesisEventArgs
 {
 	GENERATED_USTRUCT_BODY()
@@ -654,6 +670,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FNoesisBaseComponentPropertyChanged
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FNoesisCanExecuteRoutedEventHandler, class UNoesisBaseComponent*, Sender, FNoesisCanExecuteRoutedEventArgs, Args);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FNoesisExecutedRoutedEventHandler, class UNoesisBaseComponent*, Sender, FNoesisExecutedRoutedEventArgs, Args);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FNoesisRequestBringIntoViewEventHandler, class UNoesisBaseComponent*, Sender, FNoesisRequestBringIntoViewEventArgs, Args);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FNoesisEventHandler, class UNoesisBaseComponent*, Sender, FNoesisEventArgs, Args);
 

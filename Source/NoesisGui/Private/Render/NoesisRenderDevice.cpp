@@ -204,7 +204,7 @@ Noesis::Ptr<Noesis::Render::Texture> FNoesisRenderDevice::CreateTexture(UTexture
 
 const Noesis::Render::DeviceCaps& FNoesisRenderDevice::GetCaps() const
 {
-	static Noesis::Render::DeviceCaps Caps = { 0.f, VertexBufferSize, IndexBufferSize, true, false, 1,{ true, true, true, true, true, true } };
+	static Noesis::Render::DeviceCaps Caps = { 0.f, VertexBufferSize, IndexBufferSize, true, false, { true, true, true, true, true, true } };
 	return Caps;
 }
 
@@ -311,14 +311,15 @@ void FNoesisRenderDevice::SetRenderTarget(Noesis::Render::RenderTarget* Surface)
 	}
 }
 
-void FNoesisRenderDevice::BeginTile(const Noesis::Render::Tile& Tile)
+void FNoesisRenderDevice::BeginTile(const Noesis::Render::Tile& Tile, NsSize SurfaceWidth, NsSize SurfaceHeight)
 {
 	if (RHICmdList)
 	{
+		check(SurfaceHeight == CurrentRenderTarget->Texture->ShaderResourceTexture->GetSizeY());
 		uint32 ScissorMinX = Tile.x;
-		uint32 ScissorMinY = CurrentRenderTarget->Texture->ShaderResourceTexture->GetSizeY() - (Tile.y + Tile.height);
+		uint32 ScissorMinY = SurfaceHeight - (Tile.y + Tile.height);
 		uint32 ScissorMaxX = Tile.x + Tile.width;
-		uint32 ScissorMaxY = CurrentRenderTarget->Texture->ShaderResourceTexture->GetSizeY() - Tile.y;
+		uint32 ScissorMaxY = SurfaceHeight - Tile.y;
 		RHICmdList->SetScissorRect(true, ScissorMinX, ScissorMinY, ScissorMaxX, ScissorMaxY);
 
 		bool bClearColor = true;
@@ -537,8 +538,8 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Render::Batch& Batch)
 		FMatrix ProjectionMtxValue = (const FMatrix&)(*Batch.projMtx);
 		VertexShader->SetParameters(*RHICmdList, ProjectionMtxValue.GetTransposed());
 
-		float OpacityValue = Batch.opacity;
-		const FVector4 RgbaValue = (const FVector4&)(*Batch.rgba);
+		float OpacityValue = Batch.opacity ? *Batch.opacity : 0.0f;
+		const FVector4 RgbaValue = Batch.rgba ? (const FVector4&)(*Batch.rgba) : FVector4();
 		const FVector4* RadialGradValue = (const FVector4*)Batch.radialGrad;
 		PixelShader->SetParameters(*RHICmdList, OpacityValue, RgbaValue, RadialGradValue);
 

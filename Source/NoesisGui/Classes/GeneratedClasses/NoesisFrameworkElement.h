@@ -178,6 +178,9 @@ void BringIntoView_(FNoesisDrawingRect TargetRectangle);
 class UNoesisFrameworkElement* Clone(class UNoesisFrameworkElement* Parent, class UNoesisFrameworkElement* TemplatedParent, class UNoesisFrameworkTemplate* Template_);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+void Connect(class UNoesisBaseComponent* Source, FString EventName, FString HandlerName);
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 class UNoesisBaseComponent* FindName(FString Name);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
@@ -227,6 +230,9 @@ private:
 	FNoesisRoutedEventHandler Loaded;
 
 	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
+	FNoesisRequestBringIntoViewEventHandler RequestBringIntoView;
+
+	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
 	FNoesisSizeChangedEventHandler SizeChanged;
 
 	UPROPERTY(BlueprintAssignable, Category="NoesisGui")
@@ -248,6 +254,8 @@ private:
 
 	void Loaded_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs);
 
+	void RequestBringIntoView_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RequestBringIntoViewEventArgs& InArgs);
+
 	void SizeChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::SizeChangedEventArgs& InArgs);
 
 	void ToolTipClosing_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ToolTipEventArgs& InArgs);
@@ -265,6 +273,8 @@ private:
 	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs)> Initialized_Delegate;
 
 	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)> Loaded_Delegate;
+
+	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::RequestBringIntoViewEventArgs& InArgs)> RequestBringIntoView_Delegate;
 
 	Noesis::Core::Delegate<void (Noesis::Core::BaseComponent* InSender, const Noesis::SizeChangedEventArgs& InArgs)> SizeChanged_Delegate;
 

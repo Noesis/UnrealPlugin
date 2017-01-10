@@ -31,6 +31,13 @@ void UNoesisTriggerAction::Invoke(class UNoesisFrameworkElement* InTarget, class
 	return NoesisTriggerAction->Invoke(NoesisInTarget, NoesisInNameScope);
 }
 
+void UNoesisTriggerAction::Seal()
+{
+	Noesis::Gui::TriggerAction* NoesisTriggerAction = NsDynamicCast<Noesis::Gui::TriggerAction*>(NoesisComponent.GetPtr());
+	check(NoesisTriggerAction);
+	return NoesisTriggerAction->Seal();
+}
+
 void UNoesisTriggerAction::BindEvents()
 {
 	Super::BindEvents();

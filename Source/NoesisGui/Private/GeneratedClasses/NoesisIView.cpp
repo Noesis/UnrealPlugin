@@ -44,13 +44,6 @@ FNoesisDrawingSizei UNoesisIView::GetSize()
 	return FNoesisDrawingSizei(NoesisIView->GetSize());
 }
 
-class UNoesisResourceDictionary* UNoesisIView::GetThemeResources()
-{
-	Noesis::Gui::IView* NoesisIView = NsDynamicCast<Noesis::Gui::IView*>(NoesisInterface.GetPtr());
-	check(NoesisIView);
-	return CastChecked<UNoesisResourceDictionary>(Instance->FindUnrealComponentForNoesisComponent(NoesisIView->GetThemeResources()));
-}
-
 void UNoesisIView::MouseMove(int32 InX, int32 InY)
 {
 	Noesis::Gui::IView* NoesisIView = NsDynamicCast<Noesis::Gui::IView*>(NoesisInterface.GetPtr());

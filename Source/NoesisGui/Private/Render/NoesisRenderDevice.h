@@ -42,7 +42,7 @@ public:
 	virtual void UpdateTexture(Noesis::Render::Texture* Texture, NsSize Level, NsSize X, NsSize Y, NsSize Width, NsSize Height, const void* Data) override;
 	virtual void BeginRender(NsBool Offscreen) override;
 	virtual void SetRenderTarget(Noesis::Render::RenderTarget* Surface) override;
-	virtual void BeginTile(const Noesis::Render::Tile& Tile) override;
+	virtual void BeginTile(const Noesis::Render::Tile& Tile, NsSize SurfaceWidth, NsSize SurfaceHeight) override;
 	virtual void EndTile() override;
 	virtual void ResolveRenderTarget(Noesis::Render::RenderTarget* Surface, const Noesis::Render::Tile* Tiles, NsSize NumTiles) override;
 	virtual void EndRender() override;

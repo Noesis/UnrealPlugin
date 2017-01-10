@@ -270,6 +270,13 @@ FNoesisExecutedRoutedEventArgs::FNoesisExecutedRoutedEventArgs(UNoesisInstance* 
 	Parameter = Instance->FindUnrealComponentForNoesisComponent(InArgs.parameter.GetPtr());
 }
 
+FNoesisRequestBringIntoViewEventArgs::FNoesisRequestBringIntoViewEventArgs(UNoesisInstance* Instance, const Noesis::RequestBringIntoViewEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(Instance, InArgs)
+{
+	TargetObject = CastChecked<UNoesisDependencyObject>(Instance->FindUnrealComponentForNoesisComponent(InArgs.targetObject));
+	TargetRect = FNoesisDrawingRect(InArgs.targetRect);
+}
+
 FNoesisEventArgs::FNoesisEventArgs(UNoesisInstance* Instance, const Noesis::EventArgs& InArgs)
 {
 }
