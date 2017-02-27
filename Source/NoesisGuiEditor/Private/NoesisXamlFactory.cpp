@@ -23,6 +23,10 @@
 #include "NoesisGeneratedClasses.h"
 #include "NoesisCreateClass.h"
 
+// FreeType2 includes
+#include "ft2build.h"
+#include FT_FREETYPE_H
+
 // NoesisGuiEditor includes
 #include "NoesisGuiEditorModule.h"
 
@@ -149,14 +153,28 @@ TArray<FFontDescriptor> ParseForFonts(FString XamlText)
 	return FontDescriptors;
 }
 
+unsigned long StreamRead(FT_Stream Stream, unsigned long Offset, unsigned char* Buffer, unsigned long Count)
+{
+	FMemory::Memcpy(Buffer, (uint8*)Stream->descriptor.pointer + Offset, Count);
+	return Count;
+}
+
+void StreamClose(FT_Stream) {}
+
 TArray<UFont*> ImportFonts(FString BasePackageName, FString Path, TArray<FFontDescriptor> FontDescriptors)
 {
 	TArray<UFont*> Fonts;
 
+	TSet<FString> UniqueFontFamilies;
 	for (auto FontDescriptor : FontDescriptors)
 	{
+		UniqueFontFamilies.Add(FontDescriptor.Family);
+	}
+
+	for (auto Family : UniqueFontFamilies)
+	{
 		FString BaseUri, FamilyName;
-		FontDescriptor.Family.Split(TEXT("#"), &BaseUri, &FamilyName);
+		Family.Split(TEXT("#"), &BaseUri, &FamilyName);
 
 		IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 
@@ -168,10 +186,18 @@ TArray<UFont*> ImportFonts(FString BasePackageName, FString Path, TArray<FFontDe
 			FString BaseUri;
 			FString FamilyName;
 			TArray<UFont*> Fonts;
+			FT_Library FTLibrary;
 
 			ScanFolderForFonts(FString InBasePackageName, FString InPath, FString InBaseUri, FString InFamilyName)
 				: BasePackageName(InBasePackageName), Path(InPath), BaseUri(InBaseUri), FamilyName(InFamilyName)
 			{
+				int32 Error = FT_Init_FreeType(&FTLibrary);
+				checkf(Error == 0, TEXT("Could not init Freetype"));
+			}
+
+			~ScanFolderForFonts()
+			{
+				FT_Done_FreeType(FTLibrary);
 			}
 
 			virtual bool Visit(const TCHAR* FilenameOrDirectory, bool IsDirectory) override
@@ -181,11 +207,46 @@ TArray<UFont*> ImportFonts(FString BasePackageName, FString Path, TArray<FFontDe
 					FString Extension = FPaths::GetExtension(FilenameOrDirectory).ToLower();
 					if (Extension == TEXT("ttf") || Extension == TEXT("otf"))
 					{
-						/*Noesis::Ptr<Noesis::Core::Stream> FontStream = Noesis::Core::File::OpenStream(StringCast<NsChar>(FilenameOrDirectory).Get());
+						bool HasFamily = false;
+						TArray<uint8> FileData;
+						if (FFileHelper::LoadFileToArray(FileData, FilenameOrDirectory))
+						{
+							FT_StreamRec Stream;
+							FMemory::Memset(&Stream, 0, sizeof(Stream));
+							Stream.descriptor.pointer = FileData.GetData();
+							Stream.size = FileData.Num();
+							Stream.read = &StreamRead;
+							Stream.close = &StreamClose;
 
-						Noesis::Drawing::FontFaceInfoVector FontFaces;
-						Noesis::Drawing::EnumFontFaces(FontStream, FontFaces);*/
+							FT_Open_Args Args;
+							FMemory::Memset(&Args, 0, sizeof(Args));
+							Args.flags = FT_OPEN_STREAM;
+							Args.stream = &Stream;
 
+							FT_Face Face;
+							FT_Error Error = FT_Open_Face(FTLibrary, &Args, -1, &Face);
+							if (Error == 0)
+							{
+								for (FT_Long FaceIndex = 0; !HasFamily && FaceIndex < Face->num_faces; FaceIndex++)
+								{
+									FT_Face SubFace;
+									Error = FT_Open_Face(FTLibrary, &Args, FaceIndex, &SubFace);
+									if (Error == 0)
+									{
+										if (SubFace->family_name && FCStringAnsi::Strcmp(SubFace->family_name, StringCast<ANSICHAR>(*FamilyName).Get()) == 0)
+										{
+											HasFamily = true;
+										}
+
+										FT_Done_Face(SubFace);
+									}
+								}
+
+								FT_Done_Face(Face);
+							}
+						}
+
+						if (HasFamily)
 						{
 							FString FontName = ObjectTools::SanitizeObjectName(FPaths::GetBaseFilename(FPaths::GetBaseFilename(FilenameOrDirectory)));
 
@@ -275,10 +336,16 @@ TArray<UTexture2D*> ImportImages(FString BasePackageName, FString Path, TArray<F
 	auto TextureFact = NewObject<UTextureFactory>();
 	TextureFact->AddToRoot();
 
+	TSet<FString> UniqueImagePaths;
 	for (auto ImageDescriptor : ImageDescriptors)
 	{
-		FString TexturePath = FPaths::GetPath(ImageDescriptor.Path);
-		FString TextureName = ObjectTools::SanitizeObjectName(FPaths::GetBaseFilename(ImageDescriptor.Path));
+		UniqueImagePaths.Add(ImageDescriptor.Path);
+	}
+
+	for (auto ImagePath : UniqueImagePaths)
+	{
+		FString TexturePath = FPaths::GetPath(ImagePath);
+		FString TextureName = ObjectTools::SanitizeObjectName(FPaths::GetBaseFilename(ImagePath));
 
 		UPackage* TexturePackage = NULL;
 
@@ -302,7 +369,7 @@ TArray<UTexture2D*> ImportImages(FString BasePackageName, FString Path, TArray<F
 
 		TextureFact->SuppressImportOverwriteDialog();
 
-		FString FullFilename = Path / ImageDescriptor.Path;
+		FString FullFilename = Path / ImagePath;
 		bool Cancelled = false;
 		UTexture2D* Texture = (UTexture2D*)TextureFact->ImportObject(UTexture2D::StaticClass(), TexturePackage, *TextureName, RF_Standalone | RF_Public, FullFilename, nullptr, Cancelled);
 

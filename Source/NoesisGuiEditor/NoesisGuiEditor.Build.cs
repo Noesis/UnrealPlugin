@@ -42,6 +42,7 @@ public class NoesisGuiEditor : ModuleRules
 				"AssetRegistry",
 				"Noesis",
 				"NoesisGui",
+				"FreeType2",
 			}
 			);
 
