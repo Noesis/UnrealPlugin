@@ -5,9 +5,6 @@
 
 #pragma once
 
-// CoreUObject includes
-#include "UObject/UObject.h"
-
 // Generated header include
 #include "NoesisInterface.generated.h"
 

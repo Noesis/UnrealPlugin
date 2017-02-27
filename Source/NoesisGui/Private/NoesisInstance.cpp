@@ -28,8 +28,10 @@ void UNoesisInstance::InitInstance()
 	check(NoesisBlueprintGeneratedClass);
 	BaseXaml = NoesisBlueprintGeneratedClass->BaseXaml;
 
-	INoesisGuiModuleInterface::Get()->SetResourceProvider(BaseXaml);
-	Xaml = Noesis::GUI::LoadXaml<Noesis::FrameworkElement>(StringCast<NsChar>(*(BaseXaml->GetPathName() + TEXT(".xaml"))).Get());
+	if (!BaseXaml)
+		return;
+
+	Xaml = Noesis::GUI::LoadXaml<Noesis::FrameworkElement>(StringCast<NsChar>(*(FString::FromInt(BaseXaml->GetUniqueID()) / BaseXaml->GetName() + TEXT(".xaml"))).Get());
 
 	if (Xaml)
 	{
@@ -337,9 +339,9 @@ void UNoesisInstance::BeginDestroy()
 	}
 }
 
-void UNoesisInstance::CustomNativeInitilize()
+void UNoesisInstance::InitializeNativeClassData()
 {
-	Super::CustomNativeInitilize();
+	Super::InitializeNativeClassData();
 
 	InitInstance();
 }

@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include "ObjectBase.h"
 #include "NoesisEnums.generated.h"
 
 UENUM()

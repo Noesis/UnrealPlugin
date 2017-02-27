@@ -322,14 +322,13 @@ void FNoesisRenderDevice::BeginTile(const Noesis::Render::Tile& Tile, NsSize Sur
 		uint32 ScissorMaxY = SurfaceHeight - Tile.y;
 		RHICmdList->SetScissorRect(true, ScissorMinX, ScissorMinY, ScissorMaxX, ScissorMaxY);
 
-		bool bClearColor = true;
-		FLinearColor Color = FLinearColor::Transparent;
-		bool bClearDepth = false;
-		float Depth = 0.f;
-		bool bClearStencil = true;
-		uint32 Stencil = (uint32)0;
 		FIntRect ExcludeRect;
-		RHICmdList->Clear(bClearColor, Color, bClearDepth, Depth, bClearStencil, Stencil, ExcludeRect);
+		FLinearColor Color = FLinearColor::Transparent;
+		RHICmdList->ClearColorTexture(CurrentRenderTarget->ColorTarget, Color, ExcludeRect);
+		EClearDepthStencil ClearDepthStencil = EClearDepthStencil::Stencil;
+		float Depth = 0.f;
+		uint32 Stencil = (uint32)0;
+		RHICmdList->ClearDepthStencilTexture(CurrentRenderTarget->DepthStencilTarget, ClearDepthStencil, Depth, Stencil, ExcludeRect);
 	}
 }
 
@@ -389,73 +388,50 @@ static FSamplerStateRHIParamRef GetSamplerState(uint32 SamplerCode)
 {
 	switch (SamplerCode & 63)
 	{
-	case 0:  return TStaticSamplerState<SF_Point, AM_Wrap, AM_Wrap>::GetRHI();
-	case 1:  return TStaticSamplerState<SF_Point, AM_Mirror, AM_Wrap>::GetRHI();
-	case 2:  return TStaticSamplerState<SF_Point, AM_Clamp, AM_Wrap>::GetRHI();
-	case 3:  return TStaticSamplerState<SF_Point, AM_Border, AM_Wrap>::GetRHI();
+	case 0:  return TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp>::GetRHI();
+	case 1:  return TStaticSamplerState<SF_Point, AM_Border, AM_Border>::GetRHI();
+	case 2:  return TStaticSamplerState<SF_Point, AM_Wrap, AM_Wrap>::GetRHI();
+	case 3:  return TStaticSamplerState<SF_Point, AM_Mirror, AM_Wrap>::GetRHI();
 	case 4:  return TStaticSamplerState<SF_Point, AM_Wrap, AM_Mirror>::GetRHI();
 	case 5:  return TStaticSamplerState<SF_Point, AM_Mirror, AM_Mirror>::GetRHI();
-	case 6:  return TStaticSamplerState<SF_Point, AM_Clamp, AM_Mirror>::GetRHI();
-	case 7:  return TStaticSamplerState<SF_Point, AM_Border, AM_Mirror>::GetRHI();
-	case 8:  return TStaticSamplerState<SF_Point, AM_Wrap, AM_Clamp>::GetRHI();
-	case 9:  return TStaticSamplerState<SF_Point, AM_Mirror, AM_Clamp>::GetRHI();
-	case 10: return TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp>::GetRHI();
-	case 11: return TStaticSamplerState<SF_Point, AM_Border, AM_Clamp>::GetRHI();
-	case 12: return TStaticSamplerState<SF_Point, AM_Wrap, AM_Border>::GetRHI();
-	case 13: return TStaticSamplerState<SF_Point, AM_Mirror, AM_Border>::GetRHI();
-	case 14: return TStaticSamplerState<SF_Point, AM_Clamp, AM_Border>::GetRHI();
-	case 15: return TStaticSamplerState<SF_Point, AM_Border, AM_Border>::GetRHI();
 
-	case 16: return TStaticSamplerState<SF_Bilinear, AM_Wrap, AM_Wrap>::GetRHI();
-	case 17: return TStaticSamplerState<SF_Bilinear, AM_Mirror, AM_Wrap>::GetRHI();
-	case 18: return TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Wrap>::GetRHI();
-	case 19: return TStaticSamplerState<SF_Bilinear, AM_Border, AM_Wrap>::GetRHI();
-	case 20: return TStaticSamplerState<SF_Bilinear, AM_Wrap, AM_Mirror>::GetRHI();
-	case 21: return TStaticSamplerState<SF_Bilinear, AM_Mirror, AM_Mirror>::GetRHI();
-	case 22: return TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Mirror>::GetRHI();
-	case 23: return TStaticSamplerState<SF_Bilinear, AM_Border, AM_Mirror>::GetRHI();
-	case 24: return TStaticSamplerState<SF_Bilinear, AM_Wrap, AM_Clamp>::GetRHI();
-	case 25: return TStaticSamplerState<SF_Bilinear, AM_Mirror, AM_Clamp>::GetRHI();
-	case 26: return TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp>::GetRHI();
-	case 27: return TStaticSamplerState<SF_Bilinear, AM_Border, AM_Clamp>::GetRHI();
-	case 28: return TStaticSamplerState<SF_Bilinear, AM_Wrap, AM_Border>::GetRHI();
-	case 29: return TStaticSamplerState<SF_Bilinear, AM_Mirror, AM_Border>::GetRHI();
-	case 30: return TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Border>::GetRHI();
-	case 31: return TStaticSamplerState<SF_Bilinear, AM_Border, AM_Border>::GetRHI();
+	case 8:  return TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp>::GetRHI();
+	case 9:  return TStaticSamplerState<SF_Bilinear, AM_Border, AM_Border>::GetRHI();
+	case 10:  return TStaticSamplerState<SF_Bilinear, AM_Wrap, AM_Wrap>::GetRHI();
+	case 11:  return TStaticSamplerState<SF_Bilinear, AM_Mirror, AM_Wrap>::GetRHI();
+	case 12:  return TStaticSamplerState<SF_Bilinear, AM_Wrap, AM_Mirror>::GetRHI();
+	case 13:  return TStaticSamplerState<SF_Bilinear, AM_Mirror, AM_Mirror>::GetRHI();
 
-	case 32: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Wrap>::GetRHI();
-	case 33: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Wrap>::GetRHI();
-	case 34: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Wrap>::GetRHI();
-	case 35: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Wrap>::GetRHI();
-	case 36: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Mirror>::GetRHI();
-	case 37: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Mirror>::GetRHI();
-	case 38: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Mirror>::GetRHI();
-	case 39: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Mirror>::GetRHI();
-	case 40: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Clamp>::GetRHI();
-	case 41: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Clamp>::GetRHI();
-	case 42: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Clamp>::GetRHI();
-	case 43: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Clamp>::GetRHI();
-	case 44: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Border>::GetRHI();
-	case 45: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Border>::GetRHI();
-	case 46: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Border>::GetRHI();
-	case 47: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Border>::GetRHI();
+	case 16: return TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp>::GetRHI();
+	case 17: return TStaticSamplerState<SF_Point, AM_Border, AM_Border>::GetRHI();
+	case 18: return TStaticSamplerState<SF_Point, AM_Wrap, AM_Wrap>::GetRHI();
+	case 19: return TStaticSamplerState<SF_Point, AM_Mirror, AM_Wrap>::GetRHI();
+	case 20: return TStaticSamplerState<SF_Point, AM_Wrap, AM_Mirror>::GetRHI();
+	case 21: return TStaticSamplerState<SF_Point, AM_Mirror, AM_Mirror>::GetRHI();
 
-	case 48: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Wrap>::GetRHI();
-	case 49: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Wrap>::GetRHI();
-	case 50: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Wrap>::GetRHI();
-	case 51: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Wrap>::GetRHI();
-	case 52: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Mirror>::GetRHI();
-	case 53: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Mirror>::GetRHI();
-	case 54: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Mirror>::GetRHI();
-	case 55: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Mirror>::GetRHI();
-	case 56: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Clamp>::GetRHI();
-	case 57: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Clamp>::GetRHI();
-	case 58: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Clamp>::GetRHI();
-	case 59: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Clamp>::GetRHI();
-	case 60: return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Border>::GetRHI();
-	case 61: return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Border>::GetRHI();
-	case 62: return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Border>::GetRHI();
-	case 63: return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Border>::GetRHI();
+	case 24: return TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp>::GetRHI();
+	case 25: return TStaticSamplerState<SF_Bilinear, AM_Border, AM_Border>::GetRHI();
+	case 26:  return TStaticSamplerState<SF_Bilinear, AM_Wrap, AM_Wrap>::GetRHI();
+	case 27:  return TStaticSamplerState<SF_Bilinear, AM_Mirror, AM_Wrap>::GetRHI();
+	case 28:  return TStaticSamplerState<SF_Bilinear, AM_Wrap, AM_Mirror>::GetRHI();
+	case 29:  return TStaticSamplerState<SF_Bilinear, AM_Mirror, AM_Mirror>::GetRHI();
+
+	case 32:  return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Clamp>::GetRHI();
+	case 33:  return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Border>::GetRHI();
+	case 34:  return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Wrap>::GetRHI();
+	case 35:  return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Wrap>::GetRHI();
+	case 36:  return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Mirror>::GetRHI();
+	case 37:  return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Mirror>::GetRHI();
+
+	case 40:  return TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Clamp>::GetRHI();
+	case 41:  return TStaticSamplerState<SF_Trilinear, AM_Border, AM_Border>::GetRHI();
+	case 42:  return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Wrap>::GetRHI();
+	case 43:  return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Wrap>::GetRHI();
+	case 44:  return TStaticSamplerState<SF_Trilinear, AM_Wrap, AM_Mirror>::GetRHI();
+	case 45:  return TStaticSamplerState<SF_Trilinear, AM_Mirror, AM_Mirror>::GetRHI();
+
+	default:
+		check(false);
 	}
 
 	return 0;
@@ -566,7 +542,7 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Render::Batch& Batch)
 		{
 			if (Batch.renderState.f.blendMode == Noesis::Render::BlendMode::SrcOver)
 			{
-				RHICmdList->SetBlendState(TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_InverseSourceAlpha>::GetRHI());
+				RHICmdList->SetBlendState(TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_InverseSourceAlpha, BO_Add, BF_One, BF_InverseSourceAlpha>::GetRHI());
 			}
 			else
 			{
@@ -577,7 +553,7 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Render::Batch& Batch)
 		{
 			if (Batch.renderState.f.blendMode == Noesis::Render::BlendMode::SrcOver)
 			{
-				RHICmdList->SetBlendState(TStaticBlendState<CW_NONE, BO_Add, BF_One, BF_InverseSourceAlpha>::GetRHI());
+				RHICmdList->SetBlendState(TStaticBlendState<CW_NONE, BO_Add, BF_One, BF_InverseSourceAlpha, BO_Add, BF_One, BF_InverseSourceAlpha>::GetRHI());
 			}
 			else
 			{

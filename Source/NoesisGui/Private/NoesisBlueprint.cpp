@@ -15,6 +15,7 @@ UNoesisBlueprint::UNoesisBlueprint(const FObjectInitializer& ObjectInitializer)
 	bRecompileOnLoad = false;
 }
 
+#if WITH_EDITOR
 UClass* UNoesisBlueprint::GetBlueprintClass() const
 {
 	return UNoesisBlueprintGeneratedClass::StaticClass();
@@ -24,3 +25,4 @@ bool UNoesisBlueprint::SupportedByDefaultBlueprintFactory() const
 {
 	return false;
 }
+#endif // WITH_EDITOR

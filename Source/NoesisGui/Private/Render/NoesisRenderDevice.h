@@ -10,8 +10,8 @@
 
 class FNoesisRenderDevice : public Noesis::Render::RenderDevice
 {
-	static const uint32 VertexBufferSize = 256 * 1024;
-	static const uint32 IndexBufferSize = 256 * 1024;
+	static const uint32 VertexBufferSize = 4 * 1024 * 1024;
+	static const uint32 IndexBufferSize = 1024 * 1024;
 
 	FVertexBufferRHIRef DynamicVertexBuffer;
 	FIndexBufferRHIRef DynamicIndexBuffer;

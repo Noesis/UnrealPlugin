@@ -73,7 +73,7 @@ class NOESISGUI_API UNoesisInstance : public UUserWidget
 	// End of UObject interface
 
 	// UUserWidget interface
-	virtual void CustomNativeInitilize() override;
+	virtual void InitializeNativeClassData() override;
 	virtual TSharedRef<SWidget> RebuildWidget() override;
 	// End of UUserWidget interface
 };

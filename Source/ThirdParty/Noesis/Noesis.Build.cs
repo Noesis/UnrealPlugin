@@ -29,8 +29,14 @@ public class Noesis : ModuleRules
 
 			Definitions.Add("NOESISGUI_DLL_PATH=\"" + NoesisDllPath + "\"");
 
-			System.IO.Directory.CreateDirectory(UEBuildConfiguration.UEThirdPartyBinariesDirectory + "Noesis/windows_x86_64");
-			System.IO.File.Copy(NoesisBasePath + "Bin/windows_x86_64/Noesis.dll", UEBuildConfiguration.UEThirdPartyBinariesDirectory + "Noesis/windows_x86_64/Noesis.dll", true);
+			try
+			{
+				System.IO.Directory.CreateDirectory(UEBuildConfiguration.UEThirdPartyBinariesDirectory + "Noesis/windows_x86_64");
+				System.IO.File.Copy(NoesisBasePath + "Bin/windows_x86_64/Noesis.dll", UEBuildConfiguration.UEThirdPartyBinariesDirectory + "Noesis/windows_x86_64/Noesis.dll", true);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 }

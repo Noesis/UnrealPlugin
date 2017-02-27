@@ -17,8 +17,10 @@ class NOESISGUI_API UNoesisBlueprint : public UBlueprint
 	GENERATED_UCLASS_BODY()
 
 	// UBlueprint interface
+#if WITH_EDITOR
 	virtual UClass* GetBlueprintClass() const override;
 	virtual bool SupportedByDefaultBlueprintFactory() const override;
+#endif // WITH_EDITOR
 	// End of UBlueprint interface
 
 	UPROPERTY(EditAnywhere, Category = "NoesisGui")

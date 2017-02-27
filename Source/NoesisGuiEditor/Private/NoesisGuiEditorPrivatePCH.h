@@ -29,6 +29,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogNoesisGuiEditor, Verbose, All);
 #include "NoesisGuiSupport.h"
 
 #include "NoesisGuiClasses.h"
+#include "NoesisGuiModule.h"
 
 #include "NoesisGuiEditorClasses.h"
 #include "NoesisGuiEditorModule.h"

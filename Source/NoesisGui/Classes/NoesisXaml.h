@@ -29,7 +29,12 @@ class NOESISGUI_API UNoesisXaml : public UObject
 	TArray<class UNoesisBaseComponent*> Components;
 
 #if WITH_EDITORONLY_DATA
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, Instanced, Category=ImportSettings)
 	class UAssetImportData* AssetImportData;
+
+	// UObject interface
+	virtual void PostInitProperties() override;
+	virtual void GetAssetRegistryTags(TArray<FAssetRegistryTag>& OutTags) const override;
+	// End of UObject interface
 #endif
 };

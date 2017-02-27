@@ -10,6 +10,12 @@
 #include "NoesisGuiResourceManager.h"
 #include "Render/NoesisRenderDevice.h"
 
+#if PLATFORM_WINDOWS
+#include "AllowWindowsPlatformTypes.h"
+#include <DelayImp.h>
+#include "HideWindowsPlatformTypes.h"
+#endif
+
 static void NoesisErrorHandler(const NsChar* Filename, NsSize Line, const NsChar* Desc, NsBool Fatal)
 {
 	if (Fatal)
@@ -18,7 +24,7 @@ static void NoesisErrorHandler(const NsChar* Filename, NsSize Line, const NsChar
 	}
 }
 
-class FNoesisGuiResourceProvider : public Noesis::XamlProvider, public Noesis::TextureProvider, public Noesis::FontProvider
+class FNoesisGuiResourceProvider : public Noesis::XamlProvider, public Noesis::TextureProvider, public Noesis::CachedFontProvider
 {
 public:
 
@@ -39,18 +45,29 @@ public:
 	virtual Noesis::Ptr<Noesis::Render::Texture> LoadTexture(const NsChar* Path, Noesis::Render::RenderDevice* RenderDevice) override;
 	// End of TextureProvider interface
 
-	// FontProvider interface
-	virtual Noesis::Drawing::FontSource MatchFont(const NsChar* BaseUri, const NsChar* FamilyName, Noesis::Drawing::FontWeight Weight, Noesis::Drawing::FontStretch Stretch, Noesis::Drawing::FontStyle Style) override;
-	// End of FontProvider interface
-
-	UNoesisXaml* NoesisXaml;
+	// CachedFontProvider interface
+	virtual void ScanFolder(const NsChar* Folder) override;
+	virtual Noesis::Ptr<Noesis::Core::Stream> OpenFont(const NsChar* Folder, const NsChar* Filename) const override;
+	// End of CachedFontProvider interface
 };
 
 UNoesisXaml* FNoesisGuiResourceProvider::GetXaml(FString XamlPath)
 {
-	//UNoesisXaml** Xaml = NoesisXaml->XamlMap.Find(XamlPath);
-	UNoesisXaml* Xaml = LoadObject<UNoesisXaml>(NULL, *FPaths::GetBaseFilename(XamlPath, false));
-	return Xaml;
+	FString ObjectIDString, Path;
+	ensure(XamlPath.Split(TEXT("/"), &ObjectIDString, &Path));
+	uint32 ObjectID = FCString::Atoi64(*ObjectIDString);
+	FUObjectItem* ObjectItem = GUObjectArray.IndexToObject(ObjectID);
+	UNoesisXaml* BaseXaml = Cast<UNoesisXaml>((UObject*)ObjectItem->Object);
+	if (BaseXaml)
+	{
+		UNoesisXaml** XamlPtr = BaseXaml->XamlMap.Find(Path);
+		if (XamlPtr)
+		{
+			UNoesisXaml* Xaml = *XamlPtr;
+			return Xaml;
+		}
+	}
+	return nullptr;
 }
 
 Noesis::Ptr<Noesis::Core::Stream> FNoesisGuiResourceProvider::LoadXaml(const NsChar* Path)
@@ -66,9 +83,21 @@ Noesis::Ptr<Noesis::Core::Stream> FNoesisGuiResourceProvider::LoadXaml(const NsC
 
 UTexture2D* FNoesisGuiResourceProvider::GetTexture(FString TexturePath)
 {
-	//UTexture2D** Texture = NoesisXaml->TextureMap.Find(TexturePath);
-	UTexture2D* Texture = LoadObject<UTexture2D>(NULL, *FPaths::GetBaseFilename(TexturePath, false));
-	return Texture;
+	FString ObjectIDString, Path;
+	ensure(TexturePath.Split(TEXT("/"), &ObjectIDString, &Path));
+	uint32 ObjectID = FCString::Atoi64(*ObjectIDString);
+	FUObjectItem* ObjectItem = GUObjectArray.IndexToObject(ObjectID);
+	UNoesisXaml* BaseXaml = Cast<UNoesisXaml>((UObject*)ObjectItem->Object);
+	if (BaseXaml)
+	{
+		UTexture2D** TexturePtr = BaseXaml->TextureMap.Find(Path);
+		if (TexturePtr)
+		{
+			UTexture2D* Texture = *TexturePtr;
+			return Texture;
+		}
+	}
+	return nullptr;
 }
 
 Noesis::Drawing::TextureInfo FNoesisGuiResourceProvider::GetTextureInfo(const NsChar* Path)
@@ -88,11 +117,26 @@ Noesis::Ptr<Noesis::Render::Texture> FNoesisGuiResourceProvider::LoadTexture(con
 	return NoesisGuiCreateTexture(GetTexture(Path));
 };
 
-Noesis::Drawing::FontSource FNoesisGuiResourceProvider::MatchFont(const NsChar* BaseUri, const NsChar* FamilyName, Noesis::Drawing::FontWeight Weight, Noesis::Drawing::FontStretch Stretch, Noesis::Drawing::FontStyle Style)
+void FNoesisGuiResourceProvider::ScanFolder(const NsChar* InFolder)
 {
-	Noesis::Drawing::FontSource Source;
-	Source.file = Noesis::Ptr<Noesis::Core::Stream>(nullptr);
-	UFont* Font = LoadObject<UFont>(NULL, *FPaths::GetBaseFilename((FString(BaseUri) + FamilyName).Replace(TEXT(" "), TEXT("_")), false));
+	FString FontPath = FString(InFolder);
+	FString ObjectIDString, Path;
+	ensure(FontPath.Split(TEXT("/"), &ObjectIDString, &Path));
+	uint32 ObjectID = FCString::Atoi64(*ObjectIDString);
+	FUObjectItem* ObjectItem = GUObjectArray.IndexToObject(ObjectID);
+	UNoesisXaml* BaseXaml = Cast<UNoesisXaml>((UObject*)ObjectItem->Object);
+	for (auto Font : BaseXaml->FontMap)
+	{
+		RegisterFont(StringCast<NsChar>(*ObjectIDString).Get(), StringCast<NsChar>(*Font.Key).Get());
+	}
+}
+
+Noesis::Ptr<Noesis::Core::Stream> FNoesisGuiResourceProvider::OpenFont(const NsChar* InFolder, const NsChar* InFilename) const
+{
+	uint32 ObjectID = FCString::Atoi64(*NsStringToFString(InFolder));
+	FUObjectItem* ObjectItem = GUObjectArray.IndexToObject(ObjectID);
+	UNoesisXaml* BaseXaml = Cast<UNoesisXaml>((UObject*)ObjectItem->Object);
+	UFont* Font = *BaseXaml->FontMap.Find(NsStringToFString(InFilename));
 	if (!Font)
 	{
 		Font = GEngine->GetMediumFont();
@@ -102,13 +146,46 @@ Noesis::Drawing::FontSource FNoesisGuiResourceProvider::MatchFont(const NsChar* 
 	const FTypefaceEntry* TypefaceEntry = &Typeface->Fonts[0];
 	const FFontData* FontData = &TypefaceEntry->Font;
 	const UFontBulkData* FontBulkData = FontData->BulkDataPtr;
-	int32 FontDataSize = 0;
-	const void* FontDataBytes = FontBulkData->Lock(FontDataSize);
-	Source.file = Noesis::Ptr<Noesis::Core::Stream>(*new Noesis::Core::MemoryStream(FontDataBytes, (NsSize)FontDataSize));
-	FontBulkData->Unlock();
-	Source.faceIndex = 0;
-	return Source;
+	class FontBulkDataMemoryStream : public Noesis::Core::MemoryStream
+	{
+	public:
+		FontBulkDataMemoryStream(const UFontBulkData* InFontBulkData)
+			: Noesis::Core::MemoryStream(InFontBulkData->Lock(FontDataSize), (NsSize)InFontBulkData->GetBulkDataSize())
+			, FontBulkData(InFontBulkData)
+		{
+		}
+
+		virtual ~FontBulkDataMemoryStream()
+		{
+			FontBulkData->Unlock();
+		}
+
+	private:
+		const UFontBulkData* FontBulkData;
+		int32 FontDataSize;
+	};
+	return Noesis::Ptr<Noesis::Core::Stream>(*new FontBulkDataMemoryStream(FontBulkData));
 }
+
+
+
+#if PLATFORM_WINDOWS
+extern "C" FARPROC WINAPI delayLoadHook(uint32 dliNotify, PDelayLoadInfo pdli)
+{
+	if (dliNotify == dliNotePreLoadLibrary && FCStringAnsi::Stricmp(pdli->szDll, "Noesis.dll") == 0)
+	{
+		FString NoesisDllPath = FPaths::EngineDir() / TEXT(NOESISGUI_DLL_PATH);
+		FPlatformProcess::PushDllDirectory(*FPaths::GetPath(NoesisDllPath));
+		void* DllHandle = FPlatformProcess::GetDllHandle(*NoesisDllPath);
+		FPlatformProcess::PopDllDirectory(*FPaths::GetPath(NoesisDllPath));
+		return (FARPROC)DllHandle;
+	}
+
+	return NULL;
+}
+
+const PfnDliHook __pfnDliNotifyHook2 = delayLoadHook;
+#endif
 
 class FNoesisGuiModule : public INoesisGuiModuleInterface
 {
@@ -116,14 +193,10 @@ public:
 	// IModuleInterface interface
 	virtual void StartupModule() override
 	{
-		FString NoesisDllPath = FPaths::EngineDir() / TEXT(NOESISGUI_DLL_PATH);
-		FPlatformProcess::PushDllDirectory(*FPaths::GetPath(NoesisDllPath));
-		FPlatformProcess::GetDllHandle(*NoesisDllPath);
-		FPlatformProcess::PopDllDirectory(*FPaths::GetPath(NoesisDllPath));
 		Noesis::GUI::Init(&NoesisErrorHandler);
 
 		NoesisGuiResourceProvider = new FNoesisGuiResourceProvider();
-		SetResourceProvider(nullptr);
+		SetResourceProvider();
 
 		NoesisGuiModuleInterface = this;
 	}
@@ -141,9 +214,8 @@ public:
 	// End of IModuleInterface interface
 
 	// INoesisGuiModuleInterface interface
-	virtual void SetResourceProvider(UNoesisXaml* NoesisXaml) override
+	virtual void SetResourceProvider() override
 	{
-		NoesisGuiResourceProvider->NoesisXaml = NoesisXaml;
 		Noesis::Gui::Provider NoesisGuiProvider = { NoesisGuiResourceProvider, NoesisGuiResourceProvider, NoesisGuiResourceProvider };
 		Noesis::GUI::SetResourceProvider(NoesisGuiProvider);
 	}
