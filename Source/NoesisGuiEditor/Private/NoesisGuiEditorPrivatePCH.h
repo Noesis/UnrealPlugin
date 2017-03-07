@@ -11,7 +11,10 @@
 #include "UnrealEd.h"
 #include "ObjectTools.h"
 
+// Kismet2 includes
+#include "KismetEditorUtilities.h"
 #include "KismetCompiler.h"
+
 #include "BlueprintGraphModule.h"
 #include "AssetRegistryModule.h"
 

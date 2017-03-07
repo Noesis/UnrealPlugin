@@ -75,7 +75,7 @@ void FNoesisBlueprintCompilerContext::CreateClassVariablesFromBlueprint()
 		}
 		if (Component->ElementName != NAME_None)
 		{
-			FEdGraphPinType PinType(Schema->PC_Object, TEXT(""), Component->GetClass(), false, false);
+			FEdGraphPinType PinType(Schema->PC_Object, TEXT(""), Component->GetClass(), false, false, false, false, FEdGraphTerminalType());
 			UProperty* Property = CreateVariable(Component->ElementName, PinType);
 			if (Property != nullptr)
 			{

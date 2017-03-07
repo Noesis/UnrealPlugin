@@ -6,7 +6,7 @@
 	"VersionName" : "1.0",
 	"CreatedBy" : "Noesis Technologies S.L.",
 	"CreatedByURL" : "http://www.noesisengine.com",
-	"EngineVersion" : "4.14.0",
+	"EngineVersion" : "4.15.0",
 	"Description" : "NoesisGui is our user interface framework built on hardware accelerated vector graphics.",
 	"Category" : "GUI",
 	"EnabledByDefault" : true,

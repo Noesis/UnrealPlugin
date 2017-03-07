@@ -476,3 +476,5 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 
 	return NoesisXaml;
 }
+
+#undef LOCTEXT_NAMESPACE

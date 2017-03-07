@@ -81,3 +81,5 @@ int32 UNoesisXamlReimportFactory::GetPriority() const
 {
 	return ImportPriority;
 }
+
+#undef LOCTEXT_NAMESPACE

@@ -33,3 +33,5 @@ UObject* UNoesisBlueprintFactory::FactoryCreateNew(UClass* Class, UObject* Paren
 		return CastChecked<UNoesisBlueprint>(FKismetEditorUtilities::CreateBlueprint(ParentClass, Parent, Name, BPTYPE_Normal, UNoesisBlueprint::StaticClass(), UNoesisBlueprintGeneratedClass::StaticClass(), "UNoesisBlueprintFactory"));
 	}
 }
+
+#undef LOCTEXT_NAMESPACE

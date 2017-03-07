@@ -9,6 +9,9 @@
 #include "CoreUObject.h"
 #include "Engine.h"
 
+// Engine includes
+#include "EngineClasses.h"
+
 DECLARE_LOG_CATEGORY_EXTERN(LogNoesisGui, Verbose, All);
 
 #pragma push_macro("GetCurrentTime")

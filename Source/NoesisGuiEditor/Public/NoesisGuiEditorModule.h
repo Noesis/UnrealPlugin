@@ -5,7 +5,7 @@
 
 #pragma once
 
-#define NOESISGUI_MODULE_NAME "NoesisGuiEditor"
+#define NOESISGUIEDITOR_MODULE_NAME "NoesisGuiEditor"
 
 class NOESISGUIEDITOR_API INoesisGuiEditorModuleInterface : public IModuleInterface
 {

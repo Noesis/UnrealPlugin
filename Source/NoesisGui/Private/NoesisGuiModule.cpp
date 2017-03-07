@@ -145,26 +145,11 @@ Noesis::Ptr<Noesis::Core::Stream> FNoesisGuiResourceProvider::OpenFont(const NsC
 	const FTypeface* Typeface = &CompositeFont->DefaultTypeface;
 	const FTypefaceEntry* TypefaceEntry = &Typeface->Fonts[0];
 	const FFontData* FontData = &TypefaceEntry->Font;
-	const UFontBulkData* FontBulkData = FontData->BulkDataPtr;
-	class FontBulkDataMemoryStream : public Noesis::Core::MemoryStream
-	{
-	public:
-		FontBulkDataMemoryStream(const UFontBulkData* InFontBulkData)
-			: Noesis::Core::MemoryStream(InFontBulkData->Lock(FontDataSize), (NsSize)InFontBulkData->GetBulkDataSize())
-			, FontBulkData(InFontBulkData)
-		{
-		}
-
-		virtual ~FontBulkDataMemoryStream()
-		{
-			FontBulkData->Unlock();
-		}
-
-	private:
-		const UFontBulkData* FontBulkData;
-		int32 FontDataSize;
-	};
-	return Noesis::Ptr<Noesis::Core::Stream>(*new FontBulkDataMemoryStream(FontBulkData));
+	const UFontFace* FontFace = Cast<UFontFace>(FontData->GetFontFaceAsset());
+	const FFontFaceDataRef FontFaceDataRef = FontFace->FontFaceData;
+	const FFontFaceData& FontFaceData = FontFaceDataRef.Get();
+	const TArray<uint8>& FontFaceDataArray = FontFaceData.GetData();
+	return Noesis::Ptr<Noesis::Core::Stream>(*new Noesis::Core::MemoryStream(FontFaceDataArray.GetData(), FontFaceDataArray.Num()));
 }
 
 

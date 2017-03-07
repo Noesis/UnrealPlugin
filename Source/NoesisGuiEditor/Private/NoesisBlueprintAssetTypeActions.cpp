@@ -56,3 +56,5 @@ uint32 FNoesisBlueprintAssetTypeActions::GetCategories()
 {
 	return EAssetTypeCategories::Misc;
 }
+
+#undef LOCTEXT_NAMESPACE
