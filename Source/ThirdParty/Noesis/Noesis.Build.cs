@@ -12,7 +12,7 @@ public class Noesis : ModuleRules
 	{
 		Type = ModuleType.External;
 
-		string NoesisBasePath = ModuleDirectory + "/NoesisGUI-SDK1.3/";
+		string NoesisBasePath = ModuleDirectory + "/NoesisGUI-NativeSDK-2.0.0f1/";
 		string NoesisIncludePath = NoesisBasePath + "Include/";
 
 		PublicSystemIncludePaths.Add(NoesisIncludePath);
