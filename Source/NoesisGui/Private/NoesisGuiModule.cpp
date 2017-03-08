@@ -127,16 +127,22 @@ void FNoesisGuiResourceProvider::ScanFolder(const NsChar* InFolder)
 	UNoesisXaml* BaseXaml = Cast<UNoesisXaml>((UObject*)ObjectItem->Object);
 	for (auto Font : BaseXaml->FontMap)
 	{
-		RegisterFont(StringCast<NsChar>(*ObjectIDString).Get(), StringCast<NsChar>(*Font.Key).Get());
+		FString BaseUri, FamilyName;
+		Font.Key.Split(TEXT("#"), &BaseUri, &FamilyName);
+		RegisterFont(InFolder, StringCast<NsChar>(*FamilyName).Get());
 	}
 }
 
 Noesis::Ptr<Noesis::Core::Stream> FNoesisGuiResourceProvider::OpenFont(const NsChar* InFolder, const NsChar* InFilename) const
 {
+	FString FontPath = FString(InFolder);
+	FString ObjectIDString, Path;
+	ensure(FontPath.Split(TEXT("/"), &ObjectIDString, &Path));
 	uint32 ObjectID = FCString::Atoi64(*NsStringToFString(InFolder));
 	FUObjectItem* ObjectItem = GUObjectArray.IndexToObject(ObjectID);
 	UNoesisXaml* BaseXaml = Cast<UNoesisXaml>((UObject*)ObjectItem->Object);
-	UFont* Font = *BaseXaml->FontMap.Find(NsStringToFString(InFilename));
+	FString FamilyName = (Path.IsEmpty() ? TEXT("#") : Path + TEXT("/#")) + NsStringToFString(InFilename);
+	UFont* Font = *BaseXaml->FontMap.Find(FamilyName);
 	if (!Font)
 	{
 		Font = GEngine->GetMediumFont();

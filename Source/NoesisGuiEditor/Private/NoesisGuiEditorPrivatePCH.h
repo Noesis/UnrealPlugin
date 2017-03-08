@@ -11,6 +11,12 @@
 #include "UnrealEd.h"
 #include "ObjectTools.h"
 
+// Engine includes
+#include "EngineClasses.h"
+
+// UnrealEd includes
+#include "AutomatedAssetImportData.h"
+
 // Kismet2 includes
 #include "KismetEditorUtilities.h"
 #include "KismetCompiler.h"
