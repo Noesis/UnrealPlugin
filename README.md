@@ -27,3 +27,8 @@ Upgrade notes for 0.2
 ---------------------
 
 Many classes have been renamed from NoesisGui to simply Noesis. If you had native C++ classes that inherited from these, you'll have to modify your code. If you have existing assets, you'll have to add class redirects from the old classes to the new. The file Engine.ini contains the redirects. You can add them to your BaseEngine.ini file or your project's DefaultEngine.ini files.
+
+Known issues
+------------
+
+There's a problem with delay load DLLs that will be addressed in an upcoming release. At the moment it means that the Noesis SDK DLL (Noesis.dll) is loaded normally, which means it must be in the same directory as the exe. The build script copies it to the right directory for modular (Editor) builds. For monolothic builds (by default, all configurations without editor) the DLL must be copied manually.
