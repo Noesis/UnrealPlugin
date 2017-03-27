@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisColorAnimationUsingKeyFrames.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisColorAnimationUsingKeyFrames::UNoesisColorAnimationUsingKeyFrames(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Color>::StaticGetClassType();
 }
 
 void UNoesisColorAnimationUsingKeyFrames::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisColorAnimationUsingKeyFrames::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Color>* NoesisColorAnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Color>*>(NoesisComponent.GetPtr());
-	check(NoesisColorAnimationUsingKeyFrames)
+	check(NoesisColorAnimationUsingKeyFrames);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisColorAnimationUsingKeyFrames::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Color>* NoesisColorAnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<Noesis::Drawing::Color>*>(NoesisComponent.GetPtr());
-	check(NoesisColorAnimationUsingKeyFrames)
+	check(NoesisColorAnimationUsingKeyFrames);
 
 
 }

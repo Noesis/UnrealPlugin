@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisResourceDictionaryCollection.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisResourceDictionaryCollection::UNoesisResourceDictionaryCollection(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TypedCollection<Noesis::Gui::ResourceDictionary>::StaticGetClassType();
 }
 
 void UNoesisResourceDictionaryCollection::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisResourceDictionaryCollection::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TypedCollection<Noesis::Gui::ResourceDictionary>* NoesisResourceDictionaryCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::ResourceDictionary>*>(NoesisComponent.GetPtr());
-	check(NoesisResourceDictionaryCollection)
+	check(NoesisResourceDictionaryCollection);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisResourceDictionaryCollection::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TypedCollection<Noesis::Gui::ResourceDictionary>* NoesisResourceDictionaryCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::ResourceDictionary>*>(NoesisComponent.GetPtr());
-	check(NoesisResourceDictionaryCollection)
+	check(NoesisResourceDictionaryCollection);
 
 
 }

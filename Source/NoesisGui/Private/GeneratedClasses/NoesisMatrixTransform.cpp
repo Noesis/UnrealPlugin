@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisMatrixTransform.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisMatrixTransform::UNoesisMatrixTransform(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::MatrixTransform::StaticGetClassType();
 }
 
 void UNoesisMatrixTransform::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisMatrixTransform::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::MatrixTransform* NoesisMatrixTransform = NsDynamicCast<Noesis::Gui::MatrixTransform*>(NoesisComponent.GetPtr());
-	check(NoesisMatrixTransform)
+	check(NoesisMatrixTransform);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisMatrixTransform::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::MatrixTransform* NoesisMatrixTransform = NsDynamicCast<Noesis::Gui::MatrixTransform*>(NoesisComponent.GetPtr());
-	check(NoesisMatrixTransform)
+	check(NoesisMatrixTransform);
 
 
 }

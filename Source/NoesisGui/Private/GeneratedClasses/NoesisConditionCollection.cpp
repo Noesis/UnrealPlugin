@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisConditionCollection.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisConditionCollection::UNoesisConditionCollection(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TypedCollection<Noesis::Gui::Condition>::StaticGetClassType();
 }
 
 void UNoesisConditionCollection::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisConditionCollection::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TypedCollection<Noesis::Gui::Condition>* NoesisConditionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::Condition>*>(NoesisComponent.GetPtr());
-	check(NoesisConditionCollection)
+	check(NoesisConditionCollection);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisConditionCollection::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TypedCollection<Noesis::Gui::Condition>* NoesisConditionCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::Condition>*>(NoesisComponent.GetPtr());
-	check(NoesisConditionCollection)
+	check(NoesisConditionCollection);
 
 
 }

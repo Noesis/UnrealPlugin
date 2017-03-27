@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisPointKeyFrame.h"
 #include "NoesisEasingPointKeyFrame.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisEasingPointKeyFrame : public UNoesisPointKeyFrame
 {
 public:

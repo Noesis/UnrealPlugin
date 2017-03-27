@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisBooleanKeyFrame.h"
 #include "NoesisDiscreteBooleanKeyFrame.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisDiscreteBooleanKeyFrame : public UNoesisBooleanKeyFrame
 {
 public:

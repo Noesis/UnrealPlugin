@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisTickBar.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisTickBar::UNoesisTickBar(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TickBar::StaticGetClassType();
 }
 
 void UNoesisTickBar::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisBrush* UNoesisTickBar::GetFill()
 {
 	Noesis::Gui::TickBar* NoesisTickBar = NsDynamicCast<Noesis::Gui::TickBar*>(NoesisComponent.GetPtr());
 	check(NoesisTickBar);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisTickBar->GetFill()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisTickBar->GetFill(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisTickBar::SetFill(class UNoesisBrush* InFill)
@@ -181,7 +184,7 @@ void UNoesisTickBar::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TickBar* NoesisTickBar = NsDynamicCast<Noesis::Gui::TickBar*>(NoesisComponent.GetPtr());
-	check(NoesisTickBar)
+	check(NoesisTickBar);
 
 
 }
@@ -191,7 +194,7 @@ void UNoesisTickBar::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TickBar* NoesisTickBar = NsDynamicCast<Noesis::Gui::TickBar*>(NoesisComponent.GetPtr());
-	check(NoesisTickBar)
+	check(NoesisTickBar);
 
 
 }

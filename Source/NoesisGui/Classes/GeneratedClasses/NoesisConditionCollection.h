@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisCollection.h"
 #include "NoesisConditionCollection.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisConditionCollection : public UNoesisCollection
 {
 public:

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisToolBarOverflowPanel.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisToolBarOverflowPanel::UNoesisToolBarOverflowPanel(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ToolBarOverflowPanel::StaticGetClassType();
 }
 
 void UNoesisToolBarOverflowPanel::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -41,7 +44,7 @@ void UNoesisToolBarOverflowPanel::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ToolBarOverflowPanel* NoesisToolBarOverflowPanel = NsDynamicCast<Noesis::Gui::ToolBarOverflowPanel*>(NoesisComponent.GetPtr());
-	check(NoesisToolBarOverflowPanel)
+	check(NoesisToolBarOverflowPanel);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisToolBarOverflowPanel::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ToolBarOverflowPanel* NoesisToolBarOverflowPanel = NsDynamicCast<Noesis::Gui::ToolBarOverflowPanel*>(NoesisComponent.GetPtr());
-	check(NoesisToolBarOverflowPanel)
+	check(NoesisToolBarOverflowPanel);
 
 
 }

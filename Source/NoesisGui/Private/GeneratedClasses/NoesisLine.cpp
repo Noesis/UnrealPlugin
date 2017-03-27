@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisLine.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisLine::UNoesisLine(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Line::StaticGetClassType();
 }
 
 void UNoesisLine::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -83,7 +86,7 @@ void UNoesisLine::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Line* NoesisLine = NsDynamicCast<Noesis::Gui::Line*>(NoesisComponent.GetPtr());
-	check(NoesisLine)
+	check(NoesisLine);
 
 
 }
@@ -93,7 +96,7 @@ void UNoesisLine::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Line* NoesisLine = NsDynamicCast<Noesis::Gui::Line*>(NoesisComponent.GetPtr());
-	check(NoesisLine)
+	check(NoesisLine);
 
 
 }

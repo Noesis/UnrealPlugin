@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisICommandSource.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisICommandSource : public UNoesisInterface
 {
 public:
@@ -20,13 +20,13 @@ public:
 	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisICommand* GetCommand();
+	class UNoesisICommand* GetCommand();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisBaseComponent* GetCommandParameter();
+	class UNoesisBaseComponent* GetCommandParameter();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisUIElement* GetCommandTarget();
+	class UNoesisUIElement* GetCommandTarget();
 
 protected:
 

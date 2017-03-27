@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisGeometry.h"
 #include "NoesisLineGeometry.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisLineGeometry : public UNoesisGeometry
 {
 public:

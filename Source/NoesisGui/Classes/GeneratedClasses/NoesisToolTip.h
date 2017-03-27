@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisContentControl.h"
 #include "NoesisToolTip.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisToolTip : public UNoesisContentControl
 {
 public:
@@ -68,7 +68,7 @@ public:
 	void SetVerticalOffset(float InVerticalOffset);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-UNoesisPopup* GetPopup();
+	UNoesisPopup* GetPopup();
 
 protected:
 

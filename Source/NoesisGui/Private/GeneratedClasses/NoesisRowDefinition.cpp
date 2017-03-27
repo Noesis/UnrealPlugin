@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisRowDefinition.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisRowDefinition::UNoesisRowDefinition(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::RowDefinition::StaticGetClassType();
 }
 
 void UNoesisRowDefinition::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -69,7 +72,7 @@ void UNoesisRowDefinition::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::RowDefinition* NoesisRowDefinition = NsDynamicCast<Noesis::Gui::RowDefinition*>(NoesisComponent.GetPtr());
-	check(NoesisRowDefinition)
+	check(NoesisRowDefinition);
 
 
 }
@@ -79,7 +82,7 @@ void UNoesisRowDefinition::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::RowDefinition* NoesisRowDefinition = NsDynamicCast<Noesis::Gui::RowDefinition*>(NoesisComponent.GetPtr());
-	check(NoesisRowDefinition)
+	check(NoesisRowDefinition);
 
 
 }

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisThumb.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisThumb::UNoesisThumb(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Thumb::StaticGetClassType();
 }
 
 void UNoesisThumb::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -38,28 +41,28 @@ void UNoesisThumb::CancelDrag()
 
 void UNoesisThumb::DragCompleted_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DragCompletedEventArgs& InArgs)
 {
-	if (!DragCompleted.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!DragCompleted.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisDragCompletedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisDragCompletedEventArgs Args(InArgs);
 	DragCompleted.Broadcast(Sender, Args);
 }
 
 void UNoesisThumb::DragDelta_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DragDeltaEventArgs& InArgs)
 {
-	if (!DragDelta.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!DragDelta.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisDragDeltaEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisDragDeltaEventArgs Args(InArgs);
 	DragDelta.Broadcast(Sender, Args);
 }
 
 void UNoesisThumb::DragStarted_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DragStartedEventArgs& InArgs)
 {
-	if (!DragStarted.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!DragStarted.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisDragStartedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisDragStartedEventArgs Args(InArgs);
 	DragStarted.Broadcast(Sender, Args);
 }
 
@@ -68,23 +71,14 @@ void UNoesisThumb::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Thumb* NoesisThumb = NsDynamicCast<Noesis::Gui::Thumb*>(NoesisComponent.GetPtr());
-	check(NoesisThumb)
+	check(NoesisThumb);
 
 	DragCompleted_Delegate = Noesis::MakeDelegate(this, &UNoesisThumb::DragCompleted_Private);
-	if (DragCompleted.IsBound())
-	{
-		NoesisThumb->DragCompleted() += DragCompleted_Delegate;
-	}
+	NoesisThumb->DragCompleted() += DragCompleted_Delegate;
 	DragDelta_Delegate = Noesis::MakeDelegate(this, &UNoesisThumb::DragDelta_Private);
-	if (DragDelta.IsBound())
-	{
-		NoesisThumb->DragDelta() += DragDelta_Delegate;
-	}
+	NoesisThumb->DragDelta() += DragDelta_Delegate;
 	DragStarted_Delegate = Noesis::MakeDelegate(this, &UNoesisThumb::DragStarted_Private);
-	if (DragStarted.IsBound())
-	{
-		NoesisThumb->DragStarted() += DragStarted_Delegate;
-	}
+	NoesisThumb->DragStarted() += DragStarted_Delegate;
 
 }
 
@@ -93,20 +87,11 @@ void UNoesisThumb::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Thumb* NoesisThumb = NsDynamicCast<Noesis::Gui::Thumb*>(NoesisComponent.GetPtr());
-	check(NoesisThumb)
+	check(NoesisThumb);
 
-	if (DragCompleted.IsBound())
-	{
-		NoesisThumb->DragCompleted() -= DragCompleted_Delegate;
-	}
-	if (DragDelta.IsBound())
-	{
-		NoesisThumb->DragDelta() -= DragDelta_Delegate;
-	}
-	if (DragStarted.IsBound())
-	{
-		NoesisThumb->DragStarted() -= DragStarted_Delegate;
-	}
+	NoesisThumb->DragCompleted() -= DragCompleted_Delegate;
+	NoesisThumb->DragDelta() -= DragDelta_Delegate;
+	NoesisThumb->DragStarted() -= DragStarted_Delegate;
 
 }
 

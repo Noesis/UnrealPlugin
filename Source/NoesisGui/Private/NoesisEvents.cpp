@@ -8,14 +8,14 @@
 #include "NoesisInstance.h"
 #include "NoesisGeneratedClasses.h"
 
-FNoesisRoutedEventArgs::FNoesisRoutedEventArgs(UNoesisInstance* Instance, const Noesis::RoutedEventArgs& InArgs)
+FNoesisRoutedEventArgs::FNoesisRoutedEventArgs(const Noesis::RoutedEventArgs& InArgs)
 {
-	Source = Instance->FindUnrealComponentForNoesisComponent(InArgs.source);
-	RoutedEvent = InArgs.routedEvent ? CastChecked<UNoesisRoutedEvent>(Instance->FindUnrealComponentForNoesisComponent(InArgs.routedEvent)) : nullptr;
+	Source = CreateClassFor(InArgs.source, nullptr);
+	RoutedEvent = CastChecked<UNoesisRoutedEvent>(CreateClassFor(InArgs.routedEvent, nullptr), ECastCheckedType::NullAllowed);
 }
 
-FNoesisMouseEventArgs::FNoesisMouseEventArgs(UNoesisInstance* Instance, const Noesis::MouseEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisMouseEventArgs::FNoesisMouseEventArgs(const Noesis::MouseEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
 	Position = FNoesisDrawingPoint(InArgs.position);
 	LeftButton = (ENoesisMouseButtonState)InArgs.leftButton;
@@ -25,58 +25,58 @@ FNoesisMouseEventArgs::FNoesisMouseEventArgs(UNoesisInstance* Instance, const No
 	XButton2Button = (ENoesisMouseButtonState)InArgs.xButton2Button;
 }
 
-FNoesisMouseButtonEventArgs::FNoesisMouseButtonEventArgs(UNoesisInstance* Instance, const Noesis::MouseButtonEventArgs& InArgs)
-	: FNoesisMouseEventArgs(Instance, InArgs)
+FNoesisMouseButtonEventArgs::FNoesisMouseButtonEventArgs(const Noesis::MouseButtonEventArgs& InArgs)
+	: FNoesisMouseEventArgs(InArgs)
 {
 	ChangedButton = (ENoesisMouseButton)InArgs.changedButton;
 	ButtonState = (ENoesisMouseButtonState)InArgs.buttonState;
 	ButtonClicks = (int32)InArgs.buttonClicks;
 }
 
-FNoesisMouseWheelEventArgs::FNoesisMouseWheelEventArgs(UNoesisInstance* Instance, const Noesis::MouseWheelEventArgs& InArgs)
-	: FNoesisMouseEventArgs(Instance, InArgs)
+FNoesisMouseWheelEventArgs::FNoesisMouseWheelEventArgs(const Noesis::MouseWheelEventArgs& InArgs)
+	: FNoesisMouseEventArgs(InArgs)
 {
 	WheelRotation = (int32)InArgs.wheelRotation;
 }
 
-FNoesisTouchEventArgs::FNoesisTouchEventArgs(UNoesisInstance* Instance, const Noesis::TouchEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisTouchEventArgs::FNoesisTouchEventArgs(const Noesis::TouchEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
 	TouchPoint = FNoesisDrawingPoint(InArgs.touchPoint);
 	TouchDevice = (int32)InArgs.touchDevice;
 }
 
-FNoesisDragCompletedEventArgs::FNoesisDragCompletedEventArgs(UNoesisInstance* Instance, const Noesis::DragCompletedEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisDragCompletedEventArgs::FNoesisDragCompletedEventArgs(const Noesis::DragCompletedEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
 	Canceled = InArgs.canceled;
 	HorizontalChange = InArgs.horizontalChange;
 	VerticalChange = InArgs.verticalChange;
 }
 
-FNoesisDragStartedEventArgs::FNoesisDragStartedEventArgs(UNoesisInstance* Instance, const Noesis::DragStartedEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisDragStartedEventArgs::FNoesisDragStartedEventArgs(const Noesis::DragStartedEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
 	HorizontalOffset = InArgs.horizontalOffset;
 	VerticalOffset = InArgs.verticalOffset;
 }
 
-FNoesisSelectionChangedEventArgs::FNoesisSelectionChangedEventArgs(UNoesisInstance* Instance, const Noesis::SelectionChangedEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisSelectionChangedEventArgs::FNoesisSelectionChangedEventArgs(const Noesis::SelectionChangedEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
 	for (auto Item : InArgs.addedItems)
 	{
-		AddedItems.Add(Instance->FindUnrealComponentForNoesisComponent(Item.GetPtr()));
+		AddedItems.Add(CreateClassFor(Item.GetPtr(), nullptr));
 	}
 
 	for (auto Item : InArgs.removedItems)
 	{
-		RemovedItems.Add(Instance->FindUnrealComponentForNoesisComponent(Item.GetPtr()));
+		RemovedItems.Add(CreateClassFor(Item.GetPtr(), nullptr));
 	}
 }
 
-FNoesisSizeChangedEventArgs::FNoesisSizeChangedEventArgs(UNoesisInstance* Instance, const Noesis::SizeChangedEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisSizeChangedEventArgs::FNoesisSizeChangedEventArgs(const Noesis::SizeChangedEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
 	NewSize = FNoesisDrawingSize(InArgs.sizeChangedInfo.newSize);
 	PreviousSize = FNoesisDrawingSize(InArgs.sizeChangedInfo.previousSize);
@@ -84,45 +84,45 @@ FNoesisSizeChangedEventArgs::FNoesisSizeChangedEventArgs(UNoesisInstance* Instan
 	HeightChanged = InArgs.sizeChangedInfo.heightChanged;
 }
 
-FNoesisKeyboardFocusChangedEventArgs::FNoesisKeyboardFocusChangedEventArgs(UNoesisInstance* Instance, const Noesis::KeyboardFocusChangedEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisKeyboardFocusChangedEventArgs::FNoesisKeyboardFocusChangedEventArgs(const Noesis::KeyboardFocusChangedEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
-	OldFocus = InArgs.oldFocus ? CastChecked<UNoesisUIElement>(Instance->FindUnrealComponentForNoesisComponent(InArgs.oldFocus)) : nullptr;
-	NewFocus = InArgs.newFocus ? CastChecked<UNoesisUIElement>(Instance->FindUnrealComponentForNoesisComponent(InArgs.newFocus)) : nullptr;
+	OldFocus = CastChecked<UNoesisUIElement>(CreateClassFor(InArgs.oldFocus, nullptr), ECastCheckedType::NullAllowed);
+	NewFocus = CastChecked<UNoesisUIElement>(CreateClassFor(InArgs.newFocus, nullptr), ECastCheckedType::NullAllowed);
 }
 
-FNoesisScrollEventArgs::FNoesisScrollEventArgs(UNoesisInstance* Instance, const Noesis::ScrollEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisScrollEventArgs::FNoesisScrollEventArgs(const Noesis::ScrollEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
 	NewValue = InArgs.newValue;
 	ScrollEventType = (ENoesisScrollEventType)InArgs.scrollEventType;
 }
 
-FNoesisTextCompositionEventArgs::FNoesisTextCompositionEventArgs(UNoesisInstance* Instance, const Noesis::TextCompositionEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisTextCompositionEventArgs::FNoesisTextCompositionEventArgs(const Noesis::TextCompositionEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
 	Character = (int32)InArgs.ch;
 }
 
-FNoesisContextMenuEventArgs::FNoesisContextMenuEventArgs(UNoesisInstance* Instance, const Noesis::ContextMenuEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisContextMenuEventArgs::FNoesisContextMenuEventArgs(const Noesis::ContextMenuEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
-	Owner = InArgs.owner.GetPtr() ? CastChecked<UNoesisUIElement>(Instance->FindUnrealComponentForNoesisComponent(InArgs.owner.GetPtr())) : nullptr;
+	Owner = CastChecked<UNoesisUIElement>(CreateClassFor(InArgs.owner.GetPtr(), nullptr), ECastCheckedType::NullAllowed);
 	CursorLeft = InArgs.cursorLeft;
 	CursorTop = InArgs.cursorTop;
 }
 
-FNoesisKeyEventArgs::FNoesisKeyEventArgs(UNoesisInstance* Instance, const Noesis::KeyEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisKeyEventArgs::FNoesisKeyEventArgs(const Noesis::KeyEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
 	Key = (ENoesisKey)InArgs.key;
 	KeyStates = (int32)InArgs.keyStates;
 }
 
-FNoesisManipulationStartingEventArgs::FNoesisManipulationStartingEventArgs(UNoesisInstance* Instance, const Noesis::ManipulationStartingEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisManipulationStartingEventArgs::FNoesisManipulationStartingEventArgs(const Noesis::ManipulationStartingEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
-	ManipulationContainer = InArgs.manipulationContainer ? CastChecked<UNoesisVisual>(Instance->FindUnrealComponentForNoesisComponent(InArgs.manipulationContainer)) : nullptr;
+	ManipulationContainer = CastChecked<UNoesisVisual>(CreateClassFor(InArgs.manipulationContainer, nullptr), ECastCheckedType::NullAllowed);
 	Mode = (ENoesisManipulationModes)InArgs.mode;
 	Cancel = InArgs.cancel;
 }
@@ -134,10 +134,10 @@ void FNoesisManipulationStartingEventArgs::ToNoesis(const Noesis::ManipulationSt
 	InArgs.cancel = Cancel;
 }
 
-FNoesisManipulationStartedEventArgs::FNoesisManipulationStartedEventArgs(UNoesisInstance* Instance, const Noesis::ManipulationStartedEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisManipulationStartedEventArgs::FNoesisManipulationStartedEventArgs(const Noesis::ManipulationStartedEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
-	ManipulationContainer = InArgs.manipulationContainer ? CastChecked<UNoesisVisual>(Instance->FindUnrealComponentForNoesisComponent(InArgs.manipulationContainer)) : nullptr;
+	ManipulationContainer = CastChecked<UNoesisVisual>(CreateClassFor(InArgs.manipulationContainer, nullptr), ECastCheckedType::NullAllowed);
 	ManipulationOrigin = FNoesisDrawingPoint(InArgs.manipulationOrigin);
 	Cancel = InArgs.cancel;
 	Complete = InArgs.complete;
@@ -149,10 +149,10 @@ void FNoesisManipulationStartedEventArgs::ToNoesis(const Noesis::ManipulationSta
 	InArgs.complete = Complete;
 }
 
-FNoesisManipulationDeltaEventArgs::FNoesisManipulationDeltaEventArgs(UNoesisInstance* Instance, const Noesis::ManipulationDeltaEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisManipulationDeltaEventArgs::FNoesisManipulationDeltaEventArgs(const Noesis::ManipulationDeltaEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
-	ManipulationContainer = InArgs.manipulationContainer ? CastChecked<UNoesisVisual>(Instance->FindUnrealComponentForNoesisComponent(InArgs.manipulationContainer)) : nullptr;
+	ManipulationContainer = CastChecked<UNoesisVisual>(CreateClassFor(InArgs.manipulationContainer, nullptr), ECastCheckedType::NullAllowed);
 	ManipulationOrigin = FNoesisDrawingPoint(InArgs.manipulationOrigin);
 	DeltaManipulation = FNoesisManipulationDelta(InArgs.deltaManipulation);
 	CumulativeManipulation = FNoesisManipulationDelta(InArgs.cumulativeManipulation);
@@ -168,10 +168,10 @@ void FNoesisManipulationDeltaEventArgs::ToNoesis(const Noesis::ManipulationDelta
 	InArgs.complete = Complete;
 }
 
-FNoesisManipulationInertiaStartingEventArgs::FNoesisManipulationInertiaStartingEventArgs(UNoesisInstance* Instance, const Noesis::ManipulationInertiaStartingEventArgs& InArgs)
-: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisManipulationInertiaStartingEventArgs::FNoesisManipulationInertiaStartingEventArgs(const Noesis::ManipulationInertiaStartingEventArgs& InArgs)
+: FNoesisRoutedEventArgs(InArgs)
 {
-	ManipulationContainer = InArgs.manipulationContainer ? CastChecked<UNoesisVisual>(Instance->FindUnrealComponentForNoesisComponent(InArgs.manipulationContainer)) : nullptr;
+	ManipulationContainer = CastChecked<UNoesisVisual>(CreateClassFor(InArgs.manipulationContainer, nullptr), ECastCheckedType::NullAllowed);
 	ManipulationOrigin = FNoesisDrawingPoint(InArgs.manipulationOrigin);
 	InitialVelocities = FNoesisManipulationVelocities(InArgs.initialVelocities);
 	RotationBehavior = FNoesisInertiaRotationBehavior(InArgs.rotationBehavior);
@@ -189,10 +189,10 @@ void FNoesisManipulationInertiaStartingEventArgs::ToNoesis(const Noesis::Manipul
 	InArgs.cancel = Cancel;
 }
 
-FNoesisManipulationCompletedEventArgs::FNoesisManipulationCompletedEventArgs(UNoesisInstance* Instance, const Noesis::ManipulationCompletedEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisManipulationCompletedEventArgs::FNoesisManipulationCompletedEventArgs(const Noesis::ManipulationCompletedEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
-	ManipulationContainer = InArgs.manipulationContainer ? CastChecked<UNoesisVisual>(Instance->FindUnrealComponentForNoesisComponent(InArgs.manipulationContainer)) : nullptr;
+	ManipulationContainer = CastChecked<UNoesisVisual>(CreateClassFor(InArgs.manipulationContainer, nullptr), ECastCheckedType::NullAllowed);
 	ManipulationOrigin = FNoesisDrawingPoint(InArgs.manipulationOrigin);
 	FinalVelocities = FNoesisManipulationVelocities(InArgs.finalVelocities);
 	TotalManipulation = FNoesisManipulationDelta(InArgs.totalManipulation);
@@ -205,8 +205,8 @@ void FNoesisManipulationCompletedEventArgs::ToNoesis(const Noesis::ManipulationC
 	InArgs.cancel = Cancel;
 }
 
-FNoesisScrollChangedEventArgs::FNoesisScrollChangedEventArgs(UNoesisInstance* Instance, const Noesis::ScrollChangedEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisScrollChangedEventArgs::FNoesisScrollChangedEventArgs(const Noesis::ScrollChangedEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
 	ExtentHeight = InArgs.extentHeight;
 	ExtentHeightChange = InArgs.extentHeightChange;
@@ -222,37 +222,37 @@ FNoesisScrollChangedEventArgs::FNoesisScrollChangedEventArgs(UNoesisInstance* In
 	ViewportWidthChange = InArgs.viewportWidthChange;
 }
 
-FNoesisToolTipEventArgs::FNoesisToolTipEventArgs(UNoesisInstance* Instance, const Noesis::ToolTipEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisToolTipEventArgs::FNoesisToolTipEventArgs(const Noesis::ToolTipEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
 }
 
-FNoesisDragDeltaEventArgs::FNoesisDragDeltaEventArgs(UNoesisInstance* Instance, const Noesis::DragDeltaEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisDragDeltaEventArgs::FNoesisDragDeltaEventArgs(const Noesis::DragDeltaEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
 	HorizontalChange = InArgs.horizontalChange;
 	VerticalChange = InArgs.verticalChange;
 }
 
-FNoesisFloatPropertyChangedEventArgs::FNoesisFloatPropertyChangedEventArgs(UNoesisInstance* Instance, const Noesis::RoutedPropertyChangedEventArgs<NsFloat32>& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisFloatPropertyChangedEventArgs::FNoesisFloatPropertyChangedEventArgs(const Noesis::RoutedPropertyChangedEventArgs<NsFloat32>& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
 	OldValue = InArgs.oldValue;
 	NewValue = InArgs.newValue;
 }
 
-FNoesisBaseComponentPropertyChangedEventArgs::FNoesisBaseComponentPropertyChangedEventArgs(UNoesisInstance* Instance, const Noesis::RoutedPropertyChangedEventArgs<Noesis::Ptr<Noesis::BaseComponent> >& InArgs)
-: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisBaseComponentPropertyChangedEventArgs::FNoesisBaseComponentPropertyChangedEventArgs(const Noesis::RoutedPropertyChangedEventArgs<Noesis::Ptr<Noesis::BaseComponent> >& InArgs)
+: FNoesisRoutedEventArgs(InArgs)
 {
-	OldValue = Instance->FindUnrealComponentForNoesisComponent(InArgs.oldValue.GetPtr());
-	NewValue = Instance->FindUnrealComponentForNoesisComponent(InArgs.newValue.GetPtr());
+	OldValue = CreateClassFor(InArgs.oldValue.GetPtr(), nullptr);
+	NewValue = CreateClassFor(InArgs.newValue.GetPtr(), nullptr);
 }
 
-FNoesisCanExecuteRoutedEventArgs::FNoesisCanExecuteRoutedEventArgs(UNoesisInstance* Instance, const Noesis::CanExecuteRoutedEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs) 
+FNoesisCanExecuteRoutedEventArgs::FNoesisCanExecuteRoutedEventArgs(const Noesis::CanExecuteRoutedEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs) 
 {
-	Command = CastChecked<UNoesisICommand>(Instance->FindUnrealInterfaceForNoesisInterface(InArgs.command));
-	Parameter = Instance->FindUnrealComponentForNoesisComponent(InArgs.parameter.GetPtr());
+	Command = CastChecked<UNoesisICommand>(CreateInterfaceFor(InArgs.command, nullptr), ECastCheckedType::NullAllowed);
+	Parameter = CreateClassFor(InArgs.parameter.GetPtr(), nullptr);
 	CanExecute = InArgs.canExecute;
 	ContinueRouting = InArgs.continueRouting;
 }
@@ -263,31 +263,31 @@ void FNoesisCanExecuteRoutedEventArgs::ToNoesis(const Noesis::CanExecuteRoutedEv
 	InArgs.continueRouting = ContinueRouting;
 }
 
-FNoesisExecutedRoutedEventArgs::FNoesisExecutedRoutedEventArgs(UNoesisInstance* Instance, const Noesis::ExecutedRoutedEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisExecutedRoutedEventArgs::FNoesisExecutedRoutedEventArgs(const Noesis::ExecutedRoutedEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
-	Command = CastChecked<UNoesisICommand>(Instance->FindUnrealInterfaceForNoesisInterface(InArgs.command));
-	Parameter = Instance->FindUnrealComponentForNoesisComponent(InArgs.parameter.GetPtr());
+	Command = CastChecked<UNoesisICommand>(CreateInterfaceFor(InArgs.command, nullptr), ECastCheckedType::NullAllowed);
+	Parameter = CreateClassFor(InArgs.parameter.GetPtr(), nullptr);
 }
 
-FNoesisRequestBringIntoViewEventArgs::FNoesisRequestBringIntoViewEventArgs(UNoesisInstance* Instance, const Noesis::RequestBringIntoViewEventArgs& InArgs)
-	: FNoesisRoutedEventArgs(Instance, InArgs)
+FNoesisRequestBringIntoViewEventArgs::FNoesisRequestBringIntoViewEventArgs(const Noesis::RequestBringIntoViewEventArgs& InArgs)
+	: FNoesisRoutedEventArgs(InArgs)
 {
-	TargetObject = CastChecked<UNoesisDependencyObject>(Instance->FindUnrealComponentForNoesisComponent(InArgs.targetObject));
+	TargetObject = CastChecked<UNoesisDependencyObject>(CreateClassFor(InArgs.targetObject, nullptr), ECastCheckedType::NullAllowed);
 	TargetRect = FNoesisDrawingRect(InArgs.targetRect);
 }
 
-FNoesisEventArgs::FNoesisEventArgs(UNoesisInstance* Instance, const Noesis::EventArgs& InArgs)
+FNoesisEventArgs::FNoesisEventArgs(const Noesis::EventArgs& InArgs)
 {
 }
 
-FNoesisTimelineEventArgs::FNoesisTimelineEventArgs(UNoesisInstance* Instance, const Noesis::TimelineEventArgs& InArgs)
-	: FNoesisEventArgs(Instance, InArgs)
+FNoesisTimelineEventArgs::FNoesisTimelineEventArgs(const Noesis::TimelineEventArgs& InArgs)
+	: FNoesisEventArgs(InArgs)
 {
-	Target = InArgs.target ? CastChecked<UNoesisDependencyObject>(Instance->FindUnrealComponentForNoesisComponent(InArgs.target)) : nullptr;
+	Target = CastChecked<UNoesisDependencyObject>(CreateClassFor(InArgs.target, nullptr), ECastCheckedType::NullAllowed);
 }
 
-FNoesisItemsChangedEventArgs::FNoesisItemsChangedEventArgs(UNoesisInstance* Instance, const Noesis::ItemsChangedEventArgs& InArgs)
+FNoesisItemsChangedEventArgs::FNoesisItemsChangedEventArgs(const Noesis::ItemsChangedEventArgs& InArgs)
 {
 	Action = (ENoesisNotifyCollectionChangedAction)InArgs.action;
 	Position = FNoesisGeneratorPosition(InArgs.position);
@@ -296,7 +296,7 @@ FNoesisItemsChangedEventArgs::FNoesisItemsChangedEventArgs(UNoesisInstance* Inst
 	ItemUICount = InArgs.itemUICount;
 }
 
-FNoesisDependencyPropertyChangedEventArgs::FNoesisDependencyPropertyChangedEventArgs(UNoesisInstance* Instance, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
+FNoesisDependencyPropertyChangedEventArgs::FNoesisDependencyPropertyChangedEventArgs(const Noesis::DependencyPropertyChangedEventArgs& InArgs)
 {
-	Prop = InArgs.prop ? CastChecked<UNoesisDependencyProperty>(Instance->FindUnrealComponentForNoesisComponent(InArgs.prop)) : nullptr;
+	Prop = CastChecked<UNoesisDependencyProperty>(CreateClassFor(InArgs.prop, nullptr), ECastCheckedType::NullAllowed);
 }

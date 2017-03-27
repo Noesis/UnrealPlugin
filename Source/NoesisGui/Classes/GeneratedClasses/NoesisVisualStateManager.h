@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisVisualStateManager.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisVisualStateManager : public UNoesisBaseComponent
 {
 public:

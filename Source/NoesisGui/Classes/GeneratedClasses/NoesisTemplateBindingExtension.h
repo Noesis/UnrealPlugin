@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisTemplateBindingExtension.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisTemplateBindingExtension : public UNoesisBaseComponent
 {
 public:

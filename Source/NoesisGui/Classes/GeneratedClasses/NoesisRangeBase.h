@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisControl.h"
 #include "NoesisRangeBase.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisRangeBase : public UNoesisControl
 {
 public:

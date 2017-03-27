@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisVisualCollection.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisVisualCollection::UNoesisVisualCollection(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::VisualCollection::StaticGetClassType();
 }
 
 void UNoesisVisualCollection::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisVisual* UNoesisVisualCollection::GetVisualParent()
 {
 	Noesis::Gui::VisualCollection* NoesisVisualCollection = NsDynamicCast<Noesis::Gui::VisualCollection*>(NoesisComponent.GetPtr());
 	check(NoesisVisualCollection);
-	return CastChecked<UNoesisVisual>(Instance->FindUnrealComponentForNoesisComponent(NoesisVisualCollection->GetVisualParent()));
+	return CastChecked<UNoesisVisual>(CreateClassFor(NoesisVisualCollection->GetVisualParent(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisVisualCollection::SetVisualParent(class UNoesisVisual* InVisualParent)
@@ -41,7 +44,7 @@ void UNoesisVisualCollection::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::VisualCollection* NoesisVisualCollection = NsDynamicCast<Noesis::Gui::VisualCollection*>(NoesisComponent.GetPtr());
-	check(NoesisVisualCollection)
+	check(NoesisVisualCollection);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisVisualCollection::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::VisualCollection* NoesisVisualCollection = NsDynamicCast<Noesis::Gui::VisualCollection*>(NoesisComponent.GetPtr());
-	check(NoesisVisualCollection)
+	check(NoesisVisualCollection);
 
 
 }

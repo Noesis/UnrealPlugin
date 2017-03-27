@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisVisual.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisVisual::UNoesisVisual(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Visual::StaticGetClassType();
 }
 
 void UNoesisVisual::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ UNoesisIView* UNoesisVisual::GetView()
 {
 	Noesis::Gui::Visual* NoesisVisual = NsDynamicCast<Noesis::Gui::Visual*>(NoesisComponent.GetPtr());
 	check(NoesisVisual);
-	return CastChecked<UNoesisIView>(Instance->FindUnrealInterfaceForNoesisInterface(NoesisVisual->GetView()));
+	return CastChecked<UNoesisIView>(CreateInterfaceFor(NoesisVisual->GetView(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisVisual::ConnectToView(class UNoesisIView* InView)
@@ -49,7 +52,7 @@ class UNoesisVisual* UNoesisVisual::FindCommonVisualAncestor(const class UNoesis
 	Noesis::Gui::Visual* NoesisVisual = NsDynamicCast<Noesis::Gui::Visual*>(NoesisComponent.GetPtr());
 	check(NoesisVisual);
 	const Visual* NoesisInVisual = NsDynamicCast<const Visual*>(InVisual->NoesisComponent.GetPtr());
-	return CastChecked<UNoesisVisual>(Instance->FindUnrealComponentForNoesisComponent(NoesisVisual->FindCommonVisualAncestor(NoesisInVisual)));
+	return CastChecked<UNoesisVisual>(CreateClassFor(NoesisVisual->FindCommonVisualAncestor(NoesisInVisual), nullptr), ECastCheckedType::NullAllowed);
 }
 
 int32 UNoesisVisual::GetRenderTreeId()
@@ -124,7 +127,7 @@ void UNoesisVisual::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Visual* NoesisVisual = NsDynamicCast<Noesis::Gui::Visual*>(NoesisComponent.GetPtr());
-	check(NoesisVisual)
+	check(NoesisVisual);
 
 
 }
@@ -134,7 +137,7 @@ void UNoesisVisual::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Visual* NoesisVisual = NsDynamicCast<Noesis::Gui::Visual*>(NoesisComponent.GetPtr());
-	check(NoesisVisual)
+	check(NoesisVisual);
 
 
 }

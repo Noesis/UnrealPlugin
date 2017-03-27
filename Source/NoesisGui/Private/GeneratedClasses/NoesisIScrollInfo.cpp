@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisIScrollInfo.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisIScrollInfo::UNoesisIScrollInfo(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisInterfaceTypeClass = Noesis::Gui::IScrollInfo::StaticGetClassType();
 }
 
 void UNoesisIScrollInfo::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterface)
@@ -124,7 +127,7 @@ void UNoesisIScrollInfo::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::IScrollInfo* NoesisIScrollInfo = NsDynamicCast<Noesis::Gui::IScrollInfo*>(NoesisInterface.GetPtr());
-	check(NoesisIScrollInfo)
+	check(NoesisIScrollInfo);
 
 
 }
@@ -134,7 +137,7 @@ void UNoesisIScrollInfo::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::IScrollInfo* NoesisIScrollInfo = NsDynamicCast<Noesis::Gui::IScrollInfo*>(NoesisInterface.GetPtr());
-	check(NoesisIScrollInfo)
+	check(NoesisIScrollInfo);
 
 
 }

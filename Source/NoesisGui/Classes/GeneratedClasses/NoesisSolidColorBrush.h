@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisBrush.h"
 #include "NoesisSolidColorBrush.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisSolidColorBrush : public UNoesisBrush
 {
 public:

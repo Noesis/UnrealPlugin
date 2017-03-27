@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisDiscretePointKeyFrame.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisDiscretePointKeyFrame::UNoesisDiscretePointKeyFrame(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::DiscreteKeyFrame<Noesis::Drawing::Point>::StaticGetClassType();
 }
 
 void UNoesisDiscretePointKeyFrame::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisDiscretePointKeyFrame::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::DiscreteKeyFrame<Noesis::Drawing::Point>* NoesisDiscretePointKeyFrame = NsDynamicCast<Noesis::Gui::DiscreteKeyFrame<Noesis::Drawing::Point>*>(NoesisComponent.GetPtr());
-	check(NoesisDiscretePointKeyFrame)
+	check(NoesisDiscretePointKeyFrame);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisDiscretePointKeyFrame::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::DiscreteKeyFrame<Noesis::Drawing::Point>* NoesisDiscretePointKeyFrame = NsDynamicCast<Noesis::Gui::DiscreteKeyFrame<Noesis::Drawing::Point>*>(NoesisComponent.GetPtr());
-	check(NoesisDiscretePointKeyFrame)
+	check(NoesisDiscretePointKeyFrame);
 
 
 }

@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisRoutedCommand.h"
 #include "NoesisRoutedUICommand.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisRoutedUICommand : public UNoesisRoutedCommand
 {
 public:

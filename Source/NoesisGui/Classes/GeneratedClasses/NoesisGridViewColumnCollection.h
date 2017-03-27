@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisCollection.h"
 #include "NoesisGridViewColumnCollection.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisGridViewColumnCollection : public UNoesisCollection
 {
 public:

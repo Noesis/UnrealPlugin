@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisICommand.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisICommand::UNoesisICommand(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisInterfaceTypeClass = Noesis::Gui::ICommand::StaticGetClassType();
 }
 
 void UNoesisICommand::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterface)
@@ -50,7 +53,7 @@ void UNoesisICommand::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ICommand* NoesisICommand = NsDynamicCast<Noesis::Gui::ICommand*>(NoesisInterface.GetPtr());
-	check(NoesisICommand)
+	check(NoesisICommand);
 
 
 }
@@ -60,7 +63,7 @@ void UNoesisICommand::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ICommand* NoesisICommand = NsDynamicCast<Noesis::Gui::ICommand*>(NoesisInterface.GetPtr());
-	check(NoesisICommand)
+	check(NoesisICommand);
 
 
 }

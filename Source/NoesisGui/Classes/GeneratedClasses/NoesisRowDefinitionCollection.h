@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisCollection.h"
 #include "NoesisRowDefinitionCollection.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisRowDefinitionCollection : public UNoesisCollection
 {
 public:

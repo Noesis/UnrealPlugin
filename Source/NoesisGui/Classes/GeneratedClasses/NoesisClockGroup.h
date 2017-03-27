@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisClock.h"
 #include "NoesisClockGroup.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisClockGroup : public UNoesisClock
 {
 public:
@@ -20,13 +20,13 @@ public:
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Add(class UNoesisClock* Clock);
+	void Add(class UNoesisClock* Clock);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisClock* GetChild(int32 Index);
+	class UNoesisClock* GetChild(int32 Index);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-int32 GetChildrenCount();
+	int32 GetChildrenCount();
 
 protected:
 

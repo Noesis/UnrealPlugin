@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisKeyboard.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisKeyboard::UNoesisKeyboard(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Keyboard::StaticGetClassType();
 }
 
 void UNoesisKeyboard::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,14 +30,14 @@ class UNoesisUIElement* UNoesisKeyboard::Focus(class UNoesisUIElement* InElement
 	Noesis::Gui::Keyboard* NoesisKeyboard = NsDynamicCast<Noesis::Gui::Keyboard*>(NoesisComponent.GetPtr());
 	check(NoesisKeyboard);
 	UIElement* NoesisInElement = NsDynamicCast<UIElement*>(InElement->NoesisComponent.GetPtr());
-	return CastChecked<UNoesisUIElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisKeyboard->Focus(NoesisInElement)));
+	return CastChecked<UNoesisUIElement>(CreateClassFor(NoesisKeyboard->Focus(NoesisInElement), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisUIElement* UNoesisKeyboard::GetFocused()
 {
 	Noesis::Gui::Keyboard* NoesisKeyboard = NsDynamicCast<Noesis::Gui::Keyboard*>(NoesisComponent.GetPtr());
 	check(NoesisKeyboard);
-	return CastChecked<UNoesisUIElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisKeyboard->GetFocused()));
+	return CastChecked<UNoesisUIElement>(CreateClassFor(NoesisKeyboard->GetFocused(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 int32 UNoesisKeyboard::GetModifiers()
@@ -56,7 +59,7 @@ void UNoesisKeyboard::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Keyboard* NoesisKeyboard = NsDynamicCast<Noesis::Gui::Keyboard*>(NoesisComponent.GetPtr());
-	check(NoesisKeyboard)
+	check(NoesisKeyboard);
 
 
 }
@@ -66,7 +69,7 @@ void UNoesisKeyboard::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Keyboard* NoesisKeyboard = NsDynamicCast<Noesis::Gui::Keyboard*>(NoesisComponent.GetPtr());
-	check(NoesisKeyboard)
+	check(NoesisKeyboard);
 
 
 }

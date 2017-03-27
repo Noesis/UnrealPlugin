@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisThicknessKeyFrame.h"
 #include "NoesisEasingThicknessKeyFrame.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisEasingThicknessKeyFrame : public UNoesisThicknessKeyFrame
 {
 public:

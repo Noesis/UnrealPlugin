@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisInputBinding.h"
 #include "NoesisKeyBinding.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisKeyBinding : public UNoesisInputBinding
 {
 public:

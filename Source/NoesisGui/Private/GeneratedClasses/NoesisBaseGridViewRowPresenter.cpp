@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisBaseGridViewRowPresenter.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisBaseGridViewRowPresenter::UNoesisBaseGridViewRowPresenter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::BaseGridViewRowPresenter::StaticGetClassType();
 }
 
 void UNoesisBaseGridViewRowPresenter::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisGridViewColumnCollection* UNoesisBaseGridViewRowPresenter::GetColum
 {
 	Noesis::Gui::BaseGridViewRowPresenter* NoesisBaseGridViewRowPresenter = NsDynamicCast<Noesis::Gui::BaseGridViewRowPresenter*>(NoesisComponent.GetPtr());
 	check(NoesisBaseGridViewRowPresenter);
-	return CastChecked<UNoesisGridViewColumnCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisBaseGridViewRowPresenter->GetColumns()));
+	return CastChecked<UNoesisGridViewColumnCollection>(CreateClassFor(NoesisBaseGridViewRowPresenter->GetColumns(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBaseGridViewRowPresenter::SetColumns(class UNoesisGridViewColumnCollection* InColumns)
@@ -41,7 +44,7 @@ void UNoesisBaseGridViewRowPresenter::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::BaseGridViewRowPresenter* NoesisBaseGridViewRowPresenter = NsDynamicCast<Noesis::Gui::BaseGridViewRowPresenter*>(NoesisComponent.GetPtr());
-	check(NoesisBaseGridViewRowPresenter)
+	check(NoesisBaseGridViewRowPresenter);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisBaseGridViewRowPresenter::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::BaseGridViewRowPresenter* NoesisBaseGridViewRowPresenter = NsDynamicCast<Noesis::Gui::BaseGridViewRowPresenter*>(NoesisComponent.GetPtr());
-	check(NoesisBaseGridViewRowPresenter)
+	check(NoesisBaseGridViewRowPresenter);
 
 
 }

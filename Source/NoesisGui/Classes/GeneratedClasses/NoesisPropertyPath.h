@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisPropertyPath.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisPropertyPath : public UNoesisBaseComponent
 {
 public:

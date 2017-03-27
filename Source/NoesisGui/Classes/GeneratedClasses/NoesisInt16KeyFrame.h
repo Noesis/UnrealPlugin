@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisFreezable.h"
 #include "NoesisInt16KeyFrame.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisInt16KeyFrame : public UNoesisFreezable
 {
 public:

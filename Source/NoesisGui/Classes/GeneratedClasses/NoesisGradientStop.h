@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisAnimatable.h"
 #include "NoesisGradientStop.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisGradientStop : public UNoesisAnimatable
 {
 public:

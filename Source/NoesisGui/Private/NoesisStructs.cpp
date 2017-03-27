@@ -8,10 +8,10 @@
 #include "NoesisInstance.h"
 #include "NoesisGeneratedClasses.h"
 
-FNoesisObjectWithNameScope::FNoesisObjectWithNameScope(UNoesisInstance* Instance, const Noesis::Gui::ObjectWithNameScope& ObjectWithScope)
+FNoesisObjectWithNameScope::FNoesisObjectWithNameScope(const Noesis::Gui::ObjectWithNameScope& ObjectWithScope)
 {
-	Object = Instance->FindUnrealComponentForNoesisComponent(ObjectWithScope.object);
-	Scope = ObjectWithScope.scope ? CastChecked<UNoesisINameScope>(Instance->FindUnrealInterfaceForNoesisInterface(ObjectWithScope.scope)) : nullptr;
+	Object = CreateClassFor(ObjectWithScope.object, nullptr);
+	Scope = CastChecked<UNoesisINameScope>(CreateInterfaceFor(ObjectWithScope.scope, nullptr), ECastCheckedType::NullAllowed);
 }
 
 FNoesisDrawingSize::FNoesisDrawingSize(const Noesis::Drawing::Size& Size)

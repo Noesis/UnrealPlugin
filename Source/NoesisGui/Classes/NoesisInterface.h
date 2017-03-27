@@ -15,9 +15,8 @@ class NOESISGUI_API UNoesisInterface : public UObject
 
 	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface);
 
+	const Noesis::Core::TypeClass* NoesisInterfaceTypeClass;
 	Noesis::Ptr<Noesis::Interface> NoesisInterface;
-
-	class UNoesisInstance* Instance;
 
 	// UObject interface
 	virtual void BeginDestroy() override;

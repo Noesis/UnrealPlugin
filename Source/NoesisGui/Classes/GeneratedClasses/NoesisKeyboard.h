@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisKeyboard.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisKeyboard : public UNoesisBaseComponent
 {
 public:
@@ -20,16 +20,16 @@ public:
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisUIElement* Focus(class UNoesisUIElement* Element);
+	class UNoesisUIElement* Focus(class UNoesisUIElement* Element);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisUIElement* GetFocused();
+	class UNoesisUIElement* GetFocused();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-int32 GetModifiers();
+	int32 GetModifiers();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ResetState();
+	void ResetState();
 
 protected:
 

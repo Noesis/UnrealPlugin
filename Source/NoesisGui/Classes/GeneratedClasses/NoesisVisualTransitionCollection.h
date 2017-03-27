@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisCollection.h"
 #include "NoesisVisualTransitionCollection.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisVisualTransitionCollection : public UNoesisCollection
 {
 public:

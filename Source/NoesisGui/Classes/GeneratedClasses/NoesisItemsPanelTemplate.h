@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisFrameworkTemplate.h"
 #include "NoesisItemsPanelTemplate.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisItemsPanelTemplate : public UNoesisFrameworkTemplate
 {
 public:

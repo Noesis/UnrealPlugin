@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisViewbox.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisViewbox::UNoesisViewbox(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Viewbox::StaticGetClassType();
 }
 
 void UNoesisViewbox::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisUIElement* UNoesisViewbox::GetChild()
 {
 	Noesis::Gui::Viewbox* NoesisViewbox = NsDynamicCast<Noesis::Gui::Viewbox*>(NoesisComponent.GetPtr());
 	check(NoesisViewbox);
-	return CastChecked<UNoesisUIElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisViewbox->GetChild()));
+	return CastChecked<UNoesisUIElement>(CreateClassFor(NoesisViewbox->GetChild(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisViewbox::SetChild(class UNoesisUIElement* InChild)
@@ -69,7 +72,7 @@ void UNoesisViewbox::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Viewbox* NoesisViewbox = NsDynamicCast<Noesis::Gui::Viewbox*>(NoesisComponent.GetPtr());
-	check(NoesisViewbox)
+	check(NoesisViewbox);
 
 
 }
@@ -79,7 +82,7 @@ void UNoesisViewbox::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Viewbox* NoesisViewbox = NsDynamicCast<Noesis::Gui::Viewbox*>(NoesisComponent.GetPtr());
-	check(NoesisViewbox)
+	check(NoesisViewbox);
 
 
 }

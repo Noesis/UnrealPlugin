@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisInline.h"
 #include "NoesisRun.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisRun : public UNoesisInline
 {
 public:

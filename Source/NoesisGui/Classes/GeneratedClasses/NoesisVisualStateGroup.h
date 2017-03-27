@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisDependencyObject.h"
 #include "NoesisVisualStateGroup.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisVisualStateGroup : public UNoesisDependencyObject
 {
 public:
@@ -32,13 +32,13 @@ public:
 	class UNoesisVisualTransitionCollection* GetTransitions();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisVisualState* FindState(FName Name);
+	class UNoesisVisualState* FindState(FName Name);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisVisualState* GetCurrentState(class UNoesisFrameworkElement* Fe);
+	class UNoesisVisualState* GetCurrentState(class UNoesisFrameworkElement* Fe);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void UpdateAnimations(class UNoesisFrameworkElement* Fe, class UNoesisStoryboard* Storyboard1, class UNoesisStoryboard* Storyboard2);
+	void UpdateAnimations(class UNoesisFrameworkElement* Fe, class UNoesisStoryboard* Storyboard1, class UNoesisStoryboard* Storyboard2);
 
 protected:
 

@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisHeaderedContentControl.h"
 #include "NoesisGroupBox.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisGroupBox : public UNoesisHeaderedContentControl
 {
 public:

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisINotifyPropertyChanged.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisINotifyPropertyChanged::UNoesisINotifyPropertyChanged(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisInterfaceTypeClass = Noesis::Gui::INotifyPropertyChanged::StaticGetClassType();
 }
 
 void UNoesisINotifyPropertyChanged::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterface)
@@ -27,7 +30,7 @@ void UNoesisINotifyPropertyChanged::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::INotifyPropertyChanged* NoesisINotifyPropertyChanged = NsDynamicCast<Noesis::Gui::INotifyPropertyChanged*>(NoesisInterface.GetPtr());
-	check(NoesisINotifyPropertyChanged)
+	check(NoesisINotifyPropertyChanged);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisINotifyPropertyChanged::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::INotifyPropertyChanged* NoesisINotifyPropertyChanged = NsDynamicCast<Noesis::Gui::INotifyPropertyChanged*>(NoesisInterface.GetPtr());
-	check(NoesisINotifyPropertyChanged)
+	check(NoesisINotifyPropertyChanged);
 
 
 }

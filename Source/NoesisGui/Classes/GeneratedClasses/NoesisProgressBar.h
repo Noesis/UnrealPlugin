@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisRangeBase.h"
 #include "NoesisProgressBar.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisProgressBar : public UNoesisRangeBase
 {
 public:

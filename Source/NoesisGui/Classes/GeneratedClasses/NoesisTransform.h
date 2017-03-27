@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisAnimatable.h"
 #include "NoesisTransform.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisTransform : public UNoesisAnimatable
 {
 public:

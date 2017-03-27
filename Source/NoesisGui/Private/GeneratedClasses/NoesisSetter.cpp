@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisSetter.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisSetter::UNoesisSetter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Setter::StaticGetClassType();
 }
 
 void UNoesisSetter::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisDependencyProperty* UNoesisSetter::GetProperty()
 {
 	Noesis::Gui::Setter* NoesisSetter = NsDynamicCast<Noesis::Gui::Setter*>(NoesisComponent.GetPtr());
 	check(NoesisSetter);
-	return CastChecked<UNoesisDependencyProperty>(Instance->FindUnrealComponentForNoesisComponent(NoesisSetter->GetProperty()));
+	return CastChecked<UNoesisDependencyProperty>(CreateClassFor(NoesisSetter->GetProperty(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisSetter::SetProperty(class UNoesisDependencyProperty* InProperty)
@@ -54,7 +57,7 @@ class UNoesisBaseComponent* UNoesisSetter::GetValue()
 {
 	Noesis::Gui::Setter* NoesisSetter = NsDynamicCast<Noesis::Gui::Setter*>(NoesisComponent.GetPtr());
 	check(NoesisSetter);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisSetter->GetValue()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisSetter->GetValue(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisSetter::SetValue(class UNoesisBaseComponent* InValue)
@@ -69,7 +72,7 @@ void UNoesisSetter::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Setter* NoesisSetter = NsDynamicCast<Noesis::Gui::Setter*>(NoesisComponent.GetPtr());
-	check(NoesisSetter)
+	check(NoesisSetter);
 
 
 }
@@ -79,7 +82,7 @@ void UNoesisSetter::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Setter* NoesisSetter = NsDynamicCast<Noesis::Gui::Setter*>(NoesisComponent.GetPtr());
-	check(NoesisSetter)
+	check(NoesisSetter);
 
 
 }

@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisDataTemplate.h"
 #include "NoesisHierarchicalDataTemplate.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisHierarchicalDataTemplate : public UNoesisDataTemplate
 {
 public:

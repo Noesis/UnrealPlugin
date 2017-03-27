@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisBaseMenu.h"
 #include "NoesisMenu.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisMenu : public UNoesisBaseMenu
 {
 public:
@@ -26,7 +26,7 @@ public:
 	void SetIsMainMenu(bool InIsMainMenu);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool GetActivated();
+	bool GetActivated();
 
 protected:
 

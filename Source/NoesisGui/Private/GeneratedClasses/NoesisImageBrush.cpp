@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisImageBrush.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisImageBrush::UNoesisImageBrush(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ImageBrush::StaticGetClassType();
 }
 
 void UNoesisImageBrush::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisImageSource* UNoesisImageBrush::GetImageSource()
 {
 	Noesis::Gui::ImageBrush* NoesisImageBrush = NsDynamicCast<Noesis::Gui::ImageBrush*>(NoesisComponent.GetPtr());
 	check(NoesisImageBrush);
-	return CastChecked<UNoesisImageSource>(Instance->FindUnrealComponentForNoesisComponent(NoesisImageBrush->GetImageSource()));
+	return CastChecked<UNoesisImageSource>(CreateClassFor(NoesisImageBrush->GetImageSource(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisImageBrush::SetImageSource(class UNoesisImageSource* InImageSource)
@@ -41,7 +44,7 @@ void UNoesisImageBrush::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ImageBrush* NoesisImageBrush = NsDynamicCast<Noesis::Gui::ImageBrush*>(NoesisComponent.GetPtr());
-	check(NoesisImageBrush)
+	check(NoesisImageBrush);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisImageBrush::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ImageBrush* NoesisImageBrush = NsDynamicCast<Noesis::Gui::ImageBrush*>(NoesisComponent.GetPtr());
-	check(NoesisImageBrush)
+	check(NoesisImageBrush);
 
 
 }

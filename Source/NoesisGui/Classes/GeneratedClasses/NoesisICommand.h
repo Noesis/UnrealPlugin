@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisICommand.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisICommand : public UNoesisInterface
 {
 public:
@@ -24,10 +24,10 @@ public:
 	FName GetName();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool CanExecute(class UNoesisBaseComponent* Param);
+	bool CanExecute(class UNoesisBaseComponent* Param);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Execute(class UNoesisBaseComponent* Param);
+	void Execute(class UNoesisBaseComponent* Param);
 
 protected:
 

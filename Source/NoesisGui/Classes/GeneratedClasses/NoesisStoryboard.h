@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisParallelTimeline.h"
 #include "NoesisStoryboard.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisStoryboard : public UNoesisParallelTimeline
 {
 public:

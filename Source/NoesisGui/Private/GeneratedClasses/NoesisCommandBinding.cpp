@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisCommandBinding.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisCommandBinding::UNoesisCommandBinding(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::CommandBinding::StaticGetClassType();
 }
 
 void UNoesisCommandBinding::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisICommand* UNoesisCommandBinding::GetCommand()
 {
 	Noesis::Gui::CommandBinding* NoesisCommandBinding = NsDynamicCast<Noesis::Gui::CommandBinding*>(NoesisComponent.GetPtr());
 	check(NoesisCommandBinding);
-	return CastChecked<UNoesisICommand>(Instance->FindUnrealInterfaceForNoesisInterface(NoesisCommandBinding->GetCommand()));
+	return CastChecked<UNoesisICommand>(CreateInterfaceFor(NoesisCommandBinding->GetCommand(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisCommandBinding::SetCommand(class UNoesisICommand* InCommand)
@@ -38,39 +41,39 @@ void UNoesisCommandBinding::SetCommand(class UNoesisICommand* InCommand)
 
 void UNoesisCommandBinding::CanExecute_Private(Noesis::Core::BaseComponent* InSender, const Noesis::CanExecuteRoutedEventArgs& InArgs)
 {
-	if (!CanExecute.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!CanExecute.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisCanExecuteRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisCanExecuteRoutedEventArgs Args(InArgs);
 	CanExecute.Broadcast(Sender, Args);
 	Args.ToNoesis(InArgs);
 }
 
 void UNoesisCommandBinding::Executed_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ExecutedRoutedEventArgs& InArgs)
 {
-	if (!Executed.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Executed.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisExecutedRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisExecutedRoutedEventArgs Args(InArgs);
 	Executed.Broadcast(Sender, Args);
 }
 
 void UNoesisCommandBinding::PreviewCanExecute_Private(Noesis::Core::BaseComponent* InSender, const Noesis::CanExecuteRoutedEventArgs& InArgs)
 {
-	if (!PreviewCanExecute.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewCanExecute.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisCanExecuteRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisCanExecuteRoutedEventArgs Args(InArgs);
 	PreviewCanExecute.Broadcast(Sender, Args);
 	Args.ToNoesis(InArgs);
 }
 
 void UNoesisCommandBinding::PreviewExecuted_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ExecutedRoutedEventArgs& InArgs)
 {
-	if (!PreviewExecuted.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewExecuted.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisExecutedRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisExecutedRoutedEventArgs Args(InArgs);
 	PreviewExecuted.Broadcast(Sender, Args);
 }
 
@@ -79,28 +82,16 @@ void UNoesisCommandBinding::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::CommandBinding* NoesisCommandBinding = NsDynamicCast<Noesis::Gui::CommandBinding*>(NoesisComponent.GetPtr());
-	check(NoesisCommandBinding)
+	check(NoesisCommandBinding);
 
 	CanExecute_Delegate = Noesis::MakeDelegate(this, &UNoesisCommandBinding::CanExecute_Private);
-	if (CanExecute.IsBound())
-	{
-		NoesisCommandBinding->CanExecute() += CanExecute_Delegate;
-	}
+	NoesisCommandBinding->CanExecute() += CanExecute_Delegate;
 	Executed_Delegate = Noesis::MakeDelegate(this, &UNoesisCommandBinding::Executed_Private);
-	if (Executed.IsBound())
-	{
-		NoesisCommandBinding->Executed() += Executed_Delegate;
-	}
+	NoesisCommandBinding->Executed() += Executed_Delegate;
 	PreviewCanExecute_Delegate = Noesis::MakeDelegate(this, &UNoesisCommandBinding::PreviewCanExecute_Private);
-	if (PreviewCanExecute.IsBound())
-	{
-		NoesisCommandBinding->PreviewCanExecute() += PreviewCanExecute_Delegate;
-	}
+	NoesisCommandBinding->PreviewCanExecute() += PreviewCanExecute_Delegate;
 	PreviewExecuted_Delegate = Noesis::MakeDelegate(this, &UNoesisCommandBinding::PreviewExecuted_Private);
-	if (PreviewExecuted.IsBound())
-	{
-		NoesisCommandBinding->PreviewExecuted() += PreviewExecuted_Delegate;
-	}
+	NoesisCommandBinding->PreviewExecuted() += PreviewExecuted_Delegate;
 
 }
 
@@ -109,24 +100,12 @@ void UNoesisCommandBinding::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::CommandBinding* NoesisCommandBinding = NsDynamicCast<Noesis::Gui::CommandBinding*>(NoesisComponent.GetPtr());
-	check(NoesisCommandBinding)
+	check(NoesisCommandBinding);
 
-	if (CanExecute.IsBound())
-	{
-		NoesisCommandBinding->CanExecute() -= CanExecute_Delegate;
-	}
-	if (Executed.IsBound())
-	{
-		NoesisCommandBinding->Executed() -= Executed_Delegate;
-	}
-	if (PreviewCanExecute.IsBound())
-	{
-		NoesisCommandBinding->PreviewCanExecute() -= PreviewCanExecute_Delegate;
-	}
-	if (PreviewExecuted.IsBound())
-	{
-		NoesisCommandBinding->PreviewExecuted() -= PreviewExecuted_Delegate;
-	}
+	NoesisCommandBinding->CanExecute() -= CanExecute_Delegate;
+	NoesisCommandBinding->Executed() -= Executed_Delegate;
+	NoesisCommandBinding->PreviewCanExecute() -= PreviewCanExecute_Delegate;
+	NoesisCommandBinding->PreviewExecuted() -= PreviewExecuted_Delegate;
 
 }
 

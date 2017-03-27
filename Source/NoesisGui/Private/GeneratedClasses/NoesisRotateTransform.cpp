@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisRotateTransform.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisRotateTransform::UNoesisRotateTransform(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::RotateTransform::StaticGetClassType();
 }
 
 void UNoesisRotateTransform::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -69,7 +72,7 @@ void UNoesisRotateTransform::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::RotateTransform* NoesisRotateTransform = NsDynamicCast<Noesis::Gui::RotateTransform*>(NoesisComponent.GetPtr());
-	check(NoesisRotateTransform)
+	check(NoesisRotateTransform);
 
 
 }
@@ -79,7 +82,7 @@ void UNoesisRotateTransform::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::RotateTransform* NoesisRotateTransform = NsDynamicCast<Noesis::Gui::RotateTransform*>(NoesisComponent.GetPtr());
-	check(NoesisRotateTransform)
+	check(NoesisRotateTransform);
 
 
 }

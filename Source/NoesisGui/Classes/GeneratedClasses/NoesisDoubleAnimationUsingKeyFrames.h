@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisAnimationTimeline.h"
 #include "NoesisDoubleAnimationUsingKeyFrames.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisDoubleAnimationUsingKeyFrames : public UNoesisAnimationTimeline
 {
 public:

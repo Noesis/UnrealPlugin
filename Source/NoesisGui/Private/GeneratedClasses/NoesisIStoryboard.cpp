@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisIStoryboard.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisIStoryboard::UNoesisIStoryboard(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisInterfaceTypeClass = Noesis::Gui::IStoryboard::StaticGetClassType();
 }
 
 void UNoesisIStoryboard::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterface)
@@ -76,7 +79,7 @@ void UNoesisIStoryboard::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::IStoryboard* NoesisIStoryboard = NsDynamicCast<Noesis::Gui::IStoryboard*>(NoesisInterface.GetPtr());
-	check(NoesisIStoryboard)
+	check(NoesisIStoryboard);
 
 
 }
@@ -86,7 +89,7 @@ void UNoesisIStoryboard::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::IStoryboard* NoesisIStoryboard = NsDynamicCast<Noesis::Gui::IStoryboard*>(NoesisInterface.GetPtr());
-	check(NoesisIStoryboard)
+	check(NoesisIStoryboard);
 
 
 }

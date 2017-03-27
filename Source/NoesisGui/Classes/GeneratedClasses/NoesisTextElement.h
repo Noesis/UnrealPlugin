@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisDependencyObject.h"
 #include "NoesisTextElement.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisTextElement : public UNoesisDependencyObject
 {
 public:

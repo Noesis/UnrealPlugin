@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisISealable.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisISealable::UNoesisISealable(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisInterfaceTypeClass = Noesis::Gui::ISealable::StaticGetClassType();
 }
 
 void UNoesisISealable::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterface)
@@ -48,7 +51,7 @@ void UNoesisISealable::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ISealable* NoesisISealable = NsDynamicCast<Noesis::Gui::ISealable*>(NoesisInterface.GetPtr());
-	check(NoesisISealable)
+	check(NoesisISealable);
 
 
 }
@@ -58,7 +61,7 @@ void UNoesisISealable::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ISealable* NoesisISealable = NsDynamicCast<Noesis::Gui::ISealable*>(NoesisInterface.GetPtr());
-	check(NoesisISealable)
+	check(NoesisISealable);
 
 
 }

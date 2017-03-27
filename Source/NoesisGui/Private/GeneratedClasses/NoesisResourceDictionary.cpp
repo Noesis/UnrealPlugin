@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisResourceDictionary.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisResourceDictionary::UNoesisResourceDictionary(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ResourceDictionary::StaticGetClassType();
 }
 
 void UNoesisResourceDictionary::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -81,14 +84,14 @@ class UNoesisBaseComponent* UNoesisResourceDictionary::Get(class UNoesisIResourc
 	Noesis::Gui::ResourceDictionary* NoesisResourceDictionary = NsDynamicCast<Noesis::Gui::ResourceDictionary*>(NoesisComponent.GetPtr());
 	check(NoesisResourceDictionary);
 	IResourceKey* NoesisInKey = NsDynamicCast<IResourceKey*>(InKey->NoesisInterface.GetPtr());
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisResourceDictionary->Get(NoesisInKey)));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisResourceDictionary->Get(NoesisInKey), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisResourceDictionaryCollection* UNoesisResourceDictionary::GetMergedDictionaries()
 {
 	Noesis::Gui::ResourceDictionary* NoesisResourceDictionary = NsDynamicCast<Noesis::Gui::ResourceDictionary*>(NoesisComponent.GetPtr());
 	check(NoesisResourceDictionary);
-	return CastChecked<UNoesisResourceDictionaryCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisResourceDictionary->GetMergedDictionaries()));
+	return CastChecked<UNoesisResourceDictionaryCollection>(CreateClassFor(NoesisResourceDictionary->GetMergedDictionaries(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 bool UNoesisResourceDictionary::HasResourcesDefined()
@@ -118,7 +121,7 @@ void UNoesisResourceDictionary::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ResourceDictionary* NoesisResourceDictionary = NsDynamicCast<Noesis::Gui::ResourceDictionary*>(NoesisComponent.GetPtr());
-	check(NoesisResourceDictionary)
+	check(NoesisResourceDictionary);
 
 
 }
@@ -128,7 +131,7 @@ void UNoesisResourceDictionary::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ResourceDictionary* NoesisResourceDictionary = NsDynamicCast<Noesis::Gui::ResourceDictionary*>(NoesisComponent.GetPtr());
-	check(NoesisResourceDictionary)
+	check(NoesisResourceDictionary);
 
 
 }

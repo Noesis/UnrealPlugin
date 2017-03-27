@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisDashStyle.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisDashStyle::UNoesisDashStyle(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::DashStyle::StaticGetClassType();
 }
 
 void UNoesisDashStyle::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -55,7 +58,7 @@ void UNoesisDashStyle::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::DashStyle* NoesisDashStyle = NsDynamicCast<Noesis::Gui::DashStyle*>(NoesisComponent.GetPtr());
-	check(NoesisDashStyle)
+	check(NoesisDashStyle);
 
 
 }
@@ -65,7 +68,7 @@ void UNoesisDashStyle::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::DashStyle* NoesisDashStyle = NsDynamicCast<Noesis::Gui::DashStyle*>(NoesisComponent.GetPtr());
-	check(NoesisDashStyle)
+	check(NoesisDashStyle);
 
 
 }

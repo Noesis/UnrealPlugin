@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisFreezable.h"
 #include "NoesisInputBinding.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisInputBinding : public UNoesisFreezable
 {
 public:

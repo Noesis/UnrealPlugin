@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisItemsControl.h"
 #include "NoesisSelector.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisSelector : public UNoesisItemsControl
 {
 public:

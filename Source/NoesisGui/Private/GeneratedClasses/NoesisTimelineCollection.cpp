@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisTimelineCollection.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisTimelineCollection::UNoesisTimelineCollection(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TypedFreezableCollection<Noesis::Gui::Timeline>::StaticGetClassType();
 }
 
 void UNoesisTimelineCollection::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisTimelineCollection::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::Timeline>* NoesisTimelineCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::Timeline>*>(NoesisComponent.GetPtr());
-	check(NoesisTimelineCollection)
+	check(NoesisTimelineCollection);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisTimelineCollection::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::Timeline>* NoesisTimelineCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::Timeline>*>(NoesisComponent.GetPtr());
-	check(NoesisTimelineCollection)
+	check(NoesisTimelineCollection);
 
 
 }

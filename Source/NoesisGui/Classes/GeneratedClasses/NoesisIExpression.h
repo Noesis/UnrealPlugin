@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisIExpression.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisIExpression : public UNoesisInterface
 {
 public:
@@ -20,10 +20,10 @@ public:
 	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisBaseComponent* Evaluate();
+	class UNoesisBaseComponent* Evaluate();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisIExpression* Reapply(class UNoesisDependencyObject* TargetObject, const class UNoesisDependencyProperty* TargetProperty);
+	class UNoesisIExpression* Reapply(class UNoesisDependencyObject* TargetObject, const class UNoesisDependencyProperty* TargetProperty);
 
 protected:
 

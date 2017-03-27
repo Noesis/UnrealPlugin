@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisBaseBinding.h"
 #include "NoesisBinding.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisBinding : public UNoesisBaseBinding
 {
 public:
@@ -68,7 +68,7 @@ public:
 	void SetUpdateSourceTrigger(ENoesisUpdateSourceTrigger InUpdateSourceTrigger);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-FNoesisObjectWithNameScope GetSourceObject(class UNoesisBaseComponent* Target, const class UNoesisDependencyProperty* TargetProperty);
+	FNoesisObjectWithNameScope GetSourceObject(class UNoesisBaseComponent* Target, const class UNoesisDependencyProperty* TargetProperty);
 
 protected:
 

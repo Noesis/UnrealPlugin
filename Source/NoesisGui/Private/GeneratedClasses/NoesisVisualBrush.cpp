@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisVisualBrush.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisVisualBrush::UNoesisVisualBrush(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::VisualBrush::StaticGetClassType();
 }
 
 void UNoesisVisualBrush::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisVisual* UNoesisVisualBrush::GetVisual()
 {
 	Noesis::Gui::VisualBrush* NoesisVisualBrush = NsDynamicCast<Noesis::Gui::VisualBrush*>(NoesisComponent.GetPtr());
 	check(NoesisVisualBrush);
-	return CastChecked<UNoesisVisual>(Instance->FindUnrealComponentForNoesisComponent(NoesisVisualBrush->GetVisual()));
+	return CastChecked<UNoesisVisual>(CreateClassFor(NoesisVisualBrush->GetVisual(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisVisualBrush::SetVisual(class UNoesisVisual* InVisual)
@@ -41,7 +44,7 @@ void UNoesisVisualBrush::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::VisualBrush* NoesisVisualBrush = NsDynamicCast<Noesis::Gui::VisualBrush*>(NoesisComponent.GetPtr());
-	check(NoesisVisualBrush)
+	check(NoesisVisualBrush);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisVisualBrush::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::VisualBrush* NoesisVisualBrush = NsDynamicCast<Noesis::Gui::VisualBrush*>(NoesisComponent.GetPtr());
-	check(NoesisVisualBrush)
+	check(NoesisVisualBrush);
 
 
 }

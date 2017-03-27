@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisControl.h"
 #include "NoesisThumb.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisThumb : public UNoesisControl
 {
 public:
@@ -24,7 +24,7 @@ public:
 	bool GetIsDragging();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void CancelDrag();
+	void CancelDrag();
 
 protected:
 

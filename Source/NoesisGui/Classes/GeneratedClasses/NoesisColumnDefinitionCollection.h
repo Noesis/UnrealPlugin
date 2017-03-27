@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisCollection.h"
 #include "NoesisColumnDefinitionCollection.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisColumnDefinitionCollection : public UNoesisCollection
 {
 public:

@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisCondition.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisCondition : public UNoesisBaseComponent
 {
 public:

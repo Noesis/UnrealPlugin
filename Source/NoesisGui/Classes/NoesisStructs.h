@@ -21,7 +21,7 @@ struct FNoesisObjectWithNameScope
 
 	FNoesisObjectWithNameScope() {}
 
-	FNoesisObjectWithNameScope(class UNoesisInstance* Instance, const Noesis::Gui::ObjectWithNameScope& ObjectWithScope);
+	FNoesisObjectWithNameScope(const Noesis::Gui::ObjectWithNameScope& ObjectWithScope);
 };
 
 USTRUCT(BlueprintType)

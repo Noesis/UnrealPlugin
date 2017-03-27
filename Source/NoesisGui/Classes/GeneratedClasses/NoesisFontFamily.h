@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisFontFamily.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisFontFamily : public UNoesisBaseComponent
 {
 public:

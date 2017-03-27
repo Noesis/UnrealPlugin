@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisBrush.h"
 #include "NoesisTileBrush.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisTileBrush : public UNoesisBrush
 {
 public:

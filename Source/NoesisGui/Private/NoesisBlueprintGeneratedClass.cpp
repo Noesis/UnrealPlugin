@@ -8,6 +8,7 @@
 
 // NoesisGui includes
 #include "NoesisBaseComponent.h"
+#include "NoesisCreateClass.h"
 
 UNoesisBlueprintGeneratedClass::UNoesisBlueprintGeneratedClass(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -19,36 +20,25 @@ void UNoesisBlueprintGeneratedClass::InitComponents(class UNoesisInstance* Noesi
 	check(NoesisInstance->Xaml);
 	TArray<Noesis::FrameworkElement*> Elements;
 	CollectElements(NoesisInstance->Xaml.GetPtr(), Elements);
-	check(Elements.Num() == NoesisInstance->BaseXaml->Components.Num());
-	int32 ElementIndex = 0;
 	Components.Empty();
-	Components.Reserve(NoesisInstance->BaseXaml->Components.Num());
-	for (auto Component : NoesisInstance->BaseXaml->Components)
+	Components.Reserve(Elements.Num());
+	for (auto Element : Elements)
 	{
-		UNoesisBaseComponent* DuplicatedComponent = DuplicateObject<UNoesisBaseComponent>(Component, NoesisInstance);
-
-		Noesis::FrameworkElement* Element = Elements[ElementIndex++];
 		check(Element);
-		NoesisInstance->SetComponentFor(Element, DuplicatedComponent);
+		const NsChar* ElementName = Element->GetName();
+		UNoesisBaseComponent* NoesisGuiComponent = CreateClassFor(Element, NoesisInstance);
+		NoesisGuiComponent->ElementName = ElementName ? NsStringToFName(ElementName) : NAME_None;
 
-		if (DuplicatedComponent->ElementName != NAME_None)
+		if (NoesisGuiComponent->ElementName != NAME_None)
 		{
-			UObjectPropertyBase* Property = FindField<UObjectPropertyBase>(this, DuplicatedComponent->ElementName);
+			UObjectPropertyBase* Property = FindField<UObjectPropertyBase>(this, NoesisGuiComponent->ElementName);
 			if (Property)
 			{
-				Property->SetObjectPropertyValue_InContainer(NoesisInstance, DuplicatedComponent);
-				check(Property->GetObjectPropertyValue_InContainer(NoesisInstance) == DuplicatedComponent);
+				Property->SetObjectPropertyValue_InContainer(NoesisInstance, NoesisGuiComponent);
+				check(Property->GetObjectPropertyValue_InContainer(NoesisInstance) == NoesisGuiComponent);
 			}
 		}
 
-		Components.Add(DuplicatedComponent);
-	}
-}
-
-void UNoesisBlueprintGeneratedClass::BindEvents()
-{
-	for (auto Component : Components)
-	{
-		Component->BindEvents();
+		Components.Add(NoesisGuiComponent);
 	}
 }

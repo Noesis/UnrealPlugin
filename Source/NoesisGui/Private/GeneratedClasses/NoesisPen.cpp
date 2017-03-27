@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisPen.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisPen::UNoesisPen(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Pen::StaticGetClassType();
 }
 
 void UNoesisPen::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisBrush* UNoesisPen::GetBrush()
 {
 	Noesis::Gui::Pen* NoesisPen = NsDynamicCast<Noesis::Gui::Pen*>(NoesisComponent.GetPtr());
 	check(NoesisPen);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisPen->GetBrush()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisPen->GetBrush(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisPen::SetBrush(class UNoesisBrush* InBrush)
@@ -54,7 +57,7 @@ class UNoesisDashStyle* UNoesisPen::GetDashStyle()
 {
 	Noesis::Gui::Pen* NoesisPen = NsDynamicCast<Noesis::Gui::Pen*>(NoesisComponent.GetPtr());
 	check(NoesisPen);
-	return CastChecked<UNoesisDashStyle>(Instance->FindUnrealComponentForNoesisComponent(NoesisPen->GetDashStyle()));
+	return CastChecked<UNoesisDashStyle>(CreateClassFor(NoesisPen->GetDashStyle(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisPen::SetDashStyle(class UNoesisDashStyle* InDashStyle)
@@ -146,7 +149,7 @@ void UNoesisPen::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Pen* NoesisPen = NsDynamicCast<Noesis::Gui::Pen*>(NoesisComponent.GetPtr());
-	check(NoesisPen)
+	check(NoesisPen);
 
 
 }
@@ -156,7 +159,7 @@ void UNoesisPen::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Pen* NoesisPen = NsDynamicCast<Noesis::Gui::Pen*>(NoesisComponent.GetPtr());
-	check(NoesisPen)
+	check(NoesisPen);
 
 
 }

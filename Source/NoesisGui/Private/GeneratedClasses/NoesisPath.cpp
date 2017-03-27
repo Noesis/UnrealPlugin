@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisPath.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisPath::UNoesisPath(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Path::StaticGetClassType();
 }
 
 void UNoesisPath::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisGeometry* UNoesisPath::GetData()
 {
 	Noesis::Gui::Path* NoesisPath = NsDynamicCast<Noesis::Gui::Path*>(NoesisComponent.GetPtr());
 	check(NoesisPath);
-	return CastChecked<UNoesisGeometry>(Instance->FindUnrealComponentForNoesisComponent(NoesisPath->GetData()));
+	return CastChecked<UNoesisGeometry>(CreateClassFor(NoesisPath->GetData(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisPath::SetData(class UNoesisGeometry* InData)
@@ -41,7 +44,7 @@ void UNoesisPath::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Path* NoesisPath = NsDynamicCast<Noesis::Gui::Path*>(NoesisComponent.GetPtr());
-	check(NoesisPath)
+	check(NoesisPath);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisPath::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Path* NoesisPath = NsDynamicCast<Noesis::Gui::Path*>(NoesisComponent.GetPtr());
-	check(NoesisPath)
+	check(NoesisPath);
 
 
 }

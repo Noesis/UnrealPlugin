@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisRangeBase.h"
 #include "NoesisScrollBar.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisScrollBar : public UNoesisRangeBase
 {
 public:

@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisAnimatable.h"
 #include "NoesisBrush.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisBrush : public UNoesisAnimatable
 {
 public:
@@ -38,7 +38,7 @@ public:
 	void SetTransform(class UNoesisTransform* InTransform);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsTransparent();
+	bool IsTransparent();
 
 protected:
 

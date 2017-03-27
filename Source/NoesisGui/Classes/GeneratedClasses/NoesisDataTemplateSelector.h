@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisDataTemplateSelector.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisDataTemplateSelector : public UNoesisBaseComponent
 {
 public:
@@ -20,7 +20,7 @@ public:
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisDataTemplate* SelectTemplate(class UNoesisBaseComponent* Item, class UNoesisDependencyObject* Container);
+	class UNoesisDataTemplate* SelectTemplate(class UNoesisBaseComponent* Item, class UNoesisDependencyObject* Container);
 
 protected:
 

@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisBaseButton.h"
 #include "NoesisGridViewColumnHeader.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisGridViewColumnHeader : public UNoesisBaseButton
 {
 public:

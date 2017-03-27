@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisIScrollInfo.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisIScrollInfo : public UNoesisInterface
 {
 public:
@@ -20,43 +20,43 @@ public:
 	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void LineDown();
+	void LineDown();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void LineLeft();
+	void LineLeft();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void LineRight();
+	void LineRight();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void LineUp();
+	void LineUp();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-FNoesisDrawingRect MakeVisible(class UNoesisVisual* Visual, FNoesisDrawingRect Rectangle);
+	FNoesisDrawingRect MakeVisible(class UNoesisVisual* Visual, FNoesisDrawingRect Rectangle);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void MouseWheelDown(float Delta);
+	void MouseWheelDown(float Delta);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void MouseWheelLeft(float Delta);
+	void MouseWheelLeft(float Delta);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void MouseWheelRight(float Delta);
+	void MouseWheelRight(float Delta);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void MouseWheelUp(float Delta);
+	void MouseWheelUp(float Delta);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void PageDown();
+	void PageDown();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void PageLeft();
+	void PageLeft();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void PageRight();
+	void PageRight();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void PageUp();
+	void PageUp();
 
 protected:
 

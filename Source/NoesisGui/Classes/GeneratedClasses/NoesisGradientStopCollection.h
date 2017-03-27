@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisGradientStopCollection.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisGradientStopCollection : public UNoesisBaseComponent
 {
 public:

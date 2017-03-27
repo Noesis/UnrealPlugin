@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisTimeline.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisTimeline::UNoesisTimeline(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Timeline::StaticGetClassType();
 }
 
 void UNoesisTimeline::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -151,10 +154,10 @@ FNoesisDuration UNoesisTimeline::GetNaturalDuration(class UNoesisClock* InClock)
 
 void UNoesisTimeline::Completed_Private(Noesis::Core::BaseComponent* InSender, const Noesis::TimelineEventArgs& InArgs)
 {
-	if (!Completed.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Completed.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisTimelineEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisTimelineEventArgs Args(InArgs);
 	Completed.Broadcast(Sender, Args);
 }
 
@@ -163,13 +166,10 @@ void UNoesisTimeline::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Timeline* NoesisTimeline = NsDynamicCast<Noesis::Gui::Timeline*>(NoesisComponent.GetPtr());
-	check(NoesisTimeline)
+	check(NoesisTimeline);
 
 	Completed_Delegate = Noesis::MakeDelegate(this, &UNoesisTimeline::Completed_Private);
-	if (Completed.IsBound())
-	{
-		NoesisTimeline->Completed() += Completed_Delegate;
-	}
+	NoesisTimeline->Completed() += Completed_Delegate;
 
 }
 
@@ -178,12 +178,9 @@ void UNoesisTimeline::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Timeline* NoesisTimeline = NsDynamicCast<Noesis::Gui::Timeline*>(NoesisComponent.GetPtr());
-	check(NoesisTimeline)
+	check(NoesisTimeline);
 
-	if (Completed.IsBound())
-	{
-		NoesisTimeline->Completed() -= Completed_Delegate;
-	}
+	NoesisTimeline->Completed() -= Completed_Delegate;
 
 }
 

@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisControllableStoryboardAction.h"
 #include "NoesisStopStoryboard.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisStopStoryboard : public UNoesisControllableStoryboardAction
 {
 public:

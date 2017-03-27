@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisDataTrigger.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisDataTrigger::UNoesisDataTrigger(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::DataTrigger::StaticGetClassType();
 }
 
 void UNoesisDataTrigger::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisBaseBinding* UNoesisDataTrigger::GetBinding()
 {
 	Noesis::Gui::DataTrigger* NoesisDataTrigger = NsDynamicCast<Noesis::Gui::DataTrigger*>(NoesisComponent.GetPtr());
 	check(NoesisDataTrigger);
-	return CastChecked<UNoesisBaseBinding>(Instance->FindUnrealComponentForNoesisComponent(NoesisDataTrigger->GetBinding()));
+	return CastChecked<UNoesisBaseBinding>(CreateClassFor(NoesisDataTrigger->GetBinding(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisDataTrigger::SetBinding(class UNoesisBaseBinding* InBinding)
@@ -40,14 +43,14 @@ class UNoesisBaseSetterCollection* UNoesisDataTrigger::GetSetters()
 {
 	Noesis::Gui::DataTrigger* NoesisDataTrigger = NsDynamicCast<Noesis::Gui::DataTrigger*>(NoesisComponent.GetPtr());
 	check(NoesisDataTrigger);
-	return CastChecked<UNoesisBaseSetterCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisDataTrigger->GetSetters()));
+	return CastChecked<UNoesisBaseSetterCollection>(CreateClassFor(NoesisDataTrigger->GetSetters(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisBaseComponent* UNoesisDataTrigger::GetValue()
 {
 	Noesis::Gui::DataTrigger* NoesisDataTrigger = NsDynamicCast<Noesis::Gui::DataTrigger*>(NoesisComponent.GetPtr());
 	check(NoesisDataTrigger);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisDataTrigger->GetValue()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisDataTrigger->GetValue(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisDataTrigger::SetValue(class UNoesisBaseComponent* InValue)
@@ -62,7 +65,7 @@ void UNoesisDataTrigger::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::DataTrigger* NoesisDataTrigger = NsDynamicCast<Noesis::Gui::DataTrigger*>(NoesisComponent.GetPtr());
-	check(NoesisDataTrigger)
+	check(NoesisDataTrigger);
 
 
 }
@@ -72,7 +75,7 @@ void UNoesisDataTrigger::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::DataTrigger* NoesisDataTrigger = NsDynamicCast<Noesis::Gui::DataTrigger*>(NoesisComponent.GetPtr());
-	check(NoesisDataTrigger)
+	check(NoesisDataTrigger);
 
 
 }

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisIXamlContextReceiver.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisIXamlContextReceiver::UNoesisIXamlContextReceiver(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisInterfaceTypeClass = Noesis::Gui::IXamlContextReceiver::StaticGetClassType();
 }
 
 void UNoesisIXamlContextReceiver::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterface)
@@ -27,7 +30,7 @@ void UNoesisIXamlContextReceiver::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::IXamlContextReceiver* NoesisIXamlContextReceiver = NsDynamicCast<Noesis::Gui::IXamlContextReceiver*>(NoesisInterface.GetPtr());
-	check(NoesisIXamlContextReceiver)
+	check(NoesisIXamlContextReceiver);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisIXamlContextReceiver::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::IXamlContextReceiver* NoesisIXamlContextReceiver = NsDynamicCast<Noesis::Gui::IXamlContextReceiver*>(NoesisInterface.GetPtr());
-	check(NoesisIXamlContextReceiver)
+	check(NoesisIXamlContextReceiver);
 
 
 }

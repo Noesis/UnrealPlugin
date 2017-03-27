@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisPlaneProjection.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisPlaneProjection::UNoesisPlaneProjection(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::PlaneProjection::StaticGetClassType();
 }
 
 void UNoesisPlaneProjection::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -202,7 +205,7 @@ void UNoesisPlaneProjection::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::PlaneProjection* NoesisPlaneProjection = NsDynamicCast<Noesis::Gui::PlaneProjection*>(NoesisComponent.GetPtr());
-	check(NoesisPlaneProjection)
+	check(NoesisPlaneProjection);
 
 
 }
@@ -212,7 +215,7 @@ void UNoesisPlaneProjection::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::PlaneProjection* NoesisPlaneProjection = NsDynamicCast<Noesis::Gui::PlaneProjection*>(NoesisComponent.GetPtr());
-	check(NoesisPlaneProjection)
+	check(NoesisPlaneProjection);
 
 
 }

@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisEasingFunctionBase.h"
 #include "NoesisExponentialEase.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisExponentialEase : public UNoesisEasingFunctionBase
 {
 public:

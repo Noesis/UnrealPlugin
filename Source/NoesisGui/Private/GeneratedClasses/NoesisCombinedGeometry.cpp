@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisCombinedGeometry.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisCombinedGeometry::UNoesisCombinedGeometry(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::CombinedGeometry::StaticGetClassType();
 }
 
 void UNoesisCombinedGeometry::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisGeometry* UNoesisCombinedGeometry::GetGeometry1()
 {
 	Noesis::Gui::CombinedGeometry* NoesisCombinedGeometry = NsDynamicCast<Noesis::Gui::CombinedGeometry*>(NoesisComponent.GetPtr());
 	check(NoesisCombinedGeometry);
-	return CastChecked<UNoesisGeometry>(Instance->FindUnrealComponentForNoesisComponent(NoesisCombinedGeometry->GetGeometry1()));
+	return CastChecked<UNoesisGeometry>(CreateClassFor(NoesisCombinedGeometry->GetGeometry1(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisCombinedGeometry::SetGeometry1(class UNoesisGeometry* InGeometry1)
@@ -40,7 +43,7 @@ class UNoesisGeometry* UNoesisCombinedGeometry::GetGeometry2()
 {
 	Noesis::Gui::CombinedGeometry* NoesisCombinedGeometry = NsDynamicCast<Noesis::Gui::CombinedGeometry*>(NoesisComponent.GetPtr());
 	check(NoesisCombinedGeometry);
-	return CastChecked<UNoesisGeometry>(Instance->FindUnrealComponentForNoesisComponent(NoesisCombinedGeometry->GetGeometry2()));
+	return CastChecked<UNoesisGeometry>(CreateClassFor(NoesisCombinedGeometry->GetGeometry2(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisCombinedGeometry::SetGeometry2(class UNoesisGeometry* InGeometry2)
@@ -69,7 +72,7 @@ void UNoesisCombinedGeometry::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::CombinedGeometry* NoesisCombinedGeometry = NsDynamicCast<Noesis::Gui::CombinedGeometry*>(NoesisComponent.GetPtr());
-	check(NoesisCombinedGeometry)
+	check(NoesisCombinedGeometry);
 
 
 }
@@ -79,7 +82,7 @@ void UNoesisCombinedGeometry::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::CombinedGeometry* NoesisCombinedGeometry = NsDynamicCast<Noesis::Gui::CombinedGeometry*>(NoesisComponent.GetPtr());
-	check(NoesisCombinedGeometry)
+	check(NoesisCombinedGeometry);
 
 
 }

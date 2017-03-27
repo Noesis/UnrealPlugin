@@ -18,9 +18,8 @@ class NOESISGUI_API UNoesisBaseComponent : public UObject
 
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent);
 
+	const Noesis::Core::TypeClass* NoesisComponentTypeClass;
 	Noesis::Ptr<Noesis::Core::BaseComponent> NoesisComponent;
-
-	class UNoesisInstance* Instance;
 
 	// UObject interface
 	virtual void BeginDestroy() override;

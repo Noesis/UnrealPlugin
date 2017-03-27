@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisAdornerDecorator.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisAdornerDecorator::UNoesisAdornerDecorator(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::AdornerDecorator::StaticGetClassType();
 }
 
 void UNoesisAdornerDecorator::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisAdornerDecorator::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::AdornerDecorator* NoesisAdornerDecorator = NsDynamicCast<Noesis::Gui::AdornerDecorator*>(NoesisComponent.GetPtr());
-	check(NoesisAdornerDecorator)
+	check(NoesisAdornerDecorator);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisAdornerDecorator::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::AdornerDecorator* NoesisAdornerDecorator = NsDynamicCast<Noesis::Gui::AdornerDecorator*>(NoesisComponent.GetPtr());
-	check(NoesisAdornerDecorator)
+	check(NoesisAdornerDecorator);
 
 
 }

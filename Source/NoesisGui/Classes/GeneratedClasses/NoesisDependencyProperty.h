@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisDependencyProperty.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisDependencyProperty : public UNoesisBaseComponent
 {
 public:
@@ -28,31 +28,31 @@ public:
 	int32 GetSize();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool CheckType(const class UNoesisBaseComponent* Value);
+	bool CheckType(const class UNoesisBaseComponent* Value);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ClearAnimation(class UNoesisDependencyObject* Obj);
+	void ClearAnimation(class UNoesisDependencyObject* Obj);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisBaseComponent* GetBaseValueObject(const class UNoesisDependencyObject* Obj);
+	class UNoesisBaseComponent* GetBaseValueObject(const class UNoesisDependencyObject* Obj);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisBaseComponent* GetValueObject(const class UNoesisDependencyObject* Obj);
+	class UNoesisBaseComponent* GetValueObject(const class UNoesisDependencyObject* Obj);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsReadOnly();
+	bool IsReadOnly();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsSameValue(const class UNoesisDependencyObject* Obj, const class UNoesisBaseComponent* Value);
+	bool IsSameValue(const class UNoesisDependencyObject* Obj, const class UNoesisBaseComponent* Value);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsSameValue_(const class UNoesisBaseComponent* Left, const class UNoesisBaseComponent* Right);
+	bool IsSameValue_(const class UNoesisBaseComponent* Left, const class UNoesisBaseComponent* Right);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsValidValue(const class UNoesisBaseComponent* Value);
+	bool IsValidValue(const class UNoesisBaseComponent* Value);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void SetAnimationObject(class UNoesisDependencyObject* Obj, const class UNoesisBaseComponent* Value);
+	void SetAnimationObject(class UNoesisDependencyObject* Obj, const class UNoesisBaseComponent* Value);
 
 protected:
 

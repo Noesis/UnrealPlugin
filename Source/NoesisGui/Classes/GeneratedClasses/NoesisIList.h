@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisIList.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisIList : public UNoesisInterface
 {
 public:
@@ -20,31 +20,31 @@ public:
 	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-int32 Add(class UNoesisBaseComponent* Item);
+	int32 Add(class UNoesisBaseComponent* Item);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Clear();
+	void Clear();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool Contains(class UNoesisBaseComponent* Item);
+	bool Contains(class UNoesisBaseComponent* Item);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-int32 Count();
+	int32 Count();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisBaseComponent* Get(int32 Index);
+	class UNoesisBaseComponent* Get(int32 Index);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-int32 IndexOf(class UNoesisBaseComponent* Item);
+	int32 IndexOf(class UNoesisBaseComponent* Item);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Insert(int32 Index, class UNoesisBaseComponent* Item);
+	void Insert(int32 Index, class UNoesisBaseComponent* Item);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Remove(class UNoesisBaseComponent* Item);
+	void Remove(class UNoesisBaseComponent* Item);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void RemoveAt(int32 Index);
+	void RemoveAt(int32 Index);
 
 protected:
 

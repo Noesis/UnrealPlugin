@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisRectangleGeometry.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisRectangleGeometry::UNoesisRectangleGeometry(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::RectangleGeometry::StaticGetClassType();
 }
 
 void UNoesisRectangleGeometry::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -69,7 +72,7 @@ void UNoesisRectangleGeometry::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::RectangleGeometry* NoesisRectangleGeometry = NsDynamicCast<Noesis::Gui::RectangleGeometry*>(NoesisComponent.GetPtr());
-	check(NoesisRectangleGeometry)
+	check(NoesisRectangleGeometry);
 
 
 }
@@ -79,7 +82,7 @@ void UNoesisRectangleGeometry::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::RectangleGeometry* NoesisRectangleGeometry = NsDynamicCast<Noesis::Gui::RectangleGeometry*>(NoesisComponent.GetPtr());
-	check(NoesisRectangleGeometry)
+	check(NoesisRectangleGeometry);
 
 
 }

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisMatrix3DProjection.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisMatrix3DProjection::UNoesisMatrix3DProjection(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Matrix3DProjection::StaticGetClassType();
 }
 
 void UNoesisMatrix3DProjection::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -41,7 +44,7 @@ void UNoesisMatrix3DProjection::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Matrix3DProjection* NoesisMatrix3DProjection = NsDynamicCast<Noesis::Gui::Matrix3DProjection*>(NoesisComponent.GetPtr());
-	check(NoesisMatrix3DProjection)
+	check(NoesisMatrix3DProjection);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisMatrix3DProjection::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Matrix3DProjection* NoesisMatrix3DProjection = NsDynamicCast<Noesis::Gui::Matrix3DProjection*>(NoesisComponent.GetPtr());
-	check(NoesisMatrix3DProjection)
+	check(NoesisMatrix3DProjection);
 
 
 }

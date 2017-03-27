@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisControl.h"
 #include "NoesisPasswordBox.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisPasswordBox : public UNoesisControl
 {
 public:
@@ -54,6 +54,9 @@ public:
 	float GetSelectionOpacity();
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
 	void SetSelectionOpacity(float InSelectionOpacity);
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
+	void SelectAll();
 
 protected:
 

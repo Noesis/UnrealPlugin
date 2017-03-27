@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisToolBar.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisToolBar::UNoesisToolBar(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ToolBar::StaticGetClassType();
 }
 
 void UNoesisToolBar::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -83,7 +86,7 @@ void UNoesisToolBar::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ToolBar* NoesisToolBar = NsDynamicCast<Noesis::Gui::ToolBar*>(NoesisComponent.GetPtr());
-	check(NoesisToolBar)
+	check(NoesisToolBar);
 
 
 }
@@ -93,7 +96,7 @@ void UNoesisToolBar::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ToolBar* NoesisToolBar = NsDynamicCast<Noesis::Gui::ToolBar*>(NoesisComponent.GetPtr());
-	check(NoesisToolBar)
+	check(NoesisToolBar);
 
 
 }

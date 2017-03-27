@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisBaseBinding.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisBaseBinding::UNoesisBaseBinding(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::BaseBinding::StaticGetClassType();
 }
 
 void UNoesisBaseBinding::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisBaseComponent* UNoesisBaseBinding::GetFallbackValue()
 {
 	Noesis::Gui::BaseBinding* NoesisBaseBinding = NsDynamicCast<Noesis::Gui::BaseBinding*>(NoesisComponent.GetPtr());
 	check(NoesisBaseBinding);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisBaseBinding->GetFallbackValue()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisBaseBinding->GetFallbackValue(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBaseBinding::SetFallbackValue(class UNoesisBaseComponent* InFallbackValue)
@@ -55,7 +58,7 @@ void UNoesisBaseBinding::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::BaseBinding* NoesisBaseBinding = NsDynamicCast<Noesis::Gui::BaseBinding*>(NoesisComponent.GetPtr());
-	check(NoesisBaseBinding)
+	check(NoesisBaseBinding);
 
 
 }
@@ -65,7 +68,7 @@ void UNoesisBaseBinding::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::BaseBinding* NoesisBaseBinding = NsDynamicCast<Noesis::Gui::BaseBinding*>(NoesisComponent.GetPtr());
-	check(NoesisBaseBinding)
+	check(NoesisBaseBinding);
 
 
 }

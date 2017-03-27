@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisDependencyProperty.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisDependencyProperty::UNoesisDependencyProperty(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::DependencyProperty::StaticGetClassType();
 }
 
 void UNoesisDependencyProperty::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -57,7 +60,7 @@ class UNoesisBaseComponent* UNoesisDependencyProperty::GetBaseValueObject(const 
 	Noesis::Gui::DependencyProperty* NoesisDependencyProperty = NsDynamicCast<Noesis::Gui::DependencyProperty*>(NoesisComponent.GetPtr());
 	check(NoesisDependencyProperty);
 	const DependencyObject* NoesisInObj = NsDynamicCast<const DependencyObject*>(InObj->NoesisComponent.GetPtr());
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisDependencyProperty->GetBaseValueObject(NoesisInObj)));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisDependencyProperty->GetBaseValueObject(NoesisInObj), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisBaseComponent* UNoesisDependencyProperty::GetValueObject(const class UNoesisDependencyObject* InObj)
@@ -65,7 +68,7 @@ class UNoesisBaseComponent* UNoesisDependencyProperty::GetValueObject(const clas
 	Noesis::Gui::DependencyProperty* NoesisDependencyProperty = NsDynamicCast<Noesis::Gui::DependencyProperty*>(NoesisComponent.GetPtr());
 	check(NoesisDependencyProperty);
 	const DependencyObject* NoesisInObj = NsDynamicCast<const DependencyObject*>(InObj->NoesisComponent.GetPtr());
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisDependencyProperty->GetValueObject(NoesisInObj)));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisDependencyProperty->GetValueObject(NoesisInObj), nullptr), ECastCheckedType::NullAllowed);
 }
 
 bool UNoesisDependencyProperty::IsReadOnly()
@@ -115,7 +118,7 @@ void UNoesisDependencyProperty::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::DependencyProperty* NoesisDependencyProperty = NsDynamicCast<Noesis::Gui::DependencyProperty*>(NoesisComponent.GetPtr());
-	check(NoesisDependencyProperty)
+	check(NoesisDependencyProperty);
 
 
 }
@@ -125,7 +128,7 @@ void UNoesisDependencyProperty::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::DependencyProperty* NoesisDependencyProperty = NsDynamicCast<Noesis::Gui::DependencyProperty*>(NoesisComponent.GetPtr());
-	check(NoesisDependencyProperty)
+	check(NoesisDependencyProperty);
 
 
 }

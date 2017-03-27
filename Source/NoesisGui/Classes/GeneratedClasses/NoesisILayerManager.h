@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisILayerManager.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisILayerManager : public UNoesisInterface
 {
 public:
@@ -20,10 +20,10 @@ public:
 	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void AddLayer(class UNoesisVisual* LayerRoot);
+	void AddLayer(class UNoesisVisual* LayerRoot);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void RemoveLayer(class UNoesisVisual* LayerRoot);
+	void RemoveLayer(class UNoesisVisual* LayerRoot);
 
 protected:
 

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisIList.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisIList::UNoesisIList(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisInterfaceTypeClass = Noesis::Gui::IList::StaticGetClassType();
 }
 
 void UNoesisIList::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterface)
@@ -57,7 +60,7 @@ class UNoesisBaseComponent* UNoesisIList::Get(int32 InIndex)
 	Noesis::Gui::IList* NoesisIList = NsDynamicCast<Noesis::Gui::IList*>(NoesisInterface.GetPtr());
 	check(NoesisIList);
 	NsSize NoesisInIndex = (NsSize)InIndex;
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisIList->Get(NoesisInIndex)));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisIList->Get(NoesisInIndex), nullptr), ECastCheckedType::NullAllowed);
 }
 
 int32 UNoesisIList::IndexOf(class UNoesisBaseComponent* InItem)
@@ -98,7 +101,7 @@ void UNoesisIList::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::IList* NoesisIList = NsDynamicCast<Noesis::Gui::IList*>(NoesisInterface.GetPtr());
-	check(NoesisIList)
+	check(NoesisIList);
 
 
 }
@@ -108,7 +111,7 @@ void UNoesisIList::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::IList* NoesisIList = NsDynamicCast<Noesis::Gui::IList*>(NoesisInterface.GetPtr());
-	check(NoesisIList)
+	check(NoesisIList);
 
 
 }

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisPopup.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisPopup::UNoesisPopup(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Popup::StaticGetClassType();
 }
 
 void UNoesisPopup::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -40,7 +43,7 @@ class UNoesisUIElement* UNoesisPopup::GetChild()
 {
 	Noesis::Gui::Popup* NoesisPopup = NsDynamicCast<Noesis::Gui::Popup*>(NoesisComponent.GetPtr());
 	check(NoesisPopup);
-	return CastChecked<UNoesisUIElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisPopup->GetChild()));
+	return CastChecked<UNoesisUIElement>(CreateClassFor(NoesisPopup->GetChild(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisPopup::SetChild(class UNoesisUIElement* InChild)
@@ -124,7 +127,7 @@ class UNoesisUIElement* UNoesisPopup::GetPlacementTarget()
 {
 	Noesis::Gui::Popup* NoesisPopup = NsDynamicCast<Noesis::Gui::Popup*>(NoesisComponent.GetPtr());
 	check(NoesisPopup);
-	return CastChecked<UNoesisUIElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisPopup->GetPlacementTarget()));
+	return CastChecked<UNoesisUIElement>(CreateClassFor(NoesisPopup->GetPlacementTarget(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisPopup::SetPlacementTarget(class UNoesisUIElement* InPlacementTarget)
@@ -178,10 +181,10 @@ void UNoesisPopup::SetVerticalOffset(float InVerticalOffset)
 
 void UNoesisPopup::Closed_Private(Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs)
 {
-	if (!Closed.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Closed.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisEventArgs Args(InArgs);
 	Closed.Broadcast(Sender, Args);
 }
 
@@ -190,13 +193,10 @@ void UNoesisPopup::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Popup* NoesisPopup = NsDynamicCast<Noesis::Gui::Popup*>(NoesisComponent.GetPtr());
-	check(NoesisPopup)
+	check(NoesisPopup);
 
 	Closed_Delegate = Noesis::MakeDelegate(this, &UNoesisPopup::Closed_Private);
-	if (Closed.IsBound())
-	{
-		NoesisPopup->Closed() += Closed_Delegate;
-	}
+	NoesisPopup->Closed() += Closed_Delegate;
 
 }
 
@@ -205,12 +205,9 @@ void UNoesisPopup::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Popup* NoesisPopup = NsDynamicCast<Noesis::Gui::Popup*>(NoesisComponent.GetPtr());
-	check(NoesisPopup)
+	check(NoesisPopup);
 
-	if (Closed.IsBound())
-	{
-		NoesisPopup->Closed() -= Closed_Delegate;
-	}
+	NoesisPopup->Closed() -= Closed_Delegate;
 
 }
 

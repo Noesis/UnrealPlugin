@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisVisualTransition.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisVisualTransition::UNoesisVisualTransition(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::VisualTransition::StaticGetClassType();
 }
 
 void UNoesisVisualTransition::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -54,7 +57,7 @@ class UNoesisEasingFunctionBase* UNoesisVisualTransition::GetGeneratedEasingFunc
 {
 	Noesis::Gui::VisualTransition* NoesisVisualTransition = NsDynamicCast<Noesis::Gui::VisualTransition*>(NoesisComponent.GetPtr());
 	check(NoesisVisualTransition);
-	return CastChecked<UNoesisEasingFunctionBase>(Instance->FindUnrealComponentForNoesisComponent(NoesisVisualTransition->GetGeneratedEasingFunction()));
+	return CastChecked<UNoesisEasingFunctionBase>(CreateClassFor(NoesisVisualTransition->GetGeneratedEasingFunction(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisVisualTransition::SetGeneratedEasingFunction(class UNoesisEasingFunctionBase* InGeneratedEasingFunction)
@@ -68,7 +71,7 @@ class UNoesisStoryboard* UNoesisVisualTransition::GetStoryboard()
 {
 	Noesis::Gui::VisualTransition* NoesisVisualTransition = NsDynamicCast<Noesis::Gui::VisualTransition*>(NoesisComponent.GetPtr());
 	check(NoesisVisualTransition);
-	return CastChecked<UNoesisStoryboard>(Instance->FindUnrealComponentForNoesisComponent(NoesisVisualTransition->GetStoryboard()));
+	return CastChecked<UNoesisStoryboard>(CreateClassFor(NoesisVisualTransition->GetStoryboard(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisVisualTransition::SetStoryboard(class UNoesisStoryboard* InStoryboard)
@@ -104,7 +107,7 @@ void UNoesisVisualTransition::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::VisualTransition* NoesisVisualTransition = NsDynamicCast<Noesis::Gui::VisualTransition*>(NoesisComponent.GetPtr());
-	check(NoesisVisualTransition)
+	check(NoesisVisualTransition);
 
 
 }
@@ -114,7 +117,7 @@ void UNoesisVisualTransition::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::VisualTransition* NoesisVisualTransition = NsDynamicCast<Noesis::Gui::VisualTransition*>(NoesisComponent.GetPtr());
-	check(NoesisVisualTransition)
+	check(NoesisVisualTransition);
 
 
 }

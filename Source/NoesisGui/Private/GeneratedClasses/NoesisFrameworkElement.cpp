@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisFrameworkElement.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisFrameworkElement::UNoesisFrameworkElement(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::FrameworkElement::StaticGetClassType();
 }
 
 void UNoesisFrameworkElement::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -40,7 +43,7 @@ class UNoesisContextMenu* UNoesisFrameworkElement::GetContextMenu()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
-	return CastChecked<UNoesisContextMenu>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetContextMenu()));
+	return CastChecked<UNoesisContextMenu>(CreateClassFor(NoesisFrameworkElement->GetContextMenu(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisFrameworkElement::SetContextMenu(class UNoesisContextMenu* InContextMenu)
@@ -54,7 +57,7 @@ class UNoesisBaseComponent* UNoesisFrameworkElement::GetDataContext()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetDataContext()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisFrameworkElement->GetDataContext(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisFrameworkElement::SetDataContext(class UNoesisBaseComponent* InDataContext)
@@ -68,7 +71,7 @@ class UNoesisResourceKeyType* UNoesisFrameworkElement::GetDefaultStyleKey()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
-	return CastChecked<UNoesisResourceKeyType>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetDefaultStyleKey()));
+	return CastChecked<UNoesisResourceKeyType>(CreateClassFor(NoesisFrameworkElement->GetDefaultStyleKey(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisFrameworkElement::SetDefaultStyleKey(class UNoesisResourceKeyType* InDefaultStyleKey)
@@ -82,7 +85,7 @@ class UNoesisStyle* UNoesisFrameworkElement::GetFocusVisualStyle()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
-	return CastChecked<UNoesisStyle>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetFocusVisualStyle()));
+	return CastChecked<UNoesisStyle>(CreateClassFor(NoesisFrameworkElement->GetFocusVisualStyle(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisFrameworkElement::SetFocusVisualStyle(class UNoesisStyle* InFocusVisualStyle)
@@ -124,7 +127,7 @@ class UNoesisTransform* UNoesisFrameworkElement::GetLayoutTransform()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
-	return CastChecked<UNoesisTransform>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetLayoutTransform()));
+	return CastChecked<UNoesisTransform>(CreateClassFor(NoesisFrameworkElement->GetLayoutTransform(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisFrameworkElement::SetLayoutTransform(class UNoesisTransform* InLayoutTransform)
@@ -236,14 +239,14 @@ class UNoesisFrameworkElement* UNoesisFrameworkElement::GetParent()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
-	return CastChecked<UNoesisFrameworkElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetParent()));
+	return CastChecked<UNoesisFrameworkElement>(CreateClassFor(NoesisFrameworkElement->GetParent(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisResourceDictionary* UNoesisFrameworkElement::GetResources()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
-	return CastChecked<UNoesisResourceDictionary>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetResources()));
+	return CastChecked<UNoesisResourceDictionary>(CreateClassFor(NoesisFrameworkElement->GetResources(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisFrameworkElement::SetResources(class UNoesisResourceDictionary* InResources)
@@ -257,7 +260,7 @@ class UNoesisStyle* UNoesisFrameworkElement::GetStyle()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
-	return CastChecked<UNoesisStyle>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetStyle()));
+	return CastChecked<UNoesisStyle>(CreateClassFor(NoesisFrameworkElement->GetStyle(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisFrameworkElement::SetStyle(class UNoesisStyle* InStyle)
@@ -271,7 +274,7 @@ class UNoesisBaseComponent* UNoesisFrameworkElement::GetTag()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetTag()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisFrameworkElement->GetTag(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisFrameworkElement::SetTag(class UNoesisBaseComponent* InTag)
@@ -285,14 +288,14 @@ class UNoesisFrameworkElement* UNoesisFrameworkElement::GetTemplatedParent()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
-	return CastChecked<UNoesisFrameworkElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetTemplatedParent()));
+	return CastChecked<UNoesisFrameworkElement>(CreateClassFor(NoesisFrameworkElement->GetTemplatedParent(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisBaseComponent* UNoesisFrameworkElement::GetToolTip()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetToolTip()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisFrameworkElement->GetToolTip(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisFrameworkElement::SetToolTip(class UNoesisBaseComponent* InToolTip)
@@ -306,7 +309,7 @@ class UNoesisTriggerCollection* UNoesisFrameworkElement::GetTriggers()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
-	return CastChecked<UNoesisTriggerCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetTriggers()));
+	return CastChecked<UNoesisTriggerCollection>(CreateClassFor(NoesisFrameworkElement->GetTriggers(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 bool UNoesisFrameworkElement::GetUseLayoutRounding()
@@ -382,7 +385,7 @@ class UNoesisFrameworkElement* UNoesisFrameworkElement::Clone(class UNoesisFrame
 	FrameworkElement* NoesisInParent = NsDynamicCast<FrameworkElement*>(InParent->NoesisComponent.GetPtr());
 	FrameworkElement* NoesisInTemplatedParent = NsDynamicCast<FrameworkElement*>(InTemplatedParent->NoesisComponent.GetPtr());
 	FrameworkTemplate* NoesisInTemplate_ = NsDynamicCast<FrameworkTemplate*>(InTemplate_->NoesisComponent.GetPtr());
-	return CastChecked<UNoesisFrameworkElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->Clone(NoesisInParent, NoesisInTemplatedParent, NoesisInTemplate_)));
+	return CastChecked<UNoesisFrameworkElement>(CreateClassFor(NoesisFrameworkElement->Clone(NoesisInParent, NoesisInTemplatedParent, NoesisInTemplate_), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisFrameworkElement::Connect(class UNoesisBaseComponent* InSource, FString InEventName, FString InHandlerName)
@@ -400,7 +403,7 @@ class UNoesisBaseComponent* UNoesisFrameworkElement::FindName(FString InName)
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
 	const NsChar* NoesisInName = StringCast<NsChar>(*InName).Get();
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->FindName(NoesisInName)));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisFrameworkElement->FindName(NoesisInName), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisBaseComponent* UNoesisFrameworkElement::FindResource(class UNoesisIResourceKey* InKey)
@@ -408,28 +411,28 @@ class UNoesisBaseComponent* UNoesisFrameworkElement::FindResource(class UNoesisI
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
 	IResourceKey* NoesisInKey = NsDynamicCast<IResourceKey*>(InKey->NoesisInterface.GetPtr());
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->FindResource(NoesisInKey)));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisFrameworkElement->FindResource(NoesisInKey), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisFrameworkTemplate* UNoesisFrameworkElement::GetFrameworkTemplate()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
-	return CastChecked<UNoesisFrameworkTemplate>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetFrameworkTemplate()));
+	return CastChecked<UNoesisFrameworkTemplate>(CreateClassFor(NoesisFrameworkElement->GetFrameworkTemplate(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisFrameworkElement* UNoesisFrameworkElement::GetParentOrTemplatedParent()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
-	return CastChecked<UNoesisFrameworkElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetParentOrTemplatedParent()));
+	return CastChecked<UNoesisFrameworkElement>(CreateClassFor(NoesisFrameworkElement->GetParentOrTemplatedParent(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisFrameworkElement* UNoesisFrameworkElement::GetStateGroupsRoot()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
-	return CastChecked<UNoesisFrameworkElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetStateGroupsRoot()));
+	return CastChecked<UNoesisFrameworkElement>(CreateClassFor(NoesisFrameworkElement->GetStateGroupsRoot(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisBaseComponent* UNoesisFrameworkElement::GetTemplateChild(FString InName)
@@ -437,21 +440,21 @@ class UNoesisBaseComponent* UNoesisFrameworkElement::GetTemplateChild(FString In
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
 	const NsChar* NoesisInName = StringCast<NsChar>(*InName).Get();
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetTemplateChild(NoesisInName)));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisFrameworkElement->GetTemplateChild(NoesisInName), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisFrameworkElement* UNoesisFrameworkElement::GetTemplateRoot()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
-	return CastChecked<UNoesisFrameworkElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkElement->GetTemplateRoot()));
+	return CastChecked<UNoesisFrameworkElement>(CreateClassFor(NoesisFrameworkElement->GetTemplateRoot(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisITimeManager* UNoesisFrameworkElement::GetTimeManager()
 {
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkElement);
-	return CastChecked<UNoesisITimeManager>(Instance->FindUnrealInterfaceForNoesisInterface(NoesisFrameworkElement->GetTimeManager()));
+	return CastChecked<UNoesisITimeManager>(CreateInterfaceFor(NoesisFrameworkElement->GetTimeManager(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 bool UNoesisFrameworkElement::IsLoaded()
@@ -463,91 +466,91 @@ bool UNoesisFrameworkElement::IsLoaded()
 
 void UNoesisFrameworkElement::ContextMenuClosing_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ContextMenuEventArgs& InArgs)
 {
-	if (!ContextMenuClosing.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!ContextMenuClosing.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisContextMenuEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisContextMenuEventArgs Args(InArgs);
 	ContextMenuClosing.Broadcast(Sender, Args);
 }
 
 void UNoesisFrameworkElement::ContextMenuOpening_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ContextMenuEventArgs& InArgs)
 {
-	if (!ContextMenuOpening.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!ContextMenuOpening.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisContextMenuEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisContextMenuEventArgs Args(InArgs);
 	ContextMenuOpening.Broadcast(Sender, Args);
 }
 
 void UNoesisFrameworkElement::DataContextChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::DependencyPropertyChangedEventArgs& InArgs)
 {
-	if (!DataContextChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!DataContextChanged.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisDependencyPropertyChangedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisDependencyPropertyChangedEventArgs Args(InArgs);
 	DataContextChanged.Broadcast(Sender, Args);
 }
 
 void UNoesisFrameworkElement::Initialized_Private(Noesis::Core::BaseComponent* InSender, const Noesis::EventArgs& InArgs)
 {
-	if (!Initialized.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Initialized.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisEventArgs Args(InArgs);
 	Initialized.Broadcast(Sender, Args);
 }
 
 void UNoesisFrameworkElement::Loaded_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Loaded.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Loaded.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisRoutedEventArgs Args(InArgs);
 	Loaded.Broadcast(Sender, Args);
 }
 
 void UNoesisFrameworkElement::RequestBringIntoView_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RequestBringIntoViewEventArgs& InArgs)
 {
-	if (!RequestBringIntoView.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!RequestBringIntoView.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisRequestBringIntoViewEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisRequestBringIntoViewEventArgs Args(InArgs);
 	RequestBringIntoView.Broadcast(Sender, Args);
 }
 
 void UNoesisFrameworkElement::SizeChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::SizeChangedEventArgs& InArgs)
 {
-	if (!SizeChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!SizeChanged.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisSizeChangedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisSizeChangedEventArgs Args(InArgs);
 	SizeChanged.Broadcast(Sender, Args);
 }
 
 void UNoesisFrameworkElement::ToolTipClosing_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ToolTipEventArgs& InArgs)
 {
-	if (!ToolTipClosing.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!ToolTipClosing.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisToolTipEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisToolTipEventArgs Args(InArgs);
 	ToolTipClosing.Broadcast(Sender, Args);
 }
 
 void UNoesisFrameworkElement::ToolTipOpening_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ToolTipEventArgs& InArgs)
 {
-	if (!ToolTipOpening.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!ToolTipOpening.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisToolTipEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisToolTipEventArgs Args(InArgs);
 	ToolTipOpening.Broadcast(Sender, Args);
 }
 
 void UNoesisFrameworkElement::Unloaded_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Unloaded.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Unloaded.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisRoutedEventArgs Args(InArgs);
 	Unloaded.Broadcast(Sender, Args);
 }
 
@@ -556,58 +559,28 @@ void UNoesisFrameworkElement::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
-	check(NoesisFrameworkElement)
+	check(NoesisFrameworkElement);
 
 	ContextMenuClosing_Delegate = Noesis::MakeDelegate(this, &UNoesisFrameworkElement::ContextMenuClosing_Private);
-	if (ContextMenuClosing.IsBound())
-	{
-		NoesisFrameworkElement->ContextMenuClosing() += ContextMenuClosing_Delegate;
-	}
+	NoesisFrameworkElement->ContextMenuClosing() += ContextMenuClosing_Delegate;
 	ContextMenuOpening_Delegate = Noesis::MakeDelegate(this, &UNoesisFrameworkElement::ContextMenuOpening_Private);
-	if (ContextMenuOpening.IsBound())
-	{
-		NoesisFrameworkElement->ContextMenuOpening() += ContextMenuOpening_Delegate;
-	}
+	NoesisFrameworkElement->ContextMenuOpening() += ContextMenuOpening_Delegate;
 	DataContextChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisFrameworkElement::DataContextChanged_Private);
-	if (DataContextChanged.IsBound())
-	{
-		NoesisFrameworkElement->DataContextChanged() += DataContextChanged_Delegate;
-	}
+	NoesisFrameworkElement->DataContextChanged() += DataContextChanged_Delegate;
 	Initialized_Delegate = Noesis::MakeDelegate(this, &UNoesisFrameworkElement::Initialized_Private);
-	if (Initialized.IsBound())
-	{
-		NoesisFrameworkElement->Initialized() += Initialized_Delegate;
-	}
+	NoesisFrameworkElement->Initialized() += Initialized_Delegate;
 	Loaded_Delegate = Noesis::MakeDelegate(this, &UNoesisFrameworkElement::Loaded_Private);
-	if (Loaded.IsBound())
-	{
-		NoesisFrameworkElement->Loaded() += Loaded_Delegate;
-	}
+	NoesisFrameworkElement->Loaded() += Loaded_Delegate;
 	RequestBringIntoView_Delegate = Noesis::MakeDelegate(this, &UNoesisFrameworkElement::RequestBringIntoView_Private);
-	if (RequestBringIntoView.IsBound())
-	{
-		NoesisFrameworkElement->RequestBringIntoView() += RequestBringIntoView_Delegate;
-	}
+	NoesisFrameworkElement->RequestBringIntoView() += RequestBringIntoView_Delegate;
 	SizeChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisFrameworkElement::SizeChanged_Private);
-	if (SizeChanged.IsBound())
-	{
-		NoesisFrameworkElement->SizeChanged() += SizeChanged_Delegate;
-	}
+	NoesisFrameworkElement->SizeChanged() += SizeChanged_Delegate;
 	ToolTipClosing_Delegate = Noesis::MakeDelegate(this, &UNoesisFrameworkElement::ToolTipClosing_Private);
-	if (ToolTipClosing.IsBound())
-	{
-		NoesisFrameworkElement->ToolTipClosing() += ToolTipClosing_Delegate;
-	}
+	NoesisFrameworkElement->ToolTipClosing() += ToolTipClosing_Delegate;
 	ToolTipOpening_Delegate = Noesis::MakeDelegate(this, &UNoesisFrameworkElement::ToolTipOpening_Private);
-	if (ToolTipOpening.IsBound())
-	{
-		NoesisFrameworkElement->ToolTipOpening() += ToolTipOpening_Delegate;
-	}
+	NoesisFrameworkElement->ToolTipOpening() += ToolTipOpening_Delegate;
 	Unloaded_Delegate = Noesis::MakeDelegate(this, &UNoesisFrameworkElement::Unloaded_Private);
-	if (Unloaded.IsBound())
-	{
-		NoesisFrameworkElement->Unloaded() += Unloaded_Delegate;
-	}
+	NoesisFrameworkElement->Unloaded() += Unloaded_Delegate;
 
 }
 
@@ -616,48 +589,18 @@ void UNoesisFrameworkElement::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::FrameworkElement* NoesisFrameworkElement = NsDynamicCast<Noesis::Gui::FrameworkElement*>(NoesisComponent.GetPtr());
-	check(NoesisFrameworkElement)
+	check(NoesisFrameworkElement);
 
-	if (ContextMenuClosing.IsBound())
-	{
-		NoesisFrameworkElement->ContextMenuClosing() -= ContextMenuClosing_Delegate;
-	}
-	if (ContextMenuOpening.IsBound())
-	{
-		NoesisFrameworkElement->ContextMenuOpening() -= ContextMenuOpening_Delegate;
-	}
-	if (DataContextChanged.IsBound())
-	{
-		NoesisFrameworkElement->DataContextChanged() -= DataContextChanged_Delegate;
-	}
-	if (Initialized.IsBound())
-	{
-		NoesisFrameworkElement->Initialized() -= Initialized_Delegate;
-	}
-	if (Loaded.IsBound())
-	{
-		NoesisFrameworkElement->Loaded() -= Loaded_Delegate;
-	}
-	if (RequestBringIntoView.IsBound())
-	{
-		NoesisFrameworkElement->RequestBringIntoView() -= RequestBringIntoView_Delegate;
-	}
-	if (SizeChanged.IsBound())
-	{
-		NoesisFrameworkElement->SizeChanged() -= SizeChanged_Delegate;
-	}
-	if (ToolTipClosing.IsBound())
-	{
-		NoesisFrameworkElement->ToolTipClosing() -= ToolTipClosing_Delegate;
-	}
-	if (ToolTipOpening.IsBound())
-	{
-		NoesisFrameworkElement->ToolTipOpening() -= ToolTipOpening_Delegate;
-	}
-	if (Unloaded.IsBound())
-	{
-		NoesisFrameworkElement->Unloaded() -= Unloaded_Delegate;
-	}
+	NoesisFrameworkElement->ContextMenuClosing() -= ContextMenuClosing_Delegate;
+	NoesisFrameworkElement->ContextMenuOpening() -= ContextMenuOpening_Delegate;
+	NoesisFrameworkElement->DataContextChanged() -= DataContextChanged_Delegate;
+	NoesisFrameworkElement->Initialized() -= Initialized_Delegate;
+	NoesisFrameworkElement->Loaded() -= Loaded_Delegate;
+	NoesisFrameworkElement->RequestBringIntoView() -= RequestBringIntoView_Delegate;
+	NoesisFrameworkElement->SizeChanged() -= SizeChanged_Delegate;
+	NoesisFrameworkElement->ToolTipClosing() -= ToolTipClosing_Delegate;
+	NoesisFrameworkElement->ToolTipOpening() -= ToolTipOpening_Delegate;
+	NoesisFrameworkElement->Unloaded() -= Unloaded_Delegate;
 
 }
 

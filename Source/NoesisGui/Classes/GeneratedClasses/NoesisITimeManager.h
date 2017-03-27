@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisITimeManager.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisITimeManager : public UNoesisInterface
 {
 public:
@@ -20,19 +20,19 @@ public:
 	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool GoToState(class UNoesisFrameworkElement* Target, FName StateName);
+	bool GoToState(class UNoesisFrameworkElement* Target, FName StateName);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool HasPendingAnimations();
+	bool HasPendingAnimations();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Tick(float TimeInSeconds);
+	void Tick(float TimeInSeconds);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void TickPending();
+	void TickPending();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void TransferTo(class UNoesisITimeManager* Other);
+	void TransferTo(class UNoesisITimeManager* Other);
 
 protected:
 

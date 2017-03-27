@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisRectKeyFrame.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisRectKeyFrame::UNoesisRectKeyFrame(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::KeyFrame<Noesis::Drawing::Rect>::StaticGetClassType();
 }
 
 void UNoesisRectKeyFrame::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -41,7 +44,7 @@ void UNoesisRectKeyFrame::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::KeyFrame<Noesis::Drawing::Rect>* NoesisRectKeyFrame = NsDynamicCast<Noesis::Gui::KeyFrame<Noesis::Drawing::Rect>*>(NoesisComponent.GetPtr());
-	check(NoesisRectKeyFrame)
+	check(NoesisRectKeyFrame);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisRectKeyFrame::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::KeyFrame<Noesis::Drawing::Rect>* NoesisRectKeyFrame = NsDynamicCast<Noesis::Gui::KeyFrame<Noesis::Drawing::Rect>*>(NoesisComponent.GetPtr());
-	check(NoesisRectKeyFrame)
+	check(NoesisRectKeyFrame);
 
 
 }

@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisSelector.h"
 #include "NoesisComboBox.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisComboBox : public UNoesisSelector
 {
 public:

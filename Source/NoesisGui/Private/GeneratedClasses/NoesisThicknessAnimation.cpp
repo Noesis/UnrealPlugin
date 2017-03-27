@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisThicknessAnimation.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisThicknessAnimation::UNoesisThicknessAnimation(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Animation<Noesis::Drawing::Thickness>::StaticGetClassType();
 }
 
 void UNoesisThicknessAnimation::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisThicknessAnimation::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Animation<Noesis::Drawing::Thickness>* NoesisThicknessAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Thickness>*>(NoesisComponent.GetPtr());
-	check(NoesisThicknessAnimation)
+	check(NoesisThicknessAnimation);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisThicknessAnimation::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Animation<Noesis::Drawing::Thickness>* NoesisThicknessAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Thickness>*>(NoesisComponent.GetPtr());
-	check(NoesisThicknessAnimation)
+	check(NoesisThicknessAnimation);
 
 
 }

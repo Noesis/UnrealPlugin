@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisItemContainerGenerator.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisItemContainerGenerator : public UNoesisBaseComponent
 {
 public:
@@ -24,43 +24,43 @@ public:
 	ENoesisGeneratorStatus GetStatus();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisDependencyObject* ContainerFromIndex(int32 Index);
+	class UNoesisDependencyObject* ContainerFromIndex(int32 Index);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisDependencyObject* ContainerFromItem(class UNoesisBaseComponent* Item);
+	class UNoesisDependencyObject* ContainerFromItem(class UNoesisBaseComponent* Item);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisDependencyObject* GenerateNext();
+	class UNoesisDependencyObject* GenerateNext();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisDependencyObject* GenerateNext_(bool& IsNewlyRealized);
+	class UNoesisDependencyObject* GenerateNext_(bool& IsNewlyRealized);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-FNoesisGeneratorPosition GeneratorPositionFromIndex(int32 ItemIndex);
+	FNoesisGeneratorPosition GeneratorPositionFromIndex(int32 ItemIndex);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisItemContainerGenerator* GetItemContainerGeneratorForPanel(class UNoesisPanel* Panel);
+	class UNoesisItemContainerGenerator* GetItemContainerGeneratorForPanel(class UNoesisPanel* Panel);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-int32 IndexFromContainer(class UNoesisDependencyObject* Container);
+	int32 IndexFromContainer(class UNoesisDependencyObject* Container);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-int32 IndexFromGeneratorPosition(FNoesisGeneratorPosition Position);
+	int32 IndexFromGeneratorPosition(FNoesisGeneratorPosition Position);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisBaseComponent* ItemFromContainer(class UNoesisDependencyObject* Container);
+	class UNoesisBaseComponent* ItemFromContainer(class UNoesisDependencyObject* Container);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void PrepareItemContainer(class UNoesisDependencyObject* Container);
+	void PrepareItemContainer(class UNoesisDependencyObject* Container);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Remove(FNoesisGeneratorPosition Position, int32 Count);
+	void Remove(FNoesisGeneratorPosition Position, int32 Count);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void RemoveAll();
+	void RemoveAll();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Stop();
+	void Stop();
 
 protected:
 

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisScrollBar.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisScrollBar::UNoesisScrollBar(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ScrollBar::StaticGetClassType();
 }
 
 void UNoesisScrollBar::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -40,7 +43,7 @@ class UNoesisTrack* UNoesisScrollBar::GetTrack()
 {
 	Noesis::Gui::ScrollBar* NoesisScrollBar = NsDynamicCast<Noesis::Gui::ScrollBar*>(NoesisComponent.GetPtr());
 	check(NoesisScrollBar);
-	return CastChecked<UNoesisTrack>(Instance->FindUnrealComponentForNoesisComponent(NoesisScrollBar->GetTrack()));
+	return CastChecked<UNoesisTrack>(CreateClassFor(NoesisScrollBar->GetTrack(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 float UNoesisScrollBar::GetViewportSize()
@@ -59,10 +62,10 @@ void UNoesisScrollBar::SetViewportSize(float InViewportSize)
 
 void UNoesisScrollBar::Scroll_Private(Noesis::Core::BaseComponent* InSender, const Noesis::ScrollEventArgs& InArgs)
 {
-	if (!Scroll.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Scroll.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisScrollEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisScrollEventArgs Args(InArgs);
 	Scroll.Broadcast(Sender, Args);
 }
 
@@ -71,13 +74,10 @@ void UNoesisScrollBar::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ScrollBar* NoesisScrollBar = NsDynamicCast<Noesis::Gui::ScrollBar*>(NoesisComponent.GetPtr());
-	check(NoesisScrollBar)
+	check(NoesisScrollBar);
 
 	Scroll_Delegate = Noesis::MakeDelegate(this, &UNoesisScrollBar::Scroll_Private);
-	if (Scroll.IsBound())
-	{
-		NoesisScrollBar->Scroll() += Scroll_Delegate;
-	}
+	NoesisScrollBar->Scroll() += Scroll_Delegate;
 
 }
 
@@ -86,12 +86,9 @@ void UNoesisScrollBar::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ScrollBar* NoesisScrollBar = NsDynamicCast<Noesis::Gui::ScrollBar*>(NoesisComponent.GetPtr());
-	check(NoesisScrollBar)
+	check(NoesisScrollBar);
 
-	if (Scroll.IsBound())
-	{
-		NoesisScrollBar->Scroll() -= Scroll_Delegate;
-	}
+	NoesisScrollBar->Scroll() -= Scroll_Delegate;
 
 }
 

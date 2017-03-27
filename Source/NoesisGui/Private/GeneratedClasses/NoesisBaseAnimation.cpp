@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisBaseAnimation.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisBaseAnimation::UNoesisBaseAnimation(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::BaseAnimation::StaticGetClassType();
 }
 
 void UNoesisBaseAnimation::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisEasingFunctionBase* UNoesisBaseAnimation::GetEasingFunction()
 {
 	Noesis::Gui::BaseAnimation* NoesisBaseAnimation = NsDynamicCast<Noesis::Gui::BaseAnimation*>(NoesisComponent.GetPtr());
 	check(NoesisBaseAnimation);
-	return CastChecked<UNoesisEasingFunctionBase>(Instance->FindUnrealComponentForNoesisComponent(NoesisBaseAnimation->GetEasingFunction()));
+	return CastChecked<UNoesisEasingFunctionBase>(CreateClassFor(NoesisBaseAnimation->GetEasingFunction(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBaseAnimation::SetEasingFunction(class UNoesisEasingFunctionBase* InEasingFunction)
@@ -41,7 +44,7 @@ void UNoesisBaseAnimation::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::BaseAnimation* NoesisBaseAnimation = NsDynamicCast<Noesis::Gui::BaseAnimation*>(NoesisComponent.GetPtr());
-	check(NoesisBaseAnimation)
+	check(NoesisBaseAnimation);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisBaseAnimation::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::BaseAnimation* NoesisBaseAnimation = NsDynamicCast<Noesis::Gui::BaseAnimation*>(NoesisComponent.GetPtr());
-	check(NoesisBaseAnimation)
+	check(NoesisBaseAnimation);
 
 
 }

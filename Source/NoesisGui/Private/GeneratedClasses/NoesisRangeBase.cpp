@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisRangeBase.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisRangeBase::UNoesisRangeBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::RangeBase::StaticGetClassType();
 }
 
 void UNoesisRangeBase::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -94,10 +97,10 @@ void UNoesisRangeBase::SetValue(float InValue)
 
 void UNoesisRangeBase::ValueChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedPropertyChangedEventArgs<NsFloat32>& InArgs)
 {
-	if (!ValueChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!ValueChanged.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisFloatPropertyChangedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisFloatPropertyChangedEventArgs Args(InArgs);
 	ValueChanged.Broadcast(Sender, Args);
 }
 
@@ -106,13 +109,10 @@ void UNoesisRangeBase::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::RangeBase* NoesisRangeBase = NsDynamicCast<Noesis::Gui::RangeBase*>(NoesisComponent.GetPtr());
-	check(NoesisRangeBase)
+	check(NoesisRangeBase);
 
 	ValueChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisRangeBase::ValueChanged_Private);
-	if (ValueChanged.IsBound())
-	{
-		NoesisRangeBase->ValueChanged() += ValueChanged_Delegate;
-	}
+	NoesisRangeBase->ValueChanged() += ValueChanged_Delegate;
 
 }
 
@@ -121,12 +121,9 @@ void UNoesisRangeBase::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::RangeBase* NoesisRangeBase = NsDynamicCast<Noesis::Gui::RangeBase*>(NoesisComponent.GetPtr());
-	check(NoesisRangeBase)
+	check(NoesisRangeBase);
 
-	if (ValueChanged.IsBound())
-	{
-		NoesisRangeBase->ValueChanged() -= ValueChanged_Delegate;
-	}
+	NoesisRangeBase->ValueChanged() -= ValueChanged_Delegate;
 
 }
 

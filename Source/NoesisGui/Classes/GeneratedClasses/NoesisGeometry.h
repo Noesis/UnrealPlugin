@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisAnimatable.h"
 #include "NoesisGeometry.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisGeometry : public UNoesisAnimatable
 {
 public:
@@ -30,16 +30,16 @@ public:
 	void SetTransform(class UNoesisTransform* InTransform);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool FillContains(FNoesisDrawingPoint Point);
+	bool FillContains(FNoesisDrawingPoint Point);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-FNoesisDrawingRect GetRenderBounds(class UNoesisPen* Pen);
+	FNoesisDrawingRect GetRenderBounds(class UNoesisPen* Pen);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsEmpty();
+	bool IsEmpty();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool StrokeContains(class UNoesisPen* Pen, FNoesisDrawingPoint Point);
+	bool StrokeContains(class UNoesisPen* Pen, FNoesisDrawingPoint Point);
 
 protected:
 

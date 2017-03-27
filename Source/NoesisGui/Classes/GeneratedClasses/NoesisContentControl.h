@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisControl.h"
 #include "NoesisContentControl.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisContentControl : public UNoesisControl
 {
 public:

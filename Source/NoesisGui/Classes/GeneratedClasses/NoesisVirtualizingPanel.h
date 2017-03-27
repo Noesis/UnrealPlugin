@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisPanel.h"
 #include "NoesisVirtualizingPanel.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisVirtualizingPanel : public UNoesisPanel
 {
 public:
@@ -20,10 +20,10 @@ public:
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void BringIndexIntoView(int32 Index);
+	void BringIndexIntoView(int32 Index);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisIItemContainerGenerator* GetItemContainerGenerator();
+	class UNoesisIItemContainerGenerator* GetItemContainerGenerator();
 
 protected:
 

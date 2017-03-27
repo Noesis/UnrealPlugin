@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisInputBinding.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisInputBinding::UNoesisInputBinding(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::InputBinding::StaticGetClassType();
 }
 
 void UNoesisInputBinding::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisICommand* UNoesisInputBinding::GetCommand()
 {
 	Noesis::Gui::InputBinding* NoesisInputBinding = NsDynamicCast<Noesis::Gui::InputBinding*>(NoesisComponent.GetPtr());
 	check(NoesisInputBinding);
-	return CastChecked<UNoesisICommand>(Instance->FindUnrealInterfaceForNoesisInterface(NoesisInputBinding->GetCommand()));
+	return CastChecked<UNoesisICommand>(CreateInterfaceFor(NoesisInputBinding->GetCommand(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisInputBinding::SetCommand(class UNoesisICommand* InCommand)
@@ -40,7 +43,7 @@ class UNoesisBaseComponent* UNoesisInputBinding::GetCommandParameter()
 {
 	Noesis::Gui::InputBinding* NoesisInputBinding = NsDynamicCast<Noesis::Gui::InputBinding*>(NoesisComponent.GetPtr());
 	check(NoesisInputBinding);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisInputBinding->GetCommandParameter()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisInputBinding->GetCommandParameter(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisInputBinding::SetCommandParameter(class UNoesisBaseComponent* InCommandParameter)
@@ -54,7 +57,7 @@ class UNoesisUIElement* UNoesisInputBinding::GetCommandTarget()
 {
 	Noesis::Gui::InputBinding* NoesisInputBinding = NsDynamicCast<Noesis::Gui::InputBinding*>(NoesisComponent.GetPtr());
 	check(NoesisInputBinding);
-	return CastChecked<UNoesisUIElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisInputBinding->GetCommandTarget()));
+	return CastChecked<UNoesisUIElement>(CreateClassFor(NoesisInputBinding->GetCommandTarget(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisInputBinding::SetCommandTarget(class UNoesisUIElement* InCommandTarget)
@@ -68,7 +71,7 @@ class UNoesisInputGesture* UNoesisInputBinding::GetGesture()
 {
 	Noesis::Gui::InputBinding* NoesisInputBinding = NsDynamicCast<Noesis::Gui::InputBinding*>(NoesisComponent.GetPtr());
 	check(NoesisInputBinding);
-	return CastChecked<UNoesisInputGesture>(Instance->FindUnrealComponentForNoesisComponent(NoesisInputBinding->GetGesture()));
+	return CastChecked<UNoesisInputGesture>(CreateClassFor(NoesisInputBinding->GetGesture(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisInputBinding::SetGesture(class UNoesisInputGesture* InGesture)
@@ -83,7 +86,7 @@ void UNoesisInputBinding::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::InputBinding* NoesisInputBinding = NsDynamicCast<Noesis::Gui::InputBinding*>(NoesisComponent.GetPtr());
-	check(NoesisInputBinding)
+	check(NoesisInputBinding);
 
 
 }
@@ -93,7 +96,7 @@ void UNoesisInputBinding::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::InputBinding* NoesisInputBinding = NsDynamicCast<Noesis::Gui::InputBinding*>(NoesisComponent.GetPtr());
-	check(NoesisInputBinding)
+	check(NoesisInputBinding);
 
 
 }

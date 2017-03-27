@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisDecorator.h"
 #include "NoesisBulletDecorator.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisBulletDecorator : public UNoesisDecorator
 {
 public:

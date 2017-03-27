@@ -25,9 +25,6 @@ class NOESISGUI_API UNoesisXaml : public UObject
 	UPROPERTY()
 	TMap<FString, UFont*> FontMap;
 
-	UPROPERTY()
-	TArray<class UNoesisBaseComponent*> Components;
-
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Instanced, Category=ImportSettings)
 	class UAssetImportData* AssetImportData;

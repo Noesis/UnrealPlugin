@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisPropertyMetadata.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisPropertyMetadata::UNoesisPropertyMetadata(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::PropertyMetadata::StaticGetClassType();
 }
 
 void UNoesisPropertyMetadata::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -34,7 +37,7 @@ void UNoesisPropertyMetadata::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::PropertyMetadata* NoesisPropertyMetadata = NsDynamicCast<Noesis::Gui::PropertyMetadata*>(NoesisComponent.GetPtr());
-	check(NoesisPropertyMetadata)
+	check(NoesisPropertyMetadata);
 
 
 }
@@ -44,7 +47,7 @@ void UNoesisPropertyMetadata::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::PropertyMetadata* NoesisPropertyMetadata = NsDynamicCast<Noesis::Gui::PropertyMetadata*>(NoesisComponent.GetPtr());
-	check(NoesisPropertyMetadata)
+	check(NoesisPropertyMetadata);
 
 
 }

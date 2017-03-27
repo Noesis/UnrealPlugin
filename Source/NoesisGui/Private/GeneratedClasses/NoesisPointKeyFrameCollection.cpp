@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisPointKeyFrameCollection.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisPointKeyFrameCollection::UNoesisPointKeyFrameCollection(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Drawing::Point>>::StaticGetClassType();
 }
 
 void UNoesisPointKeyFrameCollection::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisPointKeyFrameCollection::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Drawing::Point>>* NoesisPointKeyFrameCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Drawing::Point>>*>(NoesisComponent.GetPtr());
-	check(NoesisPointKeyFrameCollection)
+	check(NoesisPointKeyFrameCollection);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisPointKeyFrameCollection::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Drawing::Point>>* NoesisPointKeyFrameCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Drawing::Point>>*>(NoesisComponent.GetPtr());
-	check(NoesisPointKeyFrameCollection)
+	check(NoesisPointKeyFrameCollection);
 
 
 }

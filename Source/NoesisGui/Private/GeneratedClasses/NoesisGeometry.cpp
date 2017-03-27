@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisGeometry.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisGeometry::UNoesisGeometry(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Geometry::StaticGetClassType();
 }
 
 void UNoesisGeometry::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -33,7 +36,7 @@ class UNoesisTransform* UNoesisGeometry::GetTransform()
 {
 	Noesis::Gui::Geometry* NoesisGeometry = NsDynamicCast<Noesis::Gui::Geometry*>(NoesisComponent.GetPtr());
 	check(NoesisGeometry);
-	return CastChecked<UNoesisTransform>(Instance->FindUnrealComponentForNoesisComponent(NoesisGeometry->GetTransform()));
+	return CastChecked<UNoesisTransform>(CreateClassFor(NoesisGeometry->GetTransform(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisGeometry::SetTransform(class UNoesisTransform* InTransform)
@@ -80,7 +83,7 @@ void UNoesisGeometry::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Geometry* NoesisGeometry = NsDynamicCast<Noesis::Gui::Geometry*>(NoesisComponent.GetPtr());
-	check(NoesisGeometry)
+	check(NoesisGeometry);
 
 
 }
@@ -90,7 +93,7 @@ void UNoesisGeometry::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Geometry* NoesisGeometry = NsDynamicCast<Noesis::Gui::Geometry*>(NoesisComponent.GetPtr());
-	check(NoesisGeometry)
+	check(NoesisGeometry);
 
 
 }

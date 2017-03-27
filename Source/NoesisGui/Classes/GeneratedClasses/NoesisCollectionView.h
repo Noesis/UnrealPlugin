@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisCollectionView.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisCollectionView : public UNoesisBaseComponent
 {
 public:
@@ -20,16 +20,16 @@ public:
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-int32 Count();
+	int32 Count();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisBaseComponent* GetItemAt(int32 Index);
+	class UNoesisBaseComponent* GetItemAt(int32 Index);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisIList* GetSourceCollection();
+	class UNoesisIList* GetSourceCollection();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-int32 IndexOf(class UNoesisBaseComponent* Item);
+	int32 IndexOf(class UNoesisBaseComponent* Item);
 
 protected:
 

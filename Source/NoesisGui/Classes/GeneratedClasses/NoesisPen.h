@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisAnimatable.h"
 #include "NoesisPen.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisPen : public UNoesisAnimatable
 {
 public:
@@ -68,7 +68,7 @@ public:
 	void SetThickness(float InThickness);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsRenderable();
+	bool IsRenderable();
 
 protected:
 

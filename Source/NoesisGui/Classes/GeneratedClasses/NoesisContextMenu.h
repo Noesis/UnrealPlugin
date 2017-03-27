@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisBaseMenu.h"
 #include "NoesisContextMenu.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisContextMenu : public UNoesisBaseMenu
 {
 public:
@@ -68,7 +68,7 @@ public:
 	void SetVerticalOffset(float InVerticalOffset);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-UNoesisPopup* GetPopup();
+	UNoesisPopup* GetPopup();
 
 protected:
 

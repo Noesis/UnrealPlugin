@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisIDictionary.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisIDictionary::UNoesisIDictionary(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisInterfaceTypeClass = Noesis::Gui::IDictionary::StaticGetClassType();
 }
 
 void UNoesisIDictionary::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterface)
@@ -67,7 +70,7 @@ class UNoesisBaseComponent* UNoesisIDictionary::Get(class UNoesisIResourceKey* I
 	Noesis::Gui::IDictionary* NoesisIDictionary = NsDynamicCast<Noesis::Gui::IDictionary*>(NoesisInterface.GetPtr());
 	check(NoesisIDictionary);
 	IResourceKey* NoesisInKey = NsDynamicCast<IResourceKey*>(InKey->NoesisInterface.GetPtr());
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisIDictionary->Get(NoesisInKey)));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisIDictionary->Get(NoesisInKey), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisIDictionary::Remove(class UNoesisIResourceKey* InKey)
@@ -83,7 +86,7 @@ void UNoesisIDictionary::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::IDictionary* NoesisIDictionary = NsDynamicCast<Noesis::Gui::IDictionary*>(NoesisInterface.GetPtr());
-	check(NoesisIDictionary)
+	check(NoesisIDictionary);
 
 
 }
@@ -93,7 +96,7 @@ void UNoesisIDictionary::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::IDictionary* NoesisIDictionary = NsDynamicCast<Noesis::Gui::IDictionary*>(NoesisInterface.GetPtr());
-	check(NoesisIDictionary)
+	check(NoesisIDictionary);
 
 
 }

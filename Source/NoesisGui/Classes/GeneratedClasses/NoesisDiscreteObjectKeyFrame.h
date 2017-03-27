@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisObjectKeyFrame.h"
 #include "NoesisDiscreteObjectKeyFrame.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisDiscreteObjectKeyFrame : public UNoesisObjectKeyFrame
 {
 public:

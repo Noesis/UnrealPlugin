@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisDiscreteObjectKeyFrame.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisDiscreteObjectKeyFrame::UNoesisDiscreteObjectKeyFrame(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::DiscreteKeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent>>::StaticGetClassType();
 }
 
 void UNoesisDiscreteObjectKeyFrame::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisDiscreteObjectKeyFrame::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::DiscreteKeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent>>* NoesisDiscreteObjectKeyFrame = NsDynamicCast<Noesis::Gui::DiscreteKeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent>>*>(NoesisComponent.GetPtr());
-	check(NoesisDiscreteObjectKeyFrame)
+	check(NoesisDiscreteObjectKeyFrame);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisDiscreteObjectKeyFrame::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::DiscreteKeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent>>* NoesisDiscreteObjectKeyFrame = NsDynamicCast<Noesis::Gui::DiscreteKeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent>>*>(NoesisComponent.GetPtr());
-	check(NoesisDiscreteObjectKeyFrame)
+	check(NoesisDiscreteObjectKeyFrame);
 
 
 }

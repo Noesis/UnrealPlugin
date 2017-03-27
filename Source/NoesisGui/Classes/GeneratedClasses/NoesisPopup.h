@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisFrameworkElement.h"
 #include "NoesisPopup.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisPopup : public UNoesisFrameworkElement
 {
 public:

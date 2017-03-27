@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisUniformGrid.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisUniformGrid::UNoesisUniformGrid(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::UniformGrid::StaticGetClassType();
 }
 
 void UNoesisUniformGrid::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -69,7 +72,7 @@ void UNoesisUniformGrid::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::UniformGrid* NoesisUniformGrid = NsDynamicCast<Noesis::Gui::UniformGrid*>(NoesisComponent.GetPtr());
-	check(NoesisUniformGrid)
+	check(NoesisUniformGrid);
 
 
 }
@@ -79,7 +82,7 @@ void UNoesisUniformGrid::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::UniformGrid* NoesisUniformGrid = NsDynamicCast<Noesis::Gui::UniformGrid*>(NoesisComponent.GetPtr());
-	check(NoesisUniformGrid)
+	check(NoesisUniformGrid);
 
 
 }

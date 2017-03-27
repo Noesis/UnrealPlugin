@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisBooleanKeyFrame.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisBooleanKeyFrame::UNoesisBooleanKeyFrame(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::KeyFrame<NsBool>::StaticGetClassType();
 }
 
 void UNoesisBooleanKeyFrame::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -41,7 +44,7 @@ void UNoesisBooleanKeyFrame::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::KeyFrame<NsBool>* NoesisBooleanKeyFrame = NsDynamicCast<Noesis::Gui::KeyFrame<NsBool>*>(NoesisComponent.GetPtr());
-	check(NoesisBooleanKeyFrame)
+	check(NoesisBooleanKeyFrame);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisBooleanKeyFrame::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::KeyFrame<NsBool>* NoesisBooleanKeyFrame = NsDynamicCast<Noesis::Gui::KeyFrame<NsBool>*>(NoesisComponent.GetPtr());
-	check(NoesisBooleanKeyFrame)
+	check(NoesisBooleanKeyFrame);
 
 
 }

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisCanvas.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisCanvas::UNoesisCanvas(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Canvas::StaticGetClassType();
 }
 
 void UNoesisCanvas::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisCanvas::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Canvas* NoesisCanvas = NsDynamicCast<Noesis::Gui::Canvas*>(NoesisComponent.GetPtr());
-	check(NoesisCanvas)
+	check(NoesisCanvas);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisCanvas::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Canvas* NoesisCanvas = NsDynamicCast<Noesis::Gui::Canvas*>(NoesisComponent.GetPtr());
-	check(NoesisCanvas)
+	check(NoesisCanvas);
 
 
 }

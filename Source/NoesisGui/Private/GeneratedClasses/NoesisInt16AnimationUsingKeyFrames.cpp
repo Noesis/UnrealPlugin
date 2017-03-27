@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisInt16AnimationUsingKeyFrames.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisInt16AnimationUsingKeyFrames::UNoesisInt16AnimationUsingKeyFrames(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::AnimationUsingKeyFrames<NsInt16>::StaticGetClassType();
 }
 
 void UNoesisInt16AnimationUsingKeyFrames::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisInt16AnimationUsingKeyFrames::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::AnimationUsingKeyFrames<NsInt16>* NoesisInt16AnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<NsInt16>*>(NoesisComponent.GetPtr());
-	check(NoesisInt16AnimationUsingKeyFrames)
+	check(NoesisInt16AnimationUsingKeyFrames);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisInt16AnimationUsingKeyFrames::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::AnimationUsingKeyFrames<NsInt16>* NoesisInt16AnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<NsInt16>*>(NoesisComponent.GetPtr());
-	check(NoesisInt16AnimationUsingKeyFrames)
+	check(NoesisInt16AnimationUsingKeyFrames);
 
 
 }

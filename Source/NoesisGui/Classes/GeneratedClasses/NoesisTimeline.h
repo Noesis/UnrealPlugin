@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisAnimatable.h"
 #include "NoesisTimeline.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisTimeline : public UNoesisAnimatable
 {
 public:
@@ -68,10 +68,10 @@ public:
 	void SetSpeedRatio(float InSpeedRatio);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void CalculateEffectiveDurations();
+	void CalculateEffectiveDurations();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-FNoesisDuration GetNaturalDuration(class UNoesisClock* Clock);
+	FNoesisDuration GetNaturalDuration(class UNoesisClock* Clock);
 
 protected:
 

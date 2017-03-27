@@ -4,6 +4,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using UnrealBuildTool;
+using System;
 
 public class NoesisGui : ModuleRules
 {
@@ -50,6 +51,13 @@ public class NoesisGui : ModuleRules
 			}
 			);
 
-		System.IO.File.Copy(ModuleDirectory + "/Shaders/NoesisGui.usf", ModuleDirectory + "/../../../../Shaders/NoesisGui.usf", true);
+		try
+		{
+			System.IO.File.Copy(ModuleDirectory + "/Shaders/NoesisGui.usf", ModuleDirectory + "/../../../../Shaders/NoesisGui.usf", true);
+		}
+		catch (Exception E)
+		{
+			System.Console.WriteLine(E.ToString());
+		}
 	}
 }

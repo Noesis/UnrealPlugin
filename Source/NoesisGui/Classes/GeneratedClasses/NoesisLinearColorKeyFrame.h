@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisColorKeyFrame.h"
 #include "NoesisLinearColorKeyFrame.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisLinearColorKeyFrame : public UNoesisColorKeyFrame
 {
 public:

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisDoubleKeyFrame.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisDoubleKeyFrame::UNoesisDoubleKeyFrame(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::KeyFrame<NsFloat32>::StaticGetClassType();
 }
 
 void UNoesisDoubleKeyFrame::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -41,7 +44,7 @@ void UNoesisDoubleKeyFrame::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::KeyFrame<NsFloat32>* NoesisDoubleKeyFrame = NsDynamicCast<Noesis::Gui::KeyFrame<NsFloat32>*>(NoesisComponent.GetPtr());
-	check(NoesisDoubleKeyFrame)
+	check(NoesisDoubleKeyFrame);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisDoubleKeyFrame::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::KeyFrame<NsFloat32>* NoesisDoubleKeyFrame = NsDynamicCast<Noesis::Gui::KeyFrame<NsFloat32>*>(NoesisComponent.GetPtr());
-	check(NoesisDoubleKeyFrame)
+	check(NoesisDoubleKeyFrame);
 
 
 }

@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisPanel.h"
 #include "NoesisCanvas.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisCanvas : public UNoesisPanel
 {
 public:

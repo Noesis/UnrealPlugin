@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisInputGesture.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisInputGesture : public UNoesisBaseComponent
 {
 public:

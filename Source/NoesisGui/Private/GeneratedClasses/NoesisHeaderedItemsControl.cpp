@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisHeaderedItemsControl.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisHeaderedItemsControl::UNoesisHeaderedItemsControl(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::HeaderedItemsControl::StaticGetClassType();
 }
 
 void UNoesisHeaderedItemsControl::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -33,7 +36,7 @@ class UNoesisBaseComponent* UNoesisHeaderedItemsControl::GetHeader()
 {
 	Noesis::Gui::HeaderedItemsControl* NoesisHeaderedItemsControl = NsDynamicCast<Noesis::Gui::HeaderedItemsControl*>(NoesisComponent.GetPtr());
 	check(NoesisHeaderedItemsControl);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisHeaderedItemsControl->GetHeader()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisHeaderedItemsControl->GetHeader(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisHeaderedItemsControl::SetHeader(class UNoesisBaseComponent* InHeader)
@@ -61,7 +64,7 @@ class UNoesisDataTemplate* UNoesisHeaderedItemsControl::GetHeaderTemplate()
 {
 	Noesis::Gui::HeaderedItemsControl* NoesisHeaderedItemsControl = NsDynamicCast<Noesis::Gui::HeaderedItemsControl*>(NoesisComponent.GetPtr());
 	check(NoesisHeaderedItemsControl);
-	return CastChecked<UNoesisDataTemplate>(Instance->FindUnrealComponentForNoesisComponent(NoesisHeaderedItemsControl->GetHeaderTemplate()));
+	return CastChecked<UNoesisDataTemplate>(CreateClassFor(NoesisHeaderedItemsControl->GetHeaderTemplate(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisHeaderedItemsControl::SetHeaderTemplate(class UNoesisDataTemplate* InHeaderTemplate)
@@ -75,7 +78,7 @@ class UNoesisDataTemplateSelector* UNoesisHeaderedItemsControl::GetHeaderTemplat
 {
 	Noesis::Gui::HeaderedItemsControl* NoesisHeaderedItemsControl = NsDynamicCast<Noesis::Gui::HeaderedItemsControl*>(NoesisComponent.GetPtr());
 	check(NoesisHeaderedItemsControl);
-	return CastChecked<UNoesisDataTemplateSelector>(Instance->FindUnrealComponentForNoesisComponent(NoesisHeaderedItemsControl->GetHeaderTemplateSelector()));
+	return CastChecked<UNoesisDataTemplateSelector>(CreateClassFor(NoesisHeaderedItemsControl->GetHeaderTemplateSelector(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisHeaderedItemsControl::SetHeaderTemplateSelector(class UNoesisDataTemplateSelector* InHeaderTemplateSelector)
@@ -90,7 +93,7 @@ void UNoesisHeaderedItemsControl::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::HeaderedItemsControl* NoesisHeaderedItemsControl = NsDynamicCast<Noesis::Gui::HeaderedItemsControl*>(NoesisComponent.GetPtr());
-	check(NoesisHeaderedItemsControl)
+	check(NoesisHeaderedItemsControl);
 
 
 }
@@ -100,7 +103,7 @@ void UNoesisHeaderedItemsControl::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::HeaderedItemsControl* NoesisHeaderedItemsControl = NsDynamicCast<Noesis::Gui::HeaderedItemsControl*>(NoesisComponent.GetPtr());
-	check(NoesisHeaderedItemsControl)
+	check(NoesisHeaderedItemsControl);
 
 
 }

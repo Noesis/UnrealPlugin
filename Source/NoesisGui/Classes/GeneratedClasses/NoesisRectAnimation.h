@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisBaseAnimation.h"
 #include "NoesisRectAnimation.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisRectAnimation : public UNoesisBaseAnimation
 {
 public:

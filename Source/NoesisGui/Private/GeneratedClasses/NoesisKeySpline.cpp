@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisKeySpline.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisKeySpline::UNoesisKeySpline(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::KeySpline::StaticGetClassType();
 }
 
 void UNoesisKeySpline::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -63,7 +66,7 @@ void UNoesisKeySpline::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::KeySpline* NoesisKeySpline = NsDynamicCast<Noesis::Gui::KeySpline*>(NoesisComponent.GetPtr());
-	check(NoesisKeySpline)
+	check(NoesisKeySpline);
 
 
 }
@@ -73,7 +76,7 @@ void UNoesisKeySpline::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::KeySpline* NoesisKeySpline = NsDynamicCast<Noesis::Gui::KeySpline*>(NoesisComponent.GetPtr());
-	check(NoesisKeySpline)
+	check(NoesisKeySpline);
 
 
 }

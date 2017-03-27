@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisPropertyMetadata.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisPropertyMetadata : public UNoesisBaseComponent
 {
 public:
@@ -20,7 +20,7 @@ public:
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ClearInheritedValues();
+	void ClearInheritedValues();
 
 protected:
 

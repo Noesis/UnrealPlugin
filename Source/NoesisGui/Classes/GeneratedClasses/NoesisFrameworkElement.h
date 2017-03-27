@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisUIElement.h"
 #include "NoesisFrameworkElement.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisFrameworkElement : public UNoesisUIElement
 {
 public:
@@ -166,46 +166,46 @@ public:
 	void SetWidth(float InWidth);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ApplyFrameworkTemplate(class UNoesisFrameworkTemplate* FrameworkTemplate, class UNoesisBaseComponent* DataContext);
+	void ApplyFrameworkTemplate(class UNoesisFrameworkTemplate* FrameworkTemplate, class UNoesisBaseComponent* DataContext);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void BringIntoView();
+	void BringIntoView();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void BringIntoView_(FNoesisDrawingRect TargetRectangle);
+	void BringIntoView_(FNoesisDrawingRect TargetRectangle);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisFrameworkElement* Clone(class UNoesisFrameworkElement* Parent, class UNoesisFrameworkElement* TemplatedParent, class UNoesisFrameworkTemplate* Template_);
+	class UNoesisFrameworkElement* Clone(class UNoesisFrameworkElement* Parent, class UNoesisFrameworkElement* TemplatedParent, class UNoesisFrameworkTemplate* Template_);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Connect(class UNoesisBaseComponent* Source, FString EventName, FString HandlerName);
+	void Connect(class UNoesisBaseComponent* Source, FString EventName, FString HandlerName);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisBaseComponent* FindName(FString Name);
+	class UNoesisBaseComponent* FindName(FString Name);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisBaseComponent* FindResource(class UNoesisIResourceKey* Key);
+	class UNoesisBaseComponent* FindResource(class UNoesisIResourceKey* Key);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisFrameworkTemplate* GetFrameworkTemplate();
+	class UNoesisFrameworkTemplate* GetFrameworkTemplate();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisFrameworkElement* GetParentOrTemplatedParent();
+	class UNoesisFrameworkElement* GetParentOrTemplatedParent();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisFrameworkElement* GetStateGroupsRoot();
+	class UNoesisFrameworkElement* GetStateGroupsRoot();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisBaseComponent* GetTemplateChild(FString Name);
+	class UNoesisBaseComponent* GetTemplateChild(FString Name);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisFrameworkElement* GetTemplateRoot();
+	class UNoesisFrameworkElement* GetTemplateRoot();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisITimeManager* GetTimeManager();
+	class UNoesisITimeManager* GetTimeManager();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsLoaded();
+	bool IsLoaded();
 
 protected:
 

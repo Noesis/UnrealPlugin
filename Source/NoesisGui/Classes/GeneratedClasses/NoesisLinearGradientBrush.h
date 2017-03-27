@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisGradientBrush.h"
 #include "NoesisLinearGradientBrush.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisLinearGradientBrush : public UNoesisGradientBrush
 {
 public:

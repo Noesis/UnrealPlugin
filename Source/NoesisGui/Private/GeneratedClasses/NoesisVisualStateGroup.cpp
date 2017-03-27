@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisVisualStateGroup.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisVisualStateGroup::UNoesisVisualStateGroup(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::VisualStateGroup::StaticGetClassType();
 }
 
 void UNoesisVisualStateGroup::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -33,14 +36,14 @@ class UNoesisVisualStateCollection* UNoesisVisualStateGroup::GetStates()
 {
 	Noesis::Gui::VisualStateGroup* NoesisVisualStateGroup = NsDynamicCast<Noesis::Gui::VisualStateGroup*>(NoesisComponent.GetPtr());
 	check(NoesisVisualStateGroup);
-	return CastChecked<UNoesisVisualStateCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisVisualStateGroup->GetStates()));
+	return CastChecked<UNoesisVisualStateCollection>(CreateClassFor(NoesisVisualStateGroup->GetStates(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisVisualTransitionCollection* UNoesisVisualStateGroup::GetTransitions()
 {
 	Noesis::Gui::VisualStateGroup* NoesisVisualStateGroup = NsDynamicCast<Noesis::Gui::VisualStateGroup*>(NoesisComponent.GetPtr());
 	check(NoesisVisualStateGroup);
-	return CastChecked<UNoesisVisualTransitionCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisVisualStateGroup->GetTransitions()));
+	return CastChecked<UNoesisVisualTransitionCollection>(CreateClassFor(NoesisVisualStateGroup->GetTransitions(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisVisualState* UNoesisVisualStateGroup::FindState(FName InName)
@@ -48,7 +51,7 @@ class UNoesisVisualState* UNoesisVisualStateGroup::FindState(FName InName)
 	Noesis::Gui::VisualStateGroup* NoesisVisualStateGroup = NsDynamicCast<Noesis::Gui::VisualStateGroup*>(NoesisComponent.GetPtr());
 	check(NoesisVisualStateGroup);
 	NsSymbol NoesisInName = Noesis::Core::Symbol(InName.GetPlainANSIString());
-	return CastChecked<UNoesisVisualState>(Instance->FindUnrealComponentForNoesisComponent(NoesisVisualStateGroup->FindState(NoesisInName)));
+	return CastChecked<UNoesisVisualState>(CreateClassFor(NoesisVisualStateGroup->FindState(NoesisInName), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisVisualState* UNoesisVisualStateGroup::GetCurrentState(class UNoesisFrameworkElement* InFe)
@@ -56,7 +59,7 @@ class UNoesisVisualState* UNoesisVisualStateGroup::GetCurrentState(class UNoesis
 	Noesis::Gui::VisualStateGroup* NoesisVisualStateGroup = NsDynamicCast<Noesis::Gui::VisualStateGroup*>(NoesisComponent.GetPtr());
 	check(NoesisVisualStateGroup);
 	FrameworkElement* NoesisInFe = NsDynamicCast<FrameworkElement*>(InFe->NoesisComponent.GetPtr());
-	return CastChecked<UNoesisVisualState>(Instance->FindUnrealComponentForNoesisComponent(NoesisVisualStateGroup->GetCurrentState(NoesisInFe)));
+	return CastChecked<UNoesisVisualState>(CreateClassFor(NoesisVisualStateGroup->GetCurrentState(NoesisInFe), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisVisualStateGroup::UpdateAnimations(class UNoesisFrameworkElement* InFe, class UNoesisStoryboard* InStoryboard1, class UNoesisStoryboard* InStoryboard2)
@@ -74,7 +77,7 @@ void UNoesisVisualStateGroup::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::VisualStateGroup* NoesisVisualStateGroup = NsDynamicCast<Noesis::Gui::VisualStateGroup*>(NoesisComponent.GetPtr());
-	check(NoesisVisualStateGroup)
+	check(NoesisVisualStateGroup);
 
 
 }
@@ -84,7 +87,7 @@ void UNoesisVisualStateGroup::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::VisualStateGroup* NoesisVisualStateGroup = NsDynamicCast<Noesis::Gui::VisualStateGroup*>(NoesisComponent.GetPtr());
-	check(NoesisVisualStateGroup)
+	check(NoesisVisualStateGroup);
 
 
 }

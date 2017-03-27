@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisIRecyclingItemContainerGenerator.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisIRecyclingItemContainerGenerator::UNoesisIRecyclingItemContainerGenerator(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisInterfaceTypeClass = Noesis::Gui::IRecyclingItemContainerGenerator::StaticGetClassType();
 }
 
 void UNoesisIRecyclingItemContainerGenerator::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterface)
@@ -36,7 +39,7 @@ void UNoesisIRecyclingItemContainerGenerator::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::IRecyclingItemContainerGenerator* NoesisIRecyclingItemContainerGenerator = NsDynamicCast<Noesis::Gui::IRecyclingItemContainerGenerator*>(NoesisInterface.GetPtr());
-	check(NoesisIRecyclingItemContainerGenerator)
+	check(NoesisIRecyclingItemContainerGenerator);
 
 
 }
@@ -46,7 +49,7 @@ void UNoesisIRecyclingItemContainerGenerator::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::IRecyclingItemContainerGenerator* NoesisIRecyclingItemContainerGenerator = NsDynamicCast<Noesis::Gui::IRecyclingItemContainerGenerator*>(NoesisInterface.GetPtr());
-	check(NoesisIRecyclingItemContainerGenerator)
+	check(NoesisIRecyclingItemContainerGenerator);
 
 
 }

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisObjectKeyFrameCollection.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisObjectKeyFrameCollection::UNoesisObjectKeyFrameCollection(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent> >>::StaticGetClassType();
 }
 
 void UNoesisObjectKeyFrameCollection::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisObjectKeyFrameCollection::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent> >>* NoesisObjectKeyFrameCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent> >>*>(NoesisComponent.GetPtr());
-	check(NoesisObjectKeyFrameCollection)
+	check(NoesisObjectKeyFrameCollection);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisObjectKeyFrameCollection::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent> >>* NoesisObjectKeyFrameCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::KeyFrame<Noesis::Ptr<Noesis::Core::BaseComponent> >>*>(NoesisComponent.GetPtr());
-	check(NoesisObjectKeyFrameCollection)
+	check(NoesisObjectKeyFrameCollection);
 
 
 }

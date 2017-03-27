@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisSplineThicknessKeyFrame.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisSplineThicknessKeyFrame::UNoesisSplineThicknessKeyFrame(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Thickness>::StaticGetClassType();
 }
 
 void UNoesisSplineThicknessKeyFrame::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisKeySpline* UNoesisSplineThicknessKeyFrame::GetKeySpline()
 {
 	Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Thickness>* NoesisSplineThicknessKeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Thickness>*>(NoesisComponent.GetPtr());
 	check(NoesisSplineThicknessKeyFrame);
-	return CastChecked<UNoesisKeySpline>(Instance->FindUnrealComponentForNoesisComponent(NoesisSplineThicknessKeyFrame->GetKeySpline()));
+	return CastChecked<UNoesisKeySpline>(CreateClassFor(NoesisSplineThicknessKeyFrame->GetKeySpline(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisSplineThicknessKeyFrame::SetKeySpline(class UNoesisKeySpline* InKeySpline)
@@ -41,7 +44,7 @@ void UNoesisSplineThicknessKeyFrame::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Thickness>* NoesisSplineThicknessKeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Thickness>*>(NoesisComponent.GetPtr());
-	check(NoesisSplineThicknessKeyFrame)
+	check(NoesisSplineThicknessKeyFrame);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisSplineThicknessKeyFrame::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Thickness>* NoesisSplineThicknessKeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Thickness>*>(NoesisComponent.GetPtr());
-	check(NoesisSplineThicknessKeyFrame)
+	check(NoesisSplineThicknessKeyFrame);
 
 
 }

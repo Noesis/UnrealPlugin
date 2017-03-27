@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisBaseDictionary.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisBaseDictionary : public UNoesisBaseComponent
 {
 public:
@@ -20,7 +20,7 @@ public:
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void RemoveDictionaryChangedListeners();
+	void RemoveDictionaryChangedListeners();
 
 protected:
 

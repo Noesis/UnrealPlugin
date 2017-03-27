@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisItemsControl.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisItemsControl::UNoesisItemsControl(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ItemsControl::StaticGetClassType();
 }
 
 void UNoesisItemsControl::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -47,7 +50,7 @@ class UNoesisStyle* UNoesisItemsControl::GetItemContainerStyle()
 {
 	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
 	check(NoesisItemsControl);
-	return CastChecked<UNoesisStyle>(Instance->FindUnrealComponentForNoesisComponent(NoesisItemsControl->GetItemContainerStyle()));
+	return CastChecked<UNoesisStyle>(CreateClassFor(NoesisItemsControl->GetItemContainerStyle(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisItemsControl::SetItemContainerStyle(class UNoesisStyle* InItemContainerStyle)
@@ -61,7 +64,7 @@ class UNoesisDataTemplate* UNoesisItemsControl::GetItemTemplate()
 {
 	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
 	check(NoesisItemsControl);
-	return CastChecked<UNoesisDataTemplate>(Instance->FindUnrealComponentForNoesisComponent(NoesisItemsControl->GetItemTemplate()));
+	return CastChecked<UNoesisDataTemplate>(CreateClassFor(NoesisItemsControl->GetItemTemplate(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisItemsControl::SetItemTemplate(class UNoesisDataTemplate* InItemTemplate)
@@ -75,7 +78,7 @@ class UNoesisDataTemplateSelector* UNoesisItemsControl::GetItemTemplateSelector(
 {
 	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
 	check(NoesisItemsControl);
-	return CastChecked<UNoesisDataTemplateSelector>(Instance->FindUnrealComponentForNoesisComponent(NoesisItemsControl->GetItemTemplateSelector()));
+	return CastChecked<UNoesisDataTemplateSelector>(CreateClassFor(NoesisItemsControl->GetItemTemplateSelector(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisItemsControl::SetItemTemplateSelector(class UNoesisDataTemplateSelector* InItemTemplateSelector)
@@ -89,14 +92,14 @@ class UNoesisItemCollection* UNoesisItemsControl::GetItems()
 {
 	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
 	check(NoesisItemsControl);
-	return CastChecked<UNoesisItemCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisItemsControl->GetItems()));
+	return CastChecked<UNoesisItemCollection>(CreateClassFor(NoesisItemsControl->GetItems(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisItemsPanelTemplate* UNoesisItemsControl::GetItemsPanel()
 {
 	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
 	check(NoesisItemsControl);
-	return CastChecked<UNoesisItemsPanelTemplate>(Instance->FindUnrealComponentForNoesisComponent(NoesisItemsControl->GetItemsPanel()));
+	return CastChecked<UNoesisItemsPanelTemplate>(CreateClassFor(NoesisItemsControl->GetItemsPanel(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisItemsControl::SetItemsPanel(class UNoesisItemsPanelTemplate* InItemsPanel)
@@ -110,7 +113,7 @@ class UNoesisBaseComponent* UNoesisItemsControl::GetItemsSource()
 {
 	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
 	check(NoesisItemsControl);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisItemsControl->GetItemsSource()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisItemsControl->GetItemsSource(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisItemsControl::SetItemsSource(class UNoesisBaseComponent* InItemsSource)
@@ -125,21 +128,21 @@ class UNoesisDependencyObject* UNoesisItemsControl::ContainerFromElement(class U
 	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
 	check(NoesisItemsControl);
 	DependencyObject* NoesisInElement = NsDynamicCast<DependencyObject*>(InElement->NoesisComponent.GetPtr());
-	return CastChecked<UNoesisDependencyObject>(Instance->FindUnrealComponentForNoesisComponent(NoesisItemsControl->ContainerFromElement(NoesisInElement)));
+	return CastChecked<UNoesisDependencyObject>(CreateClassFor(NoesisItemsControl->ContainerFromElement(NoesisInElement), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisPanel* UNoesisItemsControl::GetDefaultItemsPanel()
 {
 	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
 	check(NoesisItemsControl);
-	return CastChecked<UNoesisPanel>(Instance->FindUnrealComponentForNoesisComponent(NoesisItemsControl->GetDefaultItemsPanel()));
+	return CastChecked<UNoesisPanel>(CreateClassFor(NoesisItemsControl->GetDefaultItemsPanel(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisItemContainerGenerator* UNoesisItemsControl::GetItemContainerGenerator()
 {
 	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
 	check(NoesisItemsControl);
-	return CastChecked<UNoesisItemContainerGenerator>(Instance->FindUnrealComponentForNoesisComponent(NoesisItemsControl->GetItemContainerGenerator()));
+	return CastChecked<UNoesisItemContainerGenerator>(CreateClassFor(NoesisItemsControl->GetItemContainerGenerator(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 bool UNoesisItemsControl::IsItemItsOwnContainer(class UNoesisBaseComponent* InItem)
@@ -155,7 +158,7 @@ void UNoesisItemsControl::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
-	check(NoesisItemsControl)
+	check(NoesisItemsControl);
 
 
 }
@@ -165,7 +168,7 @@ void UNoesisItemsControl::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ItemsControl* NoesisItemsControl = NsDynamicCast<Noesis::Gui::ItemsControl*>(NoesisComponent.GetPtr());
-	check(NoesisItemsControl)
+	check(NoesisItemsControl);
 
 
 }

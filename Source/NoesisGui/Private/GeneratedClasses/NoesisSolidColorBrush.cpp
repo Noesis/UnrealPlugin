@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisSolidColorBrush.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisSolidColorBrush::UNoesisSolidColorBrush(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::SolidColorBrush::StaticGetClassType();
 }
 
 void UNoesisSolidColorBrush::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -41,7 +44,7 @@ void UNoesisSolidColorBrush::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::SolidColorBrush* NoesisSolidColorBrush = NsDynamicCast<Noesis::Gui::SolidColorBrush*>(NoesisComponent.GetPtr());
-	check(NoesisSolidColorBrush)
+	check(NoesisSolidColorBrush);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisSolidColorBrush::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::SolidColorBrush* NoesisSolidColorBrush = NsDynamicCast<Noesis::Gui::SolidColorBrush*>(NoesisComponent.GetPtr());
-	check(NoesisSolidColorBrush)
+	check(NoesisSolidColorBrush);
 
 
 }

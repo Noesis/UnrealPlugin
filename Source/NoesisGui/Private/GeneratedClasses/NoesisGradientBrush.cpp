@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisGradientBrush.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisGradientBrush::UNoesisGradientBrush(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::GradientBrush::StaticGetClassType();
 }
 
 void UNoesisGradientBrush::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -40,7 +43,7 @@ class UNoesisGradientStopCollection* UNoesisGradientBrush::GetGradientStops()
 {
 	Noesis::Gui::GradientBrush* NoesisGradientBrush = NsDynamicCast<Noesis::Gui::GradientBrush*>(NoesisComponent.GetPtr());
 	check(NoesisGradientBrush);
-	return CastChecked<UNoesisGradientStopCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisGradientBrush->GetGradientStops()));
+	return CastChecked<UNoesisGradientStopCollection>(CreateClassFor(NoesisGradientBrush->GetGradientStops(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisGradientBrush::SetGradientStops(class UNoesisGradientStopCollection* InGradientStops)
@@ -83,7 +86,7 @@ void UNoesisGradientBrush::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::GradientBrush* NoesisGradientBrush = NsDynamicCast<Noesis::Gui::GradientBrush*>(NoesisComponent.GetPtr());
-	check(NoesisGradientBrush)
+	check(NoesisGradientBrush);
 
 
 }
@@ -93,7 +96,7 @@ void UNoesisGradientBrush::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::GradientBrush* NoesisGradientBrush = NsDynamicCast<Noesis::Gui::GradientBrush*>(NoesisComponent.GetPtr());
-	check(NoesisGradientBrush)
+	check(NoesisGradientBrush);
 
 
 }

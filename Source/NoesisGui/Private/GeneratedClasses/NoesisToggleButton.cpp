@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisToggleButton.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisToggleButton::UNoesisToggleButton(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ToggleButton::StaticGetClassType();
 }
 
 void UNoesisToggleButton::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -38,28 +41,28 @@ void UNoesisToggleButton::SetIsThreeState(bool InIsThreeState)
 
 void UNoesisToggleButton::Checked_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Checked.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Checked.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisRoutedEventArgs Args(InArgs);
 	Checked.Broadcast(Sender, Args);
 }
 
 void UNoesisToggleButton::Indeterminate_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Indeterminate.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Indeterminate.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisRoutedEventArgs Args(InArgs);
 	Indeterminate.Broadcast(Sender, Args);
 }
 
 void UNoesisToggleButton::Unchecked_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Unchecked.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Unchecked.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisRoutedEventArgs Args(InArgs);
 	Unchecked.Broadcast(Sender, Args);
 }
 
@@ -68,23 +71,14 @@ void UNoesisToggleButton::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ToggleButton* NoesisToggleButton = NsDynamicCast<Noesis::Gui::ToggleButton*>(NoesisComponent.GetPtr());
-	check(NoesisToggleButton)
+	check(NoesisToggleButton);
 
 	Checked_Delegate = Noesis::MakeDelegate(this, &UNoesisToggleButton::Checked_Private);
-	if (Checked.IsBound())
-	{
-		NoesisToggleButton->Checked() += Checked_Delegate;
-	}
+	NoesisToggleButton->Checked() += Checked_Delegate;
 	Indeterminate_Delegate = Noesis::MakeDelegate(this, &UNoesisToggleButton::Indeterminate_Private);
-	if (Indeterminate.IsBound())
-	{
-		NoesisToggleButton->Indeterminate() += Indeterminate_Delegate;
-	}
+	NoesisToggleButton->Indeterminate() += Indeterminate_Delegate;
 	Unchecked_Delegate = Noesis::MakeDelegate(this, &UNoesisToggleButton::Unchecked_Private);
-	if (Unchecked.IsBound())
-	{
-		NoesisToggleButton->Unchecked() += Unchecked_Delegate;
-	}
+	NoesisToggleButton->Unchecked() += Unchecked_Delegate;
 
 }
 
@@ -93,20 +87,11 @@ void UNoesisToggleButton::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ToggleButton* NoesisToggleButton = NsDynamicCast<Noesis::Gui::ToggleButton*>(NoesisComponent.GetPtr());
-	check(NoesisToggleButton)
+	check(NoesisToggleButton);
 
-	if (Checked.IsBound())
-	{
-		NoesisToggleButton->Checked() -= Checked_Delegate;
-	}
-	if (Indeterminate.IsBound())
-	{
-		NoesisToggleButton->Indeterminate() -= Indeterminate_Delegate;
-	}
-	if (Unchecked.IsBound())
-	{
-		NoesisToggleButton->Unchecked() -= Unchecked_Delegate;
-	}
+	NoesisToggleButton->Checked() -= Checked_Delegate;
+	NoesisToggleButton->Indeterminate() -= Indeterminate_Delegate;
+	NoesisToggleButton->Unchecked() -= Unchecked_Delegate;
 
 }
 

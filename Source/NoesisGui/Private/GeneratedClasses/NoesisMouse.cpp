@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisMouse.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisMouse::UNoesisMouse(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Mouse::StaticGetClassType();
 }
 
 void UNoesisMouse::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisUIElement* UNoesisMouse::GetCaptured()
 {
 	Noesis::Gui::Mouse* NoesisMouse = NsDynamicCast<Noesis::Gui::Mouse*>(NoesisComponent.GetPtr());
 	check(NoesisMouse);
-	return CastChecked<UNoesisUIElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisMouse->GetCaptured()));
+	return CastChecked<UNoesisUIElement>(CreateClassFor(NoesisMouse->GetCaptured(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 FNoesisDrawingPointi UNoesisMouse::GetPosition()
@@ -48,7 +51,7 @@ void UNoesisMouse::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Mouse* NoesisMouse = NsDynamicCast<Noesis::Gui::Mouse*>(NoesisComponent.GetPtr());
-	check(NoesisMouse)
+	check(NoesisMouse);
 
 
 }
@@ -58,7 +61,7 @@ void UNoesisMouse::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Mouse* NoesisMouse = NsDynamicCast<Noesis::Gui::Mouse*>(NoesisComponent.GetPtr());
-	check(NoesisMouse)
+	check(NoesisMouse);
 
 
 }

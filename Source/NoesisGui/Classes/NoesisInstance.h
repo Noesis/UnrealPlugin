@@ -25,16 +25,6 @@ class NOESISGUI_API UNoesisInstance : public UUserWidget
 	float Width;
 	float Height;
 
-	TMap<Noesis::Core::BaseComponent*, class UNoesisBaseComponent*> ComponentMap;
-
-	UPROPERTY(Transient)
-	TArray<class UNoesisBaseComponent*> CreatedComponents;
-
-	TMap<Noesis::Core::Interface*, class UNoesisInterface*> InterfaceMap;
-
-	UPROPERTY(Transient)
-	TArray<class UNoesisInterface*> CreatedInterfaces;
-
 	UPROPERTY()
 	class UNoesisXaml* BaseXaml;
 
@@ -59,13 +49,6 @@ class NOESISGUI_API UNoesisInstance : public UUserWidget
 	void Char(TCHAR Character);
 
 	FVector2D GetSize() const;
-
-	void SetComponentFor(Noesis::Core::BaseComponent* NoesisComponent, class UNoesisBaseComponent* UnrealComponent);
-	class UNoesisBaseComponent* FindUnrealComponentForNoesisComponent(const Noesis::Core::BaseComponent* NoesisComponent);
-	class UNoesisBaseComponent* FindUnrealComponentForNoesisComponent(const Noesis::Core::Ptr<Noesis::Core::BaseComponent> NoesisComponent);
-	void SetInterfaceFor(Noesis::Core::Interface* NoesisInterface, class UNoesisInterface* UnrealInterface);
-	class UNoesisInterface* FindUnrealInterfaceForNoesisInterface(const Noesis::Core::Interface* NoesisInterface);
-	class UNoesisInterface* FindUnrealInterfaceForNoesisInterface(const Noesis::Core::Ptr<Noesis::Core::Interface> NoesisInterface);
 
 	// UObject interface
 	virtual class UWorld* GetWorld() const override;

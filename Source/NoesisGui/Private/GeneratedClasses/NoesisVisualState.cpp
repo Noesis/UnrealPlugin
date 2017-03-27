@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisVisualState.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisVisualState::UNoesisVisualState(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::VisualState::StaticGetClassType();
 }
 
 void UNoesisVisualState::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -40,7 +43,7 @@ class UNoesisStoryboard* UNoesisVisualState::GetStoryboard()
 {
 	Noesis::Gui::VisualState* NoesisVisualState = NsDynamicCast<Noesis::Gui::VisualState*>(NoesisComponent.GetPtr());
 	check(NoesisVisualState);
-	return CastChecked<UNoesisStoryboard>(Instance->FindUnrealComponentForNoesisComponent(NoesisVisualState->GetStoryboard()));
+	return CastChecked<UNoesisStoryboard>(CreateClassFor(NoesisVisualState->GetStoryboard(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisVisualState::SetStoryboard(class UNoesisStoryboard* InStoryboard)
@@ -55,7 +58,7 @@ void UNoesisVisualState::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::VisualState* NoesisVisualState = NsDynamicCast<Noesis::Gui::VisualState*>(NoesisComponent.GetPtr());
-	check(NoesisVisualState)
+	check(NoesisVisualState);
 
 
 }
@@ -65,7 +68,7 @@ void UNoesisVisualState::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::VisualState* NoesisVisualState = NsDynamicCast<Noesis::Gui::VisualState*>(NoesisComponent.GetPtr());
-	check(NoesisVisualState)
+	check(NoesisVisualState);
 
 
 }

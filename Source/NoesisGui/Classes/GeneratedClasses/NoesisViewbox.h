@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisFrameworkElement.h"
 #include "NoesisViewbox.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisViewbox : public UNoesisFrameworkElement
 {
 public:

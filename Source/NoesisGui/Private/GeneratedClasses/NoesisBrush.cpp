@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisBrush.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisBrush::UNoesisBrush(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Brush::StaticGetClassType();
 }
 
 void UNoesisBrush::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -40,7 +43,7 @@ class UNoesisTransform* UNoesisBrush::GetRelativeTransform()
 {
 	Noesis::Gui::Brush* NoesisBrush = NsDynamicCast<Noesis::Gui::Brush*>(NoesisComponent.GetPtr());
 	check(NoesisBrush);
-	return CastChecked<UNoesisTransform>(Instance->FindUnrealComponentForNoesisComponent(NoesisBrush->GetRelativeTransform()));
+	return CastChecked<UNoesisTransform>(CreateClassFor(NoesisBrush->GetRelativeTransform(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBrush::SetRelativeTransform(class UNoesisTransform* InRelativeTransform)
@@ -54,7 +57,7 @@ class UNoesisTransform* UNoesisBrush::GetTransform()
 {
 	Noesis::Gui::Brush* NoesisBrush = NsDynamicCast<Noesis::Gui::Brush*>(NoesisComponent.GetPtr());
 	check(NoesisBrush);
-	return CastChecked<UNoesisTransform>(Instance->FindUnrealComponentForNoesisComponent(NoesisBrush->GetTransform()));
+	return CastChecked<UNoesisTransform>(CreateClassFor(NoesisBrush->GetTransform(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBrush::SetTransform(class UNoesisTransform* InTransform)
@@ -76,7 +79,7 @@ void UNoesisBrush::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Brush* NoesisBrush = NsDynamicCast<Noesis::Gui::Brush*>(NoesisComponent.GetPtr());
-	check(NoesisBrush)
+	check(NoesisBrush);
 
 
 }
@@ -86,7 +89,7 @@ void UNoesisBrush::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Brush* NoesisBrush = NsDynamicCast<Noesis::Gui::Brush*>(NoesisComponent.GetPtr());
-	check(NoesisBrush)
+	check(NoesisBrush);
 
 
 }

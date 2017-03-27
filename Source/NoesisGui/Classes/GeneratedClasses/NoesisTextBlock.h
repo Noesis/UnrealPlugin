@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisFrameworkElement.h"
 #include "NoesisTextBlock.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisTextBlock : public UNoesisFrameworkElement
 {
 public:

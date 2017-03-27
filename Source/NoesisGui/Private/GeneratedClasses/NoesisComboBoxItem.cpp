@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisComboBoxItem.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisComboBoxItem::UNoesisComboBoxItem(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ComboBoxItem::StaticGetClassType();
 }
 
 void UNoesisComboBoxItem::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -42,7 +45,7 @@ void UNoesisComboBoxItem::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ComboBoxItem* NoesisComboBoxItem = NsDynamicCast<Noesis::Gui::ComboBoxItem*>(NoesisComponent.GetPtr());
-	check(NoesisComboBoxItem)
+	check(NoesisComboBoxItem);
 
 
 }
@@ -52,7 +55,7 @@ void UNoesisComboBoxItem::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ComboBoxItem* NoesisComboBoxItem = NsDynamicCast<Noesis::Gui::ComboBoxItem*>(NoesisComponent.GetPtr());
-	check(NoesisComboBoxItem)
+	check(NoesisComboBoxItem);
 
 
 }

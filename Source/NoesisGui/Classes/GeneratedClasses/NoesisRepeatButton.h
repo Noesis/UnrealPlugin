@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisBaseButton.h"
 #include "NoesisRepeatButton.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisRepeatButton : public UNoesisBaseButton
 {
 public:

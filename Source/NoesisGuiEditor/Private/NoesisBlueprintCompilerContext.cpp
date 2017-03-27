@@ -12,6 +12,7 @@
 // NoesisGui includes
 #include "NoesisBlueprint.h"
 #include "NoesisBlueprintGeneratedClass.h"
+#include "NoesisCreateClass.h"
 
 FNoesisBlueprintCompilerContext::FNoesisBlueprintCompilerContext(UNoesisBlueprint* NoesisBlueprint, FCompilerResultsLog& Results, const FKismetCompilerOptions& CompilerOptions, TArray<UObject*>* ObjLoaded)
 	: Super(NoesisBlueprint, Results, CompilerOptions, ObjLoaded)
@@ -66,17 +67,20 @@ void FNoesisBlueprintCompilerContext::CreateClassVariablesFromBlueprint()
 		Linker->Preload(NoesisBlueprint->BaseXaml);
 	}
 
-	for (auto Component : NoesisBlueprint->BaseXaml->Components)
+	Noesis::Ptr<Noesis::Core::BaseComponent> Xaml = Noesis::GUI::LoadXaml<Noesis::Core::BaseComponent>(StringCast<NsChar>(*(FString::FromInt(NoesisBlueprint->BaseXaml->GetUniqueID()) / NoesisBlueprint->BaseXaml->GetName() + TEXT(".xaml"))).Get());
+	Noesis::Ptr<Noesis::FrameworkElement> FrameworkElement = NsDynamicCast<Noesis::Ptr<Noesis::FrameworkElement>>(Xaml);
+	check(FrameworkElement);
+	TArray<Noesis::FrameworkElement*> Elements;
+	CollectElements(FrameworkElement.GetPtr(), Elements);
+
+	for (auto Element : Elements)
 	{
-		auto ComponentLinker = Component->GetLinker();
-		if (ComponentLinker)
+		FName ElementName = NsStringToFName(Element->GetName());
+		if (ElementName != NAME_None)
 		{
-			ComponentLinker->Preload(Component);
-		}
-		if (Component->ElementName != NAME_None)
-		{
-			FEdGraphPinType PinType(Schema->PC_Object, TEXT(""), Component->GetClass(), false, false, false, false, FEdGraphTerminalType());
-			UProperty* Property = CreateVariable(Component->ElementName, PinType);
+			UClass* ComponentClass = GetClassFor(Element);
+			FEdGraphPinType PinType(Schema->PC_Object, TEXT(""), ComponentClass, false, false, false, false, FEdGraphTerminalType());
+			UProperty* Property = CreateVariable(ElementName, PinType);
 			if (Property != nullptr)
 			{
 				Property->SetMetaData(TEXT("Category"), *Blueprint->GetName());

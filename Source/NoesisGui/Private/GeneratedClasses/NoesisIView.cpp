@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisIView.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisIView::UNoesisIView(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisInterfaceTypeClass = Noesis::Gui::IView::StaticGetClassType();
 }
 
 void UNoesisIView::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterface)
@@ -34,7 +37,7 @@ class UNoesisFrameworkElement* UNoesisIView::GetContent()
 {
 	Noesis::Gui::IView* NoesisIView = NsDynamicCast<Noesis::Gui::IView*>(NoesisInterface.GetPtr());
 	check(NoesisIView);
-	return CastChecked<UNoesisFrameworkElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisIView->GetContent()));
+	return CastChecked<UNoesisFrameworkElement>(CreateClassFor(NoesisIView->GetContent(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 FNoesisDrawingSizei UNoesisIView::GetSize()
@@ -130,7 +133,7 @@ void UNoesisIView::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::IView* NoesisIView = NsDynamicCast<Noesis::Gui::IView*>(NoesisInterface.GetPtr());
-	check(NoesisIView)
+	check(NoesisIView);
 
 
 }
@@ -140,7 +143,7 @@ void UNoesisIView::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::IView* NoesisIView = NsDynamicCast<Noesis::Gui::IView*>(NoesisInterface.GetPtr());
-	check(NoesisIView)
+	check(NoesisIView);
 
 
 }

@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisBitmapSource.h"
 #include "NoesisBitmapImage.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisBitmapImage : public UNoesisBitmapSource
 {
 public:

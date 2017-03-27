@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisTimeline.h"
 #include "NoesisTimelineGroup.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisTimelineGroup : public UNoesisTimeline
 {
 public:

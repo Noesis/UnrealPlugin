@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisTransform.h"
 #include "NoesisSkewTransform.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisSkewTransform : public UNoesisTransform
 {
 public:

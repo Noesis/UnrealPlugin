@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisClock.h"
 #include "NoesisAnimationClock.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisAnimationClock : public UNoesisClock
 {
 public:

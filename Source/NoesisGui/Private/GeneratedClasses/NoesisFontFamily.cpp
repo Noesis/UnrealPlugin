@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisFontFamily.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisFontFamily::UNoesisFontFamily(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::FontFamily::StaticGetClassType();
 }
 
 void UNoesisFontFamily::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -48,7 +51,7 @@ void UNoesisFontFamily::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::FontFamily* NoesisFontFamily = NsDynamicCast<Noesis::Gui::FontFamily*>(NoesisComponent.GetPtr());
-	check(NoesisFontFamily)
+	check(NoesisFontFamily);
 
 
 }
@@ -58,7 +61,7 @@ void UNoesisFontFamily::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::FontFamily* NoesisFontFamily = NsDynamicCast<Noesis::Gui::FontFamily*>(NoesisComponent.GetPtr());
-	check(NoesisFontFamily)
+	check(NoesisFontFamily);
 
 
 }

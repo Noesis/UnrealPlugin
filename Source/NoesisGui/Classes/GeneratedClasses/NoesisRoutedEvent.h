@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisRoutedEvent.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisRoutedEvent : public UNoesisBaseComponent
 {
 public:

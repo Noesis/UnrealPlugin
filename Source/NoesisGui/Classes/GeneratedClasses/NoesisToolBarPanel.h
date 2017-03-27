@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisStackPanel.h"
 #include "NoesisToolBarPanel.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisToolBarPanel : public UNoesisStackPanel
 {
 public:

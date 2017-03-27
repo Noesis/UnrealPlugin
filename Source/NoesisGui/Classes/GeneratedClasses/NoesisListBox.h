@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisSelector.h"
 #include "NoesisListBox.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisListBox : public UNoesisSelector
 {
 public:
@@ -30,16 +30,16 @@ public:
 	void SetSelectionMode(ENoesisSelectionMode InSelectionMode);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisPanel* GetDefaultItemsPanel();
+	class UNoesisPanel* GetDefaultItemsPanel();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ScrollIntoView(class UNoesisBaseComponent* Item);
+	void ScrollIntoView(class UNoesisBaseComponent* Item);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void SelectAll();
+	void SelectAll();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void UnselectAll();
+	void UnselectAll();
 
 protected:
 

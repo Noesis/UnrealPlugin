@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisContentControl.h"
 #include "NoesisScrollViewer.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisScrollViewer : public UNoesisContentControl
 {
 public:
@@ -102,55 +102,55 @@ public:
 	float GetViewportWidth();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void InvalidateScrollInfo();
+	void InvalidateScrollInfo();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void LineDown();
+	void LineDown();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void LineLeft();
+	void LineLeft();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void LineRight();
+	void LineRight();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void LineUp();
+	void LineUp();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void PageDown();
+	void PageDown();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void PageLeft();
+	void PageLeft();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void PageRight();
+	void PageRight();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void PageUp();
+	void PageUp();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ScrollToBottom();
+	void ScrollToBottom();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ScrollToEnd();
+	void ScrollToEnd();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ScrollToHome();
+	void ScrollToHome();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ScrollToHorizontalOffset(float Offset);
+	void ScrollToHorizontalOffset(float Offset);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ScrollToLeftEnd();
+	void ScrollToLeftEnd();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ScrollToRightEnd();
+	void ScrollToRightEnd();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ScrollToTop();
+	void ScrollToTop();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ScrollToVerticalOffset(float Offset);
+	void ScrollToVerticalOffset(float Offset);
 
 protected:
 

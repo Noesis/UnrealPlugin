@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisINotifyCollectionChanged.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisINotifyCollectionChanged::UNoesisINotifyCollectionChanged(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisInterfaceTypeClass = Noesis::Gui::INotifyCollectionChanged::StaticGetClassType();
 }
 
 void UNoesisINotifyCollectionChanged::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterface)
@@ -27,7 +30,7 @@ void UNoesisINotifyCollectionChanged::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::INotifyCollectionChanged* NoesisINotifyCollectionChanged = NsDynamicCast<Noesis::Gui::INotifyCollectionChanged*>(NoesisInterface.GetPtr());
-	check(NoesisINotifyCollectionChanged)
+	check(NoesisINotifyCollectionChanged);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisINotifyCollectionChanged::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::INotifyCollectionChanged* NoesisINotifyCollectionChanged = NsDynamicCast<Noesis::Gui::INotifyCollectionChanged*>(NoesisInterface.GetPtr());
-	check(NoesisINotifyCollectionChanged)
+	check(NoesisINotifyCollectionChanged);
 
 
 }

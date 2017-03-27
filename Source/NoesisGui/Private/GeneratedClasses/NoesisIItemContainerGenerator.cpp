@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisIItemContainerGenerator.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisIItemContainerGenerator::UNoesisIItemContainerGenerator(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisInterfaceTypeClass = Noesis::Gui::IItemContainerGenerator::StaticGetClassType();
 }
 
 void UNoesisIItemContainerGenerator::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterface)
@@ -26,7 +29,7 @@ class UNoesisDependencyObject* UNoesisIItemContainerGenerator::GenerateNext()
 {
 	Noesis::Gui::IItemContainerGenerator* NoesisIItemContainerGenerator = NsDynamicCast<Noesis::Gui::IItemContainerGenerator*>(NoesisInterface.GetPtr());
 	check(NoesisIItemContainerGenerator);
-	return CastChecked<UNoesisDependencyObject>(Instance->FindUnrealComponentForNoesisComponent(NoesisIItemContainerGenerator->GenerateNext()));
+	return CastChecked<UNoesisDependencyObject>(CreateClassFor(NoesisIItemContainerGenerator->GenerateNext(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisDependencyObject* UNoesisIItemContainerGenerator::GenerateNext_(bool& InIsNewlyRealized)
@@ -34,7 +37,7 @@ class UNoesisDependencyObject* UNoesisIItemContainerGenerator::GenerateNext_(boo
 	Noesis::Gui::IItemContainerGenerator* NoesisIItemContainerGenerator = NsDynamicCast<Noesis::Gui::IItemContainerGenerator*>(NoesisInterface.GetPtr());
 	check(NoesisIItemContainerGenerator);
 	NsBool NoesisInIsNewlyRealized = InIsNewlyRealized;
-	return CastChecked<UNoesisDependencyObject>(Instance->FindUnrealComponentForNoesisComponent(NoesisIItemContainerGenerator->GenerateNext(NoesisInIsNewlyRealized)));
+	return CastChecked<UNoesisDependencyObject>(CreateClassFor(NoesisIItemContainerGenerator->GenerateNext(NoesisInIsNewlyRealized), nullptr), ECastCheckedType::NullAllowed);
 }
 
 FNoesisGeneratorPosition UNoesisIItemContainerGenerator::GeneratorPositionFromIndex(int32 InItemIndex)
@@ -50,7 +53,7 @@ class UNoesisItemContainerGenerator* UNoesisIItemContainerGenerator::GetItemCont
 	Noesis::Gui::IItemContainerGenerator* NoesisIItemContainerGenerator = NsDynamicCast<Noesis::Gui::IItemContainerGenerator*>(NoesisInterface.GetPtr());
 	check(NoesisIItemContainerGenerator);
 	Panel* NoesisInPanel = NsDynamicCast<Panel*>(InPanel->NoesisComponent.GetPtr());
-	return CastChecked<UNoesisItemContainerGenerator>(Instance->FindUnrealComponentForNoesisComponent(NoesisIItemContainerGenerator->GetItemContainerGeneratorForPanel(NoesisInPanel)));
+	return CastChecked<UNoesisItemContainerGenerator>(CreateClassFor(NoesisIItemContainerGenerator->GetItemContainerGeneratorForPanel(NoesisInPanel), nullptr), ECastCheckedType::NullAllowed);
 }
 
 int32 UNoesisIItemContainerGenerator::IndexFromGeneratorPosition(FNoesisGeneratorPosition InPosition)
@@ -97,7 +100,7 @@ void UNoesisIItemContainerGenerator::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::IItemContainerGenerator* NoesisIItemContainerGenerator = NsDynamicCast<Noesis::Gui::IItemContainerGenerator*>(NoesisInterface.GetPtr());
-	check(NoesisIItemContainerGenerator)
+	check(NoesisIItemContainerGenerator);
 
 
 }
@@ -107,7 +110,7 @@ void UNoesisIItemContainerGenerator::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::IItemContainerGenerator* NoesisIItemContainerGenerator = NsDynamicCast<Noesis::Gui::IItemContainerGenerator*>(NoesisInterface.GetPtr());
-	check(NoesisIItemContainerGenerator)
+	check(NoesisIItemContainerGenerator);
 
 
 }

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisProgressBar.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisProgressBar::UNoesisProgressBar(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ProgressBar::StaticGetClassType();
 }
 
 void UNoesisProgressBar::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -55,7 +58,7 @@ void UNoesisProgressBar::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ProgressBar* NoesisProgressBar = NsDynamicCast<Noesis::Gui::ProgressBar*>(NoesisComponent.GetPtr());
-	check(NoesisProgressBar)
+	check(NoesisProgressBar);
 
 
 }
@@ -65,7 +68,7 @@ void UNoesisProgressBar::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ProgressBar* NoesisProgressBar = NsDynamicCast<Noesis::Gui::ProgressBar*>(NoesisComponent.GetPtr());
-	check(NoesisProgressBar)
+	check(NoesisProgressBar);
 
 
 }

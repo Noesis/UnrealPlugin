@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisScrollContentPresenter.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisScrollContentPresenter::UNoesisScrollContentPresenter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ScrollContentPresenter::StaticGetClassType();
 }
 
 void UNoesisScrollContentPresenter::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -41,7 +44,7 @@ void UNoesisScrollContentPresenter::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ScrollContentPresenter* NoesisScrollContentPresenter = NsDynamicCast<Noesis::Gui::ScrollContentPresenter*>(NoesisComponent.GetPtr());
-	check(NoesisScrollContentPresenter)
+	check(NoesisScrollContentPresenter);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisScrollContentPresenter::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ScrollContentPresenter* NoesisScrollContentPresenter = NsDynamicCast<Noesis::Gui::ScrollContentPresenter*>(NoesisComponent.GetPtr());
-	check(NoesisScrollContentPresenter)
+	check(NoesisScrollContentPresenter);
 
 
 }

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisWrapPanel.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisWrapPanel::UNoesisWrapPanel(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::WrapPanel::StaticGetClassType();
 }
 
 void UNoesisWrapPanel::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -69,7 +72,7 @@ void UNoesisWrapPanel::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::WrapPanel* NoesisWrapPanel = NsDynamicCast<Noesis::Gui::WrapPanel*>(NoesisComponent.GetPtr());
-	check(NoesisWrapPanel)
+	check(NoesisWrapPanel);
 
 
 }
@@ -79,7 +82,7 @@ void UNoesisWrapPanel::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::WrapPanel* NoesisWrapPanel = NsDynamicCast<Noesis::Gui::WrapPanel*>(NoesisComponent.GetPtr());
-	check(NoesisWrapPanel)
+	check(NoesisWrapPanel);
 
 
 }

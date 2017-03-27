@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisTransformCollection.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisTransformCollection : public UNoesisBaseComponent
 {
 public:

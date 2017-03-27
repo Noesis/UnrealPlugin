@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisDependencyObject.h"
 #include "NoesisFreezable.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisFreezable : public UNoesisDependencyObject
 {
 public:
@@ -20,25 +20,25 @@ public:
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool CanFreeze();
+	bool CanFreeze();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisFreezable* Clone();
+	class UNoesisFreezable* Clone();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisFreezable* CloneCurrentValue();
+	class UNoesisFreezable* CloneCurrentValue();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Freeze();
+	void Freeze();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisFreezable* GetAsFrozen();
+	class UNoesisFreezable* GetAsFrozen();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisFreezable* GetCurrentValueAsFrozen();
+	class UNoesisFreezable* GetCurrentValueAsFrozen();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsFrozen();
+	bool IsFrozen();
 
 protected:
 

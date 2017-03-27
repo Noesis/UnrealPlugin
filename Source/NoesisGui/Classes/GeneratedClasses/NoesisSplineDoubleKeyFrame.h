@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisDoubleKeyFrame.h"
 #include "NoesisSplineDoubleKeyFrame.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisSplineDoubleKeyFrame : public UNoesisDoubleKeyFrame
 {
 public:

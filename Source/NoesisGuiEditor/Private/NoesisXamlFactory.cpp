@@ -12,6 +12,7 @@
 
 // UnrealEd includes
 #include "Kismet2/KismetEditorUtilities.h"
+#include "PackageTools.h"
 
 // BlueprintGraph includes
 #include "EdGraphSchema_K2.h"
@@ -94,7 +95,7 @@ void ImportXamls(FString BasePackageName, FString Path, TArray<FXamlDescriptor>&
 
 		UPackage* XamlPackage = NULL;
 
-		FString XamlObjectPath = BasePackageName / XamlPath / XamlName + TEXT(".") + XamlName;
+		FString XamlObjectPath = PackageTools::SanitizePackageName(BasePackageName / XamlPath / XamlName) + TEXT(".") + XamlName;
 		UNoesisXaml* ExistingXaml = LoadObject<UNoesisXaml>(NULL, *XamlObjectPath);
 
 		if (!ExistingXaml)
@@ -250,7 +251,7 @@ void ImportFonts(FString BasePackageName, FString Path, TArray<FFontDescriptor>&
 
 							UPackage* FontFacePackage = NULL;
 
-							FString FontFaceObjectPath = BasePackageName / BaseUri / FontFaceName + TEXT(".") + FontFaceName;
+							FString FontFaceObjectPath = PackageTools::SanitizePackageName(BasePackageName / BaseUri / FontFaceName) + TEXT(".") + FontFaceName;
 							UFontFace* ExistingFontFace = LoadObject<UFontFace>(NULL, *FontFaceObjectPath);
 
 							if (!ExistingFontFace)
@@ -279,6 +280,8 @@ void ImportFonts(FString BasePackageName, FString Path, TArray<FFontDescriptor>&
 
 							if (FontFace != NULL)
 							{
+								FontFace->LoadingPolicy = EFontLoadingPolicy::Inline;
+
 								// Notify the asset registry
 								FAssetRegistryModule::AssetCreated(FontFace);
 
@@ -392,7 +395,7 @@ void ImportImages(FString BasePackageName, FString Path, TArray<FImageDescriptor
 
 		UPackage* TexturePackage = NULL;
 
-		FString TextureObjectPath = BasePackageName / TexturePath / TextureName + TEXT(".") + TextureName;
+		FString TextureObjectPath = PackageTools::SanitizePackageName(BasePackageName / TexturePath / TextureName) + TEXT(".") + TextureName;
 		UTexture2D* ExistingTexture = LoadObject<UTexture2D>(NULL, *TextureObjectPath);
 
 		if (!ExistingTexture)
@@ -465,13 +468,19 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 
 	UNoesisXaml* NoesisXaml = NewObject<UNoesisXaml>(Parent, Class, Name, Flags);
 
-	NoesisXaml->XamlText.Insert(Buffer, BufferEnd - Buffer, 0);
-	NoesisXaml->XamlMap.Add(NoesisXaml->GetName() + TEXT(".xaml"), NoesisXaml);
-
 	for (auto XamlDescriptor : XamlDescriptors)
 	{
 		FString RelativePath, XamlName;
 		XamlDescriptor.Path.Split(TEXT("/"), &RelativePath, &XamlName, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+		RelativePath = PackageTools::SanitizePackageName(RelativePath);
+
+		if (XamlDescriptor.Path.Contains(TEXT("..")))
+		{
+			FString OriginalPath = XamlDescriptor.Path;
+			XamlDescriptor.Path = XamlDescriptor.Path.Replace(TEXT(".."), TEXT("__"));
+
+			XamlText = XamlText.Replace(*OriginalPath, *XamlDescriptor.Path);
+		}
 
 		UNoesisXaml* ReferencedXaml = XamlDescriptor.Xaml;
 		NoesisXaml->XamlMap.Add(XamlDescriptor.Path, ReferencedXaml);
@@ -494,29 +503,37 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 
 	for (auto FontDescriptor : FontDescriptors)
 	{
+		if (FontDescriptor.Family.Contains(TEXT("..")))
+		{
+			FString OriginalFamily = FontDescriptor.Family;
+			FontDescriptor.Family = FontDescriptor.Family.Replace(TEXT(".."), TEXT("__"));
+
+			XamlText = XamlText.Replace(*OriginalFamily, *FontDescriptor.Family);
+		}
+
 		NoesisXaml->FontMap.Add(FontDescriptor.Family, FontDescriptor.Font);
 	}
 
 	for (auto ImageDescriptor : ImageDescriptors)
 	{
+		if (ImageDescriptor.Path.Contains(TEXT("..")))
+		{
+			FString OriginalPath = ImageDescriptor.Path;
+			ImageDescriptor.Path = ImageDescriptor.Path.Replace(TEXT(".."), TEXT("__"));
+
+			XamlText = XamlText.Replace(*OriginalPath, *ImageDescriptor.Path);
+		}
+
 		NoesisXaml->TextureMap.Add(ImageDescriptor.Path, ImageDescriptor.Texture);
 	}
+
+	FTCHARToUTF8 AmmendedXamlText(*XamlText);
+	NoesisXaml->XamlText.Insert((uint8*)AmmendedXamlText.Get(), AmmendedXamlText.Length(), 0);
+	NoesisXaml->XamlMap.Add(NoesisXaml->GetName() + TEXT(".xaml"), NoesisXaml);
 
 	Noesis::Ptr<Noesis::Core::BaseComponent> Xaml = Noesis::GUI::LoadXaml<Noesis::Core::BaseComponent>(StringCast<NsChar>(*(FString::FromInt(NoesisXaml->GetUniqueID()) / NoesisXaml->GetName() + TEXT(".xaml"))).Get());
 	Noesis::Ptr<Noesis::FrameworkElement> FrameworkElement = NsDynamicCast<Noesis::Ptr<Noesis::FrameworkElement>>(Xaml);
 	Noesis::Ptr<Noesis::ResourceDictionary> ResourceDictionary = NsDynamicCast<Noesis::Ptr<Noesis::ResourceDictionary>>(Xaml);
-	TArray<Noesis::FrameworkElement*> Elements;
-	if (FrameworkElement)
-	{
-		CollectElements(FrameworkElement.GetPtr(), Elements);
-		for (auto Element : Elements)
-		{
-			const NsChar* ElementName = Element->GetName();
-			UNoesisBaseComponent* NoesisGuiComponent = CreateClassFor(Element, NoesisXaml);
-			NoesisGuiComponent->ElementName = ElementName ? NsStringToFName(ElementName) : NAME_None;
-			NoesisXaml->Components.Add(NoesisGuiComponent);
-		}
-	}
 
 	NoesisXaml->AssetImportData->Update(Filename);
 

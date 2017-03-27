@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisListBoxItem.h"
 #include "NoesisComboBoxItem.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisComboBoxItem : public UNoesisListBoxItem
 {
 public:
@@ -24,7 +24,7 @@ public:
 	bool GetIsHighlighted();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void SetHighlighted(bool Value);
+	void SetHighlighted(bool Value);
 
 protected:
 

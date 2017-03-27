@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisMouse.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisMouse : public UNoesisBaseComponent
 {
 public:
@@ -28,7 +28,7 @@ public:
 	FNoesisDrawingPointi GetPosition();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ResetState();
+	void ResetState();
 
 protected:
 

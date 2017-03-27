@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisSlider.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisSlider::UNoesisSlider(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Slider::StaticGetClassType();
 }
 
 void UNoesisSlider::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -195,7 +198,7 @@ void UNoesisSlider::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Slider* NoesisSlider = NsDynamicCast<Noesis::Gui::Slider*>(NoesisComponent.GetPtr());
-	check(NoesisSlider)
+	check(NoesisSlider);
 
 
 }
@@ -205,7 +208,7 @@ void UNoesisSlider::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Slider* NoesisSlider = NsDynamicCast<Noesis::Gui::Slider*>(NoesisComponent.GetPtr());
-	check(NoesisSlider)
+	check(NoesisSlider);
 
 
 }

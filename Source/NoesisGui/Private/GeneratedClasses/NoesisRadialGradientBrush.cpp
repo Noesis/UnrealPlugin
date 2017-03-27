@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisRadialGradientBrush.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisRadialGradientBrush::UNoesisRadialGradientBrush(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::RadialGradientBrush::StaticGetClassType();
 }
 
 void UNoesisRadialGradientBrush::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -83,7 +86,7 @@ void UNoesisRadialGradientBrush::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::RadialGradientBrush* NoesisRadialGradientBrush = NsDynamicCast<Noesis::Gui::RadialGradientBrush*>(NoesisComponent.GetPtr());
-	check(NoesisRadialGradientBrush)
+	check(NoesisRadialGradientBrush);
 
 
 }
@@ -93,7 +96,7 @@ void UNoesisRadialGradientBrush::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::RadialGradientBrush* NoesisRadialGradientBrush = NsDynamicCast<Noesis::Gui::RadialGradientBrush*>(NoesisComponent.GetPtr());
-	check(NoesisRadialGradientBrush)
+	check(NoesisRadialGradientBrush);
 
 
 }

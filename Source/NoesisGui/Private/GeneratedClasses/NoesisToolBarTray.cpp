@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisToolBarTray.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisToolBarTray::UNoesisToolBarTray(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ToolBarTray::StaticGetClassType();
 }
 
 void UNoesisToolBarTray::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisBrush* UNoesisToolBarTray::GetBackground()
 {
 	Noesis::Gui::ToolBarTray* NoesisToolBarTray = NsDynamicCast<Noesis::Gui::ToolBarTray*>(NoesisComponent.GetPtr());
 	check(NoesisToolBarTray);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisToolBarTray->GetBackground()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisToolBarTray->GetBackground(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisToolBarTray::SetBackground(class UNoesisBrush* InBackground)
@@ -55,7 +58,7 @@ void UNoesisToolBarTray::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ToolBarTray* NoesisToolBarTray = NsDynamicCast<Noesis::Gui::ToolBarTray*>(NoesisComponent.GetPtr());
-	check(NoesisToolBarTray)
+	check(NoesisToolBarTray);
 
 
 }
@@ -65,7 +68,7 @@ void UNoesisToolBarTray::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ToolBarTray* NoesisToolBarTray = NsDynamicCast<Noesis::Gui::ToolBarTray*>(NoesisComponent.GetPtr());
-	check(NoesisToolBarTray)
+	check(NoesisToolBarTray);
 
 
 }

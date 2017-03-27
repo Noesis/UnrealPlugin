@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisGridViewRowPresenter.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisGridViewRowPresenter::UNoesisGridViewRowPresenter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::GridViewRowPresenter::StaticGetClassType();
 }
 
 void UNoesisGridViewRowPresenter::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisBaseComponent* UNoesisGridViewRowPresenter::GetContent()
 {
 	Noesis::Gui::GridViewRowPresenter* NoesisGridViewRowPresenter = NsDynamicCast<Noesis::Gui::GridViewRowPresenter*>(NoesisComponent.GetPtr());
 	check(NoesisGridViewRowPresenter);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisGridViewRowPresenter->GetContent()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisGridViewRowPresenter->GetContent(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisGridViewRowPresenter::SetContent(class UNoesisBaseComponent* InContent)
@@ -41,7 +44,7 @@ void UNoesisGridViewRowPresenter::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::GridViewRowPresenter* NoesisGridViewRowPresenter = NsDynamicCast<Noesis::Gui::GridViewRowPresenter*>(NoesisComponent.GetPtr());
-	check(NoesisGridViewRowPresenter)
+	check(NoesisGridViewRowPresenter);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisGridViewRowPresenter::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::GridViewRowPresenter* NoesisGridViewRowPresenter = NsDynamicCast<Noesis::Gui::GridViewRowPresenter*>(NoesisComponent.GetPtr());
-	check(NoesisGridViewRowPresenter)
+	check(NoesisGridViewRowPresenter);
 
 
 }

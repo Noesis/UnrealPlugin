@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisTextBox.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisTextBox::UNoesisTextBox(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TextBox::StaticGetClassType();
 }
 
 void UNoesisTextBox::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -167,7 +170,7 @@ void UNoesisTextBox::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TextBox* NoesisTextBox = NsDynamicCast<Noesis::Gui::TextBox*>(NoesisComponent.GetPtr());
-	check(NoesisTextBox)
+	check(NoesisTextBox);
 
 
 }
@@ -177,7 +180,7 @@ void UNoesisTextBox::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TextBox* NoesisTextBox = NsDynamicCast<Noesis::Gui::TextBox*>(NoesisComponent.GetPtr());
-	check(NoesisTextBox)
+	check(NoesisTextBox);
 
 
 }

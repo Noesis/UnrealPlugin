@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisContextMenu.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisContextMenu::UNoesisContextMenu(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ContextMenu::StaticGetClassType();
 }
 
 void UNoesisContextMenu::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -96,7 +99,7 @@ class UNoesisUIElement* UNoesisContextMenu::GetPlacementTarget()
 {
 	Noesis::Gui::ContextMenu* NoesisContextMenu = NsDynamicCast<Noesis::Gui::ContextMenu*>(NoesisComponent.GetPtr());
 	check(NoesisContextMenu);
-	return CastChecked<UNoesisUIElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisContextMenu->GetPlacementTarget()));
+	return CastChecked<UNoesisUIElement>(CreateClassFor(NoesisContextMenu->GetPlacementTarget(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisContextMenu::SetPlacementTarget(class UNoesisUIElement* InPlacementTarget)
@@ -138,24 +141,24 @@ UNoesisPopup* UNoesisContextMenu::GetPopup()
 {
 	Noesis::Gui::ContextMenu* NoesisContextMenu = NsDynamicCast<Noesis::Gui::ContextMenu*>(NoesisComponent.GetPtr());
 	check(NoesisContextMenu);
-	return CastChecked<UNoesisPopup>(Instance->FindUnrealComponentForNoesisComponent(NoesisContextMenu->GetPopup()));
+	return CastChecked<UNoesisPopup>(CreateClassFor(NoesisContextMenu->GetPopup(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisContextMenu::Closed_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Closed.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Closed.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisRoutedEventArgs Args(InArgs);
 	Closed.Broadcast(Sender, Args);
 }
 
 void UNoesisContextMenu::Opened_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Opened.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Opened.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisRoutedEventArgs Args(InArgs);
 	Opened.Broadcast(Sender, Args);
 }
 
@@ -164,18 +167,12 @@ void UNoesisContextMenu::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ContextMenu* NoesisContextMenu = NsDynamicCast<Noesis::Gui::ContextMenu*>(NoesisComponent.GetPtr());
-	check(NoesisContextMenu)
+	check(NoesisContextMenu);
 
 	Closed_Delegate = Noesis::MakeDelegate(this, &UNoesisContextMenu::Closed_Private);
-	if (Closed.IsBound())
-	{
-		NoesisContextMenu->Closed() += Closed_Delegate;
-	}
+	NoesisContextMenu->Closed() += Closed_Delegate;
 	Opened_Delegate = Noesis::MakeDelegate(this, &UNoesisContextMenu::Opened_Private);
-	if (Opened.IsBound())
-	{
-		NoesisContextMenu->Opened() += Opened_Delegate;
-	}
+	NoesisContextMenu->Opened() += Opened_Delegate;
 
 }
 
@@ -184,16 +181,10 @@ void UNoesisContextMenu::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ContextMenu* NoesisContextMenu = NsDynamicCast<Noesis::Gui::ContextMenu*>(NoesisComponent.GetPtr());
-	check(NoesisContextMenu)
+	check(NoesisContextMenu);
 
-	if (Closed.IsBound())
-	{
-		NoesisContextMenu->Closed() -= Closed_Delegate;
-	}
-	if (Opened.IsBound())
-	{
-		NoesisContextMenu->Opened() -= Opened_Delegate;
-	}
+	NoesisContextMenu->Closed() -= Closed_Delegate;
+	NoesisContextMenu->Opened() -= Opened_Delegate;
 
 }
 

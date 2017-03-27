@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisSkewTransform.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisSkewTransform::UNoesisSkewTransform(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::SkewTransform::StaticGetClassType();
 }
 
 void UNoesisSkewTransform::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -83,7 +86,7 @@ void UNoesisSkewTransform::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::SkewTransform* NoesisSkewTransform = NsDynamicCast<Noesis::Gui::SkewTransform*>(NoesisComponent.GetPtr());
-	check(NoesisSkewTransform)
+	check(NoesisSkewTransform);
 
 
 }
@@ -93,7 +96,7 @@ void UNoesisSkewTransform::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::SkewTransform* NoesisSkewTransform = NsDynamicCast<Noesis::Gui::SkewTransform*>(NoesisComponent.GetPtr());
-	check(NoesisSkewTransform)
+	check(NoesisSkewTransform);
 
 
 }

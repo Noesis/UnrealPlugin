@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisAnimatable.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisAnimatable::UNoesisAnimatable(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Animatable::StaticGetClassType();
 }
 
 void UNoesisAnimatable::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisAnimatable::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Animatable* NoesisAnimatable = NsDynamicCast<Noesis::Gui::Animatable*>(NoesisComponent.GetPtr());
-	check(NoesisAnimatable)
+	check(NoesisAnimatable);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisAnimatable::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Animatable* NoesisAnimatable = NsDynamicCast<Noesis::Gui::Animatable*>(NoesisComponent.GetPtr());
-	check(NoesisAnimatable)
+	check(NoesisAnimatable);
 
 
 }

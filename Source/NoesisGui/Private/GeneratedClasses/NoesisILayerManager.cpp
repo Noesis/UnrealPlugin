@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisILayerManager.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisILayerManager::UNoesisILayerManager(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisInterfaceTypeClass = Noesis::Gui::ILayerManager::StaticGetClassType();
 }
 
 void UNoesisILayerManager::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterface)
@@ -43,7 +46,7 @@ void UNoesisILayerManager::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ILayerManager* NoesisILayerManager = NsDynamicCast<Noesis::Gui::ILayerManager*>(NoesisInterface.GetPtr());
-	check(NoesisILayerManager)
+	check(NoesisILayerManager);
 
 
 }
@@ -53,7 +56,7 @@ void UNoesisILayerManager::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ILayerManager* NoesisILayerManager = NsDynamicCast<Noesis::Gui::ILayerManager*>(NoesisInterface.GetPtr());
-	check(NoesisILayerManager)
+	check(NoesisILayerManager);
 
 
 }

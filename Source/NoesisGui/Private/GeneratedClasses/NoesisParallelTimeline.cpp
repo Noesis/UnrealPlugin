@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisParallelTimeline.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisParallelTimeline::UNoesisParallelTimeline(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ParallelTimeline::StaticGetClassType();
 }
 
 void UNoesisParallelTimeline::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -49,7 +52,7 @@ void UNoesisParallelTimeline::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ParallelTimeline* NoesisParallelTimeline = NsDynamicCast<Noesis::Gui::ParallelTimeline*>(NoesisComponent.GetPtr());
-	check(NoesisParallelTimeline)
+	check(NoesisParallelTimeline);
 
 
 }
@@ -59,7 +62,7 @@ void UNoesisParallelTimeline::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ParallelTimeline* NoesisParallelTimeline = NsDynamicCast<Noesis::Gui::ParallelTimeline*>(NoesisComponent.GetPtr());
-	check(NoesisParallelTimeline)
+	check(NoesisParallelTimeline);
 
 
 }

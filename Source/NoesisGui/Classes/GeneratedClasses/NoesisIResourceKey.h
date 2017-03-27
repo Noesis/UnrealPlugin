@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisIResourceKey.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisIResourceKey : public UNoesisInterface
 {
 public:
@@ -20,10 +20,10 @@ public:
 	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool Equals(const class UNoesisIResourceKey* ResourceKey);
+	bool Equals(const class UNoesisIResourceKey* ResourceKey);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-FString GetStr();
+	FString GetStr();
 
 protected:
 

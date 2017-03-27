@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisBorder.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisBorder::UNoesisBorder(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Border::StaticGetClassType();
 }
 
 void UNoesisBorder::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisBrush* UNoesisBorder::GetBackground()
 {
 	Noesis::Gui::Border* NoesisBorder = NsDynamicCast<Noesis::Gui::Border*>(NoesisComponent.GetPtr());
 	check(NoesisBorder);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisBorder->GetBackground()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisBorder->GetBackground(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBorder::SetBackground(class UNoesisBrush* InBackground)
@@ -40,7 +43,7 @@ class UNoesisBrush* UNoesisBorder::GetBorderBrush()
 {
 	Noesis::Gui::Border* NoesisBorder = NsDynamicCast<Noesis::Gui::Border*>(NoesisComponent.GetPtr());
 	check(NoesisBorder);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisBorder->GetBorderBrush()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisBorder->GetBorderBrush(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBorder::SetBorderBrush(class UNoesisBrush* InBorderBrush)
@@ -97,7 +100,7 @@ void UNoesisBorder::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Border* NoesisBorder = NsDynamicCast<Noesis::Gui::Border*>(NoesisComponent.GetPtr());
-	check(NoesisBorder)
+	check(NoesisBorder);
 
 
 }
@@ -107,7 +110,7 @@ void UNoesisBorder::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Border* NoesisBorder = NsDynamicCast<Noesis::Gui::Border*>(NoesisComponent.GetPtr());
-	check(NoesisBorder)
+	check(NoesisBorder);
 
 
 }

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisInputGesture.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisInputGesture::UNoesisInputGesture(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::InputGesture::StaticGetClassType();
 }
 
 void UNoesisInputGesture::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisInputGesture::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::InputGesture* NoesisInputGesture = NsDynamicCast<Noesis::Gui::InputGesture*>(NoesisComponent.GetPtr());
-	check(NoesisInputGesture)
+	check(NoesisInputGesture);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisInputGesture::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::InputGesture* NoesisInputGesture = NsDynamicCast<Noesis::Gui::InputGesture*>(NoesisComponent.GetPtr());
-	check(NoesisInputGesture)
+	check(NoesisInputGesture);
 
 
 }

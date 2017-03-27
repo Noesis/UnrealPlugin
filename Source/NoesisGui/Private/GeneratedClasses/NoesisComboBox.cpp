@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisComboBox.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisComboBox::UNoesisComboBox(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ComboBox::StaticGetClassType();
 }
 
 void UNoesisComboBox::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -82,14 +85,14 @@ class UNoesisBaseComponent* UNoesisComboBox::GetSelectionBoxItem()
 {
 	Noesis::Gui::ComboBox* NoesisComboBox = NsDynamicCast<Noesis::Gui::ComboBox*>(NoesisComponent.GetPtr());
 	check(NoesisComboBox);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisComboBox->GetSelectionBoxItem()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisComboBox->GetSelectionBoxItem(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisDataTemplate* UNoesisComboBox::GetSelectionBoxItemTemplate()
 {
 	Noesis::Gui::ComboBox* NoesisComboBox = NsDynamicCast<Noesis::Gui::ComboBox*>(NoesisComponent.GetPtr());
 	check(NoesisComboBox);
-	return CastChecked<UNoesisDataTemplate>(Instance->FindUnrealComponentForNoesisComponent(NoesisComboBox->GetSelectionBoxItemTemplate()));
+	return CastChecked<UNoesisDataTemplate>(CreateClassFor(NoesisComboBox->GetSelectionBoxItemTemplate(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 bool UNoesisComboBox::GetStaysOpenOnEdit()
@@ -125,7 +128,7 @@ void UNoesisComboBox::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ComboBox* NoesisComboBox = NsDynamicCast<Noesis::Gui::ComboBox*>(NoesisComponent.GetPtr());
-	check(NoesisComboBox)
+	check(NoesisComboBox);
 
 
 }
@@ -135,7 +138,7 @@ void UNoesisComboBox::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ComboBox* NoesisComboBox = NsDynamicCast<Noesis::Gui::ComboBox*>(NoesisComponent.GetPtr());
-	check(NoesisComboBox)
+	check(NoesisComboBox);
 
 
 }

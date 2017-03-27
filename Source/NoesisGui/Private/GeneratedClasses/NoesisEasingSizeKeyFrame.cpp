@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisEasingSizeKeyFrame.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisEasingSizeKeyFrame::UNoesisEasingSizeKeyFrame(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Size>::StaticGetClassType();
 }
 
 void UNoesisEasingSizeKeyFrame::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisEasingSizeKeyFrame::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Size>* NoesisEasingSizeKeyFrame = NsDynamicCast<Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Size>*>(NoesisComponent.GetPtr());
-	check(NoesisEasingSizeKeyFrame)
+	check(NoesisEasingSizeKeyFrame);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisEasingSizeKeyFrame::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Size>* NoesisEasingSizeKeyFrame = NsDynamicCast<Noesis::Gui::EasingKeyFrame<Noesis::Drawing::Size>*>(NoesisComponent.GetPtr());
-	check(NoesisEasingSizeKeyFrame)
+	check(NoesisEasingSizeKeyFrame);
 
 
 }

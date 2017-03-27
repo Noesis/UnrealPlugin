@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisImageSource.h"
 #include "NoesisTextureSource.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisTextureSource : public UNoesisImageSource
 {
 public:

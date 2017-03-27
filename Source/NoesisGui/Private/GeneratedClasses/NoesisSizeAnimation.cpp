@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisSizeAnimation.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisSizeAnimation::UNoesisSizeAnimation(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Animation<Noesis::Drawing::Size>::StaticGetClassType();
 }
 
 void UNoesisSizeAnimation::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisSizeAnimation::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Animation<Noesis::Drawing::Size>* NoesisSizeAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Size>*>(NoesisComponent.GetPtr());
-	check(NoesisSizeAnimation)
+	check(NoesisSizeAnimation);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisSizeAnimation::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Animation<Noesis::Drawing::Size>* NoesisSizeAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Size>*>(NoesisComponent.GetPtr());
-	check(NoesisSizeAnimation)
+	check(NoesisSizeAnimation);
 
 
 }

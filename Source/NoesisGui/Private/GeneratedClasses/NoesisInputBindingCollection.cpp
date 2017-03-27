@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisInputBindingCollection.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisInputBindingCollection::UNoesisInputBindingCollection(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TypedCollection<Noesis::Gui::InputBinding>::StaticGetClassType();
 }
 
 void UNoesisInputBindingCollection::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisInputBindingCollection::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TypedCollection<Noesis::Gui::InputBinding>* NoesisInputBindingCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::InputBinding>*>(NoesisComponent.GetPtr());
-	check(NoesisInputBindingCollection)
+	check(NoesisInputBindingCollection);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisInputBindingCollection::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TypedCollection<Noesis::Gui::InputBinding>* NoesisInputBindingCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::InputBinding>*>(NoesisComponent.GetPtr());
-	check(NoesisInputBindingCollection)
+	check(NoesisInputBindingCollection);
 
 
 }

@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisProjection.h"
 #include "NoesisPlaneProjection.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisPlaneProjection : public UNoesisProjection
 {
 public:

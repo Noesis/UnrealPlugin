@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisTrack.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisTrack::UNoesisTrack(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Track::StaticGetClassType();
 }
 
 void UNoesisTrack::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisRepeatButton* UNoesisTrack::GetDecreaseRepeatButton()
 {
 	Noesis::Gui::Track* NoesisTrack = NsDynamicCast<Noesis::Gui::Track*>(NoesisComponent.GetPtr());
 	check(NoesisTrack);
-	return CastChecked<UNoesisRepeatButton>(Instance->FindUnrealComponentForNoesisComponent(NoesisTrack->GetDecreaseRepeatButton()));
+	return CastChecked<UNoesisRepeatButton>(CreateClassFor(NoesisTrack->GetDecreaseRepeatButton(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisTrack::SetDecreaseRepeatButton(class UNoesisRepeatButton* InDecreaseRepeatButton)
@@ -40,7 +43,7 @@ class UNoesisRepeatButton* UNoesisTrack::GetIncreaseRepeatButton()
 {
 	Noesis::Gui::Track* NoesisTrack = NsDynamicCast<Noesis::Gui::Track*>(NoesisComponent.GetPtr());
 	check(NoesisTrack);
-	return CastChecked<UNoesisRepeatButton>(Instance->FindUnrealComponentForNoesisComponent(NoesisTrack->GetIncreaseRepeatButton()));
+	return CastChecked<UNoesisRepeatButton>(CreateClassFor(NoesisTrack->GetIncreaseRepeatButton(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisTrack::SetIncreaseRepeatButton(class UNoesisRepeatButton* InIncreaseRepeatButton)
@@ -110,7 +113,7 @@ class UNoesisThumb* UNoesisTrack::GetThumb()
 {
 	Noesis::Gui::Track* NoesisTrack = NsDynamicCast<Noesis::Gui::Track*>(NoesisComponent.GetPtr());
 	check(NoesisTrack);
-	return CastChecked<UNoesisThumb>(Instance->FindUnrealComponentForNoesisComponent(NoesisTrack->GetThumb()));
+	return CastChecked<UNoesisThumb>(CreateClassFor(NoesisTrack->GetThumb(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisTrack::SetThumb(class UNoesisThumb* InThumb)
@@ -170,7 +173,7 @@ void UNoesisTrack::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Track* NoesisTrack = NsDynamicCast<Noesis::Gui::Track*>(NoesisComponent.GetPtr());
-	check(NoesisTrack)
+	check(NoesisTrack);
 
 
 }
@@ -180,7 +183,7 @@ void UNoesisTrack::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Track* NoesisTrack = NsDynamicCast<Noesis::Gui::Track*>(NoesisComponent.GetPtr());
-	check(NoesisTrack)
+	check(NoesisTrack);
 
 
 }

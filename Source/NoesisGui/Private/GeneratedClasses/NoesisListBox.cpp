@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisListBox.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisListBox::UNoesisListBox(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ListBox::StaticGetClassType();
 }
 
 void UNoesisListBox::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisIList* UNoesisListBox::GetSelectedItems()
 {
 	Noesis::Gui::ListBox* NoesisListBox = NsDynamicCast<Noesis::Gui::ListBox*>(NoesisComponent.GetPtr());
 	check(NoesisListBox);
-	return CastChecked<UNoesisIList>(Instance->FindUnrealInterfaceForNoesisInterface(NoesisListBox->GetSelectedItems()));
+	return CastChecked<UNoesisIList>(CreateInterfaceFor(NoesisListBox->GetSelectedItems(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 ENoesisSelectionMode UNoesisListBox::GetSelectionMode()
@@ -47,7 +50,7 @@ class UNoesisPanel* UNoesisListBox::GetDefaultItemsPanel()
 {
 	Noesis::Gui::ListBox* NoesisListBox = NsDynamicCast<Noesis::Gui::ListBox*>(NoesisComponent.GetPtr());
 	check(NoesisListBox);
-	return CastChecked<UNoesisPanel>(Instance->FindUnrealComponentForNoesisComponent(NoesisListBox->GetDefaultItemsPanel()));
+	return CastChecked<UNoesisPanel>(CreateClassFor(NoesisListBox->GetDefaultItemsPanel(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisListBox::ScrollIntoView(class UNoesisBaseComponent* InItem)
@@ -77,7 +80,7 @@ void UNoesisListBox::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ListBox* NoesisListBox = NsDynamicCast<Noesis::Gui::ListBox*>(NoesisComponent.GetPtr());
-	check(NoesisListBox)
+	check(NoesisListBox);
 
 
 }
@@ -87,7 +90,7 @@ void UNoesisListBox::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ListBox* NoesisListBox = NsDynamicCast<Noesis::Gui::ListBox*>(NoesisComponent.GetPtr());
-	check(NoesisListBox)
+	check(NoesisListBox);
 
 
 }

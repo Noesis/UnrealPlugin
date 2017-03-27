@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisLinearThicknessKeyFrame.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisLinearThicknessKeyFrame::UNoesisLinearThicknessKeyFrame(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Thickness>::StaticGetClassType();
 }
 
 void UNoesisLinearThicknessKeyFrame::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisLinearThicknessKeyFrame::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Thickness>* NoesisLinearThicknessKeyFrame = NsDynamicCast<Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Thickness>*>(NoesisComponent.GetPtr());
-	check(NoesisLinearThicknessKeyFrame)
+	check(NoesisLinearThicknessKeyFrame);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisLinearThicknessKeyFrame::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Thickness>* NoesisLinearThicknessKeyFrame = NsDynamicCast<Noesis::Gui::LinearKeyFrame<Noesis::Drawing::Thickness>*>(NoesisComponent.GetPtr());
-	check(NoesisLinearThicknessKeyFrame)
+	check(NoesisLinearThicknessKeyFrame);
 
 
 }

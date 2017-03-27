@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisRoutedEvent.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisRoutedEvent::UNoesisRoutedEvent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::RoutedEvent::StaticGetClassType();
 }
 
 void UNoesisRoutedEvent::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -48,7 +51,7 @@ void UNoesisRoutedEvent::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::RoutedEvent* NoesisRoutedEvent = NsDynamicCast<Noesis::Gui::RoutedEvent*>(NoesisComponent.GetPtr());
-	check(NoesisRoutedEvent)
+	check(NoesisRoutedEvent);
 
 
 }
@@ -58,7 +61,7 @@ void UNoesisRoutedEvent::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::RoutedEvent* NoesisRoutedEvent = NsDynamicCast<Noesis::Gui::RoutedEvent*>(NoesisComponent.GetPtr());
-	check(NoesisRoutedEvent)
+	check(NoesisRoutedEvent);
 
 
 }

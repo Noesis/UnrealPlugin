@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisINameScope.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisINameScope : public UNoesisInterface
 {
 public:
@@ -20,16 +20,16 @@ public:
 	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisBaseComponent* FindName(FString Name);
+	class UNoesisBaseComponent* FindName(FString Name);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void RegisterName(FString Name, class UNoesisBaseComponent* Object);
+	void RegisterName(FString Name, class UNoesisBaseComponent* Object);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void UnregisterName(FString Name);
+	void UnregisterName(FString Name);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void UpdateName(FString Name, class UNoesisBaseComponent* Object);
+	void UpdateName(FString Name, class UNoesisBaseComponent* Object);
 
 protected:
 

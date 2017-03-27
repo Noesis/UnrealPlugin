@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisSelector.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisSelector::UNoesisSelector(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Selector::StaticGetClassType();
 }
 
 void UNoesisSelector::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -40,7 +43,7 @@ class UNoesisBaseComponent* UNoesisSelector::GetSelectedItem()
 {
 	Noesis::Gui::Selector* NoesisSelector = NsDynamicCast<Noesis::Gui::Selector*>(NoesisComponent.GetPtr());
 	check(NoesisSelector);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisSelector->GetSelectedItem()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisSelector->GetSelectedItem(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisSelector::SetSelectedItem(class UNoesisBaseComponent* InSelectedItem)
@@ -54,7 +57,7 @@ class UNoesisBaseComponent* UNoesisSelector::GetSelectedValue()
 {
 	Noesis::Gui::Selector* NoesisSelector = NsDynamicCast<Noesis::Gui::Selector*>(NoesisComponent.GetPtr());
 	check(NoesisSelector);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisSelector->GetSelectedValue()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisSelector->GetSelectedValue(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisSelector::SetSelectedValue(class UNoesisBaseComponent* InSelectedValue)
@@ -80,10 +83,10 @@ void UNoesisSelector::SetSelectedValuePath(FString InSelectedValuePath)
 
 void UNoesisSelector::SelectionChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::SelectionChangedEventArgs& InArgs)
 {
-	if (!SelectionChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!SelectionChanged.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisSelectionChangedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisSelectionChangedEventArgs Args(InArgs);
 	SelectionChanged.Broadcast(Sender, Args);
 }
 
@@ -92,13 +95,10 @@ void UNoesisSelector::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Selector* NoesisSelector = NsDynamicCast<Noesis::Gui::Selector*>(NoesisComponent.GetPtr());
-	check(NoesisSelector)
+	check(NoesisSelector);
 
 	SelectionChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisSelector::SelectionChanged_Private);
-	if (SelectionChanged.IsBound())
-	{
-		NoesisSelector->SelectionChanged() += SelectionChanged_Delegate;
-	}
+	NoesisSelector->SelectionChanged() += SelectionChanged_Delegate;
 
 }
 
@@ -107,12 +107,9 @@ void UNoesisSelector::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Selector* NoesisSelector = NsDynamicCast<Noesis::Gui::Selector*>(NoesisComponent.GetPtr());
-	check(NoesisSelector)
+	check(NoesisSelector);
 
-	if (SelectionChanged.IsBound())
-	{
-		NoesisSelector->SelectionChanged() -= SelectionChanged_Delegate;
-	}
+	NoesisSelector->SelectionChanged() -= SelectionChanged_Delegate;
 
 }
 

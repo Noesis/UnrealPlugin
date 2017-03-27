@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisEllipseGeometry.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisEllipseGeometry::UNoesisEllipseGeometry(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::EllipseGeometry::StaticGetClassType();
 }
 
 void UNoesisEllipseGeometry::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -69,7 +72,7 @@ void UNoesisEllipseGeometry::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::EllipseGeometry* NoesisEllipseGeometry = NsDynamicCast<Noesis::Gui::EllipseGeometry*>(NoesisComponent.GetPtr());
-	check(NoesisEllipseGeometry)
+	check(NoesisEllipseGeometry);
 
 
 }
@@ -79,7 +82,7 @@ void UNoesisEllipseGeometry::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::EllipseGeometry* NoesisEllipseGeometry = NsDynamicCast<Noesis::Gui::EllipseGeometry*>(NoesisComponent.GetPtr());
-	check(NoesisEllipseGeometry)
+	check(NoesisEllipseGeometry);
 
 
 }

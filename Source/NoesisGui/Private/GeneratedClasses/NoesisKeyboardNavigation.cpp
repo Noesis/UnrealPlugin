@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisKeyboardNavigation.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisKeyboardNavigation::UNoesisKeyboardNavigation(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::KeyboardNavigation::StaticGetClassType();
 }
 
 void UNoesisKeyboardNavigation::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisKeyboardNavigation::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::KeyboardNavigation* NoesisKeyboardNavigation = NsDynamicCast<Noesis::Gui::KeyboardNavigation*>(NoesisComponent.GetPtr());
-	check(NoesisKeyboardNavigation)
+	check(NoesisKeyboardNavigation);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisKeyboardNavigation::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::KeyboardNavigation* NoesisKeyboardNavigation = NsDynamicCast<Noesis::Gui::KeyboardNavigation*>(NoesisComponent.GetPtr());
-	check(NoesisKeyboardNavigation)
+	check(NoesisKeyboardNavigation);
 
 
 }

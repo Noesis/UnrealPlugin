@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisAnimationTimeline.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisAnimationTimeline::UNoesisAnimationTimeline(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::AnimationTimeline::StaticGetClassType();
 }
 
 void UNoesisAnimationTimeline::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -54,7 +57,7 @@ class UNoesisAnimationTimeline* UNoesisAnimationTimeline::CreateTransitionFrom()
 {
 	Noesis::Gui::AnimationTimeline* NoesisAnimationTimeline = NsDynamicCast<Noesis::Gui::AnimationTimeline*>(NoesisComponent.GetPtr());
 	check(NoesisAnimationTimeline);
-	return CastChecked<UNoesisAnimationTimeline>(Instance->FindUnrealComponentForNoesisComponent(NoesisAnimationTimeline->CreateTransitionFrom()));
+	return CastChecked<UNoesisAnimationTimeline>(CreateClassFor(NoesisAnimationTimeline->CreateTransitionFrom(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisBaseComponent* UNoesisAnimationTimeline::GetAnimatedValue(class UNoesisBaseComponent* InDefaultOrigin, class UNoesisBaseComponent* InDefaultDestination, class UNoesisAnimationClock* InClock)
@@ -64,7 +67,7 @@ class UNoesisBaseComponent* UNoesisAnimationTimeline::GetAnimatedValue(class UNo
 	BaseComponent* NoesisInDefaultOrigin = NsDynamicCast<BaseComponent*>(InDefaultOrigin->NoesisComponent.GetPtr());
 	BaseComponent* NoesisInDefaultDestination = NsDynamicCast<BaseComponent*>(InDefaultDestination->NoesisComponent.GetPtr());
 	AnimationClock* NoesisInClock = NsDynamicCast<AnimationClock*>(InClock->NoesisComponent.GetPtr());
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisAnimationTimeline->GetAnimatedValue(NoesisInDefaultOrigin, NoesisInDefaultDestination, NoesisInClock)));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisAnimationTimeline->GetAnimatedValue(NoesisInDefaultOrigin, NoesisInDefaultDestination, NoesisInClock), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisAnimationTimeline::Start(class UNoesisDependencyObject* InTarget, const class UNoesisDependencyProperty* InDp, class UNoesisITimeManager* InTimeManager, ENoesisHandoffBehavior InHandoff)
@@ -83,7 +86,7 @@ void UNoesisAnimationTimeline::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::AnimationTimeline* NoesisAnimationTimeline = NsDynamicCast<Noesis::Gui::AnimationTimeline*>(NoesisComponent.GetPtr());
-	check(NoesisAnimationTimeline)
+	check(NoesisAnimationTimeline);
 
 
 }
@@ -93,7 +96,7 @@ void UNoesisAnimationTimeline::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::AnimationTimeline* NoesisAnimationTimeline = NsDynamicCast<Noesis::Gui::AnimationTimeline*>(NoesisComponent.GetPtr());
-	check(NoesisAnimationTimeline)
+	check(NoesisAnimationTimeline);
 
 
 }

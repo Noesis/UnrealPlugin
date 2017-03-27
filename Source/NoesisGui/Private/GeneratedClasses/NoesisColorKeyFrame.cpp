@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisColorKeyFrame.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisColorKeyFrame::UNoesisColorKeyFrame(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::KeyFrame<Noesis::Drawing::Color>::StaticGetClassType();
 }
 
 void UNoesisColorKeyFrame::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -41,7 +44,7 @@ void UNoesisColorKeyFrame::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::KeyFrame<Noesis::Drawing::Color>* NoesisColorKeyFrame = NsDynamicCast<Noesis::Gui::KeyFrame<Noesis::Drawing::Color>*>(NoesisComponent.GetPtr());
-	check(NoesisColorKeyFrame)
+	check(NoesisColorKeyFrame);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisColorKeyFrame::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::KeyFrame<Noesis::Drawing::Color>* NoesisColorKeyFrame = NsDynamicCast<Noesis::Gui::KeyFrame<Noesis::Drawing::Color>*>(NoesisComponent.GetPtr());
-	check(NoesisColorKeyFrame)
+	check(NoesisColorKeyFrame);
 
 
 }

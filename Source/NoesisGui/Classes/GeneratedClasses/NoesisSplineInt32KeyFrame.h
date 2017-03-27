@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisInt32KeyFrame.h"
 #include "NoesisSplineInt32KeyFrame.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisSplineInt32KeyFrame : public UNoesisInt32KeyFrame
 {
 public:

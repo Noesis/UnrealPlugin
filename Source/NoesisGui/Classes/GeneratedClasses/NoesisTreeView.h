@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisItemsControl.h"
 #include "NoesisTreeView.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisTreeView : public UNoesisItemsControl
 {
 public:
@@ -24,7 +24,7 @@ public:
 	class UNoesisBaseComponent* GetSelectedItem();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ItemClicked(class UNoesisTreeViewItem* Tvi);
+	void ItemClicked(class UNoesisTreeViewItem* Tvi);
 
 protected:
 

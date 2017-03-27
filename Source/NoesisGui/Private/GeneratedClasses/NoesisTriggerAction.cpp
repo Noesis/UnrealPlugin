@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisTriggerAction.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisTriggerAction::UNoesisTriggerAction(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TriggerAction::StaticGetClassType();
 }
 
 void UNoesisTriggerAction::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -43,7 +46,7 @@ void UNoesisTriggerAction::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TriggerAction* NoesisTriggerAction = NsDynamicCast<Noesis::Gui::TriggerAction*>(NoesisComponent.GetPtr());
-	check(NoesisTriggerAction)
+	check(NoesisTriggerAction);
 
 
 }
@@ -53,7 +56,7 @@ void UNoesisTriggerAction::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TriggerAction* NoesisTriggerAction = NsDynamicCast<Noesis::Gui::TriggerAction*>(NoesisComponent.GetPtr());
-	check(NoesisTriggerAction)
+	check(NoesisTriggerAction);
 
 
 }

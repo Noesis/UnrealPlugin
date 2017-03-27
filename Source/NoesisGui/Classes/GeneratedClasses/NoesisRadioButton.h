@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisToggleButton.h"
 #include "NoesisRadioButton.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisRadioButton : public UNoesisToggleButton
 {
 public:

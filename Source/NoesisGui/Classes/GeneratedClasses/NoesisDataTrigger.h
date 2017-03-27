@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisBaseTrigger.h"
 #include "NoesisDataTrigger.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisDataTrigger : public UNoesisBaseTrigger
 {
 public:

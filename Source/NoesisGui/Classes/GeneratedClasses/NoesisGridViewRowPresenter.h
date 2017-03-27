@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisBaseGridViewRowPresenter.h"
 #include "NoesisGridViewRowPresenter.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisGridViewRowPresenter : public UNoesisBaseGridViewRowPresenter
 {
 public:

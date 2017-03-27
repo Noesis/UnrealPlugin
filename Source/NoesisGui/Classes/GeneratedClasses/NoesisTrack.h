@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisFrameworkElement.h"
 #include "NoesisTrack.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisTrack : public UNoesisFrameworkElement
 {
 public:
@@ -74,10 +74,10 @@ public:
 	void SetViewportSize(float InViewportSize);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-float ValueFromDistance(float Horizontal, float Vertical);
+	float ValueFromDistance(float Horizontal, float Vertical);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-float ValueFromPoint(FNoesisDrawingPoint Point);
+	float ValueFromPoint(FNoesisDrawingPoint Point);
 
 protected:
 

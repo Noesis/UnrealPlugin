@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisDependencyObject.h"
 #include "NoesisVisual.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisVisual : public UNoesisDependencyObject
 {
 public:
@@ -24,40 +24,40 @@ public:
 	UNoesisIView* GetView();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ConnectToView(class UNoesisIView* View);
+	void ConnectToView(class UNoesisIView* View);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void DisableDebugFlags();
+	void DisableDebugFlags();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisVisual* FindCommonVisualAncestor(const class UNoesisVisual* Visual);
+	class UNoesisVisual* FindCommonVisualAncestor(const class UNoesisVisual* Visual);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-int32 GetRenderTreeId();
+	int32 GetRenderTreeId();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsAncestorOf(const class UNoesisVisual* Visual);
+	bool IsAncestorOf(const class UNoesisVisual* Visual);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsConnectedToView();
+	bool IsConnectedToView();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsDescendantOf(const class UNoesisVisual* Visual);
+	bool IsDescendantOf(const class UNoesisVisual* Visual);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsInRenderTree();
+	bool IsInRenderTree();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsInvalidated();
+	bool IsInvalidated();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-FNoesisDrawingPoint PointFromScreen(FNoesisDrawingPoint Point);
+	FNoesisDrawingPoint PointFromScreen(FNoesisDrawingPoint Point);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-FNoesisDrawingPoint PointToScreen(FNoesisDrawingPoint Point);
+	FNoesisDrawingPoint PointToScreen(FNoesisDrawingPoint Point);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void SetVisualBrushFlag();
+	void SetVisualBrushFlag();
 
 protected:
 

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisEventTrigger.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisEventTrigger::UNoesisEventTrigger(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::EventTrigger::StaticGetClassType();
 }
 
 void UNoesisEventTrigger::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,14 +29,14 @@ class UNoesisTriggerActionCollection* UNoesisEventTrigger::GetActions()
 {
 	Noesis::Gui::EventTrigger* NoesisEventTrigger = NsDynamicCast<Noesis::Gui::EventTrigger*>(NoesisComponent.GetPtr());
 	check(NoesisEventTrigger);
-	return CastChecked<UNoesisTriggerActionCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisEventTrigger->GetActions()));
+	return CastChecked<UNoesisTriggerActionCollection>(CreateClassFor(NoesisEventTrigger->GetActions(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisRoutedEvent* UNoesisEventTrigger::GetRoutedEvent()
 {
 	Noesis::Gui::EventTrigger* NoesisEventTrigger = NsDynamicCast<Noesis::Gui::EventTrigger*>(NoesisComponent.GetPtr());
 	check(NoesisEventTrigger);
-	return CastChecked<UNoesisRoutedEvent>(Instance->FindUnrealComponentForNoesisComponent(NoesisEventTrigger->GetRoutedEvent()));
+	return CastChecked<UNoesisRoutedEvent>(CreateClassFor(NoesisEventTrigger->GetRoutedEvent(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisEventTrigger::SetRoutedEvent(class UNoesisRoutedEvent* InRoutedEvent)
@@ -62,7 +65,7 @@ void UNoesisEventTrigger::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::EventTrigger* NoesisEventTrigger = NsDynamicCast<Noesis::Gui::EventTrigger*>(NoesisComponent.GetPtr());
-	check(NoesisEventTrigger)
+	check(NoesisEventTrigger);
 
 
 }
@@ -72,7 +75,7 @@ void UNoesisEventTrigger::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::EventTrigger* NoesisEventTrigger = NsDynamicCast<Noesis::Gui::EventTrigger*>(NoesisComponent.GetPtr());
-	check(NoesisEventTrigger)
+	check(NoesisEventTrigger);
 
 
 }

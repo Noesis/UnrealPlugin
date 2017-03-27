@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisDecorator.h"
 #include "NoesisBorder.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisBorder : public UNoesisDecorator
 {
 public:

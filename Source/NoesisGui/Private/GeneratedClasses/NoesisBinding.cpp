@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisBinding.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisBinding::UNoesisBinding(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Binding::StaticGetClassType();
 }
 
 void UNoesisBinding::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisIValueConverter* UNoesisBinding::GetConverter()
 {
 	Noesis::Gui::Binding* NoesisBinding = NsDynamicCast<Noesis::Gui::Binding*>(NoesisComponent.GetPtr());
 	check(NoesisBinding);
-	return CastChecked<UNoesisIValueConverter>(Instance->FindUnrealInterfaceForNoesisInterface(NoesisBinding->GetConverter()));
+	return CastChecked<UNoesisIValueConverter>(CreateInterfaceFor(NoesisBinding->GetConverter(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBinding::SetConverter(class UNoesisIValueConverter* InConverter)
@@ -40,7 +43,7 @@ class UNoesisBaseComponent* UNoesisBinding::GetConverterParameter()
 {
 	Noesis::Gui::Binding* NoesisBinding = NsDynamicCast<Noesis::Gui::Binding*>(NoesisComponent.GetPtr());
 	check(NoesisBinding);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisBinding->GetConverterParameter()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisBinding->GetConverterParameter(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBinding::SetConverterParameter(class UNoesisBaseComponent* InConverterParameter)
@@ -82,7 +85,7 @@ class UNoesisPropertyPath* UNoesisBinding::GetPath()
 {
 	Noesis::Gui::Binding* NoesisBinding = NsDynamicCast<Noesis::Gui::Binding*>(NoesisComponent.GetPtr());
 	check(NoesisBinding);
-	return CastChecked<UNoesisPropertyPath>(Instance->FindUnrealComponentForNoesisComponent(NoesisBinding->GetPath()));
+	return CastChecked<UNoesisPropertyPath>(CreateClassFor(NoesisBinding->GetPath(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBinding::SetPath(class UNoesisPropertyPath* InPath)
@@ -96,7 +99,7 @@ class UNoesisRelativeSource* UNoesisBinding::GetRelativeSource()
 {
 	Noesis::Gui::Binding* NoesisBinding = NsDynamicCast<Noesis::Gui::Binding*>(NoesisComponent.GetPtr());
 	check(NoesisBinding);
-	return CastChecked<UNoesisRelativeSource>(Instance->FindUnrealComponentForNoesisComponent(NoesisBinding->GetRelativeSource()));
+	return CastChecked<UNoesisRelativeSource>(CreateClassFor(NoesisBinding->GetRelativeSource(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBinding::SetRelativeSource(class UNoesisRelativeSource* InRelativeSource)
@@ -110,7 +113,7 @@ class UNoesisBaseComponent* UNoesisBinding::GetSource()
 {
 	Noesis::Gui::Binding* NoesisBinding = NsDynamicCast<Noesis::Gui::Binding*>(NoesisComponent.GetPtr());
 	check(NoesisBinding);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisBinding->GetSource()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisBinding->GetSource(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBinding::SetSource(class UNoesisBaseComponent* InSource)
@@ -140,7 +143,7 @@ FNoesisObjectWithNameScope UNoesisBinding::GetSourceObject(class UNoesisBaseComp
 	check(NoesisBinding);
 	Core::BaseComponent* NoesisInTarget = NsDynamicCast<Core::BaseComponent*>(InTarget->NoesisComponent.GetPtr());
 	const DependencyProperty* NoesisInTargetProperty = NsDynamicCast<const DependencyProperty*>(InTargetProperty->NoesisComponent.GetPtr());
-	return FNoesisObjectWithNameScope(Instance, NoesisBinding->GetSourceObject(NoesisInTarget, NoesisInTargetProperty));
+	return FNoesisObjectWithNameScope(NoesisBinding->GetSourceObject(NoesisInTarget, NoesisInTargetProperty));
 }
 
 void UNoesisBinding::BindEvents()
@@ -148,7 +151,7 @@ void UNoesisBinding::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Binding* NoesisBinding = NsDynamicCast<Noesis::Gui::Binding*>(NoesisComponent.GetPtr());
-	check(NoesisBinding)
+	check(NoesisBinding);
 
 
 }
@@ -158,7 +161,7 @@ void UNoesisBinding::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Binding* NoesisBinding = NsDynamicCast<Noesis::Gui::Binding*>(NoesisComponent.GetPtr());
-	check(NoesisBinding)
+	check(NoesisBinding);
 
 
 }

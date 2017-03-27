@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisKeyBinding.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisKeyBinding::UNoesisKeyBinding(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::KeyBinding::StaticGetClassType();
 }
 
 void UNoesisKeyBinding::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -41,7 +44,7 @@ void UNoesisKeyBinding::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::KeyBinding* NoesisKeyBinding = NsDynamicCast<Noesis::Gui::KeyBinding*>(NoesisComponent.GetPtr());
-	check(NoesisKeyBinding)
+	check(NoesisKeyBinding);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisKeyBinding::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::KeyBinding* NoesisKeyBinding = NsDynamicCast<Noesis::Gui::KeyBinding*>(NoesisComponent.GetPtr());
-	check(NoesisKeyBinding)
+	check(NoesisKeyBinding);
 
 
 }

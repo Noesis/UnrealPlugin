@@ -53,8 +53,6 @@ void UNoesisInstance::InitInstance()
 		NoesisBlueprintGeneratedClass->InitComponents(this);
 
 		EventInitInstance();
-
-		NoesisBlueprintGeneratedClass->BindEvents();
 	}
 }
 
@@ -241,68 +239,6 @@ FVector2D UNoesisInstance::GetSize() const
 		return FVector2D(Xaml->GetActualWidth(), Xaml->GetActualHeight());
 	}
 	return FVector2D();
-}
-
-void UNoesisInstance::SetComponentFor(Noesis::Core::BaseComponent* NoesisComponent, UNoesisBaseComponent* UnrealComponent)
-{
-	UnrealComponent->SetNoesisComponent(NoesisComponent);
-	UnrealComponent->Instance = this;
-	ComponentMap.Add(NoesisComponent, UnrealComponent);
-}
-
-UNoesisBaseComponent* UNoesisInstance::FindUnrealComponentForNoesisComponent(const Noesis::Core::BaseComponent* NoesisComponent)
-{
-	UNoesisBaseComponent** UnrealComponentPtr = ComponentMap.Find(NoesisComponent);
-	if (UnrealComponentPtr)
-		return *UnrealComponentPtr;
-
-	UNoesisBaseComponent* UnrealComponent = CreateClassFor((Noesis::Core::BaseComponent*)NoesisComponent, this);
-	SetComponentFor((Noesis::Core::BaseComponent*)NoesisComponent, UnrealComponent);
-	CreatedComponents.Add(UnrealComponent);
-	return UnrealComponent;
-}
-
-UNoesisBaseComponent* UNoesisInstance::FindUnrealComponentForNoesisComponent(const Noesis::Core::Ptr<Noesis::Core::BaseComponent> NoesisComponent)
-{
-	UNoesisBaseComponent** UnrealComponentPtr = ComponentMap.Find(NoesisComponent.GetPtr());
-	if (UnrealComponentPtr)
-		return *UnrealComponentPtr;
-
-	UNoesisBaseComponent* UnrealComponent = CreateClassFor((Noesis::Core::BaseComponent*)NoesisComponent.GetPtr(), this);
-	SetComponentFor((Noesis::Core::BaseComponent*)NoesisComponent.GetPtr(), UnrealComponent);
-	CreatedComponents.Add(UnrealComponent);
-	return UnrealComponent;
-}
-
-void UNoesisInstance::SetInterfaceFor(Noesis::Core::Interface* NoesisInterface, UNoesisInterface* UnrealInterface)
-{
-	UnrealInterface->SetNoesisInterface(NoesisInterface);
-	UnrealInterface->Instance = this;
-	InterfaceMap.Add(NoesisInterface, UnrealInterface);
-}
-
-UNoesisInterface* UNoesisInstance::FindUnrealInterfaceForNoesisInterface(const Noesis::Core::Interface* NoesisInterface)
-{
-	UNoesisInterface** UnrealInterfacePtr = InterfaceMap.Find(NoesisInterface);
-	if (UnrealInterfacePtr)
-		return *UnrealInterfacePtr;
-
-	UNoesisInterface* UnrealInterface = CreateInterfaceFor((Noesis::Core::Interface*)NoesisInterface, this);
-	SetInterfaceFor((Noesis::Core::Interface*)NoesisInterface, UnrealInterface);
-	CreatedInterfaces.Add(UnrealInterface);
-	return UnrealInterface;
-}
-
-UNoesisInterface* UNoesisInstance::FindUnrealInterfaceForNoesisInterface(const Noesis::Core::Ptr<Noesis::Core::Interface> NoesisInterface)
-{
-	UNoesisInterface** UnrealInterfacePtr = InterfaceMap.Find(NoesisInterface.GetPtr());
-	if (UnrealInterfacePtr)
-		return *UnrealInterfacePtr;
-
-	UNoesisInterface* UnrealInterface = CreateInterfaceFor((Noesis::Core::Interface*)NoesisInterface.GetPtr(), this);
-	SetInterfaceFor((Noesis::Core::Interface*)NoesisInterface.GetPtr(), UnrealInterface);
-	CreatedInterfaces.Add(UnrealInterface);
-	return UnrealInterface;
 }
 
 class UWorld* UNoesisInstance::GetWorld() const

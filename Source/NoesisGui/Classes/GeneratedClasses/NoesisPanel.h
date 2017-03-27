@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisFrameworkElement.h"
 #include "NoesisPanel.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisPanel : public UNoesisFrameworkElement
 {
 public:
@@ -36,7 +36,7 @@ public:
 	void SetIsItemsHost(bool InIsItemsHost);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void InvalidateZOrder();
+	void InvalidateZOrder();
 
 protected:
 

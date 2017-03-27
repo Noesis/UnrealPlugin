@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisDependencyObject.h"
 #include "NoesisVisualTransition.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisVisualTransition : public UNoesisDependencyObject
 {
 public:
@@ -50,7 +50,7 @@ public:
 	void SetTo(FName InTo);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsDefault();
+	bool IsDefault();
 
 protected:
 

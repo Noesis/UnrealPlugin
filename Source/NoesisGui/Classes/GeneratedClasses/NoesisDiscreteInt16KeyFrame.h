@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisInt16KeyFrame.h"
 #include "NoesisDiscreteInt16KeyFrame.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisDiscreteInt16KeyFrame : public UNoesisInt16KeyFrame
 {
 public:

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisCollection.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisCollection::UNoesisCollection(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Collection::StaticGetClassType();
 }
 
 void UNoesisCollection::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisCollection::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Collection* NoesisCollection = NsDynamicCast<Noesis::Gui::Collection*>(NoesisComponent.GetPtr());
-	check(NoesisCollection)
+	check(NoesisCollection);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisCollection::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Collection* NoesisCollection = NsDynamicCast<Noesis::Gui::Collection*>(NoesisComponent.GetPtr());
-	check(NoesisCollection)
+	check(NoesisCollection);
 
 
 }

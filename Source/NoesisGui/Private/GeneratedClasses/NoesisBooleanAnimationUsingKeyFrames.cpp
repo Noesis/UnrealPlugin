@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisBooleanAnimationUsingKeyFrames.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisBooleanAnimationUsingKeyFrames::UNoesisBooleanAnimationUsingKeyFrames(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::AnimationUsingKeyFrames<NsBool>::StaticGetClassType();
 }
 
 void UNoesisBooleanAnimationUsingKeyFrames::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisBooleanAnimationUsingKeyFrames::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::AnimationUsingKeyFrames<NsBool>* NoesisBooleanAnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<NsBool>*>(NoesisComponent.GetPtr());
-	check(NoesisBooleanAnimationUsingKeyFrames)
+	check(NoesisBooleanAnimationUsingKeyFrames);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisBooleanAnimationUsingKeyFrames::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::AnimationUsingKeyFrames<NsBool>* NoesisBooleanAnimationUsingKeyFrames = NsDynamicCast<Noesis::Gui::AnimationUsingKeyFrames<NsBool>*>(NoesisComponent.GetPtr());
-	check(NoesisBooleanAnimationUsingKeyFrames)
+	check(NoesisBooleanAnimationUsingKeyFrames);
 
 
 }

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisBaseMenu.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisBaseMenu::UNoesisBaseMenu(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::BaseMenu::StaticGetClassType();
 }
 
 void UNoesisBaseMenu::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisBaseMenu::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::BaseMenu* NoesisBaseMenu = NsDynamicCast<Noesis::Gui::BaseMenu*>(NoesisComponent.GetPtr());
-	check(NoesisBaseMenu)
+	check(NoesisBaseMenu);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisBaseMenu::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::BaseMenu* NoesisBaseMenu = NsDynamicCast<Noesis::Gui::BaseMenu*>(NoesisComponent.GetPtr());
-	check(NoesisBaseMenu)
+	check(NoesisBaseMenu);
 
 
 }

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisITimeManager.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisITimeManager::UNoesisITimeManager(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisInterfaceTypeClass = Noesis::Gui::ITimeManager::StaticGetClassType();
 }
 
 void UNoesisITimeManager::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterface)
@@ -66,7 +69,7 @@ void UNoesisITimeManager::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ITimeManager* NoesisITimeManager = NsDynamicCast<Noesis::Gui::ITimeManager*>(NoesisInterface.GetPtr());
-	check(NoesisITimeManager)
+	check(NoesisITimeManager);
 
 
 }
@@ -76,7 +79,7 @@ void UNoesisITimeManager::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ITimeManager* NoesisITimeManager = NsDynamicCast<Noesis::Gui::ITimeManager*>(NoesisInterface.GetPtr());
-	check(NoesisITimeManager)
+	check(NoesisITimeManager);
 
 
 }

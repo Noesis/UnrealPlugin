@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisInt16KeyFrame.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisInt16KeyFrame::UNoesisInt16KeyFrame(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::KeyFrame<NsInt16>::StaticGetClassType();
 }
 
 void UNoesisInt16KeyFrame::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -41,7 +44,7 @@ void UNoesisInt16KeyFrame::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::KeyFrame<NsInt16>* NoesisInt16KeyFrame = NsDynamicCast<Noesis::Gui::KeyFrame<NsInt16>*>(NoesisComponent.GetPtr());
-	check(NoesisInt16KeyFrame)
+	check(NoesisInt16KeyFrame);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisInt16KeyFrame::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::KeyFrame<NsInt16>* NoesisInt16KeyFrame = NsDynamicCast<Noesis::Gui::KeyFrame<NsInt16>*>(NoesisComponent.GetPtr());
-	check(NoesisInt16KeyFrame)
+	check(NoesisInt16KeyFrame);
 
 
 }

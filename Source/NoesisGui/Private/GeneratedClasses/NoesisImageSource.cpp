@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisImageSource.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisImageSource::UNoesisImageSource(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ImageSource::StaticGetClassType();
 }
 
 void UNoesisImageSource::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -41,7 +44,7 @@ void UNoesisImageSource::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ImageSource* NoesisImageSource = NsDynamicCast<Noesis::Gui::ImageSource*>(NoesisComponent.GetPtr());
-	check(NoesisImageSource)
+	check(NoesisImageSource);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisImageSource::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ImageSource* NoesisImageSource = NsDynamicCast<Noesis::Gui::ImageSource*>(NoesisComponent.GetPtr());
-	check(NoesisImageSource)
+	check(NoesisImageSource);
 
 
 }

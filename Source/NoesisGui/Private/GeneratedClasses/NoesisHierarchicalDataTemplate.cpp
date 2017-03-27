@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisHierarchicalDataTemplate.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisHierarchicalDataTemplate::UNoesisHierarchicalDataTemplate(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::HierarchicalDataTemplate::StaticGetClassType();
 }
 
 void UNoesisHierarchicalDataTemplate::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisStyle* UNoesisHierarchicalDataTemplate::GetItemContainerStyle()
 {
 	Noesis::Gui::HierarchicalDataTemplate* NoesisHierarchicalDataTemplate = NsDynamicCast<Noesis::Gui::HierarchicalDataTemplate*>(NoesisComponent.GetPtr());
 	check(NoesisHierarchicalDataTemplate);
-	return CastChecked<UNoesisStyle>(Instance->FindUnrealComponentForNoesisComponent(NoesisHierarchicalDataTemplate->GetItemContainerStyle()));
+	return CastChecked<UNoesisStyle>(CreateClassFor(NoesisHierarchicalDataTemplate->GetItemContainerStyle(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisHierarchicalDataTemplate::SetItemContainerStyle(class UNoesisStyle* InItemContainerStyle)
@@ -40,7 +43,7 @@ class UNoesisDataTemplate* UNoesisHierarchicalDataTemplate::GetItemTemplate()
 {
 	Noesis::Gui::HierarchicalDataTemplate* NoesisHierarchicalDataTemplate = NsDynamicCast<Noesis::Gui::HierarchicalDataTemplate*>(NoesisComponent.GetPtr());
 	check(NoesisHierarchicalDataTemplate);
-	return CastChecked<UNoesisDataTemplate>(Instance->FindUnrealComponentForNoesisComponent(NoesisHierarchicalDataTemplate->GetItemTemplate()));
+	return CastChecked<UNoesisDataTemplate>(CreateClassFor(NoesisHierarchicalDataTemplate->GetItemTemplate(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisHierarchicalDataTemplate::SetItemTemplate(class UNoesisDataTemplate* InItemTemplate)
@@ -54,7 +57,7 @@ class UNoesisDataTemplateSelector* UNoesisHierarchicalDataTemplate::GetItemTempl
 {
 	Noesis::Gui::HierarchicalDataTemplate* NoesisHierarchicalDataTemplate = NsDynamicCast<Noesis::Gui::HierarchicalDataTemplate*>(NoesisComponent.GetPtr());
 	check(NoesisHierarchicalDataTemplate);
-	return CastChecked<UNoesisDataTemplateSelector>(Instance->FindUnrealComponentForNoesisComponent(NoesisHierarchicalDataTemplate->GetItemTemplateSelector()));
+	return CastChecked<UNoesisDataTemplateSelector>(CreateClassFor(NoesisHierarchicalDataTemplate->GetItemTemplateSelector(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisHierarchicalDataTemplate::SetItemTemplateSelector(class UNoesisDataTemplateSelector* InItemTemplateSelector)
@@ -68,7 +71,7 @@ class UNoesisBaseBinding* UNoesisHierarchicalDataTemplate::GetItemsSource()
 {
 	Noesis::Gui::HierarchicalDataTemplate* NoesisHierarchicalDataTemplate = NsDynamicCast<Noesis::Gui::HierarchicalDataTemplate*>(NoesisComponent.GetPtr());
 	check(NoesisHierarchicalDataTemplate);
-	return CastChecked<UNoesisBaseBinding>(Instance->FindUnrealComponentForNoesisComponent(NoesisHierarchicalDataTemplate->GetItemsSource()));
+	return CastChecked<UNoesisBaseBinding>(CreateClassFor(NoesisHierarchicalDataTemplate->GetItemsSource(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisHierarchicalDataTemplate::SetItemsSource(class UNoesisBaseBinding* InItemsSource)
@@ -83,7 +86,7 @@ void UNoesisHierarchicalDataTemplate::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::HierarchicalDataTemplate* NoesisHierarchicalDataTemplate = NsDynamicCast<Noesis::Gui::HierarchicalDataTemplate*>(NoesisComponent.GetPtr());
-	check(NoesisHierarchicalDataTemplate)
+	check(NoesisHierarchicalDataTemplate);
 
 
 }
@@ -93,7 +96,7 @@ void UNoesisHierarchicalDataTemplate::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::HierarchicalDataTemplate* NoesisHierarchicalDataTemplate = NsDynamicCast<Noesis::Gui::HierarchicalDataTemplate*>(NoesisComponent.GetPtr());
-	check(NoesisHierarchicalDataTemplate)
+	check(NoesisHierarchicalDataTemplate);
 
 
 }

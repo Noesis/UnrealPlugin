@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisBaseDictionary.h"
 #include "NoesisResourceDictionary.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisResourceDictionary : public UNoesisBaseDictionary
 {
 public:
@@ -26,34 +26,34 @@ public:
 	void SetSource(FString InSource);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Add(class UNoesisIResourceKey* Key, class UNoesisBaseComponent* Value);
+	void Add(class UNoesisIResourceKey* Key, class UNoesisBaseComponent* Value);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Clear();
+	void Clear();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool Contains(class UNoesisIResourceKey* Key);
+	bool Contains(class UNoesisIResourceKey* Key);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-int32 Count();
+	int32 Count();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool Find(class UNoesisIResourceKey* Key, class UNoesisBaseComponent* Resource);
+	bool Find(class UNoesisIResourceKey* Key, class UNoesisBaseComponent* Resource);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisBaseComponent* Get(class UNoesisIResourceKey* Key);
+	class UNoesisBaseComponent* Get(class UNoesisIResourceKey* Key);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisResourceDictionaryCollection* GetMergedDictionaries();
+	class UNoesisResourceDictionaryCollection* GetMergedDictionaries();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool HasResourcesDefined();
+	bool HasResourcesDefined();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsReadOnly();
+	bool IsReadOnly();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Remove(class UNoesisIResourceKey* Key);
+	void Remove(class UNoesisIResourceKey* Key);
 
 protected:
 

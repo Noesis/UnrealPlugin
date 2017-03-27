@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisDependencyObject.h"
 #include "NoesisTriggerAction.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisTriggerAction : public UNoesisDependencyObject
 {
 public:
@@ -20,10 +20,10 @@ public:
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Invoke(class UNoesisFrameworkElement* Target, class UNoesisFrameworkElement* NameScope);
+	void Invoke(class UNoesisFrameworkElement* Target, class UNoesisFrameworkElement* NameScope);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Seal();
+	void Seal();
 
 protected:
 

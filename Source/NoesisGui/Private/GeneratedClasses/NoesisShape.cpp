@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisShape.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisShape::UNoesisShape(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Shape::StaticGetClassType();
 }
 
 void UNoesisShape::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisBrush* UNoesisShape::GetFill()
 {
 	Noesis::Gui::Shape* NoesisShape = NsDynamicCast<Noesis::Gui::Shape*>(NoesisComponent.GetPtr());
 	check(NoesisShape);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisShape->GetFill()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisShape->GetFill(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisShape::SetFill(class UNoesisBrush* InFill)
@@ -54,7 +57,7 @@ class UNoesisBrush* UNoesisShape::GetStroke()
 {
 	Noesis::Gui::Shape* NoesisShape = NsDynamicCast<Noesis::Gui::Shape*>(NoesisComponent.GetPtr());
 	check(NoesisShape);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisShape->GetStroke()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisShape->GetStroke(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisShape::SetStroke(class UNoesisBrush* InStroke)
@@ -181,7 +184,7 @@ void UNoesisShape::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Shape* NoesisShape = NsDynamicCast<Noesis::Gui::Shape*>(NoesisComponent.GetPtr());
-	check(NoesisShape)
+	check(NoesisShape);
 
 
 }
@@ -191,7 +194,7 @@ void UNoesisShape::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Shape* NoesisShape = NsDynamicCast<Noesis::Gui::Shape*>(NoesisComponent.GetPtr());
-	check(NoesisShape)
+	check(NoesisShape);
 
 
 }

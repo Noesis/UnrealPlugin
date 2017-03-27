@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisVirtualizingPanel.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisVirtualizingPanel::UNoesisVirtualizingPanel(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::VirtualizingPanel::StaticGetClassType();
 }
 
 void UNoesisVirtualizingPanel::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -34,7 +37,7 @@ class UNoesisIItemContainerGenerator* UNoesisVirtualizingPanel::GetItemContainer
 {
 	Noesis::Gui::VirtualizingPanel* NoesisVirtualizingPanel = NsDynamicCast<Noesis::Gui::VirtualizingPanel*>(NoesisComponent.GetPtr());
 	check(NoesisVirtualizingPanel);
-	return CastChecked<UNoesisIItemContainerGenerator>(Instance->FindUnrealInterfaceForNoesisInterface(NoesisVirtualizingPanel->GetItemContainerGenerator()));
+	return CastChecked<UNoesisIItemContainerGenerator>(CreateInterfaceFor(NoesisVirtualizingPanel->GetItemContainerGenerator(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisVirtualizingPanel::BindEvents()
@@ -42,7 +45,7 @@ void UNoesisVirtualizingPanel::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::VirtualizingPanel* NoesisVirtualizingPanel = NsDynamicCast<Noesis::Gui::VirtualizingPanel*>(NoesisComponent.GetPtr());
-	check(NoesisVirtualizingPanel)
+	check(NoesisVirtualizingPanel);
 
 
 }
@@ -52,7 +55,7 @@ void UNoesisVirtualizingPanel::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::VirtualizingPanel* NoesisVirtualizingPanel = NsDynamicCast<Noesis::Gui::VirtualizingPanel*>(NoesisComponent.GetPtr());
-	check(NoesisVirtualizingPanel)
+	check(NoesisVirtualizingPanel);
 
 
 }

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisInline.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisInline::UNoesisInline(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Inline::StaticGetClassType();
 }
 
 void UNoesisInline::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,21 +29,21 @@ class UNoesisInline* UNoesisInline::GetNextInline()
 {
 	Noesis::Gui::Inline* NoesisInline = NsDynamicCast<Noesis::Gui::Inline*>(NoesisComponent.GetPtr());
 	check(NoesisInline);
-	return CastChecked<UNoesisInline>(Instance->FindUnrealComponentForNoesisComponent(NoesisInline->GetNextInline()));
+	return CastChecked<UNoesisInline>(CreateClassFor(NoesisInline->GetNextInline(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisInline* UNoesisInline::GetPreviousInline()
 {
 	Noesis::Gui::Inline* NoesisInline = NsDynamicCast<Noesis::Gui::Inline*>(NoesisComponent.GetPtr());
 	check(NoesisInline);
-	return CastChecked<UNoesisInline>(Instance->FindUnrealComponentForNoesisComponent(NoesisInline->GetPreviousInline()));
+	return CastChecked<UNoesisInline>(CreateClassFor(NoesisInline->GetPreviousInline(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisInlineCollection* UNoesisInline::GetSiblingInlines()
 {
 	Noesis::Gui::Inline* NoesisInline = NsDynamicCast<Noesis::Gui::Inline*>(NoesisComponent.GetPtr());
 	check(NoesisInline);
-	return CastChecked<UNoesisInlineCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisInline->GetSiblingInlines()));
+	return CastChecked<UNoesisInlineCollection>(CreateClassFor(NoesisInline->GetSiblingInlines(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisInline::BindEvents()
@@ -48,7 +51,7 @@ void UNoesisInline::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Inline* NoesisInline = NsDynamicCast<Noesis::Gui::Inline*>(NoesisComponent.GetPtr());
-	check(NoesisInline)
+	check(NoesisInline);
 
 
 }
@@ -58,7 +61,7 @@ void UNoesisInline::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Inline* NoesisInline = NsDynamicCast<Noesis::Gui::Inline*>(NoesisComponent.GetPtr());
-	check(NoesisInline)
+	check(NoesisInline);
 
 
 }

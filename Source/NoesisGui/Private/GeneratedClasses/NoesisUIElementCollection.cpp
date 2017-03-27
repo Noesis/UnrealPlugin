@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisUIElementCollection.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisUIElementCollection::UNoesisUIElementCollection(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::UIElementCollection::StaticGetClassType();
 }
 
 void UNoesisUIElementCollection::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisFrameworkElement* UNoesisUIElementCollection::GetLogicalParent()
 {
 	Noesis::Gui::UIElementCollection* NoesisUIElementCollection = NsDynamicCast<Noesis::Gui::UIElementCollection*>(NoesisComponent.GetPtr());
 	check(NoesisUIElementCollection);
-	return CastChecked<UNoesisFrameworkElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisUIElementCollection->GetLogicalParent()));
+	return CastChecked<UNoesisFrameworkElement>(CreateClassFor(NoesisUIElementCollection->GetLogicalParent(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisUIElementCollection::SetLogicalParent(class UNoesisFrameworkElement* InLogicalParent)
@@ -41,7 +44,7 @@ void UNoesisUIElementCollection::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::UIElementCollection* NoesisUIElementCollection = NsDynamicCast<Noesis::Gui::UIElementCollection*>(NoesisComponent.GetPtr());
-	check(NoesisUIElementCollection)
+	check(NoesisUIElementCollection);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisUIElementCollection::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::UIElementCollection* NoesisUIElementCollection = NsDynamicCast<Noesis::Gui::UIElementCollection*>(NoesisComponent.GetPtr());
-	check(NoesisUIElementCollection)
+	check(NoesisUIElementCollection);
 
 
 }

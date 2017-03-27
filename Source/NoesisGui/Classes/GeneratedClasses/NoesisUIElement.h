@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisVisual.h"
 #include "NoesisUIElement.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisUIElement : public UNoesisVisual
 {
 public:
@@ -146,58 +146,58 @@ public:
 	void SetVisibility(ENoesisVisibility InVisibility);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Arrange(FNoesisDrawingRect FinalRect);
+	void Arrange(FNoesisDrawingRect FinalRect);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool CaptureMouse();
+	bool CaptureMouse();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool CaptureTouch(int32 TouchDevice);
+	bool CaptureTouch(int32 TouchDevice);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool Focus();
+	bool Focus();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisKeyboard* GetKeyboard();
+	class UNoesisKeyboard* GetKeyboard();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisMouse* GetMouse();
+	class UNoesisMouse* GetMouse();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisUIElement* GetUIParent();
+	class UNoesisUIElement* GetUIParent();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisIView* GetUIView();
+	class UNoesisIView* GetUIView();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void InvalidateArrange();
+	void InvalidateArrange();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void InvalidateMeasure();
+	void InvalidateMeasure();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void InvalidateVisual();
+	void InvalidateVisual();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsArrangeValid();
+	bool IsArrangeValid();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsMeasureValid();
+	bool IsMeasureValid();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Measure(FNoesisDrawingSize AvailableSize);
+	void Measure(FNoesisDrawingSize AvailableSize);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ReleaseAllTouchCaptures();
+	void ReleaseAllTouchCaptures();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ReleaseMouseCapture();
+	void ReleaseMouseCapture();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool ReleaseTouchCapture(int32 TouchDevice);
+	bool ReleaseTouchCapture(int32 TouchDevice);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void UpdateLayout();
+	void UpdateLayout();
 
 protected:
 

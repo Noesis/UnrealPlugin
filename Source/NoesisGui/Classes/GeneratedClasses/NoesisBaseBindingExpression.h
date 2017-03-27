@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisExpression.h"
 #include "NoesisBaseBindingExpression.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisBaseBindingExpression : public UNoesisExpression
 {
 public:
@@ -32,10 +32,10 @@ public:
 	class UNoesisDependencyProperty* GetTargetProperty();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void UpdateSource();
+	void UpdateSource();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void UpdateTarget();
+	void UpdateTarget();
 
 protected:
 

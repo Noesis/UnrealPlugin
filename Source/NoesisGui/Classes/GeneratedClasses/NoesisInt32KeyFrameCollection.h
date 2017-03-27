@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisInt32KeyFrameCollection.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisInt32KeyFrameCollection : public UNoesisBaseComponent
 {
 public:

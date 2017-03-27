@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisICollectionView.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisICollectionView : public UNoesisInterface
 {
 public:
@@ -20,34 +20,34 @@ public:
 	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool CanFilter();
+	bool CanFilter();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool CanGroup();
+	bool CanGroup();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool CanSort();
+	bool CanSort();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool Contains(class UNoesisBaseComponent* Item);
+	bool Contains(class UNoesisBaseComponent* Item);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisBaseComponent* CurrentItem();
+	class UNoesisBaseComponent* CurrentItem();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-int32 CurrentPosition();
+	int32 CurrentPosition();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsCurrentAfterLast();
+	bool IsCurrentAfterLast();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsCurrentBeforeFirst();
+	bool IsCurrentBeforeFirst();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsEmpty();
+	bool IsEmpty();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool MoveCurrentTo(class UNoesisBaseComponent* Item);
+	bool MoveCurrentTo(class UNoesisBaseComponent* Item);
 
 protected:
 

@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisFrameworkTemplate.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisFrameworkTemplate : public UNoesisBaseComponent
 {
 public:
@@ -32,13 +32,13 @@ public:
 	void SetVisualTree(class UNoesisVisual* InVisualTree);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisFrameworkElement* Apply(class UNoesisFrameworkElement* TemplatedParent, class UNoesisBaseComponent* DataContext);
+	class UNoesisFrameworkElement* Apply(class UNoesisFrameworkElement* TemplatedParent, class UNoesisBaseComponent* DataContext);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisBaseComponent* FindName(FString Name, class UNoesisFrameworkElement* TemplatedParent);
+	class UNoesisBaseComponent* FindName(FString Name, class UNoesisFrameworkElement* TemplatedParent);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisTriggerCollection* GetAvailableTriggers();
+	class UNoesisTriggerCollection* GetAvailableTriggers();
 
 protected:
 

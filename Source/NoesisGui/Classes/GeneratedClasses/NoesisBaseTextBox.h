@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisControl.h"
 #include "NoesisBaseTextBox.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisBaseTextBox : public UNoesisControl
 {
 public:

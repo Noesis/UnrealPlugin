@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisContentControl.h"
 #include "NoesisStatusBarItem.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisStatusBarItem : public UNoesisContentControl
 {
 public:

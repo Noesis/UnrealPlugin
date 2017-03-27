@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisSplineColorKeyFrame.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisSplineColorKeyFrame::UNoesisSplineColorKeyFrame(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Color>::StaticGetClassType();
 }
 
 void UNoesisSplineColorKeyFrame::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisKeySpline* UNoesisSplineColorKeyFrame::GetKeySpline()
 {
 	Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Color>* NoesisSplineColorKeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Color>*>(NoesisComponent.GetPtr());
 	check(NoesisSplineColorKeyFrame);
-	return CastChecked<UNoesisKeySpline>(Instance->FindUnrealComponentForNoesisComponent(NoesisSplineColorKeyFrame->GetKeySpline()));
+	return CastChecked<UNoesisKeySpline>(CreateClassFor(NoesisSplineColorKeyFrame->GetKeySpline(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisSplineColorKeyFrame::SetKeySpline(class UNoesisKeySpline* InKeySpline)
@@ -41,7 +44,7 @@ void UNoesisSplineColorKeyFrame::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Color>* NoesisSplineColorKeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Color>*>(NoesisComponent.GetPtr());
-	check(NoesisSplineColorKeyFrame)
+	check(NoesisSplineColorKeyFrame);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisSplineColorKeyFrame::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Color>* NoesisSplineColorKeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<Noesis::Drawing::Color>*>(NoesisComponent.GetPtr());
-	check(NoesisSplineColorKeyFrame)
+	check(NoesisSplineColorKeyFrame);
 
 
 }

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisGrid.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisGrid::UNoesisGrid(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Grid::StaticGetClassType();
 }
 
 void UNoesisGrid::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,14 +29,14 @@ class UNoesisColumnDefinitionCollection* UNoesisGrid::GetColumnDefinitions()
 {
 	Noesis::Gui::Grid* NoesisGrid = NsDynamicCast<Noesis::Gui::Grid*>(NoesisComponent.GetPtr());
 	check(NoesisGrid);
-	return CastChecked<UNoesisColumnDefinitionCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisGrid->GetColumnDefinitions()));
+	return CastChecked<UNoesisColumnDefinitionCollection>(CreateClassFor(NoesisGrid->GetColumnDefinitions(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisRowDefinitionCollection* UNoesisGrid::GetRowDefinitions()
 {
 	Noesis::Gui::Grid* NoesisGrid = NsDynamicCast<Noesis::Gui::Grid*>(NoesisComponent.GetPtr());
 	check(NoesisGrid);
-	return CastChecked<UNoesisRowDefinitionCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisGrid->GetRowDefinitions()));
+	return CastChecked<UNoesisRowDefinitionCollection>(CreateClassFor(NoesisGrid->GetRowDefinitions(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisGrid::BindEvents()
@@ -41,7 +44,7 @@ void UNoesisGrid::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Grid* NoesisGrid = NsDynamicCast<Noesis::Gui::Grid*>(NoesisComponent.GetPtr());
-	check(NoesisGrid)
+	check(NoesisGrid);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisGrid::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Grid* NoesisGrid = NsDynamicCast<Noesis::Gui::Grid*>(NoesisComponent.GetPtr());
-	check(NoesisGrid)
+	check(NoesisGrid);
 
 
 }

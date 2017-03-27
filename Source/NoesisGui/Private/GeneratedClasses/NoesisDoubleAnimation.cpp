@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisDoubleAnimation.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisDoubleAnimation::UNoesisDoubleAnimation(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Animation<NsFloat32>::StaticGetClassType();
 }
 
 void UNoesisDoubleAnimation::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisDoubleAnimation::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Animation<NsFloat32>* NoesisDoubleAnimation = NsDynamicCast<Noesis::Gui::Animation<NsFloat32>*>(NoesisComponent.GetPtr());
-	check(NoesisDoubleAnimation)
+	check(NoesisDoubleAnimation);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisDoubleAnimation::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Animation<NsFloat32>* NoesisDoubleAnimation = NsDynamicCast<Noesis::Gui::Animation<NsFloat32>*>(NoesisComponent.GetPtr());
-	check(NoesisDoubleAnimation)
+	check(NoesisDoubleAnimation);
 
 
 }

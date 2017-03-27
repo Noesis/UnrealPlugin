@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisDecorator.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisDecorator::UNoesisDecorator(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Decorator::StaticGetClassType();
 }
 
 void UNoesisDecorator::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisUIElement* UNoesisDecorator::GetChild()
 {
 	Noesis::Gui::Decorator* NoesisDecorator = NsDynamicCast<Noesis::Gui::Decorator*>(NoesisComponent.GetPtr());
 	check(NoesisDecorator);
-	return CastChecked<UNoesisUIElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisDecorator->GetChild()));
+	return CastChecked<UNoesisUIElement>(CreateClassFor(NoesisDecorator->GetChild(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisDecorator::BindEvents()
@@ -34,7 +37,7 @@ void UNoesisDecorator::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Decorator* NoesisDecorator = NsDynamicCast<Noesis::Gui::Decorator*>(NoesisComponent.GetPtr());
-	check(NoesisDecorator)
+	check(NoesisDecorator);
 
 
 }
@@ -44,7 +47,7 @@ void UNoesisDecorator::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Decorator* NoesisDecorator = NsDynamicCast<Noesis::Gui::Decorator*>(NoesisComponent.GetPtr());
-	check(NoesisDecorator)
+	check(NoesisDecorator);
 
 
 }

@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisShape.h"
 #include "NoesisLine.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisLine : public UNoesisShape
 {
 public:

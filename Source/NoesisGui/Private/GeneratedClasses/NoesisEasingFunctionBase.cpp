@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisEasingFunctionBase.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisEasingFunctionBase::UNoesisEasingFunctionBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::EasingFunctionBase::StaticGetClassType();
 }
 
 void UNoesisEasingFunctionBase::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -41,7 +44,7 @@ void UNoesisEasingFunctionBase::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::EasingFunctionBase* NoesisEasingFunctionBase = NsDynamicCast<Noesis::Gui::EasingFunctionBase*>(NoesisComponent.GetPtr());
-	check(NoesisEasingFunctionBase)
+	check(NoesisEasingFunctionBase);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisEasingFunctionBase::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::EasingFunctionBase* NoesisEasingFunctionBase = NsDynamicCast<Noesis::Gui::EasingFunctionBase*>(NoesisComponent.GetPtr());
-	check(NoesisEasingFunctionBase)
+	check(NoesisEasingFunctionBase);
 
 
 }

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisGeometryCollection.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisGeometryCollection::UNoesisGeometryCollection(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TypedFreezableCollection<Noesis::Gui::Geometry>::StaticGetClassType();
 }
 
 void UNoesisGeometryCollection::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisGeometryCollection::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::Geometry>* NoesisGeometryCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::Geometry>*>(NoesisComponent.GetPtr());
-	check(NoesisGeometryCollection)
+	check(NoesisGeometryCollection);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisGeometryCollection::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TypedFreezableCollection<Noesis::Gui::Geometry>* NoesisGeometryCollection = NsDynamicCast<Noesis::Gui::TypedFreezableCollection<Noesis::Gui::Geometry>*>(NoesisComponent.GetPtr());
-	check(NoesisGeometryCollection)
+	check(NoesisGeometryCollection);
 
 
 }

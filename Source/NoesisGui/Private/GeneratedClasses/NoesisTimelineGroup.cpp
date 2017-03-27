@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisTimelineGroup.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisTimelineGroup::UNoesisTimelineGroup(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TimelineGroup::StaticGetClassType();
 }
 
 void UNoesisTimelineGroup::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisTimelineCollection* UNoesisTimelineGroup::GetChildren()
 {
 	Noesis::Gui::TimelineGroup* NoesisTimelineGroup = NsDynamicCast<Noesis::Gui::TimelineGroup*>(NoesisComponent.GetPtr());
 	check(NoesisTimelineGroup);
-	return CastChecked<UNoesisTimelineCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisTimelineGroup->GetChildren()));
+	return CastChecked<UNoesisTimelineCollection>(CreateClassFor(NoesisTimelineGroup->GetChildren(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisTimelineGroup::SetChildren(class UNoesisTimelineCollection* InChildren)
@@ -41,7 +44,7 @@ void UNoesisTimelineGroup::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TimelineGroup* NoesisTimelineGroup = NsDynamicCast<Noesis::Gui::TimelineGroup*>(NoesisComponent.GetPtr());
-	check(NoesisTimelineGroup)
+	check(NoesisTimelineGroup);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisTimelineGroup::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TimelineGroup* NoesisTimelineGroup = NsDynamicCast<Noesis::Gui::TimelineGroup*>(NoesisComponent.GetPtr());
-	check(NoesisTimelineGroup)
+	check(NoesisTimelineGroup);
 
 
 }

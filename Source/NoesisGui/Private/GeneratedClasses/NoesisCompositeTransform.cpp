@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisCompositeTransform.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisCompositeTransform::UNoesisCompositeTransform(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::CompositeTransform::StaticGetClassType();
 }
 
 void UNoesisCompositeTransform::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -153,7 +156,7 @@ void UNoesisCompositeTransform::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::CompositeTransform* NoesisCompositeTransform = NsDynamicCast<Noesis::Gui::CompositeTransform*>(NoesisComponent.GetPtr());
-	check(NoesisCompositeTransform)
+	check(NoesisCompositeTransform);
 
 
 }
@@ -163,7 +166,7 @@ void UNoesisCompositeTransform::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::CompositeTransform* NoesisCompositeTransform = NsDynamicCast<Noesis::Gui::CompositeTransform*>(NoesisComponent.GetPtr());
-	check(NoesisCompositeTransform)
+	check(NoesisCompositeTransform);
 
 
 }

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisItemsPanelTemplate.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisItemsPanelTemplate::UNoesisItemsPanelTemplate(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ItemsPanelTemplate::StaticGetClassType();
 }
 
 void UNoesisItemsPanelTemplate::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisItemsPanelTemplate::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ItemsPanelTemplate* NoesisItemsPanelTemplate = NsDynamicCast<Noesis::Gui::ItemsPanelTemplate*>(NoesisComponent.GetPtr());
-	check(NoesisItemsPanelTemplate)
+	check(NoesisItemsPanelTemplate);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisItemsPanelTemplate::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ItemsPanelTemplate* NoesisItemsPanelTemplate = NsDynamicCast<Noesis::Gui::ItemsPanelTemplate*>(NoesisComponent.GetPtr());
-	check(NoesisItemsPanelTemplate)
+	check(NoesisItemsPanelTemplate);
 
 
 }

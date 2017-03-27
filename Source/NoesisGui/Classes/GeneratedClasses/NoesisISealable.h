@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisISealable.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisISealable : public UNoesisInterface
 {
 public:
@@ -20,13 +20,13 @@ public:
 	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool CanSeal();
+	bool CanSeal();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsSealed();
+	bool IsSealed();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Seal();
+	void Seal();
 
 protected:
 

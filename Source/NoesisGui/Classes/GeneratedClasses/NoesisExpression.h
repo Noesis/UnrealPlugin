@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisExpression.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisExpression : public UNoesisBaseComponent
 {
 public:

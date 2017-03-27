@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisFrameworkTemplate.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisFrameworkTemplate::UNoesisFrameworkTemplate(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::FrameworkTemplate::StaticGetClassType();
 }
 
 void UNoesisFrameworkTemplate::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisResourceDictionary* UNoesisFrameworkTemplate::GetResources()
 {
 	Noesis::Gui::FrameworkTemplate* NoesisFrameworkTemplate = NsDynamicCast<Noesis::Gui::FrameworkTemplate*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkTemplate);
-	return CastChecked<UNoesisResourceDictionary>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkTemplate->GetResources()));
+	return CastChecked<UNoesisResourceDictionary>(CreateClassFor(NoesisFrameworkTemplate->GetResources(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisFrameworkTemplate::SetResources(class UNoesisResourceDictionary* InResources)
@@ -40,7 +43,7 @@ class UNoesisVisual* UNoesisFrameworkTemplate::GetVisualTree()
 {
 	Noesis::Gui::FrameworkTemplate* NoesisFrameworkTemplate = NsDynamicCast<Noesis::Gui::FrameworkTemplate*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkTemplate);
-	return CastChecked<UNoesisVisual>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkTemplate->GetVisualTree()));
+	return CastChecked<UNoesisVisual>(CreateClassFor(NoesisFrameworkTemplate->GetVisualTree(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisFrameworkTemplate::SetVisualTree(class UNoesisVisual* InVisualTree)
@@ -56,7 +59,7 @@ class UNoesisFrameworkElement* UNoesisFrameworkTemplate::Apply(class UNoesisFram
 	check(NoesisFrameworkTemplate);
 	FrameworkElement* NoesisInTemplatedParent = NsDynamicCast<FrameworkElement*>(InTemplatedParent->NoesisComponent.GetPtr());
 	BaseComponent* NoesisInDataContext = NsDynamicCast<BaseComponent*>(InDataContext->NoesisComponent.GetPtr());
-	return CastChecked<UNoesisFrameworkElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkTemplate->Apply(NoesisInTemplatedParent, NoesisInDataContext)));
+	return CastChecked<UNoesisFrameworkElement>(CreateClassFor(NoesisFrameworkTemplate->Apply(NoesisInTemplatedParent, NoesisInDataContext), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisBaseComponent* UNoesisFrameworkTemplate::FindName(FString InName, class UNoesisFrameworkElement* InTemplatedParent)
@@ -65,14 +68,14 @@ class UNoesisBaseComponent* UNoesisFrameworkTemplate::FindName(FString InName, c
 	check(NoesisFrameworkTemplate);
 	const NsChar* NoesisInName = StringCast<NsChar>(*InName).Get();
 	FrameworkElement* NoesisInTemplatedParent = NsDynamicCast<FrameworkElement*>(InTemplatedParent->NoesisComponent.GetPtr());
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkTemplate->FindName(NoesisInName, NoesisInTemplatedParent)));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisFrameworkTemplate->FindName(NoesisInName, NoesisInTemplatedParent), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisTriggerCollection* UNoesisFrameworkTemplate::GetAvailableTriggers()
 {
 	Noesis::Gui::FrameworkTemplate* NoesisFrameworkTemplate = NsDynamicCast<Noesis::Gui::FrameworkTemplate*>(NoesisComponent.GetPtr());
 	check(NoesisFrameworkTemplate);
-	return CastChecked<UNoesisTriggerCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisFrameworkTemplate->GetAvailableTriggers()));
+	return CastChecked<UNoesisTriggerCollection>(CreateClassFor(NoesisFrameworkTemplate->GetAvailableTriggers(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisFrameworkTemplate::BindEvents()
@@ -80,7 +83,7 @@ void UNoesisFrameworkTemplate::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::FrameworkTemplate* NoesisFrameworkTemplate = NsDynamicCast<Noesis::Gui::FrameworkTemplate*>(NoesisComponent.GetPtr());
-	check(NoesisFrameworkTemplate)
+	check(NoesisFrameworkTemplate);
 
 
 }
@@ -90,7 +93,7 @@ void UNoesisFrameworkTemplate::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::FrameworkTemplate* NoesisFrameworkTemplate = NsDynamicCast<Noesis::Gui::FrameworkTemplate*>(NoesisComponent.GetPtr());
-	check(NoesisFrameworkTemplate)
+	check(NoesisFrameworkTemplate);
 
 
 }

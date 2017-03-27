@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisMenuItem.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisMenuItem::UNoesisMenuItem(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::MenuItem::StaticGetClassType();
 }
 
 void UNoesisMenuItem::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisICommand* UNoesisMenuItem::GetCommand()
 {
 	Noesis::Gui::MenuItem* NoesisMenuItem = NsDynamicCast<Noesis::Gui::MenuItem*>(NoesisComponent.GetPtr());
 	check(NoesisMenuItem);
-	return CastChecked<UNoesisICommand>(Instance->FindUnrealInterfaceForNoesisInterface(NoesisMenuItem->GetCommand()));
+	return CastChecked<UNoesisICommand>(CreateInterfaceFor(NoesisMenuItem->GetCommand(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisMenuItem::SetCommand(class UNoesisICommand* InCommand)
@@ -40,7 +43,7 @@ class UNoesisBaseComponent* UNoesisMenuItem::GetCommandParameter()
 {
 	Noesis::Gui::MenuItem* NoesisMenuItem = NsDynamicCast<Noesis::Gui::MenuItem*>(NoesisComponent.GetPtr());
 	check(NoesisMenuItem);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisMenuItem->GetCommandParameter()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisMenuItem->GetCommandParameter(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisMenuItem::SetCommandParameter(class UNoesisBaseComponent* InCommandParameter)
@@ -54,7 +57,7 @@ class UNoesisUIElement* UNoesisMenuItem::GetCommandTarget()
 {
 	Noesis::Gui::MenuItem* NoesisMenuItem = NsDynamicCast<Noesis::Gui::MenuItem*>(NoesisComponent.GetPtr());
 	check(NoesisMenuItem);
-	return CastChecked<UNoesisUIElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisMenuItem->GetCommandTarget()));
+	return CastChecked<UNoesisUIElement>(CreateClassFor(NoesisMenuItem->GetCommandTarget(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisMenuItem::SetCommandTarget(class UNoesisUIElement* InCommandTarget)
@@ -68,7 +71,7 @@ class UNoesisBaseComponent* UNoesisMenuItem::GetIcon()
 {
 	Noesis::Gui::MenuItem* NoesisMenuItem = NsDynamicCast<Noesis::Gui::MenuItem*>(NoesisComponent.GetPtr());
 	check(NoesisMenuItem);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisMenuItem->GetIcon()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisMenuItem->GetIcon(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisMenuItem::SetIcon(class UNoesisBaseComponent* InIcon)
@@ -171,46 +174,46 @@ void UNoesisMenuItem::SetStaysOpenOnClick(bool InStaysOpenOnClick)
 
 void UNoesisMenuItem::Checked_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Checked.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Checked.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisRoutedEventArgs Args(InArgs);
 	Checked.Broadcast(Sender, Args);
 }
 
 void UNoesisMenuItem::Click_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Click.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Click.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisRoutedEventArgs Args(InArgs);
 	Click.Broadcast(Sender, Args);
 }
 
 void UNoesisMenuItem::SubmenuClosed_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!SubmenuClosed.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!SubmenuClosed.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisRoutedEventArgs Args(InArgs);
 	SubmenuClosed.Broadcast(Sender, Args);
 }
 
 void UNoesisMenuItem::SubmenuOpened_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!SubmenuOpened.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!SubmenuOpened.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisRoutedEventArgs Args(InArgs);
 	SubmenuOpened.Broadcast(Sender, Args);
 }
 
 void UNoesisMenuItem::Unchecked_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Unchecked.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Unchecked.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisRoutedEventArgs Args(InArgs);
 	Unchecked.Broadcast(Sender, Args);
 }
 
@@ -219,33 +222,18 @@ void UNoesisMenuItem::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::MenuItem* NoesisMenuItem = NsDynamicCast<Noesis::Gui::MenuItem*>(NoesisComponent.GetPtr());
-	check(NoesisMenuItem)
+	check(NoesisMenuItem);
 
 	Checked_Delegate = Noesis::MakeDelegate(this, &UNoesisMenuItem::Checked_Private);
-	if (Checked.IsBound())
-	{
-		NoesisMenuItem->Checked() += Checked_Delegate;
-	}
+	NoesisMenuItem->Checked() += Checked_Delegate;
 	Click_Delegate = Noesis::MakeDelegate(this, &UNoesisMenuItem::Click_Private);
-	if (Click.IsBound())
-	{
-		NoesisMenuItem->Click() += Click_Delegate;
-	}
+	NoesisMenuItem->Click() += Click_Delegate;
 	SubmenuClosed_Delegate = Noesis::MakeDelegate(this, &UNoesisMenuItem::SubmenuClosed_Private);
-	if (SubmenuClosed.IsBound())
-	{
-		NoesisMenuItem->SubmenuClosed() += SubmenuClosed_Delegate;
-	}
+	NoesisMenuItem->SubmenuClosed() += SubmenuClosed_Delegate;
 	SubmenuOpened_Delegate = Noesis::MakeDelegate(this, &UNoesisMenuItem::SubmenuOpened_Private);
-	if (SubmenuOpened.IsBound())
-	{
-		NoesisMenuItem->SubmenuOpened() += SubmenuOpened_Delegate;
-	}
+	NoesisMenuItem->SubmenuOpened() += SubmenuOpened_Delegate;
 	Unchecked_Delegate = Noesis::MakeDelegate(this, &UNoesisMenuItem::Unchecked_Private);
-	if (Unchecked.IsBound())
-	{
-		NoesisMenuItem->Unchecked() += Unchecked_Delegate;
-	}
+	NoesisMenuItem->Unchecked() += Unchecked_Delegate;
 
 }
 
@@ -254,28 +242,13 @@ void UNoesisMenuItem::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::MenuItem* NoesisMenuItem = NsDynamicCast<Noesis::Gui::MenuItem*>(NoesisComponent.GetPtr());
-	check(NoesisMenuItem)
+	check(NoesisMenuItem);
 
-	if (Checked.IsBound())
-	{
-		NoesisMenuItem->Checked() -= Checked_Delegate;
-	}
-	if (Click.IsBound())
-	{
-		NoesisMenuItem->Click() -= Click_Delegate;
-	}
-	if (SubmenuClosed.IsBound())
-	{
-		NoesisMenuItem->SubmenuClosed() -= SubmenuClosed_Delegate;
-	}
-	if (SubmenuOpened.IsBound())
-	{
-		NoesisMenuItem->SubmenuOpened() -= SubmenuOpened_Delegate;
-	}
-	if (Unchecked.IsBound())
-	{
-		NoesisMenuItem->Unchecked() -= Unchecked_Delegate;
-	}
+	NoesisMenuItem->Checked() -= Checked_Delegate;
+	NoesisMenuItem->Click() -= Click_Delegate;
+	NoesisMenuItem->SubmenuClosed() -= SubmenuClosed_Delegate;
+	NoesisMenuItem->SubmenuOpened() -= SubmenuOpened_Delegate;
+	NoesisMenuItem->Unchecked() -= Unchecked_Delegate;
 
 }
 

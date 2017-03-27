@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisVirtualizationCacheLength.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisVirtualizationCacheLength::UNoesisVirtualizationCacheLength(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::VirtualizationCacheLength::StaticGetClassType();
 }
 
 void UNoesisVirtualizationCacheLength::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -41,7 +44,7 @@ void UNoesisVirtualizationCacheLength::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::VirtualizationCacheLength* NoesisVirtualizationCacheLength = NsDynamicCast<Noesis::Gui::VirtualizationCacheLength*>(NoesisComponent.GetPtr());
-	check(NoesisVirtualizationCacheLength)
+	check(NoesisVirtualizationCacheLength);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisVirtualizationCacheLength::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::VirtualizationCacheLength* NoesisVirtualizationCacheLength = NsDynamicCast<Noesis::Gui::VirtualizationCacheLength*>(NoesisComponent.GetPtr());
-	check(NoesisVirtualizationCacheLength)
+	check(NoesisVirtualizationCacheLength);
 
 
 }

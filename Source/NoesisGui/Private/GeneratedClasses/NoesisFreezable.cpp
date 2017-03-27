@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisFreezable.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisFreezable::UNoesisFreezable(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Freezable::StaticGetClassType();
 }
 
 void UNoesisFreezable::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -33,14 +36,14 @@ class UNoesisFreezable* UNoesisFreezable::Clone()
 {
 	Noesis::Gui::Freezable* NoesisFreezable = NsDynamicCast<Noesis::Gui::Freezable*>(NoesisComponent.GetPtr());
 	check(NoesisFreezable);
-	return CastChecked<UNoesisFreezable>(Instance->FindUnrealComponentForNoesisComponent(NoesisFreezable->Clone()));
+	return CastChecked<UNoesisFreezable>(CreateClassFor(NoesisFreezable->Clone(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisFreezable* UNoesisFreezable::CloneCurrentValue()
 {
 	Noesis::Gui::Freezable* NoesisFreezable = NsDynamicCast<Noesis::Gui::Freezable*>(NoesisComponent.GetPtr());
 	check(NoesisFreezable);
-	return CastChecked<UNoesisFreezable>(Instance->FindUnrealComponentForNoesisComponent(NoesisFreezable->CloneCurrentValue()));
+	return CastChecked<UNoesisFreezable>(CreateClassFor(NoesisFreezable->CloneCurrentValue(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisFreezable::Freeze()
@@ -54,14 +57,14 @@ class UNoesisFreezable* UNoesisFreezable::GetAsFrozen()
 {
 	Noesis::Gui::Freezable* NoesisFreezable = NsDynamicCast<Noesis::Gui::Freezable*>(NoesisComponent.GetPtr());
 	check(NoesisFreezable);
-	return CastChecked<UNoesisFreezable>(Instance->FindUnrealComponentForNoesisComponent(NoesisFreezable->GetAsFrozen()));
+	return CastChecked<UNoesisFreezable>(CreateClassFor(NoesisFreezable->GetAsFrozen(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisFreezable* UNoesisFreezable::GetCurrentValueAsFrozen()
 {
 	Noesis::Gui::Freezable* NoesisFreezable = NsDynamicCast<Noesis::Gui::Freezable*>(NoesisComponent.GetPtr());
 	check(NoesisFreezable);
-	return CastChecked<UNoesisFreezable>(Instance->FindUnrealComponentForNoesisComponent(NoesisFreezable->GetCurrentValueAsFrozen()));
+	return CastChecked<UNoesisFreezable>(CreateClassFor(NoesisFreezable->GetCurrentValueAsFrozen(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 bool UNoesisFreezable::IsFrozen()
@@ -76,7 +79,7 @@ void UNoesisFreezable::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Freezable* NoesisFreezable = NsDynamicCast<Noesis::Gui::Freezable*>(NoesisComponent.GetPtr());
-	check(NoesisFreezable)
+	check(NoesisFreezable);
 
 
 }
@@ -86,7 +89,7 @@ void UNoesisFreezable::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Freezable* NoesisFreezable = NsDynamicCast<Noesis::Gui::Freezable*>(NoesisComponent.GetPtr());
-	check(NoesisFreezable)
+	check(NoesisFreezable);
 
 
 }

@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisFreezable.h"
 #include "NoesisKeySpline.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisKeySpline : public UNoesisFreezable
 {
 public:
@@ -32,7 +32,7 @@ public:
 	void SetControlPoint2(FNoesisDrawingPoint InControlPoint2);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-float GetSplineProgress(float LinearProgress);
+	float GetSplineProgress(float LinearProgress);
 
 protected:
 

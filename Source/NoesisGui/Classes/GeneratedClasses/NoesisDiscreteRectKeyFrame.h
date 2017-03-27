@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisRectKeyFrame.h"
 #include "NoesisDiscreteRectKeyFrame.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisDiscreteRectKeyFrame : public UNoesisRectKeyFrame
 {
 public:

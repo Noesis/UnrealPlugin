@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisControl.h"
 #include "NoesisItemsControl.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisItemsControl : public UNoesisControl
 {
 public:
@@ -64,16 +64,16 @@ public:
 	void SetItemsSource(class UNoesisBaseComponent* InItemsSource);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisDependencyObject* ContainerFromElement(class UNoesisDependencyObject* Element);
+	class UNoesisDependencyObject* ContainerFromElement(class UNoesisDependencyObject* Element);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisPanel* GetDefaultItemsPanel();
+	class UNoesisPanel* GetDefaultItemsPanel();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisItemContainerGenerator* GetItemContainerGenerator();
+	class UNoesisItemContainerGenerator* GetItemContainerGenerator();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsItemItsOwnContainer(class UNoesisBaseComponent* Item);
+	bool IsItemItsOwnContainer(class UNoesisBaseComponent* Item);
 
 protected:
 

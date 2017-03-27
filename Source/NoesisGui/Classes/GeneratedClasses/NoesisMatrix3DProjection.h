@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisProjection.h"
 #include "NoesisMatrix3DProjection.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisMatrix3DProjection : public UNoesisProjection
 {
 public:

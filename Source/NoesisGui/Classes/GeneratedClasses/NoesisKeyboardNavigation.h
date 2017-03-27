@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisKeyboardNavigation.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisKeyboardNavigation : public UNoesisBaseComponent
 {
 public:

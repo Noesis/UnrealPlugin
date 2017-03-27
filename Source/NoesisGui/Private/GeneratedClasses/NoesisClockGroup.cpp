@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisClockGroup.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisClockGroup::UNoesisClockGroup(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ClockGroup::StaticGetClassType();
 }
 
 void UNoesisClockGroup::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -35,7 +38,7 @@ class UNoesisClock* UNoesisClockGroup::GetChild(int32 InIndex)
 	Noesis::Gui::ClockGroup* NoesisClockGroup = NsDynamicCast<Noesis::Gui::ClockGroup*>(NoesisComponent.GetPtr());
 	check(NoesisClockGroup);
 	NsSize NoesisInIndex = (NsSize)InIndex;
-	return CastChecked<UNoesisClock>(Instance->FindUnrealComponentForNoesisComponent(NoesisClockGroup->GetChild(NoesisInIndex)));
+	return CastChecked<UNoesisClock>(CreateClassFor(NoesisClockGroup->GetChild(NoesisInIndex), nullptr), ECastCheckedType::NullAllowed);
 }
 
 int32 UNoesisClockGroup::GetChildrenCount()
@@ -50,7 +53,7 @@ void UNoesisClockGroup::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ClockGroup* NoesisClockGroup = NsDynamicCast<Noesis::Gui::ClockGroup*>(NoesisComponent.GetPtr());
-	check(NoesisClockGroup)
+	check(NoesisClockGroup);
 
 
 }
@@ -60,7 +63,7 @@ void UNoesisClockGroup::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ClockGroup* NoesisClockGroup = NsDynamicCast<Noesis::Gui::ClockGroup*>(NoesisComponent.GetPtr());
-	check(NoesisClockGroup)
+	check(NoesisClockGroup);
 
 
 }

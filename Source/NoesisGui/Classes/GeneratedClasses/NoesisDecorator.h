@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisFrameworkElement.h"
 #include "NoesisDecorator.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisDecorator : public UNoesisFrameworkElement
 {
 public:
@@ -20,7 +20,7 @@ public:
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisUIElement* GetChild();
+	class UNoesisUIElement* GetChild();
 
 protected:
 

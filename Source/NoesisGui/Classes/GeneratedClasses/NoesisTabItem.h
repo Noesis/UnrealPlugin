@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisHeaderedContentControl.h"
 #include "NoesisTabItem.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisTabItem : public UNoesisHeaderedContentControl
 {
 public:

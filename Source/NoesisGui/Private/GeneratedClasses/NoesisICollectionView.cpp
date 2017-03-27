@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisICollectionView.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisICollectionView::UNoesisICollectionView(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisInterfaceTypeClass = Noesis::Gui::ICollectionView::StaticGetClassType();
 }
 
 void UNoesisICollectionView::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterface)
@@ -55,7 +58,7 @@ class UNoesisBaseComponent* UNoesisICollectionView::CurrentItem()
 {
 	Noesis::Gui::ICollectionView* NoesisICollectionView = NsDynamicCast<Noesis::Gui::ICollectionView*>(NoesisInterface.GetPtr());
 	check(NoesisICollectionView);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisICollectionView->CurrentItem()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisICollectionView->CurrentItem(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 int32 UNoesisICollectionView::CurrentPosition()
@@ -99,7 +102,7 @@ void UNoesisICollectionView::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ICollectionView* NoesisICollectionView = NsDynamicCast<Noesis::Gui::ICollectionView*>(NoesisInterface.GetPtr());
-	check(NoesisICollectionView)
+	check(NoesisICollectionView);
 
 
 }
@@ -109,7 +112,7 @@ void UNoesisICollectionView::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ICollectionView* NoesisICollectionView = NsDynamicCast<Noesis::Gui::ICollectionView*>(NoesisInterface.GetPtr());
-	check(NoesisICollectionView)
+	check(NoesisICollectionView);
 
 
 }

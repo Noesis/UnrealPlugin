@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisCollectionViewSource.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisCollectionViewSource::UNoesisCollectionViewSource(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::CollectionViewSource::StaticGetClassType();
 }
 
 void UNoesisCollectionViewSource::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisResourceKeyType* UNoesisCollectionViewSource::GetCollectionViewType
 {
 	Noesis::Gui::CollectionViewSource* NoesisCollectionViewSource = NsDynamicCast<Noesis::Gui::CollectionViewSource*>(NoesisComponent.GetPtr());
 	check(NoesisCollectionViewSource);
-	return CastChecked<UNoesisResourceKeyType>(Instance->FindUnrealComponentForNoesisComponent(NoesisCollectionViewSource->GetCollectionViewType()));
+	return CastChecked<UNoesisResourceKeyType>(CreateClassFor(NoesisCollectionViewSource->GetCollectionViewType(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisCollectionViewSource::SetCollectionViewType(class UNoesisResourceKeyType* InCollectionViewType)
@@ -40,7 +43,7 @@ class UNoesisBaseComponent* UNoesisCollectionViewSource::GetSource()
 {
 	Noesis::Gui::CollectionViewSource* NoesisCollectionViewSource = NsDynamicCast<Noesis::Gui::CollectionViewSource*>(NoesisComponent.GetPtr());
 	check(NoesisCollectionViewSource);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisCollectionViewSource->GetSource()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisCollectionViewSource->GetSource(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisCollectionViewSource::SetSource(class UNoesisBaseComponent* InSource)
@@ -54,7 +57,7 @@ class UNoesisCollectionView* UNoesisCollectionViewSource::GetView()
 {
 	Noesis::Gui::CollectionViewSource* NoesisCollectionViewSource = NsDynamicCast<Noesis::Gui::CollectionViewSource*>(NoesisComponent.GetPtr());
 	check(NoesisCollectionViewSource);
-	return CastChecked<UNoesisCollectionView>(Instance->FindUnrealComponentForNoesisComponent(NoesisCollectionViewSource->GetView()));
+	return CastChecked<UNoesisCollectionView>(CreateClassFor(NoesisCollectionViewSource->GetView(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisCollectionViewSource::BindEvents()
@@ -62,7 +65,7 @@ void UNoesisCollectionViewSource::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::CollectionViewSource* NoesisCollectionViewSource = NsDynamicCast<Noesis::Gui::CollectionViewSource*>(NoesisComponent.GetPtr());
-	check(NoesisCollectionViewSource)
+	check(NoesisCollectionViewSource);
 
 
 }
@@ -72,7 +75,7 @@ void UNoesisCollectionViewSource::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::CollectionViewSource* NoesisCollectionViewSource = NsDynamicCast<Noesis::Gui::CollectionViewSource*>(NoesisComponent.GetPtr());
-	check(NoesisCollectionViewSource)
+	check(NoesisCollectionViewSource);
 
 
 }

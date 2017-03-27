@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisColumnDefinition.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisColumnDefinition::UNoesisColumnDefinition(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ColumnDefinition::StaticGetClassType();
 }
 
 void UNoesisColumnDefinition::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -69,7 +72,7 @@ void UNoesisColumnDefinition::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ColumnDefinition* NoesisColumnDefinition = NsDynamicCast<Noesis::Gui::ColumnDefinition*>(NoesisComponent.GetPtr());
-	check(NoesisColumnDefinition)
+	check(NoesisColumnDefinition);
 
 
 }
@@ -79,7 +82,7 @@ void UNoesisColumnDefinition::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ColumnDefinition* NoesisColumnDefinition = NsDynamicCast<Noesis::Gui::ColumnDefinition*>(NoesisComponent.GetPtr());
-	check(NoesisColumnDefinition)
+	check(NoesisColumnDefinition);
 
 
 }

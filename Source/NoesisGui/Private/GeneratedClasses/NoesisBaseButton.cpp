@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisBaseButton.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisBaseButton::UNoesisBaseButton(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::BaseButton::StaticGetClassType();
 }
 
 void UNoesisBaseButton::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -40,7 +43,7 @@ class UNoesisICommand* UNoesisBaseButton::GetCommand()
 {
 	Noesis::Gui::BaseButton* NoesisBaseButton = NsDynamicCast<Noesis::Gui::BaseButton*>(NoesisComponent.GetPtr());
 	check(NoesisBaseButton);
-	return CastChecked<UNoesisICommand>(Instance->FindUnrealInterfaceForNoesisInterface(NoesisBaseButton->GetCommand()));
+	return CastChecked<UNoesisICommand>(CreateInterfaceFor(NoesisBaseButton->GetCommand(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBaseButton::SetCommand(class UNoesisICommand* InCommand)
@@ -54,7 +57,7 @@ class UNoesisBaseComponent* UNoesisBaseButton::GetCommandParameter()
 {
 	Noesis::Gui::BaseButton* NoesisBaseButton = NsDynamicCast<Noesis::Gui::BaseButton*>(NoesisComponent.GetPtr());
 	check(NoesisBaseButton);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisBaseButton->GetCommandParameter()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisBaseButton->GetCommandParameter(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBaseButton::SetCommandParameter(class UNoesisBaseComponent* InCommandParameter)
@@ -68,7 +71,7 @@ class UNoesisUIElement* UNoesisBaseButton::GetCommandTarget()
 {
 	Noesis::Gui::BaseButton* NoesisBaseButton = NsDynamicCast<Noesis::Gui::BaseButton*>(NoesisComponent.GetPtr());
 	check(NoesisBaseButton);
-	return CastChecked<UNoesisUIElement>(Instance->FindUnrealComponentForNoesisComponent(NoesisBaseButton->GetCommandTarget()));
+	return CastChecked<UNoesisUIElement>(CreateClassFor(NoesisBaseButton->GetCommandTarget(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBaseButton::SetCommandTarget(class UNoesisUIElement* InCommandTarget)
@@ -87,10 +90,10 @@ bool UNoesisBaseButton::GetIsPressed()
 
 void UNoesisBaseButton::Click_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!Click.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!Click.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisRoutedEventArgs Args(InArgs);
 	Click.Broadcast(Sender, Args);
 }
 
@@ -99,13 +102,10 @@ void UNoesisBaseButton::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::BaseButton* NoesisBaseButton = NsDynamicCast<Noesis::Gui::BaseButton*>(NoesisComponent.GetPtr());
-	check(NoesisBaseButton)
+	check(NoesisBaseButton);
 
 	Click_Delegate = Noesis::MakeDelegate(this, &UNoesisBaseButton::Click_Private);
-	if (Click.IsBound())
-	{
-		NoesisBaseButton->Click() += Click_Delegate;
-	}
+	NoesisBaseButton->Click() += Click_Delegate;
 
 }
 
@@ -114,12 +114,9 @@ void UNoesisBaseButton::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::BaseButton* NoesisBaseButton = NsDynamicCast<Noesis::Gui::BaseButton*>(NoesisComponent.GetPtr());
-	check(NoesisBaseButton)
+	check(NoesisBaseButton);
 
-	if (Click.IsBound())
-	{
-		NoesisBaseButton->Click() -= Click_Delegate;
-	}
+	NoesisBaseButton->Click() -= Click_Delegate;
 
 }
 

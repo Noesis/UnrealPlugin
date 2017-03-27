@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisVirtualizingPanel.h"
 #include "NoesisVirtualizingStackPanel.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisVirtualizingStackPanel : public UNoesisVirtualizingPanel
 {
 public:

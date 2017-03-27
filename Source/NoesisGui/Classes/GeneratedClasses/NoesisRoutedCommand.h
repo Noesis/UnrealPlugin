@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisRoutedCommand.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisRoutedCommand : public UNoesisBaseComponent
 {
 public:
@@ -24,10 +24,10 @@ public:
 	class UNoesisInputGestureCollection* GetInputGestures();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool CanExecute(class UNoesisBaseComponent* Param, class UNoesisUIElement* Target);
+	bool CanExecute(class UNoesisBaseComponent* Param, class UNoesisUIElement* Target);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Execute(class UNoesisBaseComponent* Param, class UNoesisUIElement* Target);
+	void Execute(class UNoesisBaseComponent* Param, class UNoesisUIElement* Target);
 
 protected:
 

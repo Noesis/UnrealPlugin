@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisDependencyObject.h"
 #include "NoesisBaseView.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisBaseView : public UNoesisDependencyObject
 {
 public:
@@ -20,10 +20,10 @@ public:
 	virtual void SetNoesisComponent(Noesis::Core::BaseComponent* NoesisComponent) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ClearItem(class UNoesisListViewItem* Item);
+	void ClearItem(class UNoesisListViewItem* Item);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void PrepareItem(class UNoesisListViewItem* Item);
+	void PrepareItem(class UNoesisListViewItem* Item);
 
 protected:
 

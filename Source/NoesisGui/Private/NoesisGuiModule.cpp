@@ -54,17 +54,19 @@ public:
 UNoesisXaml* FNoesisGuiResourceProvider::GetXaml(FString XamlPath)
 {
 	FString ObjectIDString, Path;
-	ensure(XamlPath.Split(TEXT("/"), &ObjectIDString, &Path));
-	uint32 ObjectID = FCString::Atoi64(*ObjectIDString);
-	FUObjectItem* ObjectItem = GUObjectArray.IndexToObject(ObjectID);
-	UNoesisXaml* BaseXaml = Cast<UNoesisXaml>((UObject*)ObjectItem->Object);
-	if (BaseXaml)
+	if (XamlPath.Split(TEXT("/"), &ObjectIDString, &Path))
 	{
-		UNoesisXaml** XamlPtr = BaseXaml->XamlMap.Find(Path);
-		if (XamlPtr)
+		uint32 ObjectID = FCString::Atoi64(*ObjectIDString);
+		FUObjectItem* ObjectItem = GUObjectArray.IndexToObject(ObjectID);
+		UNoesisXaml* BaseXaml = Cast<UNoesisXaml>((UObject*)ObjectItem->Object);
+		if (BaseXaml)
 		{
-			UNoesisXaml* Xaml = *XamlPtr;
-			return Xaml;
+			UNoesisXaml** XamlPtr = BaseXaml->XamlMap.Find(Path);
+			if (XamlPtr)
+			{
+				UNoesisXaml* Xaml = *XamlPtr;
+				return Xaml;
+			}
 		}
 	}
 	return nullptr;
@@ -84,17 +86,19 @@ Noesis::Ptr<Noesis::Core::Stream> FNoesisGuiResourceProvider::LoadXaml(const NsC
 UTexture2D* FNoesisGuiResourceProvider::GetTexture(FString TexturePath)
 {
 	FString ObjectIDString, Path;
-	ensure(TexturePath.Split(TEXT("/"), &ObjectIDString, &Path));
-	uint32 ObjectID = FCString::Atoi64(*ObjectIDString);
-	FUObjectItem* ObjectItem = GUObjectArray.IndexToObject(ObjectID);
-	UNoesisXaml* BaseXaml = Cast<UNoesisXaml>((UObject*)ObjectItem->Object);
-	if (BaseXaml)
+	if (TexturePath.Split(TEXT("/"), &ObjectIDString, &Path))
 	{
-		UTexture2D** TexturePtr = BaseXaml->TextureMap.Find(Path);
-		if (TexturePtr)
+		uint32 ObjectID = FCString::Atoi64(*ObjectIDString);
+		FUObjectItem* ObjectItem = GUObjectArray.IndexToObject(ObjectID);
+		UNoesisXaml* BaseXaml = Cast<UNoesisXaml>((UObject*)ObjectItem->Object);
+		if (BaseXaml)
 		{
-			UTexture2D* Texture = *TexturePtr;
-			return Texture;
+			UTexture2D** TexturePtr = BaseXaml->TextureMap.Find(Path);
+			if (TexturePtr)
+			{
+				UTexture2D* Texture = *TexturePtr;
+				return Texture;
+			}
 		}
 	}
 	return nullptr;
@@ -121,15 +125,20 @@ void FNoesisGuiResourceProvider::ScanFolder(const NsChar* InFolder)
 {
 	FString FontPath = FString(InFolder);
 	FString ObjectIDString, Path;
-	ensure(FontPath.Split(TEXT("/"), &ObjectIDString, &Path));
-	uint32 ObjectID = FCString::Atoi64(*ObjectIDString);
-	FUObjectItem* ObjectItem = GUObjectArray.IndexToObject(ObjectID);
-	UNoesisXaml* BaseXaml = Cast<UNoesisXaml>((UObject*)ObjectItem->Object);
-	for (auto Font : BaseXaml->FontMap)
+	if (FontPath.Split(TEXT("/"), &ObjectIDString, &Path))
 	{
-		FString BaseUri, FamilyName;
-		Font.Key.Split(TEXT("#"), &BaseUri, &FamilyName);
-		RegisterFont(InFolder, StringCast<NsChar>(*FamilyName).Get());
+		uint32 ObjectID = FCString::Atoi64(*ObjectIDString);
+		FUObjectItem* ObjectItem = GUObjectArray.IndexToObject(ObjectID);
+		UNoesisXaml* BaseXaml = Cast<UNoesisXaml>((UObject*)ObjectItem->Object);
+		if (BaseXaml)
+		{
+			for (auto Font : BaseXaml->FontMap)
+			{
+				FString BaseUri, FamilyName;
+				Font.Key.Split(TEXT("#"), &BaseUri, &FamilyName);
+				RegisterFont(InFolder, StringCast<NsChar>(*FamilyName).Get());
+			}
+		}
 	}
 }
 
@@ -152,13 +161,32 @@ Noesis::Ptr<Noesis::Core::Stream> FNoesisGuiResourceProvider::OpenFont(const NsC
 	const FTypefaceEntry* TypefaceEntry = &Typeface->Fonts[0];
 	const FFontData* FontData = &TypefaceEntry->Font;
 	const UFontFace* FontFace = Cast<UFontFace>(FontData->GetFontFaceAsset());
-	const FFontFaceDataRef FontFaceDataRef = FontFace->FontFaceData;
-	const FFontFaceData& FontFaceData = FontFaceDataRef.Get();
-	const TArray<uint8>& FontFaceDataArray = FontFaceData.GetData();
-	return Noesis::Ptr<Noesis::Core::Stream>(*new Noesis::Core::MemoryStream(FontFaceDataArray.GetData(), FontFaceDataArray.Num()));
+	if (FontFace->GetLoadingPolicy() == EFontLoadingPolicy::Inline)
+	{
+		const FFontFaceDataRef FontFaceDataRef = FontFace->FontFaceData;
+		const FFontFaceData& FontFaceData = FontFaceDataRef.Get();
+		const TArray<uint8>& FontFaceDataArray = FontFaceData.GetData();
+		return Noesis::Ptr<Noesis::Core::Stream>(*new Noesis::Core::MemoryStream(FontFaceDataArray.GetData(), FontFaceDataArray.Num()));
+	}
+	else
+	{
+		class FontArrayMemoryStream : public Noesis::Core::MemoryStream
+		{
+		public:
+			FontArrayMemoryStream(TArray<uint8>&& InFileData)
+				: Noesis::Core::MemoryStream(InFileData.GetData(), (NsSize)InFileData.Num()),
+				FileData(MoveTemp(InFileData))
+			{
+			}
+
+		private:
+			TArray<uint8> FileData;
+		};
+		TArray<uint8> FileData;
+		FFileHelper::LoadFileToArray(FileData, *FontFace->GetFontFilename());
+		return Noesis::Ptr<Noesis::Core::Stream>(*new FontArrayMemoryStream(MoveTemp(FileData)));
+	}
 }
-
-
 
 #if PLATFORM_WINDOWS
 extern "C" FARPROC WINAPI delayLoadHook(uint32 dliNotify, PDelayLoadInfo pdli)
@@ -174,6 +202,8 @@ extern "C" FARPROC WINAPI delayLoadHook(uint32 dliNotify, PDelayLoadInfo pdli)
 
 	return NULL;
 }
+
+void* DllHandle = FPlatformProcess::GetDllHandle(*(FPaths::EngineDir() / TEXT(NOESISGUI_DLL_PATH)));
 
 const PfnDliHook __pfnDliNotifyHook2 = delayLoadHook;
 #endif

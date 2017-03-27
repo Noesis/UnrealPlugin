@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisIView.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisIView : public UNoesisInterface
 {
 public:
@@ -20,40 +20,40 @@ public:
 	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Char(int32 Ch);
+	void Char(int32 Ch);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisFrameworkElement* GetContent();
+	class UNoesisFrameworkElement* GetContent();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-FNoesisDrawingSizei GetSize();
+	FNoesisDrawingSizei GetSize();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void MouseMove(int32 X, int32 Y);
+	void MouseMove(int32 X, int32 Y);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void MouseWheel(int32 X, int32 Y, int32 WheelRotation);
+	void MouseWheel(int32 X, int32 Y, int32 WheelRotation);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void ResetInputState();
+	void ResetInputState();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void SetFlags(int32 Flags);
+	void SetFlags(int32 Flags);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void SetSize(int32 Width, int32 Height);
+	void SetSize(int32 Width, int32 Height);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void TouchDown(int32 X, int32 Y, int32 Id);
+	void TouchDown(int32 X, int32 Y, int32 Id);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void TouchMove(int32 X, int32 Y, int32 Id);
+	void TouchMove(int32 X, int32 Y, int32 Id);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void TouchUp(int32 X, int32 Y, int32 Id);
+	void TouchUp(int32 X, int32 Y, int32 Id);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Update(float TimeInSeconds);
+	void Update(float TimeInSeconds);
 
 protected:
 

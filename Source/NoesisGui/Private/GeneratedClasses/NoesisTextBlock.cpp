@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisTextBlock.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisTextBlock::UNoesisTextBlock(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TextBlock::StaticGetClassType();
 }
 
 void UNoesisTextBlock::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisBrush* UNoesisTextBlock::GetBackground()
 {
 	Noesis::Gui::TextBlock* NoesisTextBlock = NsDynamicCast<Noesis::Gui::TextBlock*>(NoesisComponent.GetPtr());
 	check(NoesisTextBlock);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisTextBlock->GetBackground()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisTextBlock->GetBackground(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisTextBlock::SetBackground(class UNoesisBrush* InBackground)
@@ -40,7 +43,7 @@ class UNoesisFontFamily* UNoesisTextBlock::GetFontFamily()
 {
 	Noesis::Gui::TextBlock* NoesisTextBlock = NsDynamicCast<Noesis::Gui::TextBlock*>(NoesisComponent.GetPtr());
 	check(NoesisTextBlock);
-	return CastChecked<UNoesisFontFamily>(Instance->FindUnrealComponentForNoesisComponent(NoesisTextBlock->GetFontFamily()));
+	return CastChecked<UNoesisFontFamily>(CreateClassFor(NoesisTextBlock->GetFontFamily(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisTextBlock::SetFontFamily(class UNoesisFontFamily* InFontFamily)
@@ -110,7 +113,7 @@ class UNoesisBrush* UNoesisTextBlock::GetForeground()
 {
 	Noesis::Gui::TextBlock* NoesisTextBlock = NsDynamicCast<Noesis::Gui::TextBlock*>(NoesisComponent.GetPtr());
 	check(NoesisTextBlock);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisTextBlock->GetForeground()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisTextBlock->GetForeground(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisTextBlock::SetForeground(class UNoesisBrush* InForeground)
@@ -124,7 +127,7 @@ class UNoesisInlineCollection* UNoesisTextBlock::GetInlines()
 {
 	Noesis::Gui::TextBlock* NoesisTextBlock = NsDynamicCast<Noesis::Gui::TextBlock*>(NoesisComponent.GetPtr());
 	check(NoesisTextBlock);
-	return CastChecked<UNoesisInlineCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisTextBlock->GetInlines()));
+	return CastChecked<UNoesisInlineCollection>(CreateClassFor(NoesisTextBlock->GetInlines(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 float UNoesisTextBlock::GetLineHeight()
@@ -159,7 +162,7 @@ class UNoesisBrush* UNoesisTextBlock::GetStroke()
 {
 	Noesis::Gui::TextBlock* NoesisTextBlock = NsDynamicCast<Noesis::Gui::TextBlock*>(NoesisComponent.GetPtr());
 	check(NoesisTextBlock);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisTextBlock->GetStroke()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisTextBlock->GetStroke(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisTextBlock::SetStroke(class UNoesisBrush* InStroke)
@@ -244,7 +247,7 @@ void UNoesisTextBlock::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TextBlock* NoesisTextBlock = NsDynamicCast<Noesis::Gui::TextBlock*>(NoesisComponent.GetPtr());
-	check(NoesisTextBlock)
+	check(NoesisTextBlock);
 
 
 }
@@ -254,7 +257,7 @@ void UNoesisTextBlock::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TextBlock* NoesisTextBlock = NsDynamicCast<Noesis::Gui::TextBlock*>(NoesisComponent.GetPtr());
-	check(NoesisTextBlock)
+	check(NoesisTextBlock);
 
 
 }

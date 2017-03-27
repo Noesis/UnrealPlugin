@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisButton.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisButton::UNoesisButton(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Button::StaticGetClassType();
 }
 
 void UNoesisButton::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -62,7 +65,7 @@ void UNoesisButton::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Button* NoesisButton = NsDynamicCast<Noesis::Gui::Button*>(NoesisComponent.GetPtr());
-	check(NoesisButton)
+	check(NoesisButton);
 
 
 }
@@ -72,7 +75,7 @@ void UNoesisButton::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Button* NoesisButton = NsDynamicCast<Noesis::Gui::Button*>(NoesisComponent.GetPtr());
-	check(NoesisButton)
+	check(NoesisButton);
 
 
 }

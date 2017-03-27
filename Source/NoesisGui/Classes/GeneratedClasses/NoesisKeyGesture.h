@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisInputGesture.h"
 #include "NoesisKeyGesture.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisKeyGesture : public UNoesisInputGesture
 {
 public:

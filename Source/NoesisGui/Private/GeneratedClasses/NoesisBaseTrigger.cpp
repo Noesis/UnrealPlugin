@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisBaseTrigger.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisBaseTrigger::UNoesisBaseTrigger(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::BaseTrigger::StaticGetClassType();
 }
 
 void UNoesisBaseTrigger::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,14 +29,14 @@ class UNoesisTriggerActionCollection* UNoesisBaseTrigger::GetEnterActions()
 {
 	Noesis::Gui::BaseTrigger* NoesisBaseTrigger = NsDynamicCast<Noesis::Gui::BaseTrigger*>(NoesisComponent.GetPtr());
 	check(NoesisBaseTrigger);
-	return CastChecked<UNoesisTriggerActionCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisBaseTrigger->GetEnterActions()));
+	return CastChecked<UNoesisTriggerActionCollection>(CreateClassFor(NoesisBaseTrigger->GetEnterActions(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisTriggerActionCollection* UNoesisBaseTrigger::GetExitActions()
 {
 	Noesis::Gui::BaseTrigger* NoesisBaseTrigger = NsDynamicCast<Noesis::Gui::BaseTrigger*>(NoesisComponent.GetPtr());
 	check(NoesisBaseTrigger);
-	return CastChecked<UNoesisTriggerActionCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisBaseTrigger->GetExitActions()));
+	return CastChecked<UNoesisTriggerActionCollection>(CreateClassFor(NoesisBaseTrigger->GetExitActions(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBaseTrigger::BindEvents()
@@ -41,7 +44,7 @@ void UNoesisBaseTrigger::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::BaseTrigger* NoesisBaseTrigger = NsDynamicCast<Noesis::Gui::BaseTrigger*>(NoesisComponent.GetPtr());
-	check(NoesisBaseTrigger)
+	check(NoesisBaseTrigger);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisBaseTrigger::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::BaseTrigger* NoesisBaseTrigger = NsDynamicCast<Noesis::Gui::BaseTrigger*>(NoesisComponent.GetPtr());
-	check(NoesisBaseTrigger)
+	check(NoesisBaseTrigger);
 
 
 }

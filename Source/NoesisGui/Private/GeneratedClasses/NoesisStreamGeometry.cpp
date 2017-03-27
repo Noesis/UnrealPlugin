@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisStreamGeometry.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisStreamGeometry::UNoesisStreamGeometry(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::StreamGeometry::StaticGetClassType();
 }
 
 void UNoesisStreamGeometry::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -49,7 +52,7 @@ void UNoesisStreamGeometry::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::StreamGeometry* NoesisStreamGeometry = NsDynamicCast<Noesis::Gui::StreamGeometry*>(NoesisComponent.GetPtr());
-	check(NoesisStreamGeometry)
+	check(NoesisStreamGeometry);
 
 
 }
@@ -59,7 +62,7 @@ void UNoesisStreamGeometry::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::StreamGeometry* NoesisStreamGeometry = NsDynamicCast<Noesis::Gui::StreamGeometry*>(NoesisComponent.GetPtr());
-	check(NoesisStreamGeometry)
+	check(NoesisStreamGeometry);
 
 
 }

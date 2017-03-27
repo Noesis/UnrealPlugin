@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisIStoryboard.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisIStoryboard : public UNoesisInterface
 {
 public:
@@ -20,25 +20,25 @@ public:
 	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Begin();
+	void Begin();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsPaused();
+	bool IsPaused();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool IsPlaying();
+	bool IsPlaying();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Pause();
+	void Pause();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Remove();
+	void Remove();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Resume();
+	void Resume();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Stop();
+	void Stop();
 
 protected:
 

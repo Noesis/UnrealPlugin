@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisRepeatButton.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisRepeatButton::UNoesisRepeatButton(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::RepeatButton::StaticGetClassType();
 }
 
 void UNoesisRepeatButton::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -55,7 +58,7 @@ void UNoesisRepeatButton::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::RepeatButton* NoesisRepeatButton = NsDynamicCast<Noesis::Gui::RepeatButton*>(NoesisComponent.GetPtr());
-	check(NoesisRepeatButton)
+	check(NoesisRepeatButton);
 
 
 }
@@ -65,7 +68,7 @@ void UNoesisRepeatButton::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::RepeatButton* NoesisRepeatButton = NsDynamicCast<Noesis::Gui::RepeatButton*>(NoesisComponent.GetPtr());
-	check(NoesisRepeatButton)
+	check(NoesisRepeatButton);
 
 
 }

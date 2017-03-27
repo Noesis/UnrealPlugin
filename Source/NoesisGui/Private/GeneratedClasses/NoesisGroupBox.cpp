@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisGroupBox.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisGroupBox::UNoesisGroupBox(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::GroupBox::StaticGetClassType();
 }
 
 void UNoesisGroupBox::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisGroupBox::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::GroupBox* NoesisGroupBox = NsDynamicCast<Noesis::Gui::GroupBox*>(NoesisComponent.GetPtr());
-	check(NoesisGroupBox)
+	check(NoesisGroupBox);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisGroupBox::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::GroupBox* NoesisGroupBox = NsDynamicCast<Noesis::Gui::GroupBox*>(NoesisComponent.GetPtr());
-	check(NoesisGroupBox)
+	check(NoesisGroupBox);
 
 
 }

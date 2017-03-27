@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisBaseTextBox.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisBaseTextBox::UNoesisBaseTextBox(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::BaseTextBox::StaticGetClassType();
 }
 
 void UNoesisBaseTextBox::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -54,7 +57,7 @@ class UNoesisBrush* UNoesisBaseTextBox::GetCaretBrush()
 {
 	Noesis::Gui::BaseTextBox* NoesisBaseTextBox = NsDynamicCast<Noesis::Gui::BaseTextBox*>(NoesisComponent.GetPtr());
 	check(NoesisBaseTextBox);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisBaseTextBox->GetCaretBrush()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisBaseTextBox->GetCaretBrush(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBaseTextBox::SetCaretBrush(class UNoesisBrush* InCaretBrush)
@@ -103,7 +106,7 @@ class UNoesisBrush* UNoesisBaseTextBox::GetSelectionBrush()
 {
 	Noesis::Gui::BaseTextBox* NoesisBaseTextBox = NsDynamicCast<Noesis::Gui::BaseTextBox*>(NoesisComponent.GetPtr());
 	check(NoesisBaseTextBox);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisBaseTextBox->GetSelectionBrush()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisBaseTextBox->GetSelectionBrush(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBaseTextBox::SetSelectionBrush(class UNoesisBrush* InSelectionBrush)
@@ -143,19 +146,19 @@ void UNoesisBaseTextBox::SetVerticalScrollBarVisibility(ENoesisScrollBarVisibili
 
 void UNoesisBaseTextBox::SelectionChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!SelectionChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!SelectionChanged.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisRoutedEventArgs Args(InArgs);
 	SelectionChanged.Broadcast(Sender, Args);
 }
 
 void UNoesisBaseTextBox::TextChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!TextChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!TextChanged.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisRoutedEventArgs Args(InArgs);
 	TextChanged.Broadcast(Sender, Args);
 }
 
@@ -164,18 +167,12 @@ void UNoesisBaseTextBox::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::BaseTextBox* NoesisBaseTextBox = NsDynamicCast<Noesis::Gui::BaseTextBox*>(NoesisComponent.GetPtr());
-	check(NoesisBaseTextBox)
+	check(NoesisBaseTextBox);
 
 	SelectionChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisBaseTextBox::SelectionChanged_Private);
-	if (SelectionChanged.IsBound())
-	{
-		NoesisBaseTextBox->SelectionChanged() += SelectionChanged_Delegate;
-	}
+	NoesisBaseTextBox->SelectionChanged() += SelectionChanged_Delegate;
 	TextChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisBaseTextBox::TextChanged_Private);
-	if (TextChanged.IsBound())
-	{
-		NoesisBaseTextBox->TextChanged() += TextChanged_Delegate;
-	}
+	NoesisBaseTextBox->TextChanged() += TextChanged_Delegate;
 
 }
 
@@ -184,16 +181,10 @@ void UNoesisBaseTextBox::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::BaseTextBox* NoesisBaseTextBox = NsDynamicCast<Noesis::Gui::BaseTextBox*>(NoesisComponent.GetPtr());
-	check(NoesisBaseTextBox)
+	check(NoesisBaseTextBox);
 
-	if (SelectionChanged.IsBound())
-	{
-		NoesisBaseTextBox->SelectionChanged() -= SelectionChanged_Delegate;
-	}
-	if (TextChanged.IsBound())
-	{
-		NoesisBaseTextBox->TextChanged() -= TextChanged_Delegate;
-	}
+	NoesisBaseTextBox->SelectionChanged() -= SelectionChanged_Delegate;
+	NoesisBaseTextBox->TextChanged() -= TextChanged_Delegate;
 
 }
 

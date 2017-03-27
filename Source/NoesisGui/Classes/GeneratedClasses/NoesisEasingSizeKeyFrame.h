@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisSizeKeyFrame.h"
 #include "NoesisEasingSizeKeyFrame.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisEasingSizeKeyFrame : public UNoesisSizeKeyFrame
 {
 public:

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisUserControl.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisUserControl::UNoesisUserControl(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::UserControl::StaticGetClassType();
 }
 
 void UNoesisUserControl::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisUserControl::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::UserControl* NoesisUserControl = NsDynamicCast<Noesis::Gui::UserControl*>(NoesisComponent.GetPtr());
-	check(NoesisUserControl)
+	check(NoesisUserControl);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisUserControl::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::UserControl* NoesisUserControl = NsDynamicCast<Noesis::Gui::UserControl*>(NoesisComponent.GetPtr());
-	check(NoesisUserControl)
+	check(NoesisUserControl);
 
 
 }

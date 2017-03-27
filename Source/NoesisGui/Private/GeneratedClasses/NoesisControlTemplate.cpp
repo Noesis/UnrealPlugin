@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisControlTemplate.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisControlTemplate::UNoesisControlTemplate(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ControlTemplate::StaticGetClassType();
 }
 
 void UNoesisControlTemplate::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisResourceKeyType* UNoesisControlTemplate::GetTargetType()
 {
 	Noesis::Gui::ControlTemplate* NoesisControlTemplate = NsDynamicCast<Noesis::Gui::ControlTemplate*>(NoesisComponent.GetPtr());
 	check(NoesisControlTemplate);
-	return CastChecked<UNoesisResourceKeyType>(Instance->FindUnrealComponentForNoesisComponent(NoesisControlTemplate->GetTargetType()));
+	return CastChecked<UNoesisResourceKeyType>(CreateClassFor(NoesisControlTemplate->GetTargetType(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisControlTemplate::SetTargetType(class UNoesisResourceKeyType* InTargetType)
@@ -40,7 +43,7 @@ class UNoesisTriggerCollection* UNoesisControlTemplate::GetTriggers()
 {
 	Noesis::Gui::ControlTemplate* NoesisControlTemplate = NsDynamicCast<Noesis::Gui::ControlTemplate*>(NoesisComponent.GetPtr());
 	check(NoesisControlTemplate);
-	return CastChecked<UNoesisTriggerCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisControlTemplate->GetTriggers()));
+	return CastChecked<UNoesisTriggerCollection>(CreateClassFor(NoesisControlTemplate->GetTriggers(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisControlTemplate::BindEvents()
@@ -48,7 +51,7 @@ void UNoesisControlTemplate::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ControlTemplate* NoesisControlTemplate = NsDynamicCast<Noesis::Gui::ControlTemplate*>(NoesisComponent.GetPtr());
-	check(NoesisControlTemplate)
+	check(NoesisControlTemplate);
 
 
 }
@@ -58,7 +61,7 @@ void UNoesisControlTemplate::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ControlTemplate* NoesisControlTemplate = NsDynamicCast<Noesis::Gui::ControlTemplate*>(NoesisComponent.GetPtr());
-	check(NoesisControlTemplate)
+	check(NoesisControlTemplate);
 
 
 }

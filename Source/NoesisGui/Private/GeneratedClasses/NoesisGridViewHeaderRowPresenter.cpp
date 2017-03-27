@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisGridViewHeaderRowPresenter.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisGridViewHeaderRowPresenter::UNoesisGridViewHeaderRowPresenter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::GridViewHeaderRowPresenter::StaticGetClassType();
 }
 
 void UNoesisGridViewHeaderRowPresenter::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -40,7 +43,7 @@ class UNoesisStyle* UNoesisGridViewHeaderRowPresenter::GetColumnHeaderContainerS
 {
 	Noesis::Gui::GridViewHeaderRowPresenter* NoesisGridViewHeaderRowPresenter = NsDynamicCast<Noesis::Gui::GridViewHeaderRowPresenter*>(NoesisComponent.GetPtr());
 	check(NoesisGridViewHeaderRowPresenter);
-	return CastChecked<UNoesisStyle>(Instance->FindUnrealComponentForNoesisComponent(NoesisGridViewHeaderRowPresenter->GetColumnHeaderContainerStyle()));
+	return CastChecked<UNoesisStyle>(CreateClassFor(NoesisGridViewHeaderRowPresenter->GetColumnHeaderContainerStyle(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisGridViewHeaderRowPresenter::SetColumnHeaderContainerStyle(class UNoesisStyle* InColumnHeaderContainerStyle)
@@ -54,7 +57,7 @@ class UNoesisContextMenu* UNoesisGridViewHeaderRowPresenter::GetColumnHeaderCont
 {
 	Noesis::Gui::GridViewHeaderRowPresenter* NoesisGridViewHeaderRowPresenter = NsDynamicCast<Noesis::Gui::GridViewHeaderRowPresenter*>(NoesisComponent.GetPtr());
 	check(NoesisGridViewHeaderRowPresenter);
-	return CastChecked<UNoesisContextMenu>(Instance->FindUnrealComponentForNoesisComponent(NoesisGridViewHeaderRowPresenter->GetColumnHeaderContextMenu()));
+	return CastChecked<UNoesisContextMenu>(CreateClassFor(NoesisGridViewHeaderRowPresenter->GetColumnHeaderContextMenu(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisGridViewHeaderRowPresenter::SetColumnHeaderContextMenu(class UNoesisContextMenu* InColumnHeaderContextMenu)
@@ -82,7 +85,7 @@ class UNoesisDataTemplate* UNoesisGridViewHeaderRowPresenter::GetColumnHeaderTem
 {
 	Noesis::Gui::GridViewHeaderRowPresenter* NoesisGridViewHeaderRowPresenter = NsDynamicCast<Noesis::Gui::GridViewHeaderRowPresenter*>(NoesisComponent.GetPtr());
 	check(NoesisGridViewHeaderRowPresenter);
-	return CastChecked<UNoesisDataTemplate>(Instance->FindUnrealComponentForNoesisComponent(NoesisGridViewHeaderRowPresenter->GetColumnHeaderTemplate()));
+	return CastChecked<UNoesisDataTemplate>(CreateClassFor(NoesisGridViewHeaderRowPresenter->GetColumnHeaderTemplate(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisGridViewHeaderRowPresenter::SetColumnHeaderTemplate(class UNoesisDataTemplate* InColumnHeaderTemplate)
@@ -96,7 +99,7 @@ class UNoesisDataTemplateSelector* UNoesisGridViewHeaderRowPresenter::GetColumnH
 {
 	Noesis::Gui::GridViewHeaderRowPresenter* NoesisGridViewHeaderRowPresenter = NsDynamicCast<Noesis::Gui::GridViewHeaderRowPresenter*>(NoesisComponent.GetPtr());
 	check(NoesisGridViewHeaderRowPresenter);
-	return CastChecked<UNoesisDataTemplateSelector>(Instance->FindUnrealComponentForNoesisComponent(NoesisGridViewHeaderRowPresenter->GetColumnHeaderTemplateSelector()));
+	return CastChecked<UNoesisDataTemplateSelector>(CreateClassFor(NoesisGridViewHeaderRowPresenter->GetColumnHeaderTemplateSelector(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisGridViewHeaderRowPresenter::SetColumnHeaderTemplateSelector(class UNoesisDataTemplateSelector* InColumnHeaderTemplateSelector)
@@ -110,7 +113,7 @@ class UNoesisBaseComponent* UNoesisGridViewHeaderRowPresenter::GetColumnHeaderTo
 {
 	Noesis::Gui::GridViewHeaderRowPresenter* NoesisGridViewHeaderRowPresenter = NsDynamicCast<Noesis::Gui::GridViewHeaderRowPresenter*>(NoesisComponent.GetPtr());
 	check(NoesisGridViewHeaderRowPresenter);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisGridViewHeaderRowPresenter->GetColumnHeaderToolTip()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisGridViewHeaderRowPresenter->GetColumnHeaderToolTip(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisGridViewHeaderRowPresenter::SetColumnHeaderToolTip(class UNoesisBaseComponent* InColumnHeaderToolTip)
@@ -125,7 +128,7 @@ void UNoesisGridViewHeaderRowPresenter::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::GridViewHeaderRowPresenter* NoesisGridViewHeaderRowPresenter = NsDynamicCast<Noesis::Gui::GridViewHeaderRowPresenter*>(NoesisComponent.GetPtr());
-	check(NoesisGridViewHeaderRowPresenter)
+	check(NoesisGridViewHeaderRowPresenter);
 
 
 }
@@ -135,7 +138,7 @@ void UNoesisGridViewHeaderRowPresenter::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::GridViewHeaderRowPresenter* NoesisGridViewHeaderRowPresenter = NsDynamicCast<Noesis::Gui::GridViewHeaderRowPresenter*>(NoesisComponent.GetPtr());
-	check(NoesisGridViewHeaderRowPresenter)
+	check(NoesisGridViewHeaderRowPresenter);
 
 
 }

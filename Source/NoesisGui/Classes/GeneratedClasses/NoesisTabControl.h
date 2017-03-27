@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisSelector.h"
 #include "NoesisTabControl.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisTabControl : public UNoesisSelector
 {
 public:

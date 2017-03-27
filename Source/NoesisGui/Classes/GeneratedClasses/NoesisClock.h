@@ -14,7 +14,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisClock.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisClock : public UNoesisBaseComponent
 {
 public:
@@ -43,10 +43,10 @@ public:
 	class UNoesisTimeline* GetTimeline();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-ENoesisClockState GetCurrentState();
+	ENoesisClockState GetCurrentState();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool HasControllableRoot();
+	bool HasControllableRoot();
 
 protected:
 

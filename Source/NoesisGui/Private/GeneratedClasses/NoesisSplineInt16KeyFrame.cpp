@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisSplineInt16KeyFrame.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisSplineInt16KeyFrame::UNoesisSplineInt16KeyFrame(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::SplineKeyFrame<NsInt16>::StaticGetClassType();
 }
 
 void UNoesisSplineInt16KeyFrame::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisKeySpline* UNoesisSplineInt16KeyFrame::GetKeySpline()
 {
 	Noesis::Gui::SplineKeyFrame<NsInt16>* NoesisSplineInt16KeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<NsInt16>*>(NoesisComponent.GetPtr());
 	check(NoesisSplineInt16KeyFrame);
-	return CastChecked<UNoesisKeySpline>(Instance->FindUnrealComponentForNoesisComponent(NoesisSplineInt16KeyFrame->GetKeySpline()));
+	return CastChecked<UNoesisKeySpline>(CreateClassFor(NoesisSplineInt16KeyFrame->GetKeySpline(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisSplineInt16KeyFrame::SetKeySpline(class UNoesisKeySpline* InKeySpline)
@@ -41,7 +44,7 @@ void UNoesisSplineInt16KeyFrame::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::SplineKeyFrame<NsInt16>* NoesisSplineInt16KeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<NsInt16>*>(NoesisComponent.GetPtr());
-	check(NoesisSplineInt16KeyFrame)
+	check(NoesisSplineInt16KeyFrame);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisSplineInt16KeyFrame::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::SplineKeyFrame<NsInt16>* NoesisSplineInt16KeyFrame = NsDynamicCast<Noesis::Gui::SplineKeyFrame<NsInt16>*>(NoesisComponent.GetPtr());
-	check(NoesisSplineInt16KeyFrame)
+	check(NoesisSplineInt16KeyFrame);
 
 
 }

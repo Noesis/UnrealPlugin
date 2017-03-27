@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisAnimationClock.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisAnimationClock::UNoesisAnimationClock(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::AnimationClock::StaticGetClassType();
 }
 
 void UNoesisAnimationClock::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisAnimationClock::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::AnimationClock* NoesisAnimationClock = NsDynamicCast<Noesis::Gui::AnimationClock*>(NoesisComponent.GetPtr());
-	check(NoesisAnimationClock)
+	check(NoesisAnimationClock);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisAnimationClock::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::AnimationClock* NoesisAnimationClock = NsDynamicCast<Noesis::Gui::AnimationClock*>(NoesisComponent.GetPtr());
-	check(NoesisAnimationClock)
+	check(NoesisAnimationClock);
 
 
 }

@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisContentPresenter.h"
 #include "NoesisScrollContentPresenter.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisScrollContentPresenter : public UNoesisContentPresenter
 {
 public:

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisStatusBar.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisStatusBar::UNoesisStatusBar(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::StatusBar::StaticGetClassType();
 }
 
 void UNoesisStatusBar::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisStatusBar::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::StatusBar* NoesisStatusBar = NsDynamicCast<Noesis::Gui::StatusBar*>(NoesisComponent.GetPtr());
-	check(NoesisStatusBar)
+	check(NoesisStatusBar);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisStatusBar::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::StatusBar* NoesisStatusBar = NsDynamicCast<Noesis::Gui::StatusBar*>(NoesisComponent.GetPtr());
-	check(NoesisStatusBar)
+	check(NoesisStatusBar);
 
 
 }

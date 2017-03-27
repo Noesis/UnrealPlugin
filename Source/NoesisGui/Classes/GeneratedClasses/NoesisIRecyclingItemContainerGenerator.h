@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisIRecyclingItemContainerGenerator.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisIRecyclingItemContainerGenerator : public UNoesisInterface
 {
 public:
@@ -20,7 +20,7 @@ public:
 	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Recycle(FNoesisGeneratorPosition Position, int32 Count);
+	void Recycle(FNoesisGeneratorPosition Position, int32 Count);
 
 protected:
 

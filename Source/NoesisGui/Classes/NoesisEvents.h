@@ -22,7 +22,7 @@ struct FNoesisRoutedEventArgs
 
 	FNoesisRoutedEventArgs() {}
 
-	FNoesisRoutedEventArgs(class UNoesisInstance* Instance, const Noesis::RoutedEventArgs& InArgs);
+	FNoesisRoutedEventArgs(const Noesis::RoutedEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -50,7 +50,7 @@ struct FNoesisMouseEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisMouseEventArgs() {}
 
-	FNoesisMouseEventArgs(class UNoesisInstance* Instance, const Noesis::MouseEventArgs& InArgs);
+	FNoesisMouseEventArgs(const Noesis::MouseEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -69,7 +69,7 @@ struct FNoesisMouseButtonEventArgs : public FNoesisMouseEventArgs
 
 	FNoesisMouseButtonEventArgs() {}
 
-	FNoesisMouseButtonEventArgs(class UNoesisInstance* Instance, const Noesis::MouseButtonEventArgs& InArgs);
+	FNoesisMouseButtonEventArgs(const Noesis::MouseButtonEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -82,7 +82,7 @@ struct FNoesisMouseWheelEventArgs : public FNoesisMouseEventArgs
 
 	FNoesisMouseWheelEventArgs() {}
 
-	FNoesisMouseWheelEventArgs(class UNoesisInstance* Instance, const Noesis::MouseWheelEventArgs& InArgs);
+	FNoesisMouseWheelEventArgs(const Noesis::MouseWheelEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -98,7 +98,7 @@ struct FNoesisTouchEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisTouchEventArgs() {}
 
-	FNoesisTouchEventArgs(class UNoesisInstance* Instance, const Noesis::TouchEventArgs& InArgs);
+	FNoesisTouchEventArgs(const Noesis::TouchEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -117,7 +117,7 @@ struct FNoesisDragCompletedEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisDragCompletedEventArgs() {}
 
-	FNoesisDragCompletedEventArgs(class UNoesisInstance* Instance, const Noesis::DragCompletedEventArgs& InArgs);
+	FNoesisDragCompletedEventArgs(const Noesis::DragCompletedEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -133,7 +133,7 @@ struct FNoesisDragStartedEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisDragStartedEventArgs() {}
 
-	FNoesisDragStartedEventArgs(class UNoesisInstance* Instance, const Noesis::DragStartedEventArgs& InArgs);
+	FNoesisDragStartedEventArgs(const Noesis::DragStartedEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -149,7 +149,7 @@ struct FNoesisSelectionChangedEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisSelectionChangedEventArgs(){}
 
-	FNoesisSelectionChangedEventArgs(class UNoesisInstance* Instance, const Noesis::SelectionChangedEventArgs& InArgs);
+	FNoesisSelectionChangedEventArgs(const Noesis::SelectionChangedEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -171,7 +171,7 @@ struct FNoesisSizeChangedEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisSizeChangedEventArgs(){}
 
-	FNoesisSizeChangedEventArgs(class UNoesisInstance* Instance, const Noesis::SizeChangedEventArgs& InArgs);
+	FNoesisSizeChangedEventArgs(const Noesis::SizeChangedEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -187,7 +187,7 @@ struct FNoesisKeyboardFocusChangedEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisKeyboardFocusChangedEventArgs() {}
 
-	FNoesisKeyboardFocusChangedEventArgs(class UNoesisInstance* Instance, const Noesis::KeyboardFocusChangedEventArgs& InArgs);
+	FNoesisKeyboardFocusChangedEventArgs(const Noesis::KeyboardFocusChangedEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -203,7 +203,7 @@ struct FNoesisScrollEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisScrollEventArgs() {}
 
-	FNoesisScrollEventArgs(class UNoesisInstance* Instance, const Noesis::ScrollEventArgs& InArgs);
+	FNoesisScrollEventArgs(const Noesis::ScrollEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -216,7 +216,7 @@ struct FNoesisTextCompositionEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisTextCompositionEventArgs() {}
 
-	FNoesisTextCompositionEventArgs(class UNoesisInstance* Instance, const Noesis::TextCompositionEventArgs& InArgs);
+	FNoesisTextCompositionEventArgs(const Noesis::TextCompositionEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -235,7 +235,7 @@ struct FNoesisContextMenuEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisContextMenuEventArgs() {}
 
-	FNoesisContextMenuEventArgs(class UNoesisInstance* Instance, const Noesis::ContextMenuEventArgs& InArgs);
+	FNoesisContextMenuEventArgs(const Noesis::ContextMenuEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -251,7 +251,7 @@ struct FNoesisKeyEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisKeyEventArgs() {}
 
-	FNoesisKeyEventArgs(class UNoesisInstance* Instance, const Noesis::KeyEventArgs& InArgs);
+	FNoesisKeyEventArgs(const Noesis::KeyEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -270,7 +270,7 @@ struct FNoesisManipulationStartingEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisManipulationStartingEventArgs() {}
 
-	FNoesisManipulationStartingEventArgs(class UNoesisInstance* Instance, const Noesis::ManipulationStartingEventArgs& InArgs);
+	FNoesisManipulationStartingEventArgs(const Noesis::ManipulationStartingEventArgs& InArgs);
 
 	void ToNoesis(const Noesis::ManipulationStartingEventArgs& InArgs);
 };
@@ -294,7 +294,7 @@ struct FNoesisManipulationStartedEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisManipulationStartedEventArgs() {}
 
-	FNoesisManipulationStartedEventArgs(class UNoesisInstance* Instance, const Noesis::ManipulationStartedEventArgs& InArgs);
+	FNoesisManipulationStartedEventArgs(const Noesis::ManipulationStartedEventArgs& InArgs);
 
 	void ToNoesis(const Noesis::ManipulationStartedEventArgs& InArgs);
 };
@@ -330,7 +330,7 @@ struct FNoesisManipulationDeltaEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisManipulationDeltaEventArgs() {}
 
-	FNoesisManipulationDeltaEventArgs(class UNoesisInstance* Instance, const Noesis::ManipulationDeltaEventArgs& InArgs);
+	FNoesisManipulationDeltaEventArgs(const Noesis::ManipulationDeltaEventArgs& InArgs);
 
 	void ToNoesis(const Noesis::ManipulationDeltaEventArgs& InArgs);
 };
@@ -363,7 +363,7 @@ struct FNoesisManipulationInertiaStartingEventArgs : public FNoesisRoutedEventAr
 
 	FNoesisManipulationInertiaStartingEventArgs() {}
 
-	FNoesisManipulationInertiaStartingEventArgs(class UNoesisInstance* Instance, const Noesis::ManipulationInertiaStartingEventArgs& InArgs);
+	FNoesisManipulationInertiaStartingEventArgs(const Noesis::ManipulationInertiaStartingEventArgs& InArgs);
 
 	void ToNoesis(const Noesis::ManipulationInertiaStartingEventArgs& InArgs);
 };
@@ -393,7 +393,7 @@ struct FNoesisManipulationCompletedEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisManipulationCompletedEventArgs() {}
 
-	FNoesisManipulationCompletedEventArgs(class UNoesisInstance* Instance, const Noesis::ManipulationCompletedEventArgs& InArgs);
+	FNoesisManipulationCompletedEventArgs(const Noesis::ManipulationCompletedEventArgs& InArgs);
 
 	void ToNoesis(const Noesis::ManipulationCompletedEventArgs& InArgs);
 };
@@ -441,7 +441,7 @@ struct FNoesisScrollChangedEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisScrollChangedEventArgs() {}
 
-	FNoesisScrollChangedEventArgs(class UNoesisInstance* Instance, const Noesis::ScrollChangedEventArgs& InArgs);
+	FNoesisScrollChangedEventArgs(const Noesis::ScrollChangedEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -451,7 +451,7 @@ struct FNoesisToolTipEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisToolTipEventArgs() {}
 
-	FNoesisToolTipEventArgs(class UNoesisInstance* Instance, const Noesis::ToolTipEventArgs& InArgs);
+	FNoesisToolTipEventArgs(const Noesis::ToolTipEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -467,7 +467,7 @@ struct FNoesisDragDeltaEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisDragDeltaEventArgs() {}
 
-	FNoesisDragDeltaEventArgs(class UNoesisInstance* Instance, const Noesis::DragDeltaEventArgs& InArgs);
+	FNoesisDragDeltaEventArgs(const Noesis::DragDeltaEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -483,7 +483,7 @@ struct FNoesisFloatPropertyChangedEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisFloatPropertyChangedEventArgs() {}
 
-	FNoesisFloatPropertyChangedEventArgs(class UNoesisInstance* Instance, const Noesis::RoutedPropertyChangedEventArgs<NsFloat32>& InArgs);
+	FNoesisFloatPropertyChangedEventArgs(const Noesis::RoutedPropertyChangedEventArgs<NsFloat32>& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -499,7 +499,7 @@ struct FNoesisBaseComponentPropertyChangedEventArgs : public FNoesisRoutedEventA
 
 	FNoesisBaseComponentPropertyChangedEventArgs() {}
 
-	FNoesisBaseComponentPropertyChangedEventArgs(class UNoesisInstance* Instance, const Noesis::RoutedPropertyChangedEventArgs<Noesis::Ptr<Noesis::BaseComponent> >& InArgs);
+	FNoesisBaseComponentPropertyChangedEventArgs(const Noesis::RoutedPropertyChangedEventArgs<Noesis::Ptr<Noesis::BaseComponent> >& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -521,7 +521,7 @@ struct FNoesisCanExecuteRoutedEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisCanExecuteRoutedEventArgs() {}
 
-	FNoesisCanExecuteRoutedEventArgs(class UNoesisInstance* Instance, const Noesis::CanExecuteRoutedEventArgs& InArgs);
+	FNoesisCanExecuteRoutedEventArgs(const Noesis::CanExecuteRoutedEventArgs& InArgs);
 
 	void ToNoesis(const Noesis::CanExecuteRoutedEventArgs& InArgs);
 };
@@ -539,7 +539,7 @@ struct FNoesisExecutedRoutedEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisExecutedRoutedEventArgs() {}
 
-	FNoesisExecutedRoutedEventArgs(class UNoesisInstance* Instance, const Noesis::ExecutedRoutedEventArgs& InArgs);
+	FNoesisExecutedRoutedEventArgs(const Noesis::ExecutedRoutedEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -555,7 +555,7 @@ struct FNoesisRequestBringIntoViewEventArgs : public FNoesisRoutedEventArgs
 
 	FNoesisRequestBringIntoViewEventArgs() {}
 
-	FNoesisRequestBringIntoViewEventArgs(class UNoesisInstance* Instance, const Noesis::RequestBringIntoViewEventArgs& InArgs);
+	FNoesisRequestBringIntoViewEventArgs(const Noesis::RequestBringIntoViewEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -565,7 +565,7 @@ struct FNoesisEventArgs
 
 	FNoesisEventArgs() {}
 
-	FNoesisEventArgs(class UNoesisInstance* Instance, const Noesis::EventArgs& InArgs);
+	FNoesisEventArgs(const Noesis::EventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -578,7 +578,7 @@ struct FNoesisTimelineEventArgs : public FNoesisEventArgs
 
 	FNoesisTimelineEventArgs() {}
 
-	FNoesisTimelineEventArgs(class UNoesisInstance* Instance, const Noesis::TimelineEventArgs& InArgs);
+	FNoesisTimelineEventArgs(const Noesis::TimelineEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -603,7 +603,7 @@ struct FNoesisItemsChangedEventArgs : public FNoesisEventArgs
 
 	FNoesisItemsChangedEventArgs() {}
 
-	FNoesisItemsChangedEventArgs(class UNoesisInstance* Instance, const Noesis::ItemsChangedEventArgs& InArgs);
+	FNoesisItemsChangedEventArgs(const Noesis::ItemsChangedEventArgs& InArgs);
 };
 
 USTRUCT(BlueprintType)
@@ -616,8 +616,10 @@ struct FNoesisDependencyPropertyChangedEventArgs
 
 	FNoesisDependencyPropertyChangedEventArgs() {}
 
-	FNoesisDependencyPropertyChangedEventArgs(class UNoesisInstance* Instance, const Noesis::DependencyPropertyChangedEventArgs& InArgs);
+	FNoesisDependencyPropertyChangedEventArgs(const Noesis::DependencyPropertyChangedEventArgs& InArgs);
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FNoesisDelegate, class UNoesisBaseComponent*, Sender);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FNoesisRoutedEventHandler, class UNoesisBaseComponent*, Sender, FNoesisRoutedEventArgs, Args);
 

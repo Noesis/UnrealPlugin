@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisVirtualizingStackPanel.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisVirtualizingStackPanel::UNoesisVirtualizingStackPanel(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::VirtualizingStackPanel::StaticGetClassType();
 }
 
 void UNoesisVirtualizingStackPanel::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -41,7 +44,7 @@ void UNoesisVirtualizingStackPanel::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::VirtualizingStackPanel* NoesisVirtualizingStackPanel = NsDynamicCast<Noesis::Gui::VirtualizingStackPanel*>(NoesisComponent.GetPtr());
-	check(NoesisVirtualizingStackPanel)
+	check(NoesisVirtualizingStackPanel);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisVirtualizingStackPanel::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::VirtualizingStackPanel* NoesisVirtualizingStackPanel = NsDynamicCast<Noesis::Gui::VirtualizingStackPanel*>(NoesisComponent.GetPtr());
-	check(NoesisVirtualizingStackPanel)
+	check(NoesisVirtualizingStackPanel);
 
 
 }

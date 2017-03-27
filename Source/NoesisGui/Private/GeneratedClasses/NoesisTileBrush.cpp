@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisTileBrush.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisTileBrush::UNoesisTileBrush(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TileBrush::StaticGetClassType();
 }
 
 void UNoesisTileBrush::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -139,7 +142,7 @@ void UNoesisTileBrush::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TileBrush* NoesisTileBrush = NsDynamicCast<Noesis::Gui::TileBrush*>(NoesisComponent.GetPtr());
-	check(NoesisTileBrush)
+	check(NoesisTileBrush);
 
 
 }
@@ -149,7 +152,7 @@ void UNoesisTileBrush::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TileBrush* NoesisTileBrush = NsDynamicCast<Noesis::Gui::TileBrush*>(NoesisComponent.GetPtr());
-	check(NoesisTileBrush)
+	check(NoesisTileBrush);
 
 
 }

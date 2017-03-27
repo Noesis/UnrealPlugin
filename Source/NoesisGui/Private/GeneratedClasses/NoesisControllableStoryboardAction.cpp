@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisControllableStoryboardAction.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisControllableStoryboardAction::UNoesisControllableStoryboardAction(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ControllableStoryboardAction::StaticGetClassType();
 }
 
 void UNoesisControllableStoryboardAction::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -41,7 +44,7 @@ void UNoesisControllableStoryboardAction::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ControllableStoryboardAction* NoesisControllableStoryboardAction = NsDynamicCast<Noesis::Gui::ControllableStoryboardAction*>(NoesisComponent.GetPtr());
-	check(NoesisControllableStoryboardAction)
+	check(NoesisControllableStoryboardAction);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisControllableStoryboardAction::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ControllableStoryboardAction* NoesisControllableStoryboardAction = NsDynamicCast<Noesis::Gui::ControllableStoryboardAction*>(NoesisComponent.GetPtr());
-	check(NoesisControllableStoryboardAction)
+	check(NoesisControllableStoryboardAction);
 
 
 }

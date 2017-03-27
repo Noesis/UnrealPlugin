@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisTransform.h"
 #include "NoesisTransformGroup.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisTransformGroup : public UNoesisTransform
 {
 public:
@@ -26,10 +26,10 @@ public:
 	void SetChildren(class UNoesisTransformCollection* InChildren);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisTransform* GetChild(int32 Index);
+	class UNoesisTransform* GetChild(int32 Index);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-int32 GetNumChildren();
+	int32 GetNumChildren();
 
 protected:
 

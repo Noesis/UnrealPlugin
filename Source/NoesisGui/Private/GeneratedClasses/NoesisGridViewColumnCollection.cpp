@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisGridViewColumnCollection.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisGridViewColumnCollection::UNoesisGridViewColumnCollection(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TypedCollection<Noesis::Gui::GridViewColumn>::StaticGetClassType();
 }
 
 void UNoesisGridViewColumnCollection::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisGridViewColumnCollection::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TypedCollection<Noesis::Gui::GridViewColumn>* NoesisGridViewColumnCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::GridViewColumn>*>(NoesisComponent.GetPtr());
-	check(NoesisGridViewColumnCollection)
+	check(NoesisGridViewColumnCollection);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisGridViewColumnCollection::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TypedCollection<Noesis::Gui::GridViewColumn>* NoesisGridViewColumnCollection = NsDynamicCast<Noesis::Gui::TypedCollection<Noesis::Gui::GridViewColumn>*>(NoesisComponent.GetPtr());
-	check(NoesisGridViewColumnCollection)
+	check(NoesisGridViewColumnCollection);
 
 
 }

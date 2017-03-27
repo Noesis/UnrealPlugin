@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisMultiTrigger.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisMultiTrigger::UNoesisMultiTrigger(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::MultiTrigger::StaticGetClassType();
 }
 
 void UNoesisMultiTrigger::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,14 +29,14 @@ class UNoesisConditionCollection* UNoesisMultiTrigger::GetConditions()
 {
 	Noesis::Gui::MultiTrigger* NoesisMultiTrigger = NsDynamicCast<Noesis::Gui::MultiTrigger*>(NoesisComponent.GetPtr());
 	check(NoesisMultiTrigger);
-	return CastChecked<UNoesisConditionCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisMultiTrigger->GetConditions()));
+	return CastChecked<UNoesisConditionCollection>(CreateClassFor(NoesisMultiTrigger->GetConditions(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisBaseSetterCollection* UNoesisMultiTrigger::GetSetters()
 {
 	Noesis::Gui::MultiTrigger* NoesisMultiTrigger = NsDynamicCast<Noesis::Gui::MultiTrigger*>(NoesisComponent.GetPtr());
 	check(NoesisMultiTrigger);
-	return CastChecked<UNoesisBaseSetterCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisMultiTrigger->GetSetters()));
+	return CastChecked<UNoesisBaseSetterCollection>(CreateClassFor(NoesisMultiTrigger->GetSetters(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisMultiTrigger::BindEvents()
@@ -41,7 +44,7 @@ void UNoesisMultiTrigger::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::MultiTrigger* NoesisMultiTrigger = NsDynamicCast<Noesis::Gui::MultiTrigger*>(NoesisComponent.GetPtr());
-	check(NoesisMultiTrigger)
+	check(NoesisMultiTrigger);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisMultiTrigger::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::MultiTrigger* NoesisMultiTrigger = NsDynamicCast<Noesis::Gui::MultiTrigger*>(NoesisComponent.GetPtr());
-	check(NoesisMultiTrigger)
+	check(NoesisMultiTrigger);
 
 
 }

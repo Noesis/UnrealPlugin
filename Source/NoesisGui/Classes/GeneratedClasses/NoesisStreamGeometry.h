@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisGeometry.h"
 #include "NoesisStreamGeometry.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisStreamGeometry : public UNoesisGeometry
 {
 public:
@@ -26,7 +26,7 @@ public:
 	void SetFillRule(ENoesisFillRule InFillRule);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void SetData(FString Data);
+	void SetData(FString Data);
 
 protected:
 

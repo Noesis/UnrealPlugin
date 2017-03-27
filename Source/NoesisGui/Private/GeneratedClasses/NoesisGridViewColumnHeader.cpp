@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisGridViewColumnHeader.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisGridViewColumnHeader::UNoesisGridViewColumnHeader(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::GridViewColumnHeader::StaticGetClassType();
 }
 
 void UNoesisGridViewColumnHeader::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisGridViewColumn* UNoesisGridViewColumnHeader::GetColumn()
 {
 	Noesis::Gui::GridViewColumnHeader* NoesisGridViewColumnHeader = NsDynamicCast<Noesis::Gui::GridViewColumnHeader*>(NoesisComponent.GetPtr());
 	check(NoesisGridViewColumnHeader);
-	return CastChecked<UNoesisGridViewColumn>(Instance->FindUnrealComponentForNoesisComponent(NoesisGridViewColumnHeader->GetColumn()));
+	return CastChecked<UNoesisGridViewColumn>(CreateClassFor(NoesisGridViewColumnHeader->GetColumn(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 ENoesisGridViewColumnHeaderRole UNoesisGridViewColumnHeader::GetRole()
@@ -41,7 +44,7 @@ void UNoesisGridViewColumnHeader::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::GridViewColumnHeader* NoesisGridViewColumnHeader = NsDynamicCast<Noesis::Gui::GridViewColumnHeader*>(NoesisComponent.GetPtr());
-	check(NoesisGridViewColumnHeader)
+	check(NoesisGridViewColumnHeader);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisGridViewColumnHeader::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::GridViewColumnHeader* NoesisGridViewColumnHeader = NsDynamicCast<Noesis::Gui::GridViewColumnHeader*>(NoesisComponent.GetPtr());
-	check(NoesisGridViewColumnHeader)
+	check(NoesisGridViewColumnHeader);
 
 
 }

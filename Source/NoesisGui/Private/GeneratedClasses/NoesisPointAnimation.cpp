@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisPointAnimation.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisPointAnimation::UNoesisPointAnimation(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Animation<Noesis::Drawing::Point>::StaticGetClassType();
 }
 
 void UNoesisPointAnimation::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisPointAnimation::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Animation<Noesis::Drawing::Point>* NoesisPointAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Point>*>(NoesisComponent.GetPtr());
-	check(NoesisPointAnimation)
+	check(NoesisPointAnimation);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisPointAnimation::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Animation<Noesis::Drawing::Point>* NoesisPointAnimation = NsDynamicCast<Noesis::Gui::Animation<Noesis::Drawing::Point>*>(NoesisComponent.GetPtr());
-	check(NoesisPointAnimation)
+	check(NoesisPointAnimation);
 
 
 }

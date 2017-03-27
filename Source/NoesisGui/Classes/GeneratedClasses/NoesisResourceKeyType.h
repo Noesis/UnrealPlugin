@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisResourceKeyType.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisResourceKeyType : public UNoesisBaseComponent
 {
 public:

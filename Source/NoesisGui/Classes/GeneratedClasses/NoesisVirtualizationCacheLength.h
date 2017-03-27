@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisVirtualizationCacheLength.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisVirtualizationCacheLength : public UNoesisBaseComponent
 {
 public:

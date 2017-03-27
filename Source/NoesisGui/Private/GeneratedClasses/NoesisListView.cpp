@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisListView.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisListView::UNoesisListView(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ListView::StaticGetClassType();
 }
 
 void UNoesisListView::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisBaseView* UNoesisListView::GetView()
 {
 	Noesis::Gui::ListView* NoesisListView = NsDynamicCast<Noesis::Gui::ListView*>(NoesisComponent.GetPtr());
 	check(NoesisListView);
-	return CastChecked<UNoesisBaseView>(Instance->FindUnrealComponentForNoesisComponent(NoesisListView->GetView()));
+	return CastChecked<UNoesisBaseView>(CreateClassFor(NoesisListView->GetView(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisListView::SetView(class UNoesisBaseView* InView)
@@ -41,7 +44,7 @@ void UNoesisListView::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ListView* NoesisListView = NsDynamicCast<Noesis::Gui::ListView*>(NoesisComponent.GetPtr());
-	check(NoesisListView)
+	check(NoesisListView);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisListView::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ListView* NoesisListView = NsDynamicCast<Noesis::Gui::ListView*>(NoesisComponent.GetPtr());
-	check(NoesisListView)
+	check(NoesisListView);
 
 
 }

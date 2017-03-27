@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisLabel.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisLabel::UNoesisLabel(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Label::StaticGetClassType();
 }
 
 void UNoesisLabel::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisLabel::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Label* NoesisLabel = NsDynamicCast<Noesis::Gui::Label*>(NoesisComponent.GetPtr());
-	check(NoesisLabel)
+	check(NoesisLabel);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisLabel::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Label* NoesisLabel = NsDynamicCast<Noesis::Gui::Label*>(NoesisComponent.GetPtr());
-	check(NoesisLabel)
+	check(NoesisLabel);
 
 
 }

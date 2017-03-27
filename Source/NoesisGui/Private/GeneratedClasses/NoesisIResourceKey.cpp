@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisIResourceKey.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisIResourceKey::UNoesisIResourceKey(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisInterfaceTypeClass = Noesis::Gui::IResourceKey::StaticGetClassType();
 }
 
 void UNoesisIResourceKey::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterface)
@@ -42,7 +45,7 @@ void UNoesisIResourceKey::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::IResourceKey* NoesisIResourceKey = NsDynamicCast<Noesis::Gui::IResourceKey*>(NoesisInterface.GetPtr());
-	check(NoesisIResourceKey)
+	check(NoesisIResourceKey);
 
 
 }
@@ -52,7 +55,7 @@ void UNoesisIResourceKey::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::IResourceKey* NoesisIResourceKey = NsDynamicCast<Noesis::Gui::IResourceKey*>(NoesisInterface.GetPtr());
-	check(NoesisIResourceKey)
+	check(NoesisIResourceKey);
 
 
 }

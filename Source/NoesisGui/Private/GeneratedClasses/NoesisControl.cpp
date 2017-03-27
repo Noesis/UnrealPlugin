@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisControl.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisControl::UNoesisControl(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::Control::StaticGetClassType();
 }
 
 void UNoesisControl::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisBrush* UNoesisControl::GetBackground()
 {
 	Noesis::Gui::Control* NoesisControl = NsDynamicCast<Noesis::Gui::Control*>(NoesisComponent.GetPtr());
 	check(NoesisControl);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisControl->GetBackground()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisControl->GetBackground(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisControl::SetBackground(class UNoesisBrush* InBackground)
@@ -40,7 +43,7 @@ class UNoesisBrush* UNoesisControl::GetBorderBrush()
 {
 	Noesis::Gui::Control* NoesisControl = NsDynamicCast<Noesis::Gui::Control*>(NoesisComponent.GetPtr());
 	check(NoesisControl);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisControl->GetBorderBrush()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisControl->GetBorderBrush(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisControl::SetBorderBrush(class UNoesisBrush* InBorderBrush)
@@ -68,7 +71,7 @@ class UNoesisFontFamily* UNoesisControl::GetFontFamily()
 {
 	Noesis::Gui::Control* NoesisControl = NsDynamicCast<Noesis::Gui::Control*>(NoesisComponent.GetPtr());
 	check(NoesisControl);
-	return CastChecked<UNoesisFontFamily>(Instance->FindUnrealComponentForNoesisComponent(NoesisControl->GetFontFamily()));
+	return CastChecked<UNoesisFontFamily>(CreateClassFor(NoesisControl->GetFontFamily(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisControl::SetFontFamily(class UNoesisFontFamily* InFontFamily)
@@ -138,7 +141,7 @@ class UNoesisBrush* UNoesisControl::GetForeground()
 {
 	Noesis::Gui::Control* NoesisControl = NsDynamicCast<Noesis::Gui::Control*>(NoesisComponent.GetPtr());
 	check(NoesisControl);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisControl->GetForeground()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisControl->GetForeground(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisControl::SetForeground(class UNoesisBrush* InForeground)
@@ -208,7 +211,7 @@ class UNoesisControlTemplate* UNoesisControl::GetTemplate()
 {
 	Noesis::Gui::Control* NoesisControl = NsDynamicCast<Noesis::Gui::Control*>(NoesisComponent.GetPtr());
 	check(NoesisControl);
-	return CastChecked<UNoesisControlTemplate>(Instance->FindUnrealComponentForNoesisComponent(NoesisControl->GetTemplate()));
+	return CastChecked<UNoesisControlTemplate>(CreateClassFor(NoesisControl->GetTemplate(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisControl::SetTemplate(class UNoesisControlTemplate* InTemplate)
@@ -234,19 +237,19 @@ void UNoesisControl::SetVerticalContentAlignment(ENoesisVerticalAlignment InVert
 
 void UNoesisControl::MouseDoubleClick_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
 {
-	if (!MouseDoubleClick.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!MouseDoubleClick.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisMouseButtonEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisMouseButtonEventArgs Args(InArgs);
 	MouseDoubleClick.Broadcast(Sender, Args);
 }
 
 void UNoesisControl::PreviewMouseDoubleClick_Private(Noesis::Core::BaseComponent* InSender, const Noesis::MouseButtonEventArgs& InArgs)
 {
-	if (!PreviewMouseDoubleClick.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PreviewMouseDoubleClick.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisMouseButtonEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisMouseButtonEventArgs Args(InArgs);
 	PreviewMouseDoubleClick.Broadcast(Sender, Args);
 }
 
@@ -255,18 +258,12 @@ void UNoesisControl::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::Control* NoesisControl = NsDynamicCast<Noesis::Gui::Control*>(NoesisComponent.GetPtr());
-	check(NoesisControl)
+	check(NoesisControl);
 
 	MouseDoubleClick_Delegate = Noesis::MakeDelegate(this, &UNoesisControl::MouseDoubleClick_Private);
-	if (MouseDoubleClick.IsBound())
-	{
-		NoesisControl->MouseDoubleClick() += MouseDoubleClick_Delegate;
-	}
+	NoesisControl->MouseDoubleClick() += MouseDoubleClick_Delegate;
 	PreviewMouseDoubleClick_Delegate = Noesis::MakeDelegate(this, &UNoesisControl::PreviewMouseDoubleClick_Private);
-	if (PreviewMouseDoubleClick.IsBound())
-	{
-		NoesisControl->PreviewMouseDoubleClick() += PreviewMouseDoubleClick_Delegate;
-	}
+	NoesisControl->PreviewMouseDoubleClick() += PreviewMouseDoubleClick_Delegate;
 
 }
 
@@ -275,16 +272,10 @@ void UNoesisControl::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::Control* NoesisControl = NsDynamicCast<Noesis::Gui::Control*>(NoesisComponent.GetPtr());
-	check(NoesisControl)
+	check(NoesisControl);
 
-	if (MouseDoubleClick.IsBound())
-	{
-		NoesisControl->MouseDoubleClick() -= MouseDoubleClick_Delegate;
-	}
-	if (PreviewMouseDoubleClick.IsBound())
-	{
-		NoesisControl->PreviewMouseDoubleClick() -= PreviewMouseDoubleClick_Delegate;
-	}
+	NoesisControl->MouseDoubleClick() -= MouseDoubleClick_Delegate;
+	NoesisControl->PreviewMouseDoubleClick() -= PreviewMouseDoubleClick_Delegate;
 
 }
 

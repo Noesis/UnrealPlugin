@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisIEasingFunction.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisIEasingFunction::UNoesisIEasingFunction(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisInterfaceTypeClass = Noesis::Gui::IEasingFunction::StaticGetClassType();
 }
 
 void UNoesisIEasingFunction::SetNoesisInterface(Noesis::Core::Interface* InNoesisInterface)
@@ -35,7 +38,7 @@ void UNoesisIEasingFunction::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::IEasingFunction* NoesisIEasingFunction = NsDynamicCast<Noesis::Gui::IEasingFunction*>(NoesisInterface.GetPtr());
-	check(NoesisIEasingFunction)
+	check(NoesisIEasingFunction);
 
 
 }
@@ -45,7 +48,7 @@ void UNoesisIEasingFunction::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::IEasingFunction* NoesisIEasingFunction = NsDynamicCast<Noesis::Gui::IEasingFunction*>(NoesisInterface.GetPtr());
-	check(NoesisIEasingFunction)
+	check(NoesisIEasingFunction);
 
 
 }

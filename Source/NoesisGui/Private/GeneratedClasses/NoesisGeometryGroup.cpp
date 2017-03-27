@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisGeometryGroup.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisGeometryGroup::UNoesisGeometryGroup(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::GeometryGroup::StaticGetClassType();
 }
 
 void UNoesisGeometryGroup::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisGeometryCollection* UNoesisGeometryGroup::GetChildren()
 {
 	Noesis::Gui::GeometryGroup* NoesisGeometryGroup = NsDynamicCast<Noesis::Gui::GeometryGroup*>(NoesisComponent.GetPtr());
 	check(NoesisGeometryGroup);
-	return CastChecked<UNoesisGeometryCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisGeometryGroup->GetChildren()));
+	return CastChecked<UNoesisGeometryCollection>(CreateClassFor(NoesisGeometryGroup->GetChildren(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisGeometryGroup::SetChildren(class UNoesisGeometryCollection* InChildren)
@@ -55,7 +58,7 @@ void UNoesisGeometryGroup::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::GeometryGroup* NoesisGeometryGroup = NsDynamicCast<Noesis::Gui::GeometryGroup*>(NoesisComponent.GetPtr());
-	check(NoesisGeometryGroup)
+	check(NoesisGeometryGroup);
 
 
 }
@@ -65,7 +68,7 @@ void UNoesisGeometryGroup::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::GeometryGroup* NoesisGeometryGroup = NsDynamicCast<Noesis::Gui::GeometryGroup*>(NoesisComponent.GetPtr());
-	check(NoesisGeometryGroup)
+	check(NoesisGeometryGroup);
 
 
 }

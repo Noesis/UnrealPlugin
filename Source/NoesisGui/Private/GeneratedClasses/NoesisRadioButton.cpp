@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisRadioButton.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisRadioButton::UNoesisRadioButton(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::RadioButton::StaticGetClassType();
 }
 
 void UNoesisRadioButton::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -41,7 +44,7 @@ void UNoesisRadioButton::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::RadioButton* NoesisRadioButton = NsDynamicCast<Noesis::Gui::RadioButton*>(NoesisComponent.GetPtr());
-	check(NoesisRadioButton)
+	check(NoesisRadioButton);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisRadioButton::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::RadioButton* NoesisRadioButton = NsDynamicCast<Noesis::Gui::RadioButton*>(NoesisComponent.GetPtr());
-	check(NoesisRadioButton)
+	check(NoesisRadioButton);
 
 
 }

@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisListBox.h"
 #include "NoesisListView.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisListView : public UNoesisListBox
 {
 public:

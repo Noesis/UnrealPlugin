@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisTimelineGroup.h"
 #include "NoesisParallelTimeline.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisParallelTimeline : public UNoesisTimelineGroup
 {
 public:
@@ -26,7 +26,7 @@ public:
 	void SetSlipBehavior(ENoesisSlipBehavior InSlipBehavior);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-FNoesisDuration GetNaturalDuration(class UNoesisClock* Clock);
+	FNoesisDuration GetNaturalDuration(class UNoesisClock* Clock);
 
 protected:
 

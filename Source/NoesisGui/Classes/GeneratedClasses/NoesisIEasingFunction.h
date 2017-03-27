@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisIEasingFunction.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisIEasingFunction : public UNoesisInterface
 {
 public:
@@ -20,7 +20,7 @@ public:
 	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-float Ease(float NormalizedTime);
+	float Ease(float NormalizedTime);
 
 protected:
 

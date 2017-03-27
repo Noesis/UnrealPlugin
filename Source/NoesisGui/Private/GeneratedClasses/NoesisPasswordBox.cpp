@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisPasswordBox.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisPasswordBox::UNoesisPasswordBox(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::PasswordBox::StaticGetClassType();
 }
 
 void UNoesisPasswordBox::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisBrush* UNoesisPasswordBox::GetCaretBrush()
 {
 	Noesis::Gui::PasswordBox* NoesisPasswordBox = NsDynamicCast<Noesis::Gui::PasswordBox*>(NoesisComponent.GetPtr());
 	check(NoesisPasswordBox);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisPasswordBox->GetCaretBrush()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisPasswordBox->GetCaretBrush(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisPasswordBox::SetCaretBrush(class UNoesisBrush* InCaretBrush)
@@ -82,7 +85,7 @@ class UNoesisBrush* UNoesisPasswordBox::GetSelectionBrush()
 {
 	Noesis::Gui::PasswordBox* NoesisPasswordBox = NsDynamicCast<Noesis::Gui::PasswordBox*>(NoesisComponent.GetPtr());
 	check(NoesisPasswordBox);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisPasswordBox->GetSelectionBrush()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisPasswordBox->GetSelectionBrush(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisPasswordBox::SetSelectionBrush(class UNoesisBrush* InSelectionBrush)
@@ -106,12 +109,19 @@ void UNoesisPasswordBox::SetSelectionOpacity(float InSelectionOpacity)
 	NoesisPasswordBox->SetSelectionOpacity(InSelectionOpacity);
 }
 
+void UNoesisPasswordBox::SelectAll()
+{
+	Noesis::Gui::PasswordBox* NoesisPasswordBox = NsDynamicCast<Noesis::Gui::PasswordBox*>(NoesisComponent.GetPtr());
+	check(NoesisPasswordBox);
+	return NoesisPasswordBox->SelectAll();
+}
+
 void UNoesisPasswordBox::PasswordChanged_Private(Noesis::Core::BaseComponent* InSender, const Noesis::RoutedEventArgs& InArgs)
 {
-	if (!PasswordChanged.IsBound() || !Instance || Instance->HasAnyFlags(RF_BeginDestroyed))
+	if (!PasswordChanged.IsBound())
 		return;
-	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(InSender));
-	FNoesisRoutedEventArgs Args(Instance, InArgs);
+	UNoesisBaseComponent* Sender = CastChecked<UNoesisBaseComponent>(CreateClassFor(InSender, nullptr), ECastCheckedType::NullAllowed);
+	FNoesisRoutedEventArgs Args(InArgs);
 	PasswordChanged.Broadcast(Sender, Args);
 }
 
@@ -120,13 +130,10 @@ void UNoesisPasswordBox::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::PasswordBox* NoesisPasswordBox = NsDynamicCast<Noesis::Gui::PasswordBox*>(NoesisComponent.GetPtr());
-	check(NoesisPasswordBox)
+	check(NoesisPasswordBox);
 
 	PasswordChanged_Delegate = Noesis::MakeDelegate(this, &UNoesisPasswordBox::PasswordChanged_Private);
-	if (PasswordChanged.IsBound())
-	{
-		NoesisPasswordBox->PasswordChanged() += PasswordChanged_Delegate;
-	}
+	NoesisPasswordBox->PasswordChanged() += PasswordChanged_Delegate;
 
 }
 
@@ -135,12 +142,9 @@ void UNoesisPasswordBox::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::PasswordBox* NoesisPasswordBox = NsDynamicCast<Noesis::Gui::PasswordBox*>(NoesisComponent.GetPtr());
-	check(NoesisPasswordBox)
+	check(NoesisPasswordBox);
 
-	if (PasswordChanged.IsBound())
-	{
-		NoesisPasswordBox->PasswordChanged() -= PasswordChanged_Delegate;
-	}
+	NoesisPasswordBox->PasswordChanged() -= PasswordChanged_Delegate;
 
 }
 

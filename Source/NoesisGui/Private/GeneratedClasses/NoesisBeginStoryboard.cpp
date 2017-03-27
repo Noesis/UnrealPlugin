@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisBeginStoryboard.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisBeginStoryboard::UNoesisBeginStoryboard(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::BeginStoryboard::StaticGetClassType();
 }
 
 void UNoesisBeginStoryboard::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -54,7 +57,7 @@ class UNoesisStoryboard* UNoesisBeginStoryboard::GetStoryboard()
 {
 	Noesis::Gui::BeginStoryboard* NoesisBeginStoryboard = NsDynamicCast<Noesis::Gui::BeginStoryboard*>(NoesisComponent.GetPtr());
 	check(NoesisBeginStoryboard);
-	return CastChecked<UNoesisStoryboard>(Instance->FindUnrealComponentForNoesisComponent(NoesisBeginStoryboard->GetStoryboard()));
+	return CastChecked<UNoesisStoryboard>(CreateClassFor(NoesisBeginStoryboard->GetStoryboard(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisBeginStoryboard::SetStoryboard(class UNoesisStoryboard* InStoryboard)
@@ -69,7 +72,7 @@ void UNoesisBeginStoryboard::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::BeginStoryboard* NoesisBeginStoryboard = NsDynamicCast<Noesis::Gui::BeginStoryboard*>(NoesisComponent.GetPtr());
-	check(NoesisBeginStoryboard)
+	check(NoesisBeginStoryboard);
 
 
 }
@@ -79,7 +82,7 @@ void UNoesisBeginStoryboard::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::BeginStoryboard* NoesisBeginStoryboard = NsDynamicCast<Noesis::Gui::BeginStoryboard*>(NoesisComponent.GetPtr());
-	check(NoesisBeginStoryboard)
+	check(NoesisBeginStoryboard);
 
 
 }

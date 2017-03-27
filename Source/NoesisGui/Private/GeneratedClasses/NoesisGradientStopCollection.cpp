@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisGradientStopCollection.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisGradientStopCollection::UNoesisGradientStopCollection(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::GradientStopCollection::StaticGetClassType();
 }
 
 void UNoesisGradientStopCollection::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisGradientStopCollection::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::GradientStopCollection* NoesisGradientStopCollection = NsDynamicCast<Noesis::Gui::GradientStopCollection*>(NoesisComponent.GetPtr());
-	check(NoesisGradientStopCollection)
+	check(NoesisGradientStopCollection);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisGradientStopCollection::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::GradientStopCollection* NoesisGradientStopCollection = NsDynamicCast<Noesis::Gui::GradientStopCollection*>(NoesisComponent.GetPtr());
-	check(NoesisGradientStopCollection)
+	check(NoesisGradientStopCollection);
 
 
 }

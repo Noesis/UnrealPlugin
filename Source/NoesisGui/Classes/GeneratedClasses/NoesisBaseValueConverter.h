@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisBaseValueConverter.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisBaseValueConverter : public UNoesisBaseComponent
 {
 public:

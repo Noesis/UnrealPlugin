@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisBaseView.h"
 #include "NoesisGridView.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisGridView : public UNoesisBaseView
 {
 public:

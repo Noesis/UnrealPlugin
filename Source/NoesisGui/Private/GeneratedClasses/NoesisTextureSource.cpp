@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisTextureSource.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisTextureSource::UNoesisTextureSource(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TextureSource::StaticGetClassType();
 }
 
 void UNoesisTextureSource::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -41,7 +44,7 @@ void UNoesisTextureSource::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TextureSource* NoesisTextureSource = NsDynamicCast<Noesis::Gui::TextureSource*>(NoesisComponent.GetPtr());
-	check(NoesisTextureSource)
+	check(NoesisTextureSource);
 
 
 }
@@ -51,7 +54,7 @@ void UNoesisTextureSource::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TextureSource* NoesisTextureSource = NsDynamicCast<Noesis::Gui::TextureSource*>(NoesisComponent.GetPtr());
-	check(NoesisTextureSource)
+	check(NoesisTextureSource);
 
 
 }

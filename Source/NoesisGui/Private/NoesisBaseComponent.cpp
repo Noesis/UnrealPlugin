@@ -9,6 +9,7 @@
 UNoesisBaseComponent::UNoesisBaseComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Core::BaseComponent::StaticGetClassType();
 }
 
 void UNoesisBaseComponent::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)

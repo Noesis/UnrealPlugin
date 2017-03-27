@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisTimeline.h"
 #include "NoesisAnimationTimeline.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisAnimationTimeline : public UNoesisTimeline
 {
 public:
@@ -32,13 +32,13 @@ public:
 	void SetIsCumulative(bool InIsCumulative);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisAnimationTimeline* CreateTransitionFrom();
+	class UNoesisAnimationTimeline* CreateTransitionFrom();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-class UNoesisBaseComponent* GetAnimatedValue(class UNoesisBaseComponent* DefaultOrigin, class UNoesisBaseComponent* DefaultDestination, class UNoesisAnimationClock* Clock);
+	class UNoesisBaseComponent* GetAnimatedValue(class UNoesisBaseComponent* DefaultOrigin, class UNoesisBaseComponent* DefaultDestination, class UNoesisAnimationClock* Clock);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Start(class UNoesisDependencyObject* Target, const class UNoesisDependencyProperty* Dp, class UNoesisITimeManager* TimeManager, ENoesisHandoffBehavior Handoff);
+	void Start(class UNoesisDependencyObject* Target, const class UNoesisDependencyProperty* Dp, class UNoesisITimeManager* TimeManager, ENoesisHandoffBehavior Handoff);
 
 protected:
 

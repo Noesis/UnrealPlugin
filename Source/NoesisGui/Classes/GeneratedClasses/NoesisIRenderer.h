@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisIRenderer.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisIRenderer : public UNoesisInterface
 {
 public:
@@ -20,22 +20,22 @@ public:
 	virtual void SetNoesisInterface(Noesis::Core::Interface* NoesisInterface) override;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool NeedsOffscreen();
+	bool NeedsOffscreen();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Render();
+	void Render();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void RenderOffscreen();
+	void RenderOffscreen();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void SetRenderRegion(float X, float Y, float Width, float Height);
+	void SetRenderRegion(float X, float Y, float Width, float Height);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void Shutdown();
+	void Shutdown();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-bool UpdateRenderTree();
+	bool UpdateRenderTree();
 
 protected:
 

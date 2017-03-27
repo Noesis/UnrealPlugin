@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisTabControl.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisTabControl::UNoesisTabControl(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TabControl::StaticGetClassType();
 }
 
 void UNoesisTabControl::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisDataTemplate* UNoesisTabControl::GetContentTemplate()
 {
 	Noesis::Gui::TabControl* NoesisTabControl = NsDynamicCast<Noesis::Gui::TabControl*>(NoesisComponent.GetPtr());
 	check(NoesisTabControl);
-	return CastChecked<UNoesisDataTemplate>(Instance->FindUnrealComponentForNoesisComponent(NoesisTabControl->GetContentTemplate()));
+	return CastChecked<UNoesisDataTemplate>(CreateClassFor(NoesisTabControl->GetContentTemplate(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisTabControl::SetContentTemplate(class UNoesisDataTemplate* InContentTemplate)
@@ -40,7 +43,7 @@ class UNoesisDataTemplateSelector* UNoesisTabControl::GetContentTemplateSelector
 {
 	Noesis::Gui::TabControl* NoesisTabControl = NsDynamicCast<Noesis::Gui::TabControl*>(NoesisComponent.GetPtr());
 	check(NoesisTabControl);
-	return CastChecked<UNoesisDataTemplateSelector>(Instance->FindUnrealComponentForNoesisComponent(NoesisTabControl->GetContentTemplateSelector()));
+	return CastChecked<UNoesisDataTemplateSelector>(CreateClassFor(NoesisTabControl->GetContentTemplateSelector(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisTabControl::SetContentTemplateSelector(class UNoesisDataTemplateSelector* InContentTemplateSelector)
@@ -54,21 +57,21 @@ class UNoesisBaseComponent* UNoesisTabControl::GetSelectedContent()
 {
 	Noesis::Gui::TabControl* NoesisTabControl = NsDynamicCast<Noesis::Gui::TabControl*>(NoesisComponent.GetPtr());
 	check(NoesisTabControl);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisTabControl->GetSelectedContent()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisTabControl->GetSelectedContent(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisDataTemplate* UNoesisTabControl::GetSelectedContentTemplate()
 {
 	Noesis::Gui::TabControl* NoesisTabControl = NsDynamicCast<Noesis::Gui::TabControl*>(NoesisComponent.GetPtr());
 	check(NoesisTabControl);
-	return CastChecked<UNoesisDataTemplate>(Instance->FindUnrealComponentForNoesisComponent(NoesisTabControl->GetSelectedContentTemplate()));
+	return CastChecked<UNoesisDataTemplate>(CreateClassFor(NoesisTabControl->GetSelectedContentTemplate(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisDataTemplateSelector* UNoesisTabControl::GetSelectedContentTemplateSelector()
 {
 	Noesis::Gui::TabControl* NoesisTabControl = NsDynamicCast<Noesis::Gui::TabControl*>(NoesisComponent.GetPtr());
 	check(NoesisTabControl);
-	return CastChecked<UNoesisDataTemplateSelector>(Instance->FindUnrealComponentForNoesisComponent(NoesisTabControl->GetSelectedContentTemplateSelector()));
+	return CastChecked<UNoesisDataTemplateSelector>(CreateClassFor(NoesisTabControl->GetSelectedContentTemplateSelector(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 ENoesisDock UNoesisTabControl::GetTabStripPlacement()
@@ -90,7 +93,7 @@ void UNoesisTabControl::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TabControl* NoesisTabControl = NsDynamicCast<Noesis::Gui::TabControl*>(NoesisComponent.GetPtr());
-	check(NoesisTabControl)
+	check(NoesisTabControl);
 
 
 }
@@ -100,7 +103,7 @@ void UNoesisTabControl::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TabControl* NoesisTabControl = NsDynamicCast<Noesis::Gui::TabControl*>(NoesisComponent.GetPtr());
-	check(NoesisTabControl)
+	check(NoesisTabControl);
 
 
 }

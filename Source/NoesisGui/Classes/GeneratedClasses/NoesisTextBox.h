@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisBaseTextBox.h"
 #include "NoesisTextBox.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisTextBox : public UNoesisBaseTextBox
 {
 public:
@@ -74,10 +74,10 @@ public:
 	void SetTextWrapping(ENoesisTextWrapping InTextWrapping);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-int32 GetCaretIndex();
+	int32 GetCaretIndex();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-void SelectAll();
+	void SelectAll();
 
 protected:
 

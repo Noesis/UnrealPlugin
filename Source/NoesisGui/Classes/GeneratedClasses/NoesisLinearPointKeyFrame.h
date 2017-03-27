@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisPointKeyFrame.h"
 #include "NoesisLinearPointKeyFrame.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisLinearPointKeyFrame : public UNoesisPointKeyFrame
 {
 public:

@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisIXamlContextReceiver.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisIXamlContextReceiver : public UNoesisInterface
 {
 public:

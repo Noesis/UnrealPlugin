@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisTextElement.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisTextElement::UNoesisTextElement(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TextElement::StaticGetClassType();
 }
 
 void UNoesisTextElement::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisBrush* UNoesisTextElement::GetBackground()
 {
 	Noesis::Gui::TextElement* NoesisTextElement = NsDynamicCast<Noesis::Gui::TextElement*>(NoesisComponent.GetPtr());
 	check(NoesisTextElement);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisTextElement->GetBackground()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisTextElement->GetBackground(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisTextElement::SetBackground(class UNoesisBrush* InBackground)
@@ -40,7 +43,7 @@ class UNoesisFontFamily* UNoesisTextElement::GetFontFamily()
 {
 	Noesis::Gui::TextElement* NoesisTextElement = NsDynamicCast<Noesis::Gui::TextElement*>(NoesisComponent.GetPtr());
 	check(NoesisTextElement);
-	return CastChecked<UNoesisFontFamily>(Instance->FindUnrealComponentForNoesisComponent(NoesisTextElement->GetFontFamily()));
+	return CastChecked<UNoesisFontFamily>(CreateClassFor(NoesisTextElement->GetFontFamily(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisTextElement::SetFontFamily(class UNoesisFontFamily* InFontFamily)
@@ -110,7 +113,7 @@ class UNoesisBrush* UNoesisTextElement::GetForeground()
 {
 	Noesis::Gui::TextElement* NoesisTextElement = NsDynamicCast<Noesis::Gui::TextElement*>(NoesisComponent.GetPtr());
 	check(NoesisTextElement);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisTextElement->GetForeground()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisTextElement->GetForeground(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisTextElement::SetForeground(class UNoesisBrush* InForeground)
@@ -124,7 +127,7 @@ class UNoesisBrush* UNoesisTextElement::GetStroke()
 {
 	Noesis::Gui::TextElement* NoesisTextElement = NsDynamicCast<Noesis::Gui::TextElement*>(NoesisComponent.GetPtr());
 	check(NoesisTextElement);
-	return CastChecked<UNoesisBrush>(Instance->FindUnrealComponentForNoesisComponent(NoesisTextElement->GetStroke()));
+	return CastChecked<UNoesisBrush>(CreateClassFor(NoesisTextElement->GetStroke(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisTextElement::SetStroke(class UNoesisBrush* InStroke)
@@ -153,7 +156,7 @@ void UNoesisTextElement::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TextElement* NoesisTextElement = NsDynamicCast<Noesis::Gui::TextElement*>(NoesisComponent.GetPtr());
-	check(NoesisTextElement)
+	check(NoesisTextElement);
 
 
 }
@@ -163,7 +166,7 @@ void UNoesisTextElement::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TextElement* NoesisTextElement = NsDynamicCast<Noesis::Gui::TextElement*>(NoesisComponent.GetPtr());
-	check(NoesisTextElement)
+	check(NoesisTextElement);
 
 
 }

@@ -11,7 +11,7 @@
 #include "NoesisInterface.h"
 #include "NoesisINotifyPropertyChanged.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisINotifyPropertyChanged : public UNoesisInterface
 {
 public:

@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisContentPresenter.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisContentPresenter::UNoesisContentPresenter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::ContentPresenter::StaticGetClassType();
 }
 
 void UNoesisContentPresenter::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisBaseComponent* UNoesisContentPresenter::GetContent()
 {
 	Noesis::Gui::ContentPresenter* NoesisContentPresenter = NsDynamicCast<Noesis::Gui::ContentPresenter*>(NoesisComponent.GetPtr());
 	check(NoesisContentPresenter);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisContentPresenter->GetContent()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisContentPresenter->GetContent(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisContentPresenter::SetContent(class UNoesisBaseComponent* InContent)
@@ -54,7 +57,7 @@ class UNoesisDataTemplate* UNoesisContentPresenter::GetContentTemplate()
 {
 	Noesis::Gui::ContentPresenter* NoesisContentPresenter = NsDynamicCast<Noesis::Gui::ContentPresenter*>(NoesisComponent.GetPtr());
 	check(NoesisContentPresenter);
-	return CastChecked<UNoesisDataTemplate>(Instance->FindUnrealComponentForNoesisComponent(NoesisContentPresenter->GetContentTemplate()));
+	return CastChecked<UNoesisDataTemplate>(CreateClassFor(NoesisContentPresenter->GetContentTemplate(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisContentPresenter::SetContentTemplate(class UNoesisDataTemplate* InContentTemplate)
@@ -68,7 +71,7 @@ class UNoesisDataTemplateSelector* UNoesisContentPresenter::GetContentTemplateSe
 {
 	Noesis::Gui::ContentPresenter* NoesisContentPresenter = NsDynamicCast<Noesis::Gui::ContentPresenter*>(NoesisComponent.GetPtr());
 	check(NoesisContentPresenter);
-	return CastChecked<UNoesisDataTemplateSelector>(Instance->FindUnrealComponentForNoesisComponent(NoesisContentPresenter->GetContentTemplateSelector()));
+	return CastChecked<UNoesisDataTemplateSelector>(CreateClassFor(NoesisContentPresenter->GetContentTemplateSelector(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisContentPresenter::SetContentTemplateSelector(class UNoesisDataTemplateSelector* InContentTemplateSelector)
@@ -83,7 +86,7 @@ void UNoesisContentPresenter::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::ContentPresenter* NoesisContentPresenter = NsDynamicCast<Noesis::Gui::ContentPresenter*>(NoesisComponent.GetPtr());
-	check(NoesisContentPresenter)
+	check(NoesisContentPresenter);
 
 
 }
@@ -93,7 +96,7 @@ void UNoesisContentPresenter::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::ContentPresenter* NoesisContentPresenter = NsDynamicCast<Noesis::Gui::ContentPresenter*>(NoesisComponent.GetPtr());
-	check(NoesisContentPresenter)
+	check(NoesisContentPresenter);
 
 
 }

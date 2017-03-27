@@ -23,5 +23,4 @@ class NOESISGUI_API UNoesisBlueprintGeneratedClass : public UBlueprintGeneratedC
 	TArray<class UNoesisBaseComponent*> Components;
 
 	void InitComponents(class UNoesisInstance* NoesisInstance);
-	void BindEvents();
 };

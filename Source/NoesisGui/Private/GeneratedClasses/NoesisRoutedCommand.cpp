@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisRoutedCommand.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisRoutedCommand::UNoesisRoutedCommand(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::RoutedCommand::StaticGetClassType();
 }
 
 void UNoesisRoutedCommand::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,7 +29,7 @@ class UNoesisInputGestureCollection* UNoesisRoutedCommand::GetInputGestures()
 {
 	Noesis::Gui::RoutedCommand* NoesisRoutedCommand = NsDynamicCast<Noesis::Gui::RoutedCommand*>(NoesisComponent.GetPtr());
 	check(NoesisRoutedCommand);
-	return CastChecked<UNoesisInputGestureCollection>(Instance->FindUnrealComponentForNoesisComponent(NoesisRoutedCommand->GetInputGestures()));
+	return CastChecked<UNoesisInputGestureCollection>(CreateClassFor(NoesisRoutedCommand->GetInputGestures(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 bool UNoesisRoutedCommand::CanExecute(class UNoesisBaseComponent* InParam, class UNoesisUIElement* InTarget)
@@ -52,7 +55,7 @@ void UNoesisRoutedCommand::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::RoutedCommand* NoesisRoutedCommand = NsDynamicCast<Noesis::Gui::RoutedCommand*>(NoesisComponent.GetPtr());
-	check(NoesisRoutedCommand)
+	check(NoesisRoutedCommand);
 
 
 }
@@ -62,7 +65,7 @@ void UNoesisRoutedCommand::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::RoutedCommand* NoesisRoutedCommand = NsDynamicCast<Noesis::Gui::RoutedCommand*>(NoesisComponent.GetPtr());
-	check(NoesisRoutedCommand)
+	check(NoesisRoutedCommand);
 
 
 }

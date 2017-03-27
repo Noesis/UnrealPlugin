@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisEasingInt32KeyFrame.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisEasingInt32KeyFrame::UNoesisEasingInt32KeyFrame(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::EasingKeyFrame<NsInt32>::StaticGetClassType();
 }
 
 void UNoesisEasingInt32KeyFrame::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -27,7 +30,7 @@ void UNoesisEasingInt32KeyFrame::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::EasingKeyFrame<NsInt32>* NoesisEasingInt32KeyFrame = NsDynamicCast<Noesis::Gui::EasingKeyFrame<NsInt32>*>(NoesisComponent.GetPtr());
-	check(NoesisEasingInt32KeyFrame)
+	check(NoesisEasingInt32KeyFrame);
 
 
 }
@@ -37,7 +40,7 @@ void UNoesisEasingInt32KeyFrame::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::EasingKeyFrame<NsInt32>* NoesisEasingInt32KeyFrame = NsDynamicCast<Noesis::Gui::EasingKeyFrame<NsInt32>*>(NoesisComponent.GetPtr());
-	check(NoesisEasingInt32KeyFrame)
+	check(NoesisEasingInt32KeyFrame);
 
 
 }

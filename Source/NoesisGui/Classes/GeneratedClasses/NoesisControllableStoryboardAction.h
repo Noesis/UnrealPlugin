@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisTriggerAction.h"
 #include "NoesisControllableStoryboardAction.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisControllableStoryboardAction : public UNoesisTriggerAction
 {
 public:

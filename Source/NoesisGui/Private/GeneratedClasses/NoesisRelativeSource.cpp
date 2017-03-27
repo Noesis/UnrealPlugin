@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisRelativeSource.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisRelativeSource::UNoesisRelativeSource(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::RelativeSource::StaticGetClassType();
 }
 
 void UNoesisRelativeSource::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -40,7 +43,7 @@ class UNoesisResourceKeyType* UNoesisRelativeSource::GetAncestorType()
 {
 	Noesis::Gui::RelativeSource* NoesisRelativeSource = NsDynamicCast<Noesis::Gui::RelativeSource*>(NoesisComponent.GetPtr());
 	check(NoesisRelativeSource);
-	return CastChecked<UNoesisResourceKeyType>(Instance->FindUnrealComponentForNoesisComponent(NoesisRelativeSource->GetAncestorType()));
+	return CastChecked<UNoesisResourceKeyType>(CreateClassFor(NoesisRelativeSource->GetAncestorType(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisRelativeSource::SetAncestorType(class UNoesisResourceKeyType* InAncestorType)
@@ -69,7 +72,7 @@ void UNoesisRelativeSource::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::RelativeSource* NoesisRelativeSource = NsDynamicCast<Noesis::Gui::RelativeSource*>(NoesisComponent.GetPtr());
-	check(NoesisRelativeSource)
+	check(NoesisRelativeSource);
 
 
 }
@@ -79,7 +82,7 @@ void UNoesisRelativeSource::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::RelativeSource* NoesisRelativeSource = NsDynamicCast<Noesis::Gui::RelativeSource*>(NoesisComponent.GetPtr());
-	check(NoesisRelativeSource)
+	check(NoesisRelativeSource);
 
 
 }

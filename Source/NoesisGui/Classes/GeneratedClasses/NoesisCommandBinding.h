@@ -11,7 +11,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisCommandBinding.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisCommandBinding : public UNoesisBaseComponent
 {
 public:

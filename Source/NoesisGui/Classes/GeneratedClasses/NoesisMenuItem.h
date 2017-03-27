@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisHeaderedItemsControl.h"
 #include "NoesisMenuItem.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisMenuItem : public UNoesisHeaderedItemsControl
 {
 public:

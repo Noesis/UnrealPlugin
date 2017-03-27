@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisTextElement.h"
 #include "NoesisInline.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisInline : public UNoesisTextElement
 {
 public:

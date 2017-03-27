@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisBaseSetter.h"
 #include "NoesisSetter.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisSetter : public UNoesisBaseSetter
 {
 public:

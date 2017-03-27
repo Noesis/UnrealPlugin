@@ -4,6 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateClass.h"
+#include "NoesisCreateInterface.h"
 #include "GeneratedClasses/NoesisTemplateBindingExpression.h"
 
 using namespace Noesis;
@@ -12,6 +14,7 @@ using namespace Gui;
 UNoesisTemplateBindingExpression::UNoesisTemplateBindingExpression(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	NoesisComponentTypeClass = Noesis::Gui::TemplateBindingExpression::StaticGetClassType();
 }
 
 void UNoesisTemplateBindingExpression::SetNoesisComponent(Noesis::Core::BaseComponent* InNoesisComponent)
@@ -26,14 +29,14 @@ class UNoesisTemplateBindingExtension* UNoesisTemplateBindingExpression::GetTemp
 {
 	Noesis::Gui::TemplateBindingExpression* NoesisTemplateBindingExpression = NsDynamicCast<Noesis::Gui::TemplateBindingExpression*>(NoesisComponent.GetPtr());
 	check(NoesisTemplateBindingExpression);
-	return CastChecked<UNoesisTemplateBindingExtension>(Instance->FindUnrealComponentForNoesisComponent(NoesisTemplateBindingExpression->GetTemplateBindingExtension()));
+	return CastChecked<UNoesisTemplateBindingExtension>(CreateClassFor(NoesisTemplateBindingExpression->GetTemplateBindingExtension(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisBaseComponent* UNoesisTemplateBindingExpression::Evaluate()
 {
 	Noesis::Gui::TemplateBindingExpression* NoesisTemplateBindingExpression = NsDynamicCast<Noesis::Gui::TemplateBindingExpression*>(NoesisComponent.GetPtr());
 	check(NoesisTemplateBindingExpression);
-	return CastChecked<UNoesisBaseComponent>(Instance->FindUnrealComponentForNoesisComponent(NoesisTemplateBindingExpression->Evaluate()));
+	return CastChecked<UNoesisBaseComponent>(CreateClassFor(NoesisTemplateBindingExpression->Evaluate(), nullptr), ECastCheckedType::NullAllowed);
 }
 
 class UNoesisIExpression* UNoesisTemplateBindingExpression::Reapply(class UNoesisDependencyObject* InTargetObject, const class UNoesisDependencyProperty* InTargetProperty)
@@ -42,7 +45,7 @@ class UNoesisIExpression* UNoesisTemplateBindingExpression::Reapply(class UNoesi
 	check(NoesisTemplateBindingExpression);
 	DependencyObject* NoesisInTargetObject = NsDynamicCast<DependencyObject*>(InTargetObject->NoesisComponent.GetPtr());
 	const DependencyProperty* NoesisInTargetProperty = NsDynamicCast<const DependencyProperty*>(InTargetProperty->NoesisComponent.GetPtr());
-	return CastChecked<UNoesisIExpression>(Instance->FindUnrealInterfaceForNoesisInterface(NoesisTemplateBindingExpression->Reapply(NoesisInTargetObject, NoesisInTargetProperty)));
+	return CastChecked<UNoesisIExpression>(CreateInterfaceFor(NoesisTemplateBindingExpression->Reapply(NoesisInTargetObject, NoesisInTargetProperty), nullptr), ECastCheckedType::NullAllowed);
 }
 
 void UNoesisTemplateBindingExpression::BindEvents()
@@ -50,7 +53,7 @@ void UNoesisTemplateBindingExpression::BindEvents()
 	Super::BindEvents();
 
 	Noesis::Gui::TemplateBindingExpression* NoesisTemplateBindingExpression = NsDynamicCast<Noesis::Gui::TemplateBindingExpression*>(NoesisComponent.GetPtr());
-	check(NoesisTemplateBindingExpression)
+	check(NoesisTemplateBindingExpression);
 
 
 }
@@ -60,7 +63,7 @@ void UNoesisTemplateBindingExpression::UnbindEvents()
 	Super::UnbindEvents();
 
 	Noesis::Gui::TemplateBindingExpression* NoesisTemplateBindingExpression = NsDynamicCast<Noesis::Gui::TemplateBindingExpression*>(NoesisComponent.GetPtr());
-	check(NoesisTemplateBindingExpression)
+	check(NoesisTemplateBindingExpression);
 
 
 }

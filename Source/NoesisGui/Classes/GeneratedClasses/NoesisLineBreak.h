@@ -11,7 +11,7 @@
 #include "GeneratedClasses/NoesisInline.h"
 #include "NoesisLineBreak.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISGUI_API UNoesisLineBreak : public UNoesisInline
 {
 public:
