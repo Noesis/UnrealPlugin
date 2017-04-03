@@ -138,3 +138,8 @@ FReply SNoesisWidget::OnMouseButtonDoubleClick(const FGeometry& MyGeometry, cons
 
 	return FReply::Handled();
 }
+
+bool SNoesisWidget::SupportsKeyboardFocus() const
+{
+	return true;
+}

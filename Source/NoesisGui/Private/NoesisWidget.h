@@ -57,6 +57,7 @@ class NOESISGUI_API SNoesisWidget : public SLeafWidget
 	virtual FReply OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FCursorReply OnCursorQuery(const FGeometry& MyGeometry, const FPointerEvent& CursorEvent) const override;
 	virtual FReply OnMouseButtonDoubleClick(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual bool SupportsKeyboardFocus() const override;
 	// End of SWidget interface
 
 private:

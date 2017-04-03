@@ -69,25 +69,27 @@ void FNoesisBlueprintCompilerContext::CreateClassVariablesFromBlueprint()
 
 	Noesis::Ptr<Noesis::Core::BaseComponent> Xaml = Noesis::GUI::LoadXaml<Noesis::Core::BaseComponent>(StringCast<NsChar>(*(FString::FromInt(NoesisBlueprint->BaseXaml->GetUniqueID()) / NoesisBlueprint->BaseXaml->GetName() + TEXT(".xaml"))).Get());
 	Noesis::Ptr<Noesis::FrameworkElement> FrameworkElement = NsDynamicCast<Noesis::Ptr<Noesis::FrameworkElement>>(Xaml);
-	check(FrameworkElement);
-	TArray<Noesis::FrameworkElement*> Elements;
-	CollectElements(FrameworkElement.GetPtr(), Elements);
-
-	for (auto Element : Elements)
+	if (FrameworkElement)
 	{
-		FName ElementName = NsStringToFName(Element->GetName());
-		if (ElementName != NAME_None)
-		{
-			UClass* ComponentClass = GetClassFor(Element);
-			FEdGraphPinType PinType(Schema->PC_Object, TEXT(""), ComponentClass, false, false, false, false, FEdGraphTerminalType());
-			UProperty* Property = CreateVariable(ElementName, PinType);
-			if (Property != nullptr)
-			{
-				Property->SetMetaData(TEXT("Category"), *Blueprint->GetName());
+		TArray<Noesis::FrameworkElement*> Elements;
+		CollectElements(FrameworkElement.GetPtr(), Elements);
 
-				Property->SetPropertyFlags(CPF_BlueprintVisible);
-				Property->SetPropertyFlags(CPF_Transient);
-				Property->SetPropertyFlags(CPF_RepSkip);
+		for (auto Element : Elements)
+		{
+			FName ElementName = NsStringToFName(Element->GetName());
+			if (ElementName != NAME_None)
+			{
+				UClass* ComponentClass = GetClassFor(Element);
+				FEdGraphPinType PinType(Schema->PC_Object, TEXT(""), ComponentClass, false, false, false, false, FEdGraphTerminalType());
+				UProperty* Property = CreateVariable(ElementName, PinType);
+				if (Property != nullptr)
+				{
+					Property->SetMetaData(TEXT("Category"), *Blueprint->GetName());
+
+					Property->SetPropertyFlags(CPF_BlueprintVisible);
+					Property->SetPropertyFlags(CPF_Transient);
+					Property->SetPropertyFlags(CPF_RepSkip);
+				}
 			}
 		}
 	}
