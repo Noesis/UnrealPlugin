@@ -32,3 +32,36 @@ void UNoesisXaml::GetAssetRegistryTags(TArray<FAssetRegistryTag>& OutTags) const
 	Super::GetAssetRegistryTags(OutTags);
 }
 #endif // WITH_EDITORONLY_DATA
+
+#if WITH_EDITOR
+void UNoesisXaml::PreloadDependencies()
+{
+	{
+		auto Linker = GetLinker();
+		Linker->Preload(this);
+	}
+
+	for (auto XamlIter : XamlMap)
+	{
+		auto Xaml = XamlIter.Value;
+		if (Xaml != this)
+		{
+			Xaml->PreloadDependencies();
+		}
+	}
+
+	for (auto TextureIter : TextureMap)
+	{
+		auto Texture = TextureIter.Value;
+		auto Linker = Texture->GetLinker();
+		Linker->Preload(Texture);
+	}
+
+	for (auto FontIter : FontMap)
+	{
+		auto Font = FontIter.Value;
+		auto Linker = Font->GetLinker();
+		Linker->Preload(Font);
+	}
+}
+#endif

@@ -34,4 +34,8 @@ class NOESISGUI_API UNoesisXaml : public UObject
 	virtual void GetAssetRegistryTags(TArray<FAssetRegistryTag>& OutTags) const override;
 	// End of UObject interface
 #endif
+
+#if WITH_EDITOR
+	void PreloadDependencies();
+#endif
 };

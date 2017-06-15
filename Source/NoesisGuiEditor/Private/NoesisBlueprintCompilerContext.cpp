@@ -61,11 +61,7 @@ void FNoesisBlueprintCompilerContext::CreateClassVariablesFromBlueprint()
 	if (!NoesisBlueprint || !NoesisBlueprint->BaseXaml)
 		return;
 
-	auto Linker = NoesisBlueprint->BaseXaml->GetLinker();
-	if (Linker)
-	{
-		Linker->Preload(NoesisBlueprint->BaseXaml);
-	}
+	NoesisBlueprint->BaseXaml->PreloadDependencies();
 
 	Noesis::Ptr<Noesis::Core::BaseComponent> Xaml = Noesis::GUI::LoadXaml<Noesis::Core::BaseComponent>(StringCast<NsChar>(*(FString::FromInt(NoesisBlueprint->BaseXaml->GetUniqueID()) / NoesisBlueprint->BaseXaml->GetName() + TEXT(".xaml"))).Get());
 	Noesis::Ptr<Noesis::FrameworkElement> FrameworkElement = NsDynamicCast<Noesis::Ptr<Noesis::FrameworkElement>>(Xaml);
