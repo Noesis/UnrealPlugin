@@ -8,10 +8,15 @@
 
 // Core includes
 #include "Misc/Paths.h"
+#include "Misc/FileHelper.h"
+#include "HAL/PlatformFileManager.h"
 #include "Internationalization/Regex.h"
 
 // UnrealEd includes
 #include "Kismet2/KismetEditorUtilities.h"
+#include "Factories/FontFactory.h"
+#include "Factories/FontFileImportFactory.h"
+#include "Factories/TextureFactory.h"
 #include "PackageTools.h"
 
 // BlueprintGraph includes

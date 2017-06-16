@@ -6,6 +6,9 @@
 #include "NoesisGuiPrivatePCH.h"
 #include "NoesisGuiModule.h"
 
+// Core includes
+#include "Misc/FileHelper.h"
+
 // NoesisGui includes
 #include "NoesisGuiResourceManager.h"
 #include "Render/NoesisRenderDevice.h"

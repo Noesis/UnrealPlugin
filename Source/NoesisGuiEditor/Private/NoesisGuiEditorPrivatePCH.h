@@ -5,17 +5,15 @@
 
 #pragma once
 
-#include "Core.h"
-#include "CoreUObject.h"
-#include "Engine.h"
-#include "UnrealEd.h"
-#include "ObjectTools.h"
+// Core includes
+#include "Misc/MessageDialog.h"
 
 // Engine includes
 #include "EngineClasses.h"
 
 // UnrealEd includes
 #include "AutomatedAssetImportData.h"
+#include "ObjectTools.h"
 
 // Kismet2 includes
 #include "KismetEditorUtilities.h"

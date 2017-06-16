@@ -9,6 +9,9 @@
 // RenderCore includes
 #include "RenderingThread.h"
 
+// SlateCore includes
+#include "Rendering/DrawElements.h"
+
 // NoesisGui includes
 #include "NoesisInstance.h"
 
