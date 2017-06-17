@@ -3,7 +3,6 @@
 // Copyright (c) 2009-2010 Noesis Technologies S.L. All Rights Reserved.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "NoesisGuiPrivatePCH.h"
 #include "NoesisRenderDevice.h"
 
 // RHI includes
@@ -305,7 +304,10 @@ void FNoesisRenderDevice::SetRenderTarget(Noesis::Render::RenderTarget* Surface)
 	{
 		check(Surface);
 		FNoesisRenderTarget* RenderTarget = (FNoesisRenderTarget*)Surface;
-		::SetRenderTarget(*RHICmdList, RenderTarget->ColorTarget, RenderTarget->DepthStencilTarget);
+		FRHIRenderTargetView ColorTarget(RenderTarget->ColorTarget, ERenderTargetLoadAction::EClear);
+		FRHIDepthRenderTargetView DepthStencilTarget(RenderTarget->DepthStencilTarget, ERenderTargetLoadAction::ENoAction, ERenderTargetStoreAction::ENoAction, ERenderTargetLoadAction::EClear, ERenderTargetStoreAction::ENoAction);
+		FRHISetRenderTargetsInfo RenderTargetsInfo(1, &ColorTarget, DepthStencilTarget);
+		RHICmdList->SetRenderTargetsAndClear(RenderTargetsInfo);
 		RHICmdList->SetViewport(0, 0, 0.0f, RenderTarget->ColorTarget->GetSizeX(), RenderTarget->ColorTarget->GetSizeY(), 1.0f);
 		CurrentRenderTarget = RenderTarget;
 	}
@@ -321,14 +323,6 @@ void FNoesisRenderDevice::BeginTile(const Noesis::Render::Tile& Tile, NsSize Sur
 		uint32 ScissorMaxX = Tile.x + Tile.width;
 		uint32 ScissorMaxY = SurfaceHeight - Tile.y;
 		RHICmdList->SetScissorRect(true, ScissorMinX, ScissorMinY, ScissorMaxX, ScissorMaxY);
-
-		FIntRect ExcludeRect;
-		FLinearColor Color = FLinearColor::Transparent;
-		RHICmdList->ClearColorTexture(CurrentRenderTarget->ColorTarget, Color, ExcludeRect);
-		EClearDepthStencil ClearDepthStencil = EClearDepthStencil::Stencil;
-		float Depth = 0.f;
-		uint32 Stencil = (uint32)0;
-		RHICmdList->ClearDepthStencilTexture(CurrentRenderTarget->DepthStencilTarget, ClearDepthStencil, Depth, Stencil, ExcludeRect);
 	}
 }
 

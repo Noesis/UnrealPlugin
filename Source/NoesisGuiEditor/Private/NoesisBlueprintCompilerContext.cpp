@@ -3,8 +3,7 @@
 // Copyright (c) 2009-2010 Noesis Technologies S.L. All Rights Reserved.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "NoesisGuiEditorPrivatePCH.h"
-#include "NoesisBlueprintCompiler.h"
+#include "NoesisBlueprintCompilerContext.h"
 
 // UnrealEd includes
 #include "KismetReinstanceUtilities.h"
@@ -39,9 +38,9 @@ void FNoesisBlueprintCompilerContext::SpawnNewClass(const FString& NewClassName)
 	NewClass = NoesisBlueprintGeneratedClass;
 }
 
-void FNoesisBlueprintCompilerContext::CleanAndSanitizeClass(UBlueprintGeneratedClass* ClassToClean, UObject*& OldCDO)
+void FNoesisBlueprintCompilerContext::CleanAndSanitizeClass(UBlueprintGeneratedClass* ClassToClean, UObject*& InOutOldCDO)
 {
-	Super::CleanAndSanitizeClass(ClassToClean, OldCDO);
+	Super::CleanAndSanitizeClass(ClassToClean, InOutOldCDO);
 }
 
 void FNoesisBlueprintCompilerContext::EnsureProperGeneratedClass(UClass*& TargetUClass)

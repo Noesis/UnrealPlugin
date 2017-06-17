@@ -8,11 +8,11 @@ using System;
 
 public class Noesis : ModuleRules
 {
-	public Noesis(TargetInfo Target)
+	public Noesis(ReadOnlyTargetRules Target) : base(Target)
 	{
 		Type = ModuleType.External;
 
-		string NoesisBasePath = ModuleDirectory + "/NoesisGUI-NativeSDK-2.0.0f1/";
+		string NoesisBasePath = ModuleDirectory + "/NoesisGUI-NativeSDK-2.0.2f2/";
 		string NoesisIncludePath = NoesisBasePath + "Include/";
 
 		PublicSystemIncludePaths.Add(NoesisIncludePath);

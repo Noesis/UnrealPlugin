@@ -3,10 +3,9 @@
 // Copyright (c) 2009-2010 Noesis Technologies S.L. All Rights Reserved.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "NoesisGuiPrivatePCH.h"
+#include "GeneratedClasses/NoesisRowDefinition.h"
 #include "NoesisCreateClass.h"
 #include "NoesisCreateInterface.h"
-#include "GeneratedClasses/NoesisRowDefinition.h"
 
 using namespace Noesis;
 using namespace Gui;
@@ -25,14 +24,14 @@ void UNoesisRowDefinition::SetNoesisComponent(Noesis::Core::BaseComponent* InNoe
 	check(NoesisRowDefinition);
 }
 
-FNoesisGridLength UNoesisRowDefinition::GetHeight()
+FNoesisGridLength UNoesisRowDefinition::GetGridLengthHeight()
 {
 	Noesis::Gui::RowDefinition* NoesisRowDefinition = NsDynamicCast<Noesis::Gui::RowDefinition*>(NoesisComponent.GetPtr());
 	check(NoesisRowDefinition);
 	return FNoesisGridLength(NoesisRowDefinition->GetHeight());
 }
 
-void UNoesisRowDefinition::SetHeight(FNoesisGridLength InHeight)
+void UNoesisRowDefinition::SetGridLengthHeight(FNoesisGridLength InHeight)
 {
 	Noesis::Gui::RowDefinition* NoesisRowDefinition = NsDynamicCast<Noesis::Gui::RowDefinition*>(NoesisComponent.GetPtr());
 	check(NoesisRowDefinition);

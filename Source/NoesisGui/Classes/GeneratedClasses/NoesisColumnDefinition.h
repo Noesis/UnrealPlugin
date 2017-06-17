@@ -33,9 +33,9 @@ public:
 
 	// Property Width
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-	FNoesisGridLength GetWidth();
+	FNoesisGridLength GetGridLengthWidth();
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-	void SetWidth(FNoesisGridLength InWidth);
+	void SetGridLengthWidth(FNoesisGridLength InWidth);
 
 protected:
 

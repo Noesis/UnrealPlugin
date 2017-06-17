@@ -3,10 +3,9 @@
 // Copyright (c) 2009-2010 Noesis Technologies S.L. All Rights Reserved.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "NoesisGuiPrivatePCH.h"
+#include "GeneratedClasses/NoesisKeyBinding.h"
 #include "NoesisCreateClass.h"
 #include "NoesisCreateInterface.h"
-#include "GeneratedClasses/NoesisKeyBinding.h"
 
 using namespace Noesis;
 using namespace Gui;

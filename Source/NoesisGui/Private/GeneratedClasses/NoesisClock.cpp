@@ -6,10 +6,9 @@
 #pragma push_macro("GetCurrentTime")
 #undef GetCurrentTime
 
-#include "NoesisGuiPrivatePCH.h"
+#include "GeneratedClasses/NoesisClock.h"
 #include "NoesisCreateClass.h"
 #include "NoesisCreateInterface.h"
-#include "GeneratedClasses/NoesisClock.h"
 
 using namespace Noesis;
 using namespace Gui;

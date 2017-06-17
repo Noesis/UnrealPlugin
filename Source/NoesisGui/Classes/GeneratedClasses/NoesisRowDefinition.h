@@ -21,9 +21,9 @@ public:
 
 	// Property Height
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-	FNoesisGridLength GetHeight();
+	FNoesisGridLength GetGridLengthHeight();
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")
-	void SetHeight(FNoesisGridLength InHeight);
+	void SetGridLengthHeight(FNoesisGridLength InHeight);
 
 	// Property MaxHeight
 	UFUNCTION(BlueprintCallable, Category = "NoesisGui")

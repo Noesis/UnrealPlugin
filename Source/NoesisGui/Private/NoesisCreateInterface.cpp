@@ -3,9 +3,7 @@
 // Copyright (c) 2009-2010 Noesis Technologies S.L. All Rights Reserved.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-
-#include "NoesisGuiPrivatePCH.h"
+#include "NoesisCreateInterface.h"
 #include "NoesisGeneratedClasses.h"
 
 UClass* GetInterfaceFor(const Noesis::Core::Interface* Interface)

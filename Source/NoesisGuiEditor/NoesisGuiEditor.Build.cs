@@ -8,9 +8,10 @@ using System;
 
 public class NoesisGuiEditor : ModuleRules
 {
-	public NoesisGuiEditor(TargetInfo Target)
+	public NoesisGuiEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.NoSharedPCHs;
+		PrivatePCHHeaderFile = "Private/NoesisGuiEditorPrivatePCH.h";
 
 		PublicIncludePaths.AddRange(
 			new string[] {

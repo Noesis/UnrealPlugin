@@ -3,10 +3,9 @@
 // Copyright (c) 2009-2010 Noesis Technologies S.L. All Rights Reserved.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "NoesisGuiPrivatePCH.h"
+#include "GeneratedClasses/NoesisColumnDefinition.h"
 #include "NoesisCreateClass.h"
 #include "NoesisCreateInterface.h"
-#include "GeneratedClasses/NoesisColumnDefinition.h"
 
 using namespace Noesis;
 using namespace Gui;
@@ -53,14 +52,14 @@ void UNoesisColumnDefinition::SetMinWidth(float InMinWidth)
 	NoesisColumnDefinition->SetMinWidth(InMinWidth);
 }
 
-FNoesisGridLength UNoesisColumnDefinition::GetWidth()
+FNoesisGridLength UNoesisColumnDefinition::GetGridLengthWidth()
 {
 	Noesis::Gui::ColumnDefinition* NoesisColumnDefinition = NsDynamicCast<Noesis::Gui::ColumnDefinition*>(NoesisComponent.GetPtr());
 	check(NoesisColumnDefinition);
 	return FNoesisGridLength(NoesisColumnDefinition->GetWidth());
 }
 
-void UNoesisColumnDefinition::SetWidth(FNoesisGridLength InWidth)
+void UNoesisColumnDefinition::SetGridLengthWidth(FNoesisGridLength InWidth)
 {
 	Noesis::Gui::ColumnDefinition* NoesisColumnDefinition = NsDynamicCast<Noesis::Gui::ColumnDefinition*>(NoesisComponent.GetPtr());
 	check(NoesisColumnDefinition);

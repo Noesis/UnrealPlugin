@@ -3,7 +3,6 @@
 // Copyright (c) 2009-2010 Noesis Technologies S.L. All Rights Reserved.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "NoesisGuiEditorPrivatePCH.h"
 #include "NoesisXamlFactory.h"
 
 // Core includes
