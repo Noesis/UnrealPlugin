@@ -37,7 +37,10 @@ void UNoesisXaml::PreloadDependencies()
 {
 	{
 		auto Linker = GetLinker();
-		Linker->Preload(this);
+		if (Linker)
+		{
+			Linker->Preload(this);
+		}
 	}
 
 	for (auto XamlIter : XamlMap)
@@ -53,14 +56,20 @@ void UNoesisXaml::PreloadDependencies()
 	{
 		auto Texture = TextureIter.Value;
 		auto Linker = Texture->GetLinker();
-		Linker->Preload(Texture);
+		if (Linker)
+		{
+			Linker->Preload(Texture);
+		}
 	}
 
 	for (auto FontIter : FontMap)
 	{
 		auto Font = FontIter.Value;
 		auto Linker = Font->GetLinker();
-		Linker->Preload(Font);
+		if (Linker)
+		{
+			Linker->Preload(Font);
+		}
 	}
 }
 #endif
