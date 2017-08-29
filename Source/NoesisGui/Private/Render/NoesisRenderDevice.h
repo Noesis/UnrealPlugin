@@ -25,7 +25,6 @@ public:
 	uint16 VertexStrides[NUM_SHADERS];
 	class FNoesisVSBase* VertexShaders[NUM_SHADERS];
 	class FNoesisPSBase* PixelShaders[NUM_SHADERS];
-	FGlobalBoundShaderState BoundShaderStates[NUM_SHADERS];
 
 	class FNoesisRenderTarget* CurrentRenderTarget;
 

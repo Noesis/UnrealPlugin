@@ -7,6 +7,7 @@
 
 // RHI includes
 #include "RHIStaticStates.h"
+#include "PipelineStateCache.h"
 
 // NoesisGui includes
 #include "Render/NoesisShaders.h"
@@ -78,7 +79,6 @@ FNoesisRenderDevice::FNoesisRenderDevice()
 	FMemory::Memzero(VertexStrides);
 	FMemory::Memzero(VertexShaders);
 	FMemory::Memzero(PixelShaders);
-	FMemory::Memzero(BoundShaderStates);
 
 	VertexDeclarations[0] = GNoesisRgbaNoneVertexDeclaration.VertexDeclarationRHI;
 	VertexStrides[0] = FNoesisRgbaNoneVertexDeclaration::Stride;
@@ -435,28 +435,56 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Render::Batch& Batch)
 {
 	if (RHICmdList)
 	{
+		FGraphicsPipelineStateInitializer GraphicsPSOInit;
+		RHICmdList->ApplyCachedRenderTargets(GraphicsPSOInit);
+
 		switch (Batch.renderState.f.stencilMode)
 		{
-		case Noesis::Render::StencilMode::Disabled:
-		{
-			RHICmdList->SetDepthStencilState(TStaticDepthStencilState<false, CF_Always>::GetRHI(), 0);
-		} break;
-		case Noesis::Render::StencilMode::Equal_Keep:
-		{
-			RHICmdList->SetDepthStencilState(TStaticDepthStencilState<false, CF_Always, true, CF_Equal>::GetRHI(), Batch.stencilRef);
-		} break;
-		case Noesis::Render::StencilMode::Equal_Incr:
-		{
-			RHICmdList->SetDepthStencilState(TStaticDepthStencilState<false, CF_Always, true, CF_Equal, SO_Keep, SO_Keep, SO_Increment>::GetRHI(), Batch.stencilRef);
-		} break;
-		case Noesis::Render::StencilMode::Equal_Decr:
-		{
-			RHICmdList->SetDepthStencilState(TStaticDepthStencilState<false, CF_Always, true, CF_Equal, SO_Keep, SO_Keep, SO_Decrement>::GetRHI(), Batch.stencilRef);
-		} break;
-		default:
-		{
-		} break;
+			case Noesis::Render::StencilMode::Disabled:
+			{
+				GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, CF_Always>::GetRHI();
+			} break;
+			case Noesis::Render::StencilMode::Equal_Keep:
+			{
+				GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, CF_Always, true, CF_Equal>::GetRHI();
+			} break;
+			case Noesis::Render::StencilMode::Equal_Incr:
+			{
+				GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, CF_Always, true, CF_Equal, SO_Keep, SO_Keep, SO_Increment>::GetRHI();
+			} break;
+			case Noesis::Render::StencilMode::Equal_Decr:
+			{
+				GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, CF_Always, true, CF_Equal, SO_Keep, SO_Keep, SO_Decrement>::GetRHI();
+			} break;
+			default:
+			{
+			} break;
 		}
+
+		if (Batch.renderState.f.colorEnable)
+		{
+			if (Batch.renderState.f.blendMode == Noesis::Render::BlendMode::SrcOver)
+			{
+				GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_InverseSourceAlpha, BO_Add, BF_One, BF_InverseSourceAlpha>::GetRHI();
+			}
+			else
+			{
+				GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA>::GetRHI();
+			}
+		}
+		else
+		{
+			if (Batch.renderState.f.blendMode == Noesis::Render::BlendMode::SrcOver)
+			{
+				GraphicsPSOInit.BlendState = TStaticBlendState<CW_NONE, BO_Add, BF_One, BF_InverseSourceAlpha, BO_Add, BF_One, BF_InverseSourceAlpha>::GetRHI();
+			}
+			else
+			{
+				GraphicsPSOInit.BlendState = TStaticBlendState<CW_NONE>::GetRHI();
+			}
+		}
+
+		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None>::GetRHI();
 
 		FTextureRHIParamRef PatternTexture = 0;
 		FSamplerStateRHIParamRef PatternSamplerState = 0;
@@ -502,8 +530,12 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Render::Batch& Batch)
 		uint16 VertexStride = VertexStrides[ShaderCode];
 		FNoesisVSBase* VertexShader = VertexShaders[ShaderCode];
 		FNoesisPSBase* PixelShader = PixelShaders[ShaderCode];
-		FGlobalBoundShaderState& BoundShaderState = BoundShaderStates[ShaderCode];
-		SetGlobalBoundShaderState(*RHICmdList, FeatureLevel, BoundShaderState, VertexDeclaration, VertexShader, PixelShader);
+		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = VertexDeclaration;
+		GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(VertexShader);
+		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(PixelShader);
+		GraphicsPSOInit.PrimitiveType = PT_TriangleList;
+
+		SetGraphicsPipelineState(*RHICmdList, GraphicsPSOInit);
 
 		FMatrix ProjectionMtxValue = (const FMatrix&)(*Batch.projMtx);
 		VertexShader->SetParameters(*RHICmdList, ProjectionMtxValue.GetTransposed());
@@ -512,8 +544,6 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Render::Batch& Batch)
 		const FVector4 RgbaValue = Batch.rgba ? (const FVector4&)(*Batch.rgba) : FVector4();
 		const FVector4* RadialGradValue = (const FVector4*)Batch.radialGrad;
 		PixelShader->SetParameters(*RHICmdList, OpacityValue, RgbaValue, RadialGradValue);
-
-		RHICmdList->SetStreamSource(0, DynamicVertexBuffer, VertexStride, Batch.vertexOffset);
 
 		if (PatternTexture)
 		{
@@ -532,28 +562,8 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Render::Batch& Batch)
 			PixelShader->SetGlyphsTexture(*RHICmdList, GlyphsTexture, GlyphsSamplerState);
 		}
 
-		if (Batch.renderState.f.colorEnable)
-		{
-			if (Batch.renderState.f.blendMode == Noesis::Render::BlendMode::SrcOver)
-			{
-				RHICmdList->SetBlendState(TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_InverseSourceAlpha, BO_Add, BF_One, BF_InverseSourceAlpha>::GetRHI());
-			}
-			else
-			{
-				RHICmdList->SetBlendState(TStaticBlendState<CW_RGBA>::GetRHI());
-			}
-		}
-		else
-		{
-			if (Batch.renderState.f.blendMode == Noesis::Render::BlendMode::SrcOver)
-			{
-				RHICmdList->SetBlendState(TStaticBlendState<CW_NONE, BO_Add, BF_One, BF_InverseSourceAlpha, BO_Add, BF_One, BF_InverseSourceAlpha>::GetRHI());
-			}
-			else
-			{
-				RHICmdList->SetBlendState(TStaticBlendState<CW_NONE>::GetRHI());
-			}
-		}
+		RHICmdList->SetStencilRef(Batch.stencilRef);
+		RHICmdList->SetStreamSource(0, DynamicVertexBuffer, VertexStride, Batch.vertexOffset);
 
 		RHICmdList->DrawIndexedPrimitive(DynamicIndexBuffer, PT_TriangleList, 0, 0, VertexBufferSize, Batch.startIndex, Batch.numIndices / 3, 1);
 	}
