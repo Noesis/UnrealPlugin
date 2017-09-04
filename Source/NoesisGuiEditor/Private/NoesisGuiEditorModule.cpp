@@ -29,12 +29,18 @@ public:
 		NoesisGuiEditorModuleInterface = 0;
 
 		// Unregister asset type actions
-		IAssetTools& AssetTools = FModuleManager::GetModuleChecked<FAssetToolsModule>("AssetTools").Get();
-		AssetTools.UnregisterAssetTypeActions(NoesisBlueprintAssetTypeActions.ToSharedRef());
+		if (FModuleManager::Get().IsModuleLoaded("AssetTools"))
+		{
+			IAssetTools& AssetTools = FModuleManager::GetModuleChecked<FAssetToolsModule>("AssetTools").Get();
+			AssetTools.UnregisterAssetTypeActions(NoesisBlueprintAssetTypeActions.ToSharedRef());
+		}
 
 		// Unregister blueprint compiler
-		IKismetCompilerInterface& KismetCompilerModule = FModuleManager::LoadModuleChecked<IKismetCompilerInterface>("KismetCompiler");
-		KismetCompilerModule.GetCompilers().Remove(NoesisBlueprintCompiler.Get());
+		if (FModuleManager::Get().IsModuleLoaded("KismetCompiler"))
+		{
+			IKismetCompilerInterface& KismetCompilerModule = FModuleManager::LoadModuleChecked<IKismetCompilerInterface>("KismetCompiler");
+			KismetCompilerModule.GetCompilers().Remove(NoesisBlueprintCompiler.Get());
+		}
 	}
 	// End of IModuleInterface interface
 

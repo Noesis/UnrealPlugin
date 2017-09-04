@@ -51,14 +51,5 @@ public class NoesisGui : ModuleRules
 			{
 			}
 			);
-
-		try
-		{
-			System.IO.File.Copy(ModuleDirectory + "/Shaders/NoesisGui.usf", ModuleDirectory + "/../../../../Shaders/NoesisGui.usf", true);
-		}
-		catch (Exception E)
-		{
-			System.Console.WriteLine(E.ToString());
-		}
 	}
 }
