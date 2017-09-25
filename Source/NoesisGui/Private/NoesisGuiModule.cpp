@@ -22,8 +22,10 @@ static void NoesisErrorHandler(const NsChar* Filename, NsSize Line, const NsChar
 {
 	if (Fatal)
 	{
+		UE_LOG(LogNoesisGui, Error, TEXT("%s"), *NsStringToFString(Desc));
 		FPlatformMisc::RequestExit(true);
 	}
+	UE_LOG(LogNoesisGui, Warning, TEXT("%s"), *NsStringToFString(Desc));
 }
 
 class FNoesisGuiResourceProvider : public Noesis::XamlProvider, public Noesis::TextureProvider, public Noesis::CachedFontProvider
