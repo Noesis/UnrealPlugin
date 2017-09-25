@@ -537,7 +537,8 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Render::Batch& Batch)
 
 		SetGraphicsPipelineState(*RHICmdList, GraphicsPSOInit);
 
-		FMatrix ProjectionMtxValue = (const FMatrix&)(*Batch.projMtx);
+		FMatrix ProjectionMtxValue;
+		FMemory::Memcpy(&ProjectionMtxValue, Batch.projMtx, sizeof(*Batch.projMtx));
 		VertexShader->SetParameters(*RHICmdList, ProjectionMtxValue.GetTransposed());
 
 		float OpacityValue = Batch.opacity ? *Batch.opacity : 0.0f;
