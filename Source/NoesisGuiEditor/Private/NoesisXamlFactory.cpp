@@ -53,14 +53,15 @@ TArray<FString> ScanKeyword(FString Text, FString Keyword)
 	int32 KeywordIndex = INDEX_NONE;
 	while ((KeywordIndex = Text.Find(Keyword, ESearchCase::IgnoreCase, ESearchDir::FromStart, KeywordIndex)) != INDEX_NONE)
 	{
-		int32 StartIndex = Text.Find(TEXT("\""), ESearchCase::IgnoreCase, ESearchDir::FromEnd, KeywordIndex);
-		int32 EndIndex = Text.Find(TEXT("\""), ESearchCase::IgnoreCase, ESearchDir::FromStart, KeywordIndex);
+		int32 StartIndex = FMath::Max(Text.Find(TEXT("\""), ESearchCase::IgnoreCase, ESearchDir::FromEnd, KeywordIndex), Text.Find(TEXT(">"), ESearchCase::IgnoreCase, ESearchDir::FromEnd, KeywordIndex));
+		int32 EndIndex = (int32)FMath::Min((uint32)Text.Find(TEXT("\""), ESearchCase::IgnoreCase, ESearchDir::FromStart, KeywordIndex), (uint32)Text.Find(TEXT("<"), ESearchCase::IgnoreCase, ESearchDir::FromStart, KeywordIndex));
 
-		if (StartIndex != INDEX_NONE && EndIndex != INDEX_NONE)
+		if (StartIndex == INDEX_NONE || EndIndex == INDEX_NONE)
 		{
-			Strings.Add(Text.Left(EndIndex).RightChop(StartIndex + 1));
+			break;
 		}
 
+		Strings.Add(Text.Left(EndIndex).RightChop(StartIndex + 1));
 		KeywordIndex = EndIndex + 1;
 	}
 
