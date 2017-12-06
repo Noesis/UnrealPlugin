@@ -1,0 +1,14 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// NoesisGUI - http://www.noesisengine.com
+// Copyright (c) 2013 Noesis Technologies S.L. All Rights Reserved.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#pragma once
+
+#define NOESISGUI_MODULE_NAME "NoesisRuntime"
+
+class NOESISRUNTIME_API INoesisRuntimeModuleInterface : public IModuleInterface
+{
+public:
+	static INoesisRuntimeModuleInterface& Get();
+};

@@ -1,0 +1,30 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "2.1",
+	"FriendlyName": "NoesisGUI",
+	"Description": "User interface middleware",
+	"Category": "UI",
+	"CreatedBy": "Noesis Technologies",
+	"CreatedByURL": "http://www.noesisengine.com",
+	"DocsURL": "http://www.noesisengine.com/docs",
+	"MarketplaceURL": "",
+	"SupportURL": "http://www.noesisengine.com/forums",
+	"EngineVersion": "4.17.0",
+	"EnabledByDefault": true,
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "NoesisRuntime",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit"
+		},
+		{
+			"Name": "NoesisEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		}
+	]
+}
