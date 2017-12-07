@@ -64,7 +64,7 @@ If all the steps so far have been successful, your Unreal Engine install should 
                         +-- Bin
                         +-- Include
                         +-- Lib
-                +-- NoesisRuntime
+                +-- NoesisEditor
                 +-- NoesisRuntime
 ```
 
