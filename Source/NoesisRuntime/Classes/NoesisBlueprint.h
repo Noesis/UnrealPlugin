@@ -5,9 +5,6 @@
 
 #pragma once
 
-// Engine includes
-#include "Engine/Blueprint.h"
-
 // Generated header include
 #include "NoesisBlueprint.generated.h"
 

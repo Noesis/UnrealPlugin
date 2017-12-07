@@ -3,14 +3,7 @@
 // Copyright (c) 2013 Noesis Technologies S.L. All Rights Reserved.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
-
 #include "NoesisStyle.h"
-#include "Styling/SlateStyleRegistry.h"
-#include "Styling/SlateTypes.h"
-#include "EditorStyleSet.h"
-#include "Interfaces/IPluginManager.h"
-#include "SlateOptMacros.h"
 
 #define IMAGE_PLUGIN_BRUSH( RelativePath, ... ) FSlateImageBrush( FNoesisStyle::InContent( RelativePath, ".png" ), __VA_ARGS__ )
 

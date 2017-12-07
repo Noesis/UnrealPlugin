@@ -5,12 +5,6 @@
 
 #pragma once
 
-// Engine includes
-#include "GlobalShader.h"
-
-// ShaderCore includes
-#include "ShaderParameterUtils.h"
-
 // These have to match the defines in Noesis.usf
 enum NoesisShaderEffect
 {

@@ -5,35 +5,6 @@
 
 #include "K2Node_NoesisAssignAndNotify.h"
 
-// UnrealEd includes
-#include "EdGraphUtilities.h"
-#include "EditorCategoryUtils.h"
-#include "Editor/EditorEngine.h"
-#include "Kismet2/BlueprintEditorUtils.h"
-
-// EditorStyle includes
-#include "EditorStyleSettings.h"
-
-// KismetCompiler includes
-#include "KismetCompiler.h"
-
-// BlueprintGraph includes
-#include "EdGraphSchema_K2.h"
-#include "BlueprintActionDatabaseRegistrar.h"
-#include "BlueprintVariableNodeSpawner.h"
-#include "K2Node_CallFunction.h"
-#include "K2Node_VariableGet.h"
-#include "K2Node_VariableSet.h"
-#include "K2Node_IfThenElse.h"
-#include "K2Node_Self.h"
-#include "K2Node_EnumInequality.h"
-
-// Kismet includes
-#include "BlueprintCompilationManager.h"
-
-// Engine includes
-#include "ObjectEditorUtils.h"
-
 #define LOCTEXT_NAMESPACE "NoesisEditorModule"
 
 static FText GetBaseTooltip(FName VarName)

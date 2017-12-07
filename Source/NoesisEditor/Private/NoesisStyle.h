@@ -5,9 +5,6 @@
 
 #pragma once
 
-#include "Styling/ISlateStyle.h"
-#include "Styling/SlateStyle.h"
-
 class FNoesisStyle
 {
 public:

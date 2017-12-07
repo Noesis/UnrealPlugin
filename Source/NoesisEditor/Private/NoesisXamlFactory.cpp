@@ -5,26 +5,6 @@
 
 #include "NoesisXamlFactory.h"
 
-// Core includes
-#include "Misc/Paths.h"
-#include "Misc/FileHelper.h"
-#include "HAL/PlatformFileManager.h"
-#include "Internationalization/Regex.h"
-
-// UnrealEd includes
-#include "Kismet2/KismetEditorUtilities.h"
-#include "Factories/FontFactory.h"
-#include "Factories/FontFileImportFactory.h"
-#include "Factories/TextureFactory.h"
-#include "PackageTools.h"
-
-// BlueprintGraph includes
-#include "EdGraphSchema_K2.h"
-
-// FreeType2 includes
-#include "ft2build.h"
-#include FT_FREETYPE_H
-
 // NoesisEditor includes
 #include "NoesisEditorModule.h"
 
@@ -78,7 +58,7 @@ void ExtractPaths(FString FileUri, FString BaseFilePath, FString BasePackage, FS
 	PackagePath = PackageTools::SanitizePackageName(PackagePath);
 	PackageName = ObjectTools::SanitizeObjectName(FPaths::GetBaseFilename(FileName));
 
-	FilePath = FPaths::GameContentDir() / FilePath;
+	FilePath = FPaths::ProjectContentDir() / FilePath;
 	FPaths::RemoveDuplicateSlashes(FilePath);
 	FPaths::NormalizeFilename(FilePath);
 	FPaths::CollapseRelativeDirectories(FilePath);
@@ -489,7 +469,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 	FString Filename = GetCurrentFilename();
 	FString Directory = FPaths::GetPath(Filename);
 	Filename = FPaths::GetCleanFilename(Filename);
-	FPaths::MakePathRelativeTo(Directory, *FPaths::GameContentDir());
+	FPaths::MakePathRelativeTo(Directory, *FPaths::ProjectContentDir());
 	FString BasePackageName = Parent->GetPathName();
 
 	FString FilePath;

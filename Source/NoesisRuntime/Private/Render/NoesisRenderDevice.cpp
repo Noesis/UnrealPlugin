@@ -5,11 +5,6 @@
 
 #include "NoesisRenderDevice.h"
 
-// RHI includes
-#include "RHIStaticStates.h"
-#include "PipelineStateCache.h"
-#include "RHICommandList.h"
-
 // NoesisRuntime includes
 #include "Render/NoesisShaders.h"
 
@@ -634,7 +629,7 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 	}
 
 	RHICmdList->SetStencilRef(Batch.stencilRef);
-	RHICmdList->SetStreamSource(0, DynamicVertexBuffer, VertexStride, Batch.vertexOffset);
+	RHICmdList->SetStreamSource(0, DynamicVertexBuffer, Batch.vertexOffset);
 
 	RHICmdList->DrawIndexedPrimitive(DynamicIndexBuffer, PT_TriangleList, 0, 0, VertexBufferSize, Batch.startIndex, Batch.numIndices / 3, 1);
 }

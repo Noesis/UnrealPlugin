@@ -5,12 +5,6 @@
 
 #include "NoesisWidget.h"
 
-// RenderCore includes
-#include "RenderingThread.h"
-
-// SlateCore includes
-#include "Rendering/DrawElements.h"
-
 // NoesisRuntime includes
 #include "NoesisInstance.h"
 

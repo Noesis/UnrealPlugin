@@ -5,9 +5,6 @@
 
 #include "NoesisEditorModule.h"
 
-// Settings includes
-#include "ISettingsModule.h"
-
 // NoesisEditor includes
 #include "NoesisBlueprintAssetTypeActions.h"
 #include "NoesisXamlAssetTypeActions.h"

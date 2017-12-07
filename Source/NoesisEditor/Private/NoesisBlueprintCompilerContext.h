@@ -5,9 +5,6 @@
 
 #pragma once
 
-// KismetCompiler includes
-#include "KismetCompiler.h"
-
 class FNoesisBlueprintCompilerContext : public FKismetCompilerContext
 {
 protected:

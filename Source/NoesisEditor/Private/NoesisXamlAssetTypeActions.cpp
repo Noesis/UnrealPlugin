@@ -5,17 +5,6 @@
 
 #include "NoesisXamlAssetTypeActions.h"
 
-// SlateCore includes
-#include "Styling/SlateIconFinder.h"
-
-// Slate includes
-#include "Widgets/Layout/SBorder.h"
-#include "Widgets/Images/SImage.h"
-
-// UnrealEd includes
-#include "Editor/UnrealEdEngine.h"
-#include "UnrealEdGlobals.h"
-
 #define LOCTEXT_NAMESPACE "NoesisEditorModule"
 
 FNoesisXamlAssetTypeActions::FNoesisXamlAssetTypeActions(EAssetTypeCategories::Type InCategories)

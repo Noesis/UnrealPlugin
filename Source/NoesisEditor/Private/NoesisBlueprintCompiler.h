@@ -5,9 +5,6 @@
 
 #pragma once
 
-// KismetCompiler includes
-#include "KismetCompilerModule.h"
-
 class FNoesisBlueprintCompiler : public IBlueprintCompiler
 {
 	// IBlueprintCompiler interface

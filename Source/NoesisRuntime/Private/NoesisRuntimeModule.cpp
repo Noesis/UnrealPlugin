@@ -5,23 +5,6 @@
 
 #include "NoesisRuntimeModule.h"
 
-// CoreUObject includes
-#include "UObjectGlobals.h"
-
-// Core includes
-#include "Misc/FileHelper.h"
-#include "Misc/CoreDelegates.h"
-
-#if WITH_EDITOR
-// UnrealEd includes
-#include "Editor.h"
-#include "Kismet2/EnumEditorUtils.h"
-#include "Kismet2/StructureEditorUtils.h"
-
-// AssetRegistry includes
-#include "AssetRegistryModule.h"
-#endif
-
 // NoesisRuntime includes
 #include "NoesisResourceProvider.h"
 #include "Render/NoesisRenderDevice.h"

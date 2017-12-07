@@ -5,9 +5,6 @@
 
 #pragma once
 
-// UnrealEd includes
-#include "EditorReimportHandler.h"
-
 // Generated header include
 #include "NoesisXamlReimportFactory.generated.h"
 

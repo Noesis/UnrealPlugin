@@ -5,9 +5,6 @@
 
 #include "NoesisResourceProvider.h"
 
-// Core includes
-#include "Misc/FileHelper.h"
-
 UNoesisXaml* FNoesisResourceProvider::GetXaml(FString XamlPath)
 {
 	return FindObject<UNoesisXaml>(nullptr, XamlPath[0] == TEXT('/') ? *XamlPath : *(FString(TEXT("/")) + XamlPath));

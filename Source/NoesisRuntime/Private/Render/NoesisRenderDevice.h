@@ -5,9 +5,6 @@
 
 #pragma once
 
-// Engine includes
-#include "StaticBoundShaderState.h"
-
 class FNoesisRenderDevice : public Noesis::RenderDevice
 {
 	static const uint32 VertexBufferSize = 512 * 1024;

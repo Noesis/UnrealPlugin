@@ -5,9 +5,6 @@
 
 #pragma once
 
-// AssetTools includes
-#include "AssetTypeActions_Base.h"
-
 class FNoesisBlueprintAssetTypeActions : public FAssetTypeActions_Base
 {
 public:

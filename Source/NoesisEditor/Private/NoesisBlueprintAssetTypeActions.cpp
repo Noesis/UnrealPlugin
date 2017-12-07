@@ -5,9 +5,6 @@
 
 #include "NoesisBlueprintAssetTypeActions.h"
 
-// Kismet includes
-#include "BlueprintEditorModule.h"
-
 #define LOCTEXT_NAMESPACE "NoesisEditorModule"
 
 FNoesisBlueprintAssetTypeActions::FNoesisBlueprintAssetTypeActions(EAssetTypeCategories::Type InCategories)

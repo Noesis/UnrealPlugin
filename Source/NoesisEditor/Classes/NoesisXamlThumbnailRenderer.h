@@ -5,9 +5,6 @@
 
 #pragma once
 
-// UnrealEd includes
-#include "ThumbnailRendering/DefaultSizedThumbnailRenderer.h"
-
 // Generated header include
 #include "NoesisXamlThumbnailRenderer.generated.h"
 

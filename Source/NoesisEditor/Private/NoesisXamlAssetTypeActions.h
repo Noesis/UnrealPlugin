@@ -5,9 +5,6 @@
 
 #pragma once
 
-// AssetTools includes
-#include "AssetTypeActions_Base.h"
-
 class FNoesisXamlAssetTypeActions : public FAssetTypeActions_Base
 {
 public:

@@ -5,9 +5,6 @@
 
 #pragma once
 
-// SlateCore includes
-#include "SLeafWidget.h"
-
 class FNoesisSlateOffscreenElement : public ICustomSlateElement
 {
 public:
