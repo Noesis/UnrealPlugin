@@ -121,13 +121,16 @@ void OnAssetRenamed(const FAssetData&, const FString&)
 void AddOnBlueprintPreCompileDelegate()
 {
 #if WITH_EDITOR
-	GEditor->OnBlueprintPreCompile().AddStatic(OnBlueprintPreCompile);
-	FEnumEditorUtils::FEnumEditorManager::Get().AddListener(new NotifyEnumChanged);
-	FStructureEditorUtils::FStructEditorManager::Get().AddListener(new NotifyStructChanged);
+	if (GEditor)
+	{
+		GEditor->OnBlueprintPreCompile().AddStatic(OnBlueprintPreCompile);
+		FEnumEditorUtils::FEnumEditorManager::Get().AddListener(new NotifyEnumChanged);
+		FStructureEditorUtils::FStructEditorManager::Get().AddListener(new NotifyStructChanged);
 
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
-	AssetRegistry.OnAssetRenamed().AddStatic(&OnAssetRenamed);
+		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+		IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+		AssetRegistry.OnAssetRenamed().AddStatic(&OnAssetRenamed);
+	}
 #endif
 }
 
