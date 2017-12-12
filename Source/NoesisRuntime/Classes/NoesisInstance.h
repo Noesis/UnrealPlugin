@@ -82,6 +82,11 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 
 	FVector2D GetSize() const;
 
+	TMap<Noesis::TextBox*, TSharedPtr<class NoesisTextBoxTextInputMethodContext> > TextInputMethodContexts;
+
+	void OnPreviewGotKeyboardFocus(Noesis::BaseComponent* Component, const Noesis::KeyboardFocusChangedEventArgs& Args);
+	void OnPreviewLostKeyboardFocus(Noesis::BaseComponent* Component, const Noesis::KeyboardFocusChangedEventArgs& Args);
+
 	// UObject interface
 	virtual class UWorld* GetWorld() const override;
 	virtual void BeginDestroy() override;

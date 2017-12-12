@@ -38,6 +38,12 @@
 #include "SLeafWidget.h"
 #include "Rendering/DrawElements.h"
 
+// ApplicationCore includes
+#include "GenericPlatform/ITextInputMethodSystem.h"
+
+// Slate includes
+#include "Framework/Application/SlateApplication.h"
+
 #if WITH_EDITOR
 // UnrealEd includes
 #include "Editor.h"

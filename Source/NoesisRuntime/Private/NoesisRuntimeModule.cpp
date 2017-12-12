@@ -21,8 +21,10 @@ static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* De
 {
 	if (Fatal)
 	{
+		UE_LOG(LogNoesis, Error, TEXT("%s"), *NsStringToFString(Desc));
 		FPlatformMisc::RequestExit(true);
 	}
+	UE_LOG(LogNoesis, Warning, TEXT("%s"), *NsStringToFString(Desc));
 }
 
 static void NoesisLogHandler(const char* File, uint32_t Line, uint32_t Level, const char* Channel, const char* Message)

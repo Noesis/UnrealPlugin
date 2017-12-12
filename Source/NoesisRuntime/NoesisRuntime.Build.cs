@@ -35,7 +35,9 @@ public class NoesisRuntime : ModuleRules
 				"ShaderCore",
 				"SlateCore",
 				"InputCore",
-				"UMG"
+				"UMG",
+				"ApplicationCore",
+				"Slate"
 			}
 			);
 
