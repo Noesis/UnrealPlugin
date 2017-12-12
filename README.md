@@ -18,6 +18,20 @@ In order to use NoesisGUI in your UE4 project, you're going to need:
 
 * The NoesisGUI native SDK. Please visit [our website](https://noesisengine.com) for information about licensing and downloads.
 
+## Samples
+
+After you read this document, we have a few samples so you can see some of the concepts in action:
+
+* [Buttons](https://github.com/Noesis/Tutorials/tree/master/Samples/Buttons/UE4): A simple game that shows how you can use `Binding`s to implement `Command`s as `Blueprint` functions.
+
+* [Widget3D](https://github.com/Noesis/Tutorials/tree/master/Samples/Widget3D/UE4): A similar UI, but this time presented in 3D using Unreal Engine's `WidgetComponent`.
+
+* [Login](https://github.com/Noesis/Tutorials/tree/master/Samples/Login/UE4): A slightly more elaborated sample that uses `Binding`s to data and functions in a `Blueprint`, combined with some C++ code for more advanced functions.
+
+* [QuestLog](https://github.com/Noesis/Tutorials/tree/master/Samples/QuestLog/UE4): This samples shows how to use `Binding`s to more complex data, such as `Texture`s and `Array`s of `Object`s.
+
+* [Scoreboard](https://github.com/Noesis/Tutorials/tree/master/Samples/Scoreboard/UE4): This sample shows more advanced ways to expose data on `Blueprint`s so that it can be used in `Binding`s, such as using Getter functions and manually notifying property changes.
+
 ## Setup
 
 The setup process is slightly different depending on whther you're using a version of Unreal Engine installed trough the Epic Games Launcher or built by yourself from the source code in GitHub.
