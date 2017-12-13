@@ -462,7 +462,10 @@ void UNoesisInstance::OnPreviewGotKeyboardFocus(Noesis::BaseComponent* Component
 				}
 			}
 
-			TextInputMethodSystem->ActivateContext(TextInputMethodContext.ToSharedRef());
+			if (TextInputMethodContext.IsValid())
+			{
+				TextInputMethodSystem->ActivateContext(TextInputMethodContext.ToSharedRef());
+			}
 		}
 	}
 }
