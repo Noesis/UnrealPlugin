@@ -9,6 +9,7 @@
 #include "AllowWindowsPlatformTypes.h"
 #endif
 
+#define EA_CHAR32_NATIVE 0
 #include "Noesis_pch.h"
 
 #if PLATFORM_WINDOWS

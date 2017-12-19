@@ -16,7 +16,7 @@ In order to use NoesisGUI in your UE4 project, you're going to need:
 
 * This Unreal Engine plugin.
 
-* The NoesisGUI native SDK. Please visit [our website](https://noesisengine.com) for information about licensing and downloads.
+* The NoesisGUI SDK version 2.1. You can download it from [our website](https://noesisengine.com).
 
 ## Samples
 

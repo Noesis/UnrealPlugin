@@ -48,8 +48,10 @@
 #include "K2Node_Variable.h"
 
 // FreeType2 includes
+THIRD_PARTY_INCLUDES_START
 #include "ft2build.h"
 #include FT_FREETYPE_H
+THIRD_PARTY_INCLUDES_END
 
 // BlueprintGraph includes
 #include "BlueprintGraphModule.h"
