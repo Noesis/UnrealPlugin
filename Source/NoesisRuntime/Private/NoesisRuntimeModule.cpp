@@ -61,11 +61,21 @@ extern "C" FARPROC WINAPI delayLoadHook(uint32 dliNotify, PDelayLoadInfo pdli)
 {
 	if (dliNotify == dliNotePreLoadLibrary && FCStringAnsi::Stricmp(pdli->szDll, "Noesis.dll") == 0)
 	{
-		FString NoesisDllPath = FPaths::EngineDir() / TEXT(NOESISGUI_DLL_PATH);
-		FPlatformProcess::PushDllDirectory(*FPaths::GetPath(NoesisDllPath));
-		void* DllHandle = FPlatformProcess::GetDllHandle(*NoesisDllPath);
-		FPlatformProcess::PopDllDirectory(*FPaths::GetPath(NoesisDllPath));
-		return (FARPROC)DllHandle;
+		FString BaseDirs[] = { FPaths::EnginePluginsDir(), FPaths::EnterprisePluginsDir(), FPaths::ProjectPluginsDir() };
+		for (auto BaseDir : BaseDirs)
+		{
+			FString NoesisDllPath = BaseDir / TEXT(NOESISGUI_DLL_PATH);
+			if (FPaths::DirectoryExists(*FPaths::GetPath(NoesisDllPath)))
+			{
+				FPlatformProcess::PushDllDirectory(*FPaths::GetPath(NoesisDllPath));
+				void* DllHandle = FPlatformProcess::GetDllHandle(*NoesisDllPath);
+				FPlatformProcess::PopDllDirectory(*FPaths::GetPath(NoesisDllPath));
+				if (DllHandle)
+				{
+					return (FARPROC)DllHandle;
+				}
+			}
+		}
 	}
 
 	return NULL;

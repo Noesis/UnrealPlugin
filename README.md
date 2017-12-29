@@ -36,71 +36,78 @@ After you read this document, we have a few samples so you can see some of the c
 
 The setup process is slightly different depending on whther you're using a version of Unreal Engine installed trough the Epic Games Launcher or built by yourself from the source code in GitHub.
 
-### Setup with pre-built version
+You can use the NoesisGUI Unreal Engine plugin as either an Engine plugin or a Project (Game) plugin. For more information about Unreal Engine Plugins, please refer to the [Plugins](https://docs.unrealengine.com/latest/INT/Programming/Plugins/index.html) documentation.
+
+### Setup with Epic Games Launcher version
 
 1. Make sure you have the engine source code installed. To verify you do, go to the Unreal Engine tab in the Epic Games Launcher, then go to your library of installed components. From there, at the top, look for the Unreal Engine version with which you wish to use NoesisGUI, and from the drop down list next to the Launch button, selecto options. Make sure the Engine Source option is selected. If it isn't, click on the tick box next to it and then click Apply to download it.
 
 ![Installed Engine version options](https://noesis.github.io/NoesisGUI/UE4Plugin/VersionOptions.png)
 ![Engine Source installed](https://noesis.github.io/NoesisGUI/UE4Plugin/EngineSource.png)
 
-2. Copy the contents of this repository into `[UE4Root]/Engine/Plugins/NoesisGUI`.
+2. Copy the contents of this repository into `[UE4Root]/Engine/Plugins/NoesisGUI` if you want to use it as an Engine plugin, or `[ProjectRoot]/Plugins/NoesisGUI` if you choose to use it as a Project plugin. We'll refer to the directory where you install the plugin as `[NoesisGUIPlugin]` from now on. The plugin assumes it will be installed on either of these paths, and will crash on load if it isn't. For example, don't copy it into a sub-directory such as `[UE4Root]/Engine/Plugins/UI/NoesisGUI`.
 
-3. Download the NoesisGUI SDK from [our developer portal](http://noesisengine.com/forums/) and extract it into `[UE4Root]/Engine/Plugins/NoesisGUI/Source/Noesis/NoesisSDK`.
+3. Download the NoesisGUI SDK version 2.1 from [our developer portal](http://noesisengine.com/forums/) and extract it into `[NoesisGUIPlugin]/Source/Noesis/NoesisSDK`.
 
-4. Build the plugin by running the script at `[UE4Root]/Engine/Plugins/NoesisGUI/BuildNoesisGUIPlugin.bat`.
+4. If you've installed the plugin as an Engine plugin you need to run `[NoesisGUIPlugin]/BuildNoesisGUIPlugin.bat` to finish the setup. This step is not required if you've installed it as a Project plugin.
 
 ### Setup with source code from GitHub
 
 1. Download or clone the Unreal Engine source code from GitHub. You can find more information about how to do this in the document [Downloading Unreal Engine Source Code](https://docs.unrealengine.com/latest/INT/GettingStarted/DownloadingUnrealEngine/index.html).
 
-2. Download the NoesisGUI SDK from [our developer portal](http://noesisengine.com/forums/) and extract it into `[UE4Root]/Engine/Plugins/NoesisGUI/Source/Noesis/NoesisSDK`.
+2. Copy the contents of this repository into `[UE4Root]/Engine/Plugins/NoesisGUI` if you want to use it as an Engine plugin, or `[ProjectRoot]/Plugins/NoesisGUI` if you choose to use it as a Project plugin. We'll refer to the directory where you install the plugin as `[NoesisGUIPlugin]` from now on. The plugin assumes it will be installed on either of these paths, and will crash on load if it isn't. For example, don't copy it into a sub-directory such as `[UE4Root]/Engine/Plugins/UI/NoesisGUI`.
 
-3. Regenerate the Unreal Engine solution by running `[UE4Root]/GenerateProjectFiles.bat`. The newly generated solution should include the NoesisGUI plugin. You can verify this by opening the solution and, in the Solution Explorer panel and navigating to Engine/UE4/Plugins.
+3. Download the NoesisGUI SDK version 2.1 from [our developer portal](http://noesisengine.com/forums/) and extract it into `[NoesisGUIPlugin]/Source/Noesis/NoesisSDK`.
 
-4. Build the solution. The NoesisGUI plugin should be build along with it.
+4. Regenerate the Unreal Engine project files. You can do this in a number of ways, some of which are explained in the [Automatic Project File Generation](https://docs.unrealengine.com/latest/INT/Programming/UnrealBuildSystem/ProjectFileGenerator/index.html) document.
+
+5. Build the Engine or your Project. The NoesisGUI plugin should be built along with it.
 
 ## Directory structure
 
 If all the steps so far have been successful, your Unreal Engine install should contain the following directories. Please note that only the directories relevant to the NoesisGUI plugin are listed here, and that your installation may contain additional files and directories that have been omitted here for clarity.
 
 ```
-[UE4Root]
-+-- Engine
-    +-- Plugins
-        +-- NoesisGUI
-            +-- Binaries
-            +-- Content
-            +-- Resources
-            +-- Shaders
-            +-- Source
-                +-- Noesis
-                    +-- NoesisSDK
-                        +-- Bin
-                        +-- Include
-                        +-- Lib
-                +-- NoesisEditor
-                +-- NoesisRuntime
+[NoesisGUIPlugin]
++-- Binaries
++-- Content
++-- Intermediate
++-- Resources
++-- Shaders
++-- Source
+    +-- Noesis
+        +-- NoesisSDK
+            +-- Bin
+            +-- Include
+            +-- Lib
+            +-- version.txt
+    +-- NoesisEditor
+    +-- NoesisRuntime
++-- NoesisGUI.uplugin
 ```
 
-## Configuring the plugin
+## Enabling and configuring the plugin
 
-At this point the plugin should be built and ready to use, so we can proceed to make sure it's enabled and configure some settings for your project.
+At this point the plugin should be ready to use, so we can proceed to enable it and configure some settings for your project.
 
-1. Run the Unreal Engine editor. The NoesisGUI plugin should be enabled by default, but you can verify it is by opening the Plugins dialog from the Edit menu, and selecting UI from the category list on the left. You can enable the plugin from the right panel in case it's not enabled by default.
+1. Run the Unreal Engine editor. You may get an alert on the bottom right corner alerting you that new plugins have been installed. If you don't, open the Plugins dialog from the Edit menu, and selecting UI from the category list on the left. You can enable the plugin from the right hand panel.
 
 ![Ensuring the NoesisGUI plugin is enabled](https://noesis.github.io/NoesisGUI/UE4Plugin/Plugins.PNG)
+
+You can also do this manually by modifying your Project's `.uproject` file to add the plugin dependency, like this:
+
+```
+"Plugins": [
+    {
+        "Name": "NoesisGUI",
+        "Enabled": true
+    }
+]
+```
 
 2. With the plugin enabled, you can configure some NoesisGUI global settings for your project. You can find them by opening the Project Settings dialog from the Edit menu, then scrolling down to the Plugins section on the left panel, and finally NoesisGUI. These settings have sensible default values, so if you're unsure about them you can just leave them as they are. If you modify these settings you will have to restart the editor for the changes to take effect.
 
 ![NoesisGUI plugin settings](https://noesis.github.io/NoesisGUI/UE4Plugin/NoesisPluginSettings.PNG)
-
-## Using NoesisGUI with Unreal Engine
-
-With the NoesisGUI plugin for Unreal Engine you have all the power of the native NoesisGUI SDK at your disposal. There are a few particularities about the use that will be explained later, but the bottom line is that everything that can be done with the native SDK will work in Unreal Engine.
-
-But we wanted to provide an easy way to allow users to leverage the power of NoesisGUI using Unreal Engine's `Blueprint`s. A mechanism is provided that allows `Binding`s to `Blueprint` properties, without having to write a signle line of C++ code.
-
-With this approach NoesisGUI will be more accesible for everyone, but at the same time will allow more advanced users to use the native SDK directly, with the complete set of features available to them as in any other platform.
 
 ## Setting up your Unreal Engine project to use NoesisGUI
 
@@ -119,6 +126,14 @@ Next, you have to `#include` the necessary headers for your project. To simplify
 ```
 #include "NoesisRuntime.h"
 ```
+
+## Using NoesisGUI with Unreal Engine
+
+With the NoesisGUI plugin for Unreal Engine you have all the power of the native NoesisGUI SDK at your disposal. There are a few particularities about the use that will be explained later, but the bottom line is that everything that can be done with the native SDK will work in Unreal Engine.
+
+But we wanted to provide an easy way to allow users to leverage the power of NoesisGUI using Unreal Engine's `Blueprint`s. A mechanism is provided that allows `Binding`s to `Blueprint` properties, without having to write a signle line of C++ code.
+
+With this approach NoesisGUI will be more accesible for everyone, but at the same time will allow more advanced users to use the native SDK directly, with the complete set of features available to them as in any other platform.
 
 ## Importing your assets
 
@@ -253,3 +268,13 @@ There are a couple of issues of which we are aware of and are either out of our 
 * It is not possible to change the cursor to use with a NoesisView generated Widget by using the Set Cursor function. This will be fixed in a future release.
 
 ![Set Cursor does not work at the moment](https://noesis.github.io/NoesisGUI/UE4Plugin/SetCursor.PNG)
+
+## Troubleshooting
+
+* When you try to build, package or launch your project you get an error complaining about missing libraries `UE4-NoesisRuntime.lib` or `UE4-NoesisRuntime-Win64-Shipping.lib` (`UE4-NoesisRuntime.a` or `UE4-NoesisRuntime-Mac-Shipping.a` on Mac).
+
+    * If you're using an Epic Games Launcher version of Unreal Engine and you decided to install the plugin as an Engine plugin, please run the `BuildNoesisGUIPlugin.bat` (`BuildNoesisGUIPlugin.command` on Mac) to build the runtime libraries needed.
+
+* When starting your project editor you get an error because your game module could not be loaded.
+
+    * Make sure you enabled the plugin for your project before adding the dependency to the module `NoesisRuntime`. If you already had a project created, simply add the dependency manually as described in the section [Enabling and configuring the plugin](#enabling-and-configuring-the-plugin).

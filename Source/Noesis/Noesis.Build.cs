@@ -13,9 +13,10 @@ public class Noesis : ModuleRules
 	{
 		Type = ModuleType.External;
 
-		string NoesisSdkDirectory = "/NoesisSDK/";
-		string NoesisBasePath = ModuleDirectory + NoesisSdkDirectory;
+		string NoesisBasePath = ModuleDirectory + "/NoesisSDK/";
 		string NoesisIncludePath = NoesisBasePath + "Include/";
+
+		PublicIncludePaths.Add(NoesisIncludePath);
 
 		// Let's try to make sure the right version of the SDK is in the right place.
 		const string RequiredRevision = "(r6756)";
@@ -64,10 +65,10 @@ public class Noesis : ModuleRules
 			PublicLibraryPaths.Add(NoesisLibPath);
 			PublicAdditionalLibraries.Add("Noesis.lib");
 
-			string NoesisDllPath = "Plugins/NoesisGui/Source/Noesis" + NoesisSdkDirectory + "Bin/windows_x86_64/Noesis.dll";
-			RuntimeDependencies.Add(new RuntimeDependency("$(EngineDir)/" + NoesisDllPath));
+			string NoesisDllPath = "/NoesisSDK/Bin/windows_x86_64/Noesis.dll";
+			RuntimeDependencies.Add(new RuntimeDependency(ModuleDirectory + NoesisDllPath));
 
-			Definitions.Add("NOESISGUI_DLL_PATH=\"" + NoesisDllPath + "\"");
+			Definitions.Add("NOESISGUI_DLL_PATH=\"NoesisGUI/Source/Noesis/" + NoesisDllPath + "\"");
 
 			PublicDelayLoadDLLs.Add("Noesis.dll");
 		}
@@ -77,8 +78,8 @@ public class Noesis : ModuleRules
 			PublicLibraryPaths.Add(NoesisLibPath);
 			PublicAdditionalLibraries.Add(NoesisLibPath + "Noesis.dylib");
 
-			string NoesisDylibPath = "Plugins/NoesisGui/Source/Noesis" + NoesisSdkDirectory + "Bin/osx/Noesis.dylib";
-			RuntimeDependencies.Add(new RuntimeDependency("$(EngineDir)/" + NoesisDylibPath));
+			string NoesisDylibPath = "/NoesisSDK/Bin/osx/Noesis.dylib";
+			RuntimeDependencies.Add(new RuntimeDependency(ModuleDirectory + NoesisDylibPath));
 		}
 	}
 }

@@ -302,6 +302,105 @@ FVector2D UNoesisInstance::GetSize() const
 	return FVector2D();
 }
 
+class NoesisTextBoxVirtualKeyboardEntry : public IVirtualKeyboardEntry
+{
+public:
+	NoesisTextBoxVirtualKeyboardEntry(Noesis::TextBox* InTextBox)
+		: TextBox(InTextBox)
+	{
+
+	}
+
+	virtual void SetTextFromVirtualKeyboard(const FText& InNewText, ETextEntryType TextEntryType) override
+	{
+		if (TextEntryType == ETextEntryType::TextEntryCanceled || TextEntryType == ETextEntryType::TextEntryAccepted)
+		{
+			int32 BeginIndex = TextBox->GetSelectionStart();
+			int32 Length = TextBox->GetSelectionLength();
+			FString CurrentText = NsStringToFString(TextBox->GetText());
+			FString NewString = InNewText.ToString();
+			FString NewText = CurrentText.Left(BeginIndex) + NewString + CurrentText.RightChop(BeginIndex + Length);
+			TextBox->SetText(TCHARToNsString(*NewText).c_str());
+			int32 NewLength = NewString.Len();
+			TextBox->SetSelectionStart(BeginIndex + NewLength);
+			TextBox->SetSelectionLength(0);
+		}
+		else if (TextEntryType == ETextEntryType::TextEntryUpdated)
+		{
+			int32 BeginIndex = TextBox->GetSelectionStart();
+			int32 Length = TextBox->GetSelectionLength();
+			FString CurrentText = NsStringToFString(TextBox->GetText());
+			FString NewString = InNewText.ToString();
+			FString NewText = CurrentText.Left(BeginIndex) + NewString + CurrentText.RightChop(BeginIndex + Length);
+			TextBox->SetText(TCHARToNsString(*NewText).c_str());
+			int32 NewLength = NewString.Len();
+			TextBox->SetSelectionLength(NewLength);
+		}
+	}
+
+	virtual FText GetText() const override
+	{
+		return FText::FromString(NsStringToFString(TextBox->GetText()));
+	}
+
+	virtual FText GetHintText() const override
+	{
+		return FText();
+	}
+
+	virtual EKeyboardType GetVirtualKeyboardType() const override
+	{
+		return Keyboard_Default;
+	}
+
+	virtual bool IsMultilineEntry() const override
+	{
+		return TextBox->GetMaxLines() > 1;
+	}
+
+private:
+	Noesis::TextBox* TextBox;
+};
+
+class NoesisPasswordBoxVirtualKeyboardEntry : public IVirtualKeyboardEntry
+{
+public:
+	NoesisPasswordBoxVirtualKeyboardEntry(Noesis::PasswordBox* InPasswordBox)
+		: PasswordBox(InPasswordBox)
+	{
+
+	}
+
+	virtual void SetTextFromVirtualKeyboard(const FText& InNewText, ETextEntryType TextEntryType) override
+	{
+		FString NewString = InNewText.ToString();
+		PasswordBox->SetPassword(TCHARToNsString(*NewString).c_str());
+	}
+
+	virtual FText GetText() const override
+	{
+		return FText::FromString(NsStringToFString(PasswordBox->GetPassword()));
+	}
+
+	virtual FText GetHintText() const override
+	{
+		return FText();
+	}
+
+	virtual EKeyboardType GetVirtualKeyboardType() const override
+	{
+		return Keyboard_Password;
+	}
+
+	virtual bool IsMultilineEntry() const override
+	{
+		return false;
+	}
+
+private:
+	Noesis::PasswordBox* PasswordBox;
+};
+
 class NoesisTextBoxTextInputMethodContext : public ITextInputMethodContext
 {
 public:

@@ -11,10 +11,8 @@
 	"MarketplaceURL": "",
 	"SupportURL": "http://www.noesisengine.com/forums",
 	"EngineVersion": "4.18.0",
-	"EnabledByDefault": true,
 	"CanContainContent": true,
-	"IsBetaVersion": false,
-	"Installed": false,
+	"Installed": true,
 	"Modules": [
 		{
 			"Name": "NoesisRuntime",

@@ -6,12 +6,19 @@
 #pragma once
 
 // Engine includes
-#include "EngineClasses.h"
 #include "StaticBoundShaderState.h"
 #include "GlobalShader.h"
+#include "Engine/Font.h"
+#include "Engine/FontFace.h"
+#include "Engine/Texture2D.h"
+#include "Engine/TextureRenderTarget2D.h"
 #include "Engine/Blueprint.h"
 #include "Engine/BlueprintGeneratedClass.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetArrayLibrary.h"
+#include "EditorFramework/AssetImportData.h"
 
 // ShaderCore includes
 #include "ShaderParameterUtils.h"
@@ -25,6 +32,7 @@
 // Core includes
 #include "Misc/FileHelper.h"
 #include "Misc/CoreDelegates.h"
+#include "UObject/PropertyPortFlags.h"
 
 // RHI includes
 #include "RHIStaticStates.h"

@@ -14,8 +14,14 @@
 #include "Internationalization/Regex.h"
 
 // Engine includes
-#include "EngineClasses.h"
 #include "ObjectEditorUtils.h"
+#include "Engine/Font.h"
+#include "Engine/FontFace.h"
+#include "Engine/Texture2D.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetStringLibrary.h"
+#include "EditorFramework/AssetImportData.h"
 
 // UnrealEd includes
 #include "AutomatedAssetImportData.h"
