@@ -278,3 +278,7 @@ There are a couple of issues of which we are aware of and are either out of our 
 * When starting your project editor you get an error because your game module could not be loaded.
 
     * Make sure you enabled the plugin for your project before adding the dependency to the module `NoesisRuntime`. If you already had a project created, simply add the dependency manually as described in the section [Enabling and configuring the plugin](#enabling-and-configuring-the-plugin).
+
+* In windows, if you get a crash on startup with `__delayLoadHelper2` on the top, that means `NoesisRuntime` cannot find `Noesis.dll`.
+    
+    * Make sure the plugin is located in `[UERoot]/Engine/Plugins/NoesisGUI` or `[ProjectRoot]/Plugins/NoesisGUI`, and not in any subfolders, as explained in the [Setup with Epic Games Launcher version](#setup-with-epic-games-launcher-version) and [Setup with source code from GitHub](#setup-with-source-code-from-github) sections.
