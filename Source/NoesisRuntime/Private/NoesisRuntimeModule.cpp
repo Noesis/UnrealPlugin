@@ -143,6 +143,10 @@ void AddOnBlueprintPreCompileDelegate()
 		IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
 		AssetRegistry.OnAssetRenamed().AddStatic(&OnAssetRenamed);
 	}
+
+	// https://answers.unrealengine.com/questions/526745/413-plugin-custom-kismet-bp-node-standalone-game-c.html
+	// Workaround: Standalone mode doesn't load the editor modules, so blueprints that use the set and notify don't work correctly.
+	FModuleManager::Get().LoadModule("NoesisEditor");
 #endif
 }
 
