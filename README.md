@@ -32,6 +32,8 @@ After you read this document, we have a few samples so you can see some of the c
 
 * [Scoreboard](https://github.com/Noesis/Tutorials/tree/master/Samples/Scoreboard/UE4): This sample shows more advanced ways to expose data on `Blueprint`s so that it can be used in `Binding`s, such as using Getter functions and manually notifying property changes.
 
+* [ShooterGame](https://github.com/Noesis/UE4-ShooterGame): This sample replaces the UI from Epic's ShooterGame sample with NoesisGUI. Some changes were dome to the source code in order to expose data and functionality, but otherwise the UI is done completely in `Blueprint`.
+
 ## Setup
 
 The setup process is slightly different depending on whther you're using a version of Unreal Engine installed trough the Epic Games Launcher or built by yourself from the source code in GitHub.
