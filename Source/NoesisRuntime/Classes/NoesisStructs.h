@@ -5,7 +5,16 @@
 
 #pragma once
 
+// Core includes
+#include "CoreMinimal.h"
+
+// NoesisRuntime includes
 #include "NoesisEnums.h"
+
+// Noesis includes
+#include "NoesisSDK.h"
+
+// Generated header include
 #include "NoesisStructs.generated.h"
 
 USTRUCT(BlueprintType, Category = "NoesisGUI")

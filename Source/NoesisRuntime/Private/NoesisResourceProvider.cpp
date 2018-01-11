@@ -5,6 +5,19 @@
 
 #include "NoesisResourceProvider.h"
 
+// Core includes
+#include "Misc/FileHelper.h"
+
+// Engine includes
+#include "Engine/Texture.h"
+#include "Engine/Texture2D.h"
+#include "Engine/Font.h"
+#include "Engine/FontFace.h"
+
+// NoesisRuntime includes
+#include "NoesisXaml.h"
+#include "NoesisSupport.h"
+
 UNoesisXaml* FNoesisResourceProvider::GetXaml(FString XamlPath)
 {
 	return FindObject<UNoesisXaml>(nullptr, XamlPath[0] == TEXT('/') ? *XamlPath : *(FString(TEXT("/")) + XamlPath));

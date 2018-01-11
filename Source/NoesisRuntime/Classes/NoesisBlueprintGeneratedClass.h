@@ -5,6 +5,15 @@
 
 #pragma once
 
+// Core includes
+#include "CoreMinimal.h"
+
+// Engine includes
+#include "Engine/BlueprintGeneratedClass.h"
+
+// NoesisRuntime includes
+#include "NoesisBlueprint.h"
+
 // Generated header include
 #include "NoesisBlueprintGeneratedClass.generated.h"
 

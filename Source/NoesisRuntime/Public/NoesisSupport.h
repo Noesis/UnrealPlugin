@@ -5,6 +5,9 @@
 
 #pragma once
 
+// Noesis includes
+#include "NoesisSDK.h"
+
 inline FString NsStringToFString(const char* String)
 {
 	return FString(UTF8_TO_TCHAR(String));
@@ -31,6 +34,6 @@ inline Noesis::Matrix4f FMatrixToNsMatrix(const FMatrix& Matrix)
 	return Noesis::Matrix4f((float*)&TransposedMatrix);
 }
 
-Noesis::Ptr<Noesis::Texture> NoesisCreateTexture(UTexture* Texture);
+Noesis::Ptr<Noesis::Texture> NoesisCreateTexture(class UTexture* Texture);
 
 NOESISRUNTIME_API void CollectElements(Noesis::FrameworkElement* Element, TArray<Noesis::FrameworkElement*>& Elements);

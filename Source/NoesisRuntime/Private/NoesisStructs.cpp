@@ -5,6 +5,9 @@
 
 #include "NoesisStructs.h"
 
+// NoesisRuntime includes
+#include "NoesisSupport.h"
+
 FNoesisSize::FNoesisSize(const Noesis::Size& Size)
 {
 	Width = Size.width;

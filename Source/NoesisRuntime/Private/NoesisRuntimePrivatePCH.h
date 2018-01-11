@@ -33,10 +33,13 @@
 #include "Misc/FileHelper.h"
 #include "Misc/CoreDelegates.h"
 #include "UObject/PropertyPortFlags.h"
+#include "Modules/ModuleInterface.h"
 
 // RHI includes
+#include "RHI.h"
 #include "RHIStaticStates.h"
 #include "PipelineStateCache.h"
+#include "RHIResources.h"
 #include "RHICommandList.h"
 
 // RenderCore includes
@@ -47,10 +50,14 @@
 #include "Rendering/DrawElements.h"
 
 // ApplicationCore includes
+#include "HAL/PlatformApplicationMisc.h"
 #include "GenericPlatform/ITextInputMethodSystem.h"
 
 // Slate includes
 #include "Framework/Application/SlateApplication.h"
+
+// Noesis includes
+#include "NoesisSDK.h"
 
 #if WITH_EDITOR
 // UnrealEd includes
@@ -60,20 +67,6 @@
 
 // AssetRegistry includes
 #include "AssetRegistryModule.h"
-#endif
-
-
-DECLARE_LOG_CATEGORY_EXTERN(LogNoesis, VeryVerbose, All);
-
-#if PLATFORM_WINDOWS
-#include "AllowWindowsPlatformTypes.h"
-#endif
-
-#define EA_CHAR32_NATIVE 0
-#include "Noesis_pch.h"
-
-#if PLATFORM_WINDOWS
-#include "HideWindowsPlatformTypes.h"
 #endif
 
 #include "NoesisSupport.h"

@@ -5,6 +5,12 @@
 
 #pragma once
 
+// Core includes
+#include "CoreMinimal.h"
+
+// Noesis includes
+#include "NoesisSDK.h"
+
 // Generated header include
 #include "NoesisXaml.generated.h"
 
@@ -20,10 +26,10 @@ class NOESISRUNTIME_API UNoesisXaml : public UObject
 	TArray<UNoesisXaml*> Xamls;
 
 	UPROPERTY()
-	TArray<UTexture2D*> Textures;
+	TArray<class UTexture2D*> Textures;
 
 	UPROPERTY()
-	TArray<UFont*> Fonts;
+	TArray<class UFont*> Fonts;
 
 	Noesis::Ptr<Noesis::BaseComponent> LoadXaml();
 	void LoadComponent(Noesis::BaseComponent* Component);

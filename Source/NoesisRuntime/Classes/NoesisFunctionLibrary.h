@@ -5,6 +5,13 @@
 
 #pragma once
 
+// Core includes
+#include "CoreMinimal.h"
+
+// Engine includes
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
+
 // Generated header include
 #include "NoesisFunctionLibrary.generated.h"
 
@@ -30,7 +37,7 @@ class NOESISRUNTIME_API UNoesisFunctionLibrary : public UBlueprintFunctionLibrar
 	void execNoesisArray_Add(FFrame& Stack, RESULT_DECL);
 
 	UFUNCTION(BlueprintCallable, CustomThunk, meta = (DisplayName = "Add Unique w/ NotifyArrayChanged", CompactNodeTitle = "ADDUNIQUE\nw/ NotifyArrayChanged", ArrayParm = "TargetArray", ArrayTypeDependentParams = "NewItem", AutoCreateRefTerm = "NewItem"), Category = "Noesis|Array")
-		static int32 NoesisArray_AddUnique(const TArray<int32>& TargetArray, const int32& NewItem);
+	static int32 NoesisArray_AddUnique(const TArray<int32>& TargetArray, const int32& NewItem);
 
 	void execNoesisArray_AddUnique(FFrame& Stack, RESULT_DECL);
 

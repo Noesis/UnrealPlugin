@@ -81,5 +81,11 @@ public class Noesis : ModuleRules
 			string NoesisDylibPath = "/NoesisSDK/Bin/osx/Noesis.dylib";
 			RuntimeDependencies.Add(new RuntimeDependency(ModuleDirectory + NoesisDylibPath));
 		}
+		else if (Target.Platform == UnrealTargetPlatform.IOS)
+		{
+			string NoesisLibPath = NoesisBasePath + "Lib/ios/";
+			PublicLibraryPaths.Add(NoesisLibPath);
+			PublicAdditionalLibraries.Add("Noesis");
+		}
 	}
 }

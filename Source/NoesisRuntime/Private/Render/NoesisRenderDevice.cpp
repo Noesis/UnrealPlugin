@@ -5,8 +5,18 @@
 
 #include "NoesisRenderDevice.h"
 
+// Engine includes
+#include "Engine/Texture2D.h"
+#include "Engine/TextureRenderTarget2D.h"
+
+// RHI includes
+#include "RHICommandList.h"
+#include "RHIStaticStates.h"
+#include "PipelineStateCache.h"
+
 // NoesisRuntime includes
 #include "Render/NoesisShaders.h"
+#include "NoesisSettings.h"
 
 class FNoesisTexture : public Noesis::Texture
 {

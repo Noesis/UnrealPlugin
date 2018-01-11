@@ -5,8 +5,17 @@
 
 #pragma once
 
+// Core includes
+#include "CoreMinimal.h"
+
 // CoreUObject includes
 #include "Blueprint/UserWidget.h"
+
+// Noesis includes
+#include "NoesisSDK.h"
+
+// NoesisRuntime includes
+#include "NoesisBlueprint.h"
 
 // Generated header include
 #include "NoesisInstance.generated.h"
@@ -75,6 +84,10 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	void MouseDoubleClick(FVector2D Position, FKey Button);
 	void MouseMove(FVector2D Position);
 	void MouseWheel(FVector2D Position, float WheelDelta);
+
+	void TouchDown(FVector2D Position, uint32 PointerIndex);
+	void TouchMove(FVector2D Position, uint32 PointerIndex);
+	void TouchUp(FVector2D Position, uint32 PointerIndex);
 
 	void KeyDown(uint32 Key);
 	void KeyUp(uint32 Key);

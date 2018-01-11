@@ -89,7 +89,7 @@ struct PixelData
     half4 position: SV_POSITION;
 
 #ifdef HAS_COLOR
-    fixed4 color: COLOR;
+    fixed4 color: COLOR0;
 #endif
 
 #ifdef HAS_UV0
@@ -114,7 +114,7 @@ PixelData Vertex(VertexData i)
     o.position = mul(i.position, projectionMtx);
 
 #ifdef HAS_COLOR
-    o.color.rgba = i.color.bgra;
+    o.color FCOLOR_COMPONENT_SWIZZLE = i.color.bgra;
 #endif
 
 #ifdef HAS_UV0
@@ -133,7 +133,7 @@ PixelData Vertex(VertexData i)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-fixed4 Pixel(PixelData i): COLOR0
+fixed4 Pixel(PixelData i): SV_Target0
 {
     /////////////////////////////////////////////////////
     // Fetch paint color and opacity

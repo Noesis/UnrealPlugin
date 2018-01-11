@@ -5,11 +5,154 @@
 
 #include "NoesisInstance.h"
 
+// ApplicationCore includes
+#include "HAL/PlatformApplicationMisc.h"
+#include "GenericPlatform/ITextInputMethodSystem.h"
+
+// Slate includes
+#include "Widgets/SWindow.h"
+#include "Framework/Application/SlateApplication.h"
+
 // NoesisRuntime includes
 #include "NoesisBlueprintGeneratedClass.h"
 #include "NoesisWidget.h"
 #include "Render/NoesisRenderDevice.h"
 #include "NoesisTypeClass.h"
+#include "NoesisXaml.h"
+#include "NoesisSupport.h"
+
+class NoesisTextBoxTextInputMethodContext : public ITextInputMethodContext
+{
+public:
+	NoesisTextBoxTextInputMethodContext(Noesis::TextBox* InTextBox, TWeakPtr<SWindow> InWindow, UNoesisInstance* InNoesisInstance)
+		: TextBox(InTextBox), Window(InWindow), NoesisInstance(InNoesisInstance)
+	{
+		check(TextBox);
+	}
+
+	virtual bool IsComposing() override
+	{
+		return TextBox->GetNumCompositionUnderlines() != 0;
+	}
+
+	virtual bool IsReadOnly() override
+	{
+		return TextBox->GetIsReadOnly();
+	}
+
+	virtual uint32 GetTextLength() override
+	{
+		return NsStringToFString(TextBox->GetText()).Len();
+	}
+
+	virtual void GetSelectionRange(uint32& OutBeginIndex, uint32& OutLength, ITextInputMethodContext::ECaretPosition& OutCaretPosition) override
+	{
+		int32 CaretIndex = TextBox->GetCaretIndex();
+		OutBeginIndex = TextBox->GetSelectionStart();
+		OutLength = TextBox->GetSelectionLength();
+		OutCaretPosition = (CaretIndex < (int32)OutBeginIndex) ? ITextInputMethodContext::ECaretPosition::Beginning : ITextInputMethodContext::ECaretPosition::Ending;
+	}
+
+	virtual void SetSelectionRange(const uint32 InBeginIndex, const uint32 InLength, const ITextInputMethodContext::ECaretPosition InCaretPosition) override
+	{
+		TextBox->SetCaretIndex((InCaretPosition == ITextInputMethodContext::ECaretPosition::Beginning) ? InBeginIndex : InBeginIndex + InLength);
+		TextBox->SetSelectionStart(InBeginIndex);
+		TextBox->SetSelectionLength(InLength);
+	}
+
+	virtual void GetTextInRange(const uint32 InBeginIndex, const uint32 InLength, FString& OutString) override
+	{
+		OutString = NsStringToFString(TextBox->GetText()).RightChop(InBeginIndex).Left(InLength);
+	}
+
+	virtual void SetTextInRange(const uint32 InBeginIndex, const uint32 InLength, const FString& InString) override
+	{
+		FString CurrentText = NsStringToFString(TextBox->GetText());
+		FString NewText = CurrentText.Left(InBeginIndex) + InString + CurrentText.RightChop(InBeginIndex + InLength);
+		TextBox->SetText(TCHARToNsString(*NewText).c_str());
+		UpdateCompositionRange(InBeginIndex, InString.Len());
+	}
+
+	virtual int32 GetCharacterIndexFromPoint(const FVector2D& InPoint) override
+	{
+		return INDEX_NONE;
+	}
+
+	virtual bool GetTextBounds(const uint32 InBeginIndex, const uint32 InLength, FVector2D& OutPosition, FVector2D& OutSize) override
+	{
+		Noesis::Rect TextRangeBounds = TextBox->GetRangeBounds(InBeginIndex, InBeginIndex + InLength);
+		Noesis::Visual* ContentHost = TextBox->GetContentHost();
+
+		if (Noesis::ScrollViewer* ScrollViewer = NsDynamicCast<Noesis::ScrollViewer*>(ContentHost))
+		{
+			ContentHost = ScrollViewer;
+		}
+		else if (Noesis::Decorator* Decorator = NsDynamicCast<Noesis::Decorator*>(ContentHost))
+		{
+			ContentHost = Decorator;
+		}
+		Noesis::Point TopLeft = ContentHost->PointToScreen(TextRangeBounds.GetTopLeft());
+		Noesis::Point BottomRight = ContentHost->PointToScreen(TextRangeBounds.GetBottomRight());
+		OutPosition.X = TopLeft.x + NoesisInstance->Left;
+		OutPosition.Y = TopLeft.y + NoesisInstance->Top;
+		OutSize.X = BottomRight.x - TopLeft.x;
+		OutSize.Y = BottomRight.y - TopLeft.y;
+
+		return false;
+	}
+
+	virtual void GetScreenBounds(FVector2D& OutPosition, FVector2D& OutSize) override
+	{
+		OutPosition.X = NoesisInstance->Left;
+		OutPosition.Y = NoesisInstance->Top;
+		OutSize.X = NoesisInstance->Width;
+		OutSize.Y = NoesisInstance->Height;
+	}
+
+	virtual TSharedPtr<FGenericWindow> GetWindow() override
+	{
+		const TSharedPtr<SWindow> SlateWindow = Window.Pin();
+		return SlateWindow.IsValid() ? SlateWindow->GetNativeWindow() : nullptr;
+	}
+
+	virtual void BeginComposition() override
+	{
+		check(TextBox->GetNumCompositionUnderlines() == 0);
+
+		Noesis::CompositionUnderline CompositionUnderline;
+		CompositionUnderline.start = TextBox->GetCaretIndex();
+		CompositionUnderline.end = TextBox->GetCaretIndex();
+		CompositionUnderline.style = Noesis::CompositionLineStyle_Solid;
+		CompositionUnderline.bold = false;
+		TextBox->AddCompositionUnderline(CompositionUnderline);
+	}
+
+	virtual void UpdateCompositionRange(const int32 InBeginIndex, const uint32 InLength) override
+	{
+		check(TextBox->GetNumCompositionUnderlines() == 1);
+
+		TextBox->ClearCompositionUnderlines();
+
+		Noesis::CompositionUnderline CompositionUnderline;
+		CompositionUnderline.start = InBeginIndex;
+		CompositionUnderline.end = InBeginIndex + InLength;
+		CompositionUnderline.style = Noesis::CompositionLineStyle_Solid;
+		CompositionUnderline.bold = false;
+		TextBox->AddCompositionUnderline(CompositionUnderline);
+	}
+
+	virtual void EndComposition() override
+	{
+		check(TextBox->GetNumCompositionUnderlines() == 1);
+
+		TextBox->ClearCompositionUnderlines();
+	}
+
+private:
+	Noesis::TextBox* TextBox;
+	TWeakPtr<SWindow> Window;
+	UNoesisInstance* NoesisInstance;
+};
 
 UNoesisInstance::UNoesisInstance(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -269,6 +412,30 @@ void UNoesisInstance::MouseWheel(FVector2D Position, float WheelDelta)
 	}
 }
 
+void UNoesisInstance::TouchDown(FVector2D Position, uint32 PointerIndex)
+{
+	if (XamlView)
+	{
+		XamlView->TouchDown(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
+	}
+}
+
+void UNoesisInstance::TouchMove(FVector2D Position, uint32 PointerIndex)
+{
+	if (XamlView)
+	{
+		XamlView->TouchMove(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
+	}
+}
+
+void UNoesisInstance::TouchUp(FVector2D Position, uint32 PointerIndex)
+{
+	if (XamlView)
+	{
+		XamlView->TouchUp(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
+	}	
+}
+
 void UNoesisInstance::KeyDown(uint32 Key)
 {
 	if (XamlView)
@@ -302,268 +469,39 @@ FVector2D UNoesisInstance::GetSize() const
 	return FVector2D();
 }
 
-class NoesisTextBoxVirtualKeyboardEntry : public IVirtualKeyboardEntry
-{
-public:
-	NoesisTextBoxVirtualKeyboardEntry(Noesis::TextBox* InTextBox)
-		: TextBox(InTextBox)
-	{
-
-	}
-
-	virtual void SetTextFromVirtualKeyboard(const FText& InNewText, ETextEntryType TextEntryType) override
-	{
-		if (TextEntryType == ETextEntryType::TextEntryCanceled || TextEntryType == ETextEntryType::TextEntryAccepted)
-		{
-			int32 BeginIndex = TextBox->GetSelectionStart();
-			int32 Length = TextBox->GetSelectionLength();
-			FString CurrentText = NsStringToFString(TextBox->GetText());
-			FString NewString = InNewText.ToString();
-			FString NewText = CurrentText.Left(BeginIndex) + NewString + CurrentText.RightChop(BeginIndex + Length);
-			TextBox->SetText(TCHARToNsString(*NewText).c_str());
-			int32 NewLength = NewString.Len();
-			TextBox->SetSelectionStart(BeginIndex + NewLength);
-			TextBox->SetSelectionLength(0);
-		}
-		else if (TextEntryType == ETextEntryType::TextEntryUpdated)
-		{
-			int32 BeginIndex = TextBox->GetSelectionStart();
-			int32 Length = TextBox->GetSelectionLength();
-			FString CurrentText = NsStringToFString(TextBox->GetText());
-			FString NewString = InNewText.ToString();
-			FString NewText = CurrentText.Left(BeginIndex) + NewString + CurrentText.RightChop(BeginIndex + Length);
-			TextBox->SetText(TCHARToNsString(*NewText).c_str());
-			int32 NewLength = NewString.Len();
-			TextBox->SetSelectionLength(NewLength);
-		}
-	}
-
-	virtual FText GetText() const override
-	{
-		return FText::FromString(NsStringToFString(TextBox->GetText()));
-	}
-
-	virtual FText GetHintText() const override
-	{
-		return FText();
-	}
-
-	virtual EKeyboardType GetVirtualKeyboardType() const override
-	{
-		return Keyboard_Default;
-	}
-
-	virtual bool IsMultilineEntry() const override
-	{
-		return TextBox->GetMaxLines() > 1;
-	}
-
-private:
-	Noesis::TextBox* TextBox;
-};
-
-class NoesisPasswordBoxVirtualKeyboardEntry : public IVirtualKeyboardEntry
-{
-public:
-	NoesisPasswordBoxVirtualKeyboardEntry(Noesis::PasswordBox* InPasswordBox)
-		: PasswordBox(InPasswordBox)
-	{
-
-	}
-
-	virtual void SetTextFromVirtualKeyboard(const FText& InNewText, ETextEntryType TextEntryType) override
-	{
-		FString NewString = InNewText.ToString();
-		PasswordBox->SetPassword(TCHARToNsString(*NewString).c_str());
-	}
-
-	virtual FText GetText() const override
-	{
-		return FText::FromString(NsStringToFString(PasswordBox->GetPassword()));
-	}
-
-	virtual FText GetHintText() const override
-	{
-		return FText();
-	}
-
-	virtual EKeyboardType GetVirtualKeyboardType() const override
-	{
-		return Keyboard_Password;
-	}
-
-	virtual bool IsMultilineEntry() const override
-	{
-		return false;
-	}
-
-private:
-	Noesis::PasswordBox* PasswordBox;
-};
-
-class NoesisTextBoxTextInputMethodContext : public ITextInputMethodContext
-{
-public:
-	NoesisTextBoxTextInputMethodContext(Noesis::TextBox* InTextBox, TWeakPtr<SWindow> InWindow, UNoesisInstance* InNoesisInstance)
-		: TextBox(InTextBox), Window(InWindow), NoesisInstance(InNoesisInstance)
-	{
-		check(TextBox);
-	}
-
-	virtual bool IsComposing() override
-	{
-		return TextBox->GetNumCompositionUnderlines() != 0;
-	}
-
-	virtual bool IsReadOnly() override
-	{
-		return TextBox->GetIsReadOnly();
-	}
-
-	virtual uint32 GetTextLength() override
-	{
-		return NsStringToFString(TextBox->GetText()).Len();
-	}
-
-	virtual void GetSelectionRange(uint32& OutBeginIndex, uint32& OutLength, ITextInputMethodContext::ECaretPosition& OutCaretPosition) override
-	{
-		int32 CaretIndex = TextBox->GetCaretIndex();
-		OutBeginIndex = TextBox->GetSelectionStart();
-		OutLength = TextBox->GetSelectionLength();
-		OutCaretPosition = (CaretIndex < (int32)OutBeginIndex) ? ITextInputMethodContext::ECaretPosition::Beginning : ITextInputMethodContext::ECaretPosition::Ending;
-	}
-
-	virtual void SetSelectionRange(const uint32 InBeginIndex, const uint32 InLength, const ITextInputMethodContext::ECaretPosition InCaretPosition) override
-	{
-		TextBox->SetCaretIndex((InCaretPosition == ITextInputMethodContext::ECaretPosition::Beginning) ? InBeginIndex : InBeginIndex + InLength);
-		TextBox->SetSelectionStart(InBeginIndex);
-		TextBox->SetSelectionLength(InLength);
-	}
-
-	virtual void GetTextInRange(const uint32 InBeginIndex, const uint32 InLength, FString& OutString) override
-	{
-		OutString = NsStringToFString(TextBox->GetText()).RightChop(InBeginIndex).Left(InLength);
-	}
-
-	virtual void SetTextInRange(const uint32 InBeginIndex, const uint32 InLength, const FString& InString) override
-	{
-		FString CurrentText = NsStringToFString(TextBox->GetText());
-		FString NewText = CurrentText.Left(InBeginIndex) + InString + CurrentText.RightChop(InBeginIndex + InLength);
-		TextBox->SetText(TCHARToNsString(*NewText).c_str());
-		UpdateCompositionRange(InBeginIndex, InString.Len());
-	}
-
-	virtual int32 GetCharacterIndexFromPoint(const FVector2D& InPoint) override
-	{
-		return INDEX_NONE;
-	}
-
-	virtual bool GetTextBounds(const uint32 InBeginIndex, const uint32 InLength, FVector2D& OutPosition, FVector2D& OutSize) override
-	{
-		Noesis::Rect TextRangeBounds = TextBox->GetRangeBounds(InBeginIndex, InBeginIndex + InLength);
-		Noesis::Visual* ContentHost = TextBox->GetContentHost();
-
-		if (Noesis::ScrollViewer* ScrollViewer = NsDynamicCast<Noesis::ScrollViewer*>(ContentHost))
-		{
-			ContentHost = ScrollViewer;
-		}
-		else if (Noesis::Decorator* Decorator = NsDynamicCast<Noesis::Decorator*>(ContentHost))
-		{
-			ContentHost = Decorator;
-		}
-		Noesis::Point TopLeft = ContentHost->PointToScreen(TextRangeBounds.GetTopLeft());
-		Noesis::Point BottomRight = ContentHost->PointToScreen(TextRangeBounds.GetBottomRight());
-		OutPosition.X = TopLeft.x + NoesisInstance->Left;
-		OutPosition.Y = TopLeft.y + NoesisInstance->Top;
-		OutSize.X = BottomRight.x - TopLeft.x;
-		OutSize.Y = BottomRight.y - TopLeft.y;
-
-		return false;
-	}
-
-	virtual void GetScreenBounds(FVector2D& OutPosition, FVector2D& OutSize) override
-	{
-		OutPosition.X = NoesisInstance->Left;
-		OutPosition.Y = NoesisInstance->Top;
-		OutSize.X = NoesisInstance->Width;
-		OutSize.Y = NoesisInstance->Height;
-	}
-
-	virtual TSharedPtr<FGenericWindow> GetWindow() override
-	{
-		const TSharedPtr<SWindow> SlateWindow = Window.Pin();
-		return SlateWindow.IsValid() ? SlateWindow->GetNativeWindow() : nullptr;
-	}
-
-	virtual void BeginComposition() override
-	{
-		check(TextBox->GetNumCompositionUnderlines() == 0);
-
-		Noesis::CompositionUnderline CompositionUnderline;
-		CompositionUnderline.start = TextBox->GetCaretIndex();
-		CompositionUnderline.end = TextBox->GetCaretIndex();
-		CompositionUnderline.style = Noesis::CompositionLineStyle_Solid;
-		CompositionUnderline.bold = false;
-		TextBox->AddCompositionUnderline(CompositionUnderline);
-	}
-
-	virtual void UpdateCompositionRange(const int32 InBeginIndex, const uint32 InLength) override
-	{
-		check(TextBox->GetNumCompositionUnderlines() == 1);
-
-		TextBox->ClearCompositionUnderlines();
-
-		Noesis::CompositionUnderline CompositionUnderline;
-		CompositionUnderline.start = InBeginIndex;
-		CompositionUnderline.end = InBeginIndex + InLength;
-		CompositionUnderline.style = Noesis::CompositionLineStyle_Solid;
-		CompositionUnderline.bold = false;
-		TextBox->AddCompositionUnderline(CompositionUnderline);
-	}
-
-	virtual void EndComposition() override
-	{
-		check(TextBox->GetNumCompositionUnderlines() == 1);
-
-		TextBox->ClearCompositionUnderlines();
-	}
-
-private:
-	Noesis::TextBox* TextBox;
-	TWeakPtr<SWindow> Window;
-	UNoesisInstance* NoesisInstance;
-};
-
 void UNoesisInstance::OnPreviewGotKeyboardFocus(Noesis::BaseComponent* Component, const Noesis::KeyboardFocusChangedEventArgs& Args)
 {
 	const Noesis::TypeClass* NewFocusClass = Args.newFocus->GetClassType();
 	const Noesis::TypeClass* TextBoxClass = Noesis::TextBox::StaticGetClassType();
-	if (NewFocusClass == TextBoxClass || NewFocusClass->IsDescendantOf(TextBoxClass))
+	if (!FPlatformApplicationMisc::RequiresVirtualKeyboard())
 	{
-		ITextInputMethodSystem* const TextInputMethodSystem = FSlateApplication::IsInitialized() ? FSlateApplication::Get().GetTextInputMethodSystem() : nullptr;
-		if (TextInputMethodSystem)
+		if (NewFocusClass == TextBoxClass || NewFocusClass->IsDescendantOf(TextBoxClass))
 		{
-			TSharedPtr<NoesisTextBoxTextInputMethodContext> TextInputMethodContext = nullptr;
-			TSharedPtr<NoesisTextBoxTextInputMethodContext>* TextInputMethodContextPtr = TextInputMethodContexts.Find((Noesis::TextBox*)Args.newFocus);
-			if (TextInputMethodContextPtr)
+			ITextInputMethodSystem* const TextInputMethodSystem = FSlateApplication::IsInitialized() ? FSlateApplication::Get().GetTextInputMethodSystem() : nullptr;
+			if (TextInputMethodSystem)
 			{
-				TextInputMethodContext = *TextInputMethodContextPtr;
-			}
-			else
-			{
-				TSharedPtr<SWidget> PinnedWidget(MyWidget.Pin());
-				if (PinnedWidget.IsValid())
+				TSharedPtr<NoesisTextBoxTextInputMethodContext> TextInputMethodContext = nullptr;
+				TSharedPtr<NoesisTextBoxTextInputMethodContext>* TextInputMethodContextPtr = TextInputMethodContexts.Find((Noesis::TextBox*)Args.newFocus);
+				if (TextInputMethodContextPtr)
 				{
-					TWeakPtr<SWindow> Window = FSlateApplication::Get().FindWidgetWindow(PinnedWidget.ToSharedRef());
-					TextInputMethodContext = MakeShareable(new NoesisTextBoxTextInputMethodContext((Noesis::TextBox*)Args.newFocus, Window, this));
-					TextInputMethodContexts.Add((Noesis::TextBox*)Args.newFocus, TextInputMethodContext);
-					TextInputMethodSystem->RegisterContext(TextInputMethodContext.ToSharedRef());
+					TextInputMethodContext = *TextInputMethodContextPtr;
 				}
-			}
+				else
+				{
+					TSharedPtr<SWidget> PinnedWidget(MyWidget.Pin());
+					if (PinnedWidget.IsValid())
+					{
+						TWeakPtr<SWindow> Window = FSlateApplication::Get().FindWidgetWindow(PinnedWidget.ToSharedRef());
+						TextInputMethodContext = MakeShareable(new NoesisTextBoxTextInputMethodContext((Noesis::TextBox*)Args.newFocus, Window, this));
+						TextInputMethodContexts.Add((Noesis::TextBox*)Args.newFocus, TextInputMethodContext);
+						TextInputMethodSystem->RegisterContext(TextInputMethodContext.ToSharedRef());
+					}
+				}
 
-			if (TextInputMethodContext.IsValid())
-			{
-				TextInputMethodSystem->ActivateContext(TextInputMethodContext.ToSharedRef());
+				if (TextInputMethodContext.IsValid())
+				{
+					TextInputMethodSystem->ActivateContext(TextInputMethodContext.ToSharedRef());
+				}
 			}
 		}
 	}
@@ -573,17 +511,20 @@ void UNoesisInstance::OnPreviewLostKeyboardFocus(Noesis::BaseComponent* Componen
 {
 	const Noesis::TypeClass* OldFocusClass = Args.oldFocus->GetClassType();
 	const Noesis::TypeClass* TextBoxClass = Noesis::TextBox::StaticGetClassType();
-	if (OldFocusClass == TextBoxClass || OldFocusClass->IsDescendantOf(TextBoxClass))
+	if (!FPlatformApplicationMisc::RequiresVirtualKeyboard())
 	{
-		ITextInputMethodSystem* const TextInputMethodSystem = FSlateApplication::IsInitialized() ? FSlateApplication::Get().GetTextInputMethodSystem() : nullptr;
-		if (TextInputMethodSystem)
+		if (OldFocusClass == TextBoxClass || OldFocusClass->IsDescendantOf(TextBoxClass))
 		{
-			TSharedPtr<NoesisTextBoxTextInputMethodContext> TextInputMethodContext = nullptr;
-			TSharedPtr<NoesisTextBoxTextInputMethodContext>* TextInputMethodContextPtr = TextInputMethodContexts.Find((Noesis::TextBox*)Args.oldFocus);
-			if (TextInputMethodContextPtr)
+			ITextInputMethodSystem* const TextInputMethodSystem = FSlateApplication::IsInitialized() ? FSlateApplication::Get().GetTextInputMethodSystem() : nullptr;
+			if (TextInputMethodSystem)
 			{
-				TextInputMethodContext = *TextInputMethodContextPtr;
-				TextInputMethodSystem->DeactivateContext(TextInputMethodContext.ToSharedRef());
+				TSharedPtr<NoesisTextBoxTextInputMethodContext> TextInputMethodContext = nullptr;
+				TSharedPtr<NoesisTextBoxTextInputMethodContext>* TextInputMethodContextPtr = TextInputMethodContexts.Find((Noesis::TextBox*)Args.oldFocus);
+				if (TextInputMethodContextPtr)
+				{
+					TextInputMethodContext = *TextInputMethodContextPtr;
+					TextInputMethodSystem->DeactivateContext(TextInputMethodContext.ToSharedRef());
+				}
 			}
 		}
 	}

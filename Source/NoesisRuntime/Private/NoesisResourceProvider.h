@@ -5,12 +5,18 @@
 
 #pragma once
 
+// Core includes
+#include "CoreMinimal.h"
+
+// Noesis includes
+#include "NoesisSDK.h"
+
 class FNoesisResourceProvider : public Noesis::XamlProvider, public Noesis::TextureProvider, public Noesis::CachedFontProvider
 {
 public:
 
-	UNoesisXaml* GetXaml(FString XamlPath);
-	UTexture2D* GetTexture(FString TexturePath);
+	class UNoesisXaml* GetXaml(FString XamlPath);
+	class UTexture2D* GetTexture(FString TexturePath);
 
 	// XamlProvider interface
 	virtual Noesis::Ptr<Noesis::Stream> LoadXaml(const char* Filename) override;

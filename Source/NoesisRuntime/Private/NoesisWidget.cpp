@@ -522,6 +522,27 @@ FReply SNoesisWidget::OnMouseWheel(const FGeometry& MyGeometry, const FPointerEv
 	return FReply::Handled();
 }
 
+FReply SNoesisWidget::OnTouchStarted(const FGeometry& MyGeometry, const FPointerEvent& TouchEvent)
+{
+	NoesisInstance->TouchDown(MyGeometry.AbsoluteToLocal(TouchEvent.GetScreenSpacePosition()) * MyGeometry.Scale, TouchEvent.GetPointerIndex());
+
+	return FReply::Handled();
+}
+	
+FReply SNoesisWidget::OnTouchMoved(const FGeometry& MyGeometry, const FPointerEvent& TouchEvent)
+{
+	NoesisInstance->TouchMove(MyGeometry.AbsoluteToLocal(TouchEvent.GetScreenSpacePosition()) * MyGeometry.Scale, TouchEvent.GetPointerIndex());
+
+	return FReply::Handled();
+}
+
+FReply SNoesisWidget::OnTouchEnded(const FGeometry& MyGeometry, const FPointerEvent& TouchEvent)
+{
+	NoesisInstance->TouchUp(MyGeometry.AbsoluteToLocal(TouchEvent.GetScreenSpacePosition()) * MyGeometry.Scale, TouchEvent.GetPointerIndex());
+
+	return FReply::Handled();
+}
+
 FCursorReply SNoesisWidget::OnCursorQuery(const FGeometry& MyGeometry, const FPointerEvent& CursorEvent) const
 {
 	return FCursorReply::Cursor(EMouseCursor::Default);

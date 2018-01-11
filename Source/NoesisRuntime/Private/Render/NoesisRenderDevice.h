@@ -5,6 +5,13 @@
 
 #pragma once
 
+// RHI includes
+#include "RHI.h"
+#include "RHIResources.h"
+
+// Noesis includes
+#include "NoesisSDK.h"
+
 class FNoesisRenderDevice : public Noesis::RenderDevice
 {
 	static const uint32 VertexBufferSize = 512 * 1024;
@@ -31,10 +38,10 @@ public:
 	static FNoesisRenderDevice* Get();
 	static void Destroy();
 
-	static Noesis::Ptr<Noesis::Texture> CreateTexture(UTexture* Texture);
+	static Noesis::Ptr<Noesis::Texture> CreateTexture(class UTexture* Texture);
 
-	static void ThreadLocal_SetRHICmdList(FRHICommandList* RHICmdList);
-	static FRHICommandList* ThreadLocal_GetRHICmdList();
+	static void ThreadLocal_SetRHICmdList(class FRHICommandList* RHICmdList);
+	static class FRHICommandList* ThreadLocal_GetRHICmdList();
 
 	// RenderDevice interface
 	virtual const Noesis::DeviceCaps& GetCaps() const override;

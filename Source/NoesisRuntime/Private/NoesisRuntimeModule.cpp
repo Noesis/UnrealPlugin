@@ -5,11 +5,27 @@
 
 #include "NoesisRuntimeModule.h"
 
+// Core includes
+#include "CoreMinimal.h"
+#include "Misc/CoreDelegates.h"
+#include "Modules/ModuleManager.h"
+
+// ApplicationCore includes
+#include "HAL/PlatformApplicationMisc.h"
+
+// Slate includes
+#include "Widgets/Input/IVirtualKeyboardEntry.h"
+#include "Framework/Application/SlateApplication.h"
+
 // NoesisRuntime includes
 #include "NoesisResourceProvider.h"
 #include "Render/NoesisRenderDevice.h"
 #include "NoesisTypeClass.h"
 #include "NoesisSettings.h"
+#include "NoesisSupport.h"
+
+// Noesis includes
+#include "NoesisSDK.h"
 
 #if PLATFORM_WINDOWS
 #include "AllowWindowsPlatformTypes.h"
@@ -150,6 +166,208 @@ void AddOnBlueprintPreCompileDelegate()
 #endif
 }
 
+void ShowTextBoxVirtualKeyboard();
+void ShowPasswordBoxVirtualKeyboard();
+
+void OnPreviewTouchDownShowTextBoxVirtualKeyboard(Noesis::BaseComponent*, const Noesis::TouchEventArgs&)
+{
+	ShowTextBoxVirtualKeyboard();
+}
+
+void OnPreviewTouchDownShowPasswordBoxVirtualKeyboard(Noesis::BaseComponent*, const Noesis::TouchEventArgs&)
+{
+	ShowPasswordBoxVirtualKeyboard();
+}
+
+class NoesisTextBoxVirtualKeyboardEntry : public IVirtualKeyboardEntry
+{
+public:
+	NoesisTextBoxVirtualKeyboardEntry()
+		: TextBox(nullptr)
+	{
+	}
+
+	void SetTextBox(Noesis::TextBox* InTextBox)
+	{
+		if (TextBox)
+		{
+			TextBox->PreviewTouchDown() -= OnPreviewTouchDownShowTextBoxVirtualKeyboard;
+		}
+		TextBox = InTextBox;
+		if (TextBox)
+		{
+			TextBox->PreviewTouchDown() += OnPreviewTouchDownShowTextBoxVirtualKeyboard;
+			InitialText = FText::FromString(NsStringToFString(TextBox->GetText()));
+			IsMultiline = TextBox->GetMaxLines() > 1;
+		}
+		else
+		{
+			InitialText = FText();
+			IsMultiline = false;
+		}
+	}
+
+	virtual void SetTextFromVirtualKeyboard(const FText& InNewText, ETextEntryType TextEntryType) override
+	{
+		if (TextBox)
+		{
+			if (TextEntryType == ETextEntryType::TextEntryCanceled || TextEntryType == ETextEntryType::TextEntryAccepted)
+			{
+				int32 BeginIndex = TextBox->GetSelectionStart();
+				int32 Length = TextBox->GetSelectionLength();
+				FString CurrentText = NsStringToFString(TextBox->GetText());
+				FString NewString = InNewText.ToString();
+				FString NewText = CurrentText.Left(BeginIndex) + NewString + CurrentText.RightChop(BeginIndex + Length);
+				TextBox->SetText(TCHARToNsString(*NewText).c_str());
+				int32 NewLength = NewString.Len();
+				TextBox->SetSelectionStart(BeginIndex + NewLength);
+				TextBox->SetSelectionLength(0);
+			}
+			else if (TextEntryType == ETextEntryType::TextEntryUpdated)
+			{
+				int32 BeginIndex = TextBox->GetSelectionStart();
+				int32 Length = TextBox->GetSelectionLength();
+				FString CurrentText = NsStringToFString(TextBox->GetText());
+				FString NewString = InNewText.ToString();
+				FString NewText = CurrentText.Left(BeginIndex) + NewString + CurrentText.RightChop(BeginIndex + Length);
+				TextBox->SetText(TCHARToNsString(*NewText).c_str());
+				int32 NewLength = NewString.Len();
+				TextBox->SetSelectionLength(NewLength);
+			}
+		}
+	}
+
+	virtual FText GetText() const override
+	{
+		return InitialText;
+	}
+
+	virtual FText GetHintText() const override
+	{
+		return FText();
+	}
+
+	virtual EKeyboardType GetVirtualKeyboardType() const override
+	{
+		return Keyboard_Default;
+	}
+
+	virtual bool IsMultilineEntry() const override
+	{
+		return IsMultiline;
+	}
+
+private:
+	Noesis::TextBox* TextBox;
+	FText InitialText;
+	bool IsMultiline;
+};
+
+class NoesisPasswordBoxVirtualKeyboardEntry : public IVirtualKeyboardEntry
+{
+public:
+	NoesisPasswordBoxVirtualKeyboardEntry()
+		: PasswordBox(nullptr)
+	{
+	}
+
+	void SetPasswordBox(Noesis::PasswordBox* InPasswordBox)
+	{
+		if (PasswordBox)
+		{
+			PasswordBox->PreviewTouchDown() -= OnPreviewTouchDownShowPasswordBoxVirtualKeyboard;
+		}
+		PasswordBox = InPasswordBox;
+		InitialText = FText();
+		if (PasswordBox)
+		{
+
+			PasswordBox->PreviewTouchDown() += OnPreviewTouchDownShowPasswordBoxVirtualKeyboard;
+			InitialText = FText::FromString(NsStringToFString(PasswordBox->GetPassword()));
+		}
+	}
+
+	virtual void SetTextFromVirtualKeyboard(const FText& InNewText, ETextEntryType TextEntryType) override
+	{
+		if (PasswordBox)
+		{
+			FString NewString = InNewText.ToString();
+			PasswordBox->SetPassword(TCHARToNsString(*NewString).c_str());
+		}
+	}
+
+	virtual FText GetText() const override
+	{
+		return InitialText;
+	}
+
+	virtual FText GetHintText() const override
+	{
+		return FText();
+	}
+
+	virtual EKeyboardType GetVirtualKeyboardType() const override
+	{
+		return Keyboard_Password;
+	}
+
+	virtual bool IsMultilineEntry() const override
+	{
+		return false;
+	}
+
+private:
+	Noesis::PasswordBox* PasswordBox;
+	FText InitialText;
+};
+
+TSharedPtr<NoesisTextBoxVirtualKeyboardEntry> TextBoxVirtualKeyboardEntry;
+TSharedPtr<NoesisPasswordBoxVirtualKeyboardEntry> PasswordBoxVirtualKeyboardEntry;
+
+void ShowTextBoxVirtualKeyboard()
+{
+	FSlateApplication::Get().ShowVirtualKeyboard(true, FSlateApplication::Get().GetUserIndexForKeyboard(), TextBoxVirtualKeyboardEntry);
+}
+
+void ShowPasswordBoxVirtualKeyboard()
+{
+	FSlateApplication::Get().ShowVirtualKeyboard(true, FSlateApplication::Get().GetUserIndexForKeyboard(), PasswordBoxVirtualKeyboardEntry);
+}
+
+bool NoesisShowSoftwareKeyboard(void* UserData, Noesis::UIElement* FocusedElement)
+{
+	if (FocusedElement)
+	{
+		const Noesis::TypeClass* NewFocusClass = FocusedElement->GetClassType();
+		const Noesis::TypeClass* TextBoxClass = Noesis::TextBox::StaticGetClassType();
+		const Noesis::TypeClass* PasswordBoxClass = Noesis::PasswordBox::StaticGetClassType();
+		if (FPlatformApplicationMisc::RequiresVirtualKeyboard())
+		{
+			if (NewFocusClass == TextBoxClass || NewFocusClass->IsDescendantOf(TextBoxClass))
+			{
+				PasswordBoxVirtualKeyboardEntry->SetPasswordBox(nullptr);
+				TextBoxVirtualKeyboardEntry->SetTextBox((Noesis::TextBox*)FocusedElement);
+
+				ShowTextBoxVirtualKeyboard();
+			}
+			else if (NewFocusClass == PasswordBoxClass || NewFocusClass->IsDescendantOf(PasswordBoxClass))
+			{
+				TextBoxVirtualKeyboardEntry->SetTextBox(nullptr);	
+				PasswordBoxVirtualKeyboardEntry->SetPasswordBox((Noesis::PasswordBox*)FocusedElement);
+
+				ShowPasswordBoxVirtualKeyboard();
+			}
+		}
+	}
+
+	return false;
+}
+
+void NoesisHideSoftwareKeyboard(void* UserData)
+{
+	FSlateApplication::Get().ShowVirtualKeyboard(false, FSlateApplication::Get().GetUserIndexForKeyboard());
+}
+
 class FNoesisRuntimeModule : public INoesisRuntimeModuleInterface
 {
 public:
@@ -163,11 +381,16 @@ public:
 		Noesis::GUI::SetTextureProvider(NoesisResourceProvider);
 		Noesis::GUI::SetFontProvider(NoesisResourceProvider);
 
+		Noesis::GUI::SetSoftwareKeyboardCallbacks(nullptr, &NoesisShowSoftwareKeyboard, &NoesisHideSoftwareKeyboard);
+
 		NoesisRuntimeModuleInterface = this;
 
 		PostGarbageCollectConditionalBeginDestroyDelegateHandle = FCoreUObjectDelegates::PostGarbageCollectConditionalBeginDestroy.AddStatic(NoesisGarbageCollected);
 
 		PostEngineInitDelegateHandle = FCoreDelegates::OnPostEngineInit.AddStatic(AddOnBlueprintPreCompileDelegate);
+
+		TextBoxVirtualKeyboardEntry = MakeShared<NoesisTextBoxVirtualKeyboardEntry>();
+		PasswordBoxVirtualKeyboardEntry = MakeShared<NoesisPasswordBoxVirtualKeyboardEntry>();
 	}
 
 	virtual void ShutdownModule() override
@@ -189,6 +412,9 @@ public:
 
 		NoesisRuntimeModuleInterface = 0;
 		Noesis::GUI::Shutdown();
+
+		TextBoxVirtualKeyboardEntry.Reset();
+		PasswordBoxVirtualKeyboardEntry.Reset();
 	}
 	// End of IModuleInterface interface
 

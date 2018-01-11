@@ -5,6 +5,11 @@
 
 #pragma once
 
+// RenderCore includes
+#include "RenderResource.h"
+#include "GlobalShader.h"
+#include "ShaderParameterUtils.h"
+
 // These have to match the defines in Noesis.usf
 enum NoesisShaderEffect
 {

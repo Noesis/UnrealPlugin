@@ -5,6 +5,23 @@
 
 #include "NoesisTypeClass.h"
 
+// Core includes
+#include "UObject/PropertyPortFlags.h"
+
+// Engine includes
+#include "Engine/Texture2D.h"
+#include "Engine/TextureRenderTarget2D.h"
+#include "Engine/Blueprint.h"
+
+// NoesisRuntime includes
+#include "NoesisSupport.h"
+#include "NoesisStructs.h"
+#include "NoesisRuntimeModule.h"
+#include "NoesisBaseComponent.h"
+
+// Noesis includes
+#include "NoesisSDK.h"
+
 TMap<UObject*, Noesis::Ptr<Noesis::BaseComponent> > ObjectMap;
 TMap<UStruct*, TPair<Noesis::TypeClass*, const char*> > ClassMap;
 TMap<UEnum*, TPair<Noesis::TypeEnum*, const char*> > EnumMap;

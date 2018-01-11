@@ -5,16 +5,8 @@
 
 #pragma once
 
-#if PLATFORM_WINDOWS
-#include "AllowWindowsPlatformTypes.h"
-#endif
-
-#define EA_CHAR32_NATIVE 0
-#include "Noesis_pch.h"
-
-#if PLATFORM_WINDOWS
-#include "HideWindowsPlatformTypes.h"
-#endif
+// Noesis includes
+#include "NoesisSDK.h"
 
 #include "NoesisBaseComponent.h"
 #include "NoesisBlueprint.h"

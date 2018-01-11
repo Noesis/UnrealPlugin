@@ -5,6 +5,14 @@
 
 #include "NoesisFunctionLibrary.h"
 
+// Core includes
+#include "UObject/PropertyPortFlags.h"
+
+// Engine includes
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetArrayLibrary.h"
+
 // NoesisRuntime includes
 #include "NoesisTypeClass.h"
 
