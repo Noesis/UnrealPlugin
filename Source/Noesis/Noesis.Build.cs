@@ -19,8 +19,8 @@ public class Noesis : ModuleRules
 		PublicIncludePaths.Add(NoesisIncludePath);
 
 		// Let's try to make sure the right version of the SDK is in the right place.
-		const string RequiredRevision = "(r6756)";
-		const string RequiredVersionName = "2.1.0b12";
+		const string RequiredRevision = "(r6868)";
+		const string RequiredVersionName = "2.1.0rc1";
 		if (!Directory.Exists(NoesisBasePath))
 		{
 			throw new BuildException("Could not find NoesisGUI SDK in " + NoesisBasePath + ". Minimum required version is " + RequiredVersionName);
@@ -86,6 +86,12 @@ public class Noesis : ModuleRules
 			string NoesisLibPath = NoesisBasePath + "Lib/ios/";
 			PublicLibraryPaths.Add(NoesisLibPath);
 			PublicAdditionalLibraries.Add("Noesis");
+		}
+		else if (Target.Platform == UnrealTargetPlatform.Android)
+		{
+			string NoesisLibPath = NoesisBasePath + "Bin/android_arm/";
+			PublicLibraryPaths.Add(NoesisLibPath);
+			PublicAdditionalLibraries.Add(NoesisLibPath + "libNoesis.so");
 		}
 	}
 }

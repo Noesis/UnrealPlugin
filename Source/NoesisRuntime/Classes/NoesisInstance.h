@@ -42,6 +42,9 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	float Height;
 	float StartTime;
 
+	typedef TSharedPtr<class FNoesisSlateElement, ESPMode::ThreadSafe> FNoesisSlateElementPtr;
+	FNoesisSlateElementPtr NoesisSlateElement;
+
 	UPROPERTY()
 	class UNoesisXaml* BaseXaml;
 
@@ -79,20 +82,6 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	void DrawOffscreen_RenderThread(FRHICommandListImmediate& RHICmdList, FTexture2DRHIParamRef BackBuffer, FTexture2DRHIParamRef DepthStencilTarget);
 	void Draw_RenderThread(FRHICommandListImmediate& RHICmdList, FTexture2DRHIParamRef BackBuffer, FTexture2DRHIParamRef DepthStencilTarget);
 
-	void MouseButtonDown(FVector2D Position, FKey Button);
-	void MouseButtonUp(FVector2D Position, FKey Button);
-	void MouseDoubleClick(FVector2D Position, FKey Button);
-	void MouseMove(FVector2D Position);
-	void MouseWheel(FVector2D Position, float WheelDelta);
-
-	void TouchDown(FVector2D Position, uint32 PointerIndex);
-	void TouchMove(FVector2D Position, uint32 PointerIndex);
-	void TouchUp(FVector2D Position, uint32 PointerIndex);
-
-	void KeyDown(uint32 Key);
-	void KeyUp(uint32 Key);
-	void Char(TCHAR Character);
-
 	FVector2D GetSize() const;
 
 	TMap<Noesis::TextBox*, TSharedPtr<class NoesisTextBoxTextInputMethodContext> > TextInputMethodContexts;
@@ -106,7 +95,22 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	// End of UObject interface
 
 	// UUserWidget interface
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+	virtual void NativePaint(FPaintContext& InContext) const override;
+	//virtual FVector2D ComputeDesiredSize(float LayoutScaleMultiplier) const override;
+	virtual FReply NativeOnKeyChar(const FGeometry& MyGeometry, const FCharacterEvent& CharacterEvent) override;
+	virtual FReply NativeOnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& KeyEvent) override;
+	virtual FReply NativeOnKeyUp(const FGeometry& MyGeometry, const FKeyEvent& KeyEvent) override;
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FReply NativeOnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FReply NativeOnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FReply NativeOnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FReply NativeOnTouchStarted(const FGeometry& MyGeometry, const FPointerEvent& InTouchEvent) override;
+	virtual FReply NativeOnTouchMoved(const FGeometry& MyGeometry, const FPointerEvent& InTouchEvent) override;
+	virtual FReply NativeOnTouchEnded(const FGeometry& MyGeometry, const FPointerEvent& InTouchEvent) override;
+	virtual FCursorReply NativeOnCursorQuery(const FGeometry& MyGeometry, const FPointerEvent& CursorEvent) override;
+	virtual FReply NativeOnMouseButtonDoubleClick(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual bool NativeSupportsKeyboardFocus() const override;
 	virtual void InitializeNativeClassData() override;
-	virtual TSharedRef<SWidget> RebuildWidget() override;
 	// End of UUserWidget interface
 };

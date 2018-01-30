@@ -29,7 +29,6 @@ public:
 	static const int32 NUM_SHADERS = 84;
 	static uint32 RHICmdListTlsSlot;
 	FVertexDeclarationRHIRef VertexDeclarations[NUM_SHADERS];
-	uint16 VertexStrides[NUM_SHADERS];
 	class FNoesisVSBase* VertexShaders[NUM_SHADERS];
 	class FNoesisPSBase* PixelShaders[NUM_SHADERS];
 

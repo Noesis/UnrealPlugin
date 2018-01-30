@@ -5,6 +5,12 @@
 
 #include "NoesisInstance.h"
 
+// Engine includes
+#include "SceneUtils.h"
+
+// RenderCore includes
+#include "RenderingThread.h"
+
 // ApplicationCore includes
 #include "HAL/PlatformApplicationMisc.h"
 #include "GenericPlatform/ITextInputMethodSystem.h"
@@ -15,11 +21,41 @@
 
 // NoesisRuntime includes
 #include "NoesisBlueprintGeneratedClass.h"
-#include "NoesisWidget.h"
 #include "Render/NoesisRenderDevice.h"
 #include "NoesisTypeClass.h"
 #include "NoesisXaml.h"
 #include "NoesisSupport.h"
+
+class FNoesisSlateElement : public ICustomSlateElement
+{
+public:
+	FNoesisSlateElement(class UNoesisInstance* InNoesisInstance);
+
+	// ICustomSlateElement interface
+	virtual void DrawRenderThread(FRHICommandListImmediate& RHICmdList, const void* InWindowBackBuffer) override;
+	// End of ICustomSlateElement interface
+
+	class UNoesisInstance* NoesisInstance;
+
+	float Left;
+	float Top;
+	float Right;
+	float Bottom;
+};
+
+FNoesisSlateElement::FNoesisSlateElement(class UNoesisInstance* InNoesisInstance)
+	: NoesisInstance(InNoesisInstance)
+{
+}
+
+void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList, const void* InWindowBackBuffer)
+{
+	if (NoesisInstance)
+	{
+		RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
+		NoesisInstance->Draw_RenderThread(RHICmdList, 0, 0);
+	}
+}
 
 class NoesisTextBoxTextInputMethodContext : public ITextInputMethodContext
 {
@@ -157,6 +193,7 @@ private:
 UNoesisInstance::UNoesisInstance(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	Visibility = ESlateVisibility::Visible;
 }
 
 void UNoesisInstance::InitInstance()
@@ -198,6 +235,8 @@ void UNoesisInstance::InitInstance()
 
 		Xaml->PreviewGotKeyboardFocus() += Noesis::MakeDelegate(this, &UNoesisInstance::OnPreviewGotKeyboardFocus);
 		Xaml->PreviewLostKeyboardFocus() += Noesis::MakeDelegate(this, &UNoesisInstance::OnPreviewLostKeyboardFocus);
+
+		NoesisSlateElement = MakeShared<FNoesisSlateElement, ESPMode::ThreadSafe>(this);
 	}
 }
 
@@ -286,6 +325,7 @@ void UNoesisInstance::DrawOffscreen_RenderThread(FRHICommandListImmediate& RHICm
 {
 	if (XamlView)
 	{
+		SCOPED_DRAW_EVENT(RHICmdList, NoesisDrawOffscreen);
 		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
 		Noesis::IRenderer* Renderer = XamlView->GetRenderer();
 		Renderer->UpdateRenderTree();
@@ -301,162 +341,11 @@ void UNoesisInstance::Draw_RenderThread(FRHICommandListImmediate& RHICmdList, FT
 {
 	if (XamlView)
 	{
+		SCOPED_DRAW_EVENT(RHICmdList, NoesisDraw);
 		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
 		Noesis::IRenderer* Renderer = XamlView->GetRenderer();
-		RHICmdList.SetViewport(Left, Top, 0.0f, Left + Width, Top + Height, 1.0f);
 		Renderer->Render();
 		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
-	}
-}
-
-void UNoesisInstance::MouseButtonDown(FVector2D Position, FKey Button)
-{
-	if (XamlView)
-	{
-		Noesis::MouseButton MouseButton;
-		if (Button == EKeys::LeftMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Left;
-		}
-		else if (Button == EKeys::RightMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Right;
-		}
-		else if (Button == EKeys::MiddleMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Middle;
-		}
-		else if (Button == EKeys::ThumbMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_XButton1;
-		}
-		else
-		{
-			MouseButton = Noesis::MouseButton_XButton2;
-		}
-		XamlView->MouseButtonDown(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
-	}
-}
-
-void UNoesisInstance::MouseButtonUp(FVector2D Position, FKey Button)
-{
-	if (XamlView)
-	{
-		Noesis::MouseButton MouseButton;
-		if (Button == EKeys::LeftMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Left;
-		}
-		else if (Button == EKeys::RightMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Right;
-		}
-		else if (Button == EKeys::MiddleMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Middle;
-		}
-		else if (Button == EKeys::ThumbMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_XButton1;
-		}
-		else
-		{
-			MouseButton = Noesis::MouseButton_XButton2;
-		}
-		XamlView->MouseButtonUp(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
-	}
-}
-
-void UNoesisInstance::MouseDoubleClick(FVector2D Position, FKey Button)
-{
-	if (XamlView)
-	{
-		Noesis::MouseButton MouseButton;
-		if (Button == EKeys::LeftMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Left;
-		}
-		else if (Button == EKeys::RightMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Right;
-		}
-		else if (Button == EKeys::MiddleMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Middle;
-		}
-		else if (Button == EKeys::ThumbMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_XButton1;
-		}
-		else
-		{
-			MouseButton = Noesis::MouseButton_XButton2;
-		}
-		XamlView->MouseDoubleClick(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
-	}
-}
-
-void UNoesisInstance::MouseMove(FVector2D Position)
-{
-	if (XamlView)
-	{
-		XamlView->MouseMove(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y));
-	}
-}
-
-void UNoesisInstance::MouseWheel(FVector2D Position, float WheelDelta)
-{
-	if (XamlView)
-	{
-		XamlView->MouseWheel(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), FPlatformMath::RoundToInt(WheelDelta * 120.f));
-	}
-}
-
-void UNoesisInstance::TouchDown(FVector2D Position, uint32 PointerIndex)
-{
-	if (XamlView)
-	{
-		XamlView->TouchDown(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
-	}
-}
-
-void UNoesisInstance::TouchMove(FVector2D Position, uint32 PointerIndex)
-{
-	if (XamlView)
-	{
-		XamlView->TouchMove(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
-	}
-}
-
-void UNoesisInstance::TouchUp(FVector2D Position, uint32 PointerIndex)
-{
-	if (XamlView)
-	{
-		XamlView->TouchUp(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
-	}	
-}
-
-void UNoesisInstance::KeyDown(uint32 Key)
-{
-	if (XamlView)
-	{
-		XamlView->KeyDown((Noesis::Key)Key);
-	}
-}
-
-void UNoesisInstance::KeyUp(uint32 Key)
-{
-	if (XamlView)
-	{
-		XamlView->KeyUp((Noesis::Key)Key);
-	}
-}
-
-void UNoesisInstance::Char(TCHAR Character)
-{
-	if (XamlView)
-	{
-		XamlView->Char(CharCast<char>(Character));
 	}
 }
 
@@ -558,6 +447,16 @@ void UNoesisInstance::BeginDestroy()
 		Renderer->Shutdown();
 		XamlView.Reset();
 		Xaml.Reset();
+
+		// Pass the slate element to the render thread so that it's deleted after it's shown for the last time
+		ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER
+		(
+			SafeDeleteNoesisSlateElement,
+			FNoesisSlateElementPtr, NoesisSlateElement, NoesisSlateElement,
+			{
+				NoesisSlateElement.Reset();
+			}
+		);
 	}
 
 	ITextInputMethodSystem* const TextInputMethodSystem = FSlateApplication::IsInitialized() ? FSlateApplication::Get().GetTextInputMethodSystem() : nullptr;
@@ -570,14 +469,651 @@ void UNoesisInstance::BeginDestroy()
 	}
 }
 
+void UNoesisInstance::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	FVector2D AbsolutePosition = MyGeometry.GetAbsolutePosition();
+	FVector2D AbsoluteSize = MyGeometry.GetAbsoluteSize();
+	Update(AbsolutePosition.X, AbsolutePosition.Y, AbsoluteSize.X, AbsoluteSize.Y);
+
+	ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(FNoesisInstance_DrawOffscreen,
+		UNoesisInstance*, NoesisInstance, this,
+		{
+			NoesisInstance->DrawOffscreen_RenderThread(RHICmdList, 0, 0);
+		});
+}
+
+void UNoesisInstance::NativePaint(FPaintContext& InContext) const
+{
+	Super::NativePaint(InContext);
+
+	const FSlateRect& MyClippingRect = InContext.MyCullingRect;
+	FSlateWindowElementList& OutDrawElements = InContext.OutDrawElements;
+
+	NoesisSlateElement->Left = MyClippingRect.Left;
+	NoesisSlateElement->Top = MyClippingRect.Top;
+	NoesisSlateElement->Right = MyClippingRect.Right;
+	NoesisSlateElement->Bottom = MyClippingRect.Bottom;
+	// Push an unaligned clip zone to force Slate to create a stencil buffer
+	FSlateClippingZone Clip(FVector2D(MyClippingRect.Left - 1, MyClippingRect.Top - 1), FVector2D(MyClippingRect.Right, MyClippingRect.Top), FVector2D(MyClippingRect.Left, MyClippingRect.Bottom), FVector2D(MyClippingRect.Right + 1, MyClippingRect.Bottom + 1));
+	OutDrawElements.PushClip(Clip);
+	FSlateDrawElement::MakeCustom(OutDrawElements, InContext.LayerId, NoesisSlateElement);
+	OutDrawElements.PopClip();
+
+	InContext.MaxLayer = InContext.LayerId;
+}
+
+FReply UNoesisInstance::NativeOnKeyChar(const FGeometry& MyGeometry, const FCharacterEvent& CharacterEvent)
+{
+	if (XamlView)
+	{
+		TCHAR Character = CharacterEvent.GetCharacter();
+
+		XamlView->Char(CharCast<char>(Character));
+	}
+
+	return Super::NativeOnKeyChar(MyGeometry, CharacterEvent);
+}
+
+Noesis::Key KeyToNoesisKey(FKey Key)
+{
+	Noesis::Key NoesisKey = Noesis::Key_None;
+	if (Key == EKeys::BackSpace)
+	{
+		NoesisKey = Noesis::Key_Back;
+	}
+	else if (Key == EKeys::Tab)
+	{
+		NoesisKey = Noesis::Key_Tab;
+	}
+	else if (Key == EKeys::Enter)
+	{
+		NoesisKey = Noesis::Key_Enter;
+	}
+	else if (Key == EKeys::Pause)
+	{
+		NoesisKey = Noesis::Key_Pause;
+	}
+	else if (Key == EKeys::CapsLock)
+	{
+		NoesisKey = Noesis::Key_CapsLock;
+	}
+	else if (Key == EKeys::Escape)
+	{
+		NoesisKey = Noesis::Key_Escape;
+	}
+	else if (Key == EKeys::SpaceBar)
+	{
+		NoesisKey = Noesis::Key_Space;
+	}
+	else if (Key == EKeys::PageUp)
+	{
+		NoesisKey = Noesis::Key_PageUp;
+	}
+	else if (Key == EKeys::PageDown)
+	{
+		NoesisKey = Noesis::Key_PageDown;
+	}
+	else if (Key == EKeys::End)
+	{
+		NoesisKey = Noesis::Key_End;
+	}
+	else if (Key == EKeys::Home)
+	{
+		NoesisKey = Noesis::Key_Home;
+	}
+	else if (Key == EKeys::Left)
+	{
+		NoesisKey = Noesis::Key_Left;
+	}
+	else if (Key == EKeys::Up)
+	{
+		NoesisKey = Noesis::Key_Up;
+	}
+	else if (Key == EKeys::Right)
+	{
+		NoesisKey = Noesis::Key_Right;
+	}
+	else if (Key == EKeys::Down)
+	{
+		NoesisKey = Noesis::Key_Down;
+	}
+	else if (Key == EKeys::Insert)
+	{
+		NoesisKey = Noesis::Key_Insert;
+	}
+	else if (Key == EKeys::Delete)
+	{
+		NoesisKey = Noesis::Key_Delete;
+	}
+	else if (Key == EKeys::Zero)
+	{
+		NoesisKey = Noesis::Key_D0;
+	}
+	else if (Key == EKeys::One)
+	{
+		NoesisKey = Noesis::Key_D1;
+	}
+	else if (Key == EKeys::Two)
+	{
+		NoesisKey = Noesis::Key_D2;
+	}
+	else if (Key == EKeys::Three)
+	{
+		NoesisKey = Noesis::Key_D3;
+	}
+	else if (Key == EKeys::Four)
+	{
+		NoesisKey = Noesis::Key_D4;
+	}
+	else if (Key == EKeys::Five)
+	{
+		NoesisKey = Noesis::Key_D5;
+	}
+	else if (Key == EKeys::Six)
+	{
+		NoesisKey = Noesis::Key_D6;
+	}
+	else if (Key == EKeys::Seven)
+	{
+		NoesisKey = Noesis::Key_D7;
+	}
+	else if (Key == EKeys::Eight)
+	{
+		NoesisKey = Noesis::Key_D8;
+	}
+	else if (Key == EKeys::Nine)
+	{
+		NoesisKey = Noesis::Key_D9;
+	}
+	else if (Key == EKeys::A)
+	{
+		NoesisKey = Noesis::Key_A;
+	}
+	else if (Key == EKeys::B)
+	{
+		NoesisKey = Noesis::Key_B;
+	}
+	else if (Key == EKeys::C)
+	{
+		NoesisKey = Noesis::Key_C;
+	}
+	else if (Key == EKeys::D)
+	{
+		NoesisKey = Noesis::Key_D;
+	}
+	else if (Key == EKeys::E)
+	{
+		NoesisKey = Noesis::Key_E;
+	}
+	else if (Key == EKeys::F)
+	{
+		NoesisKey = Noesis::Key_F;
+	}
+	else if (Key == EKeys::G)
+	{
+		NoesisKey = Noesis::Key_G;
+	}
+	else if (Key == EKeys::H)
+	{
+		NoesisKey = Noesis::Key_H;
+	}
+	else if (Key == EKeys::I)
+	{
+		NoesisKey = Noesis::Key_I;
+	}
+	else if (Key == EKeys::J)
+	{
+		NoesisKey = Noesis::Key_J;
+	}
+	else if (Key == EKeys::K)
+	{
+		NoesisKey = Noesis::Key_K;
+	}
+	else if (Key == EKeys::L)
+	{
+		NoesisKey = Noesis::Key_L;
+	}
+	else if (Key == EKeys::M)
+	{
+		NoesisKey = Noesis::Key_M;
+	}
+	else if (Key == EKeys::N)
+	{
+		NoesisKey = Noesis::Key_N;
+	}
+	else if (Key == EKeys::O)
+	{
+		NoesisKey = Noesis::Key_O;
+	}
+	else if (Key == EKeys::P)
+	{
+		NoesisKey = Noesis::Key_P;
+	}
+	else if (Key == EKeys::Q)
+	{
+		NoesisKey = Noesis::Key_Q;
+	}
+	else if (Key == EKeys::R)
+	{
+		NoesisKey = Noesis::Key_R;
+	}
+	else if (Key == EKeys::S)
+	{
+		NoesisKey = Noesis::Key_S;
+	}
+	else if (Key == EKeys::T)
+	{
+		NoesisKey = Noesis::Key_T;
+	}
+	else if (Key == EKeys::U)
+	{
+		NoesisKey = Noesis::Key_U;
+	}
+	else if (Key == EKeys::V)
+	{
+		NoesisKey = Noesis::Key_V;
+	}
+	else if (Key == EKeys::W)
+	{
+		NoesisKey = Noesis::Key_W;
+	}
+	else if (Key == EKeys::X)
+	{
+		NoesisKey = Noesis::Key_X;
+	}
+	else if (Key == EKeys::Y)
+	{
+		NoesisKey = Noesis::Key_Y;
+	}
+	else if (Key == EKeys::Z)
+	{
+		NoesisKey = Noesis::Key_Z;
+	}
+	else if (Key == EKeys::NumPadZero)
+	{
+		NoesisKey = Noesis::Key_NumPad0;
+	}
+	else if (Key == EKeys::NumPadOne)
+	{
+		NoesisKey = Noesis::Key_NumPad1;
+	}
+	else if (Key == EKeys::NumPadTwo)
+	{
+		NoesisKey = Noesis::Key_NumPad2;
+	}
+	else if (Key == EKeys::NumPadThree)
+	{
+		NoesisKey = Noesis::Key_NumPad3;
+	}
+	else if (Key == EKeys::NumPadFour)
+	{
+		NoesisKey = Noesis::Key_NumPad4;
+	}
+	else if (Key == EKeys::NumPadFive)
+	{
+		NoesisKey = Noesis::Key_NumPad5;
+	}
+	else if (Key == EKeys::NumPadSix)
+	{
+		NoesisKey = Noesis::Key_NumPad6;
+	}
+	else if (Key == EKeys::NumPadSeven)
+	{
+		NoesisKey = Noesis::Key_NumPad7;
+	}
+	else if (Key == EKeys::NumPadEight)
+	{
+		NoesisKey = Noesis::Key_NumPad8;
+	}
+	else if (Key == EKeys::NumPadNine)
+	{
+		NoesisKey = Noesis::Key_NumPad9;
+	}
+	else if (Key == EKeys::Multiply)
+	{
+		NoesisKey = Noesis::Key_Multiply;
+	}
+	else if (Key == EKeys::Add)
+	{
+		NoesisKey = Noesis::Key_Add;
+	}
+	else if (Key == EKeys::Subtract)
+	{
+		NoesisKey = Noesis::Key_Subtract;
+	}
+	else if (Key == EKeys::Decimal)
+	{
+		NoesisKey = Noesis::Key_Decimal;
+	}
+	else if (Key == EKeys::Divide)
+	{
+		NoesisKey = Noesis::Key_Divide;
+	}
+	else if (Key == EKeys::F1)
+	{
+		NoesisKey = Noesis::Key_F1;
+	}
+	else if (Key == EKeys::F2)
+	{
+		NoesisKey = Noesis::Key_F2;
+	}
+	else if (Key == EKeys::F3)
+	{
+		NoesisKey = Noesis::Key_F3;
+	}
+	else if (Key == EKeys::F4)
+	{
+		NoesisKey = Noesis::Key_F4;
+	}
+	else if (Key == EKeys::F5)
+	{
+		NoesisKey = Noesis::Key_F5;
+	}
+	else if (Key == EKeys::F6)
+	{
+		NoesisKey = Noesis::Key_F6;
+	}
+	else if (Key == EKeys::F7)
+	{
+		NoesisKey = Noesis::Key_F7;
+	}
+	else if (Key == EKeys::F8)
+	{
+		NoesisKey = Noesis::Key_F8;
+	}
+	else if (Key == EKeys::F9)
+	{
+		NoesisKey = Noesis::Key_F9;
+	}
+	else if (Key == EKeys::F10)
+	{
+		NoesisKey = Noesis::Key_F10;
+	}
+	else if (Key == EKeys::F11)
+	{
+		NoesisKey = Noesis::Key_F11;
+	}
+	else if (Key == EKeys::F12)
+	{
+		NoesisKey = Noesis::Key_F12;
+	}
+	else if (Key == EKeys::NumLock)
+	{
+		NoesisKey = Noesis::Key_NumLock;
+	}
+	else if (Key == EKeys::ScrollLock)
+	{
+		NoesisKey = Noesis::Key_Scroll;
+	}
+	else if (Key == EKeys::LeftShift)
+	{
+		NoesisKey = Noesis::Key_LeftShift;
+	}
+	else if (Key == EKeys::RightShift)
+	{
+		NoesisKey = Noesis::Key_RightShift;
+	}
+	else if (Key == EKeys::LeftControl)
+	{
+		NoesisKey = Noesis::Key_LeftCtrl;
+	}
+	else if (Key == EKeys::RightControl)
+	{
+		NoesisKey = Noesis::Key_RightCtrl;
+	}
+	else if (Key == EKeys::LeftAlt)
+	{
+		NoesisKey = Noesis::Key_LeftAlt;
+	}
+	else if (Key == EKeys::RightAlt)
+	{
+		NoesisKey = Noesis::Key_RightAlt;
+	}
+	else if (Key == EKeys::LeftCommand)
+	{
+		NoesisKey = Noesis::Key_LWin;
+	}
+	else if (Key == EKeys::RightCommand)
+	{
+		NoesisKey = Noesis::Key_RWin;
+	}
+	else if (Key == EKeys::Semicolon)
+	{
+		NoesisKey = Noesis::Key_OemSemicolon;
+	}
+	else if (Key == EKeys::Comma)
+	{
+		NoesisKey = Noesis::Key_OemComma;
+	}
+	else if (Key == EKeys::Period)
+	{
+		NoesisKey = Noesis::Key_OemPeriod;
+	}
+	else if (Key == EKeys::Tilde)
+	{
+		NoesisKey = Noesis::Key_OemTilde;
+	}
+	else if (Key == EKeys::LeftBracket)
+	{
+		NoesisKey = Noesis::Key_OemOpenBrackets;
+	}
+	else if (Key == EKeys::Backslash)
+	{
+		NoesisKey = Noesis::Key_OemBackslash;
+	}
+	else if (Key == EKeys::RightBracket)
+	{
+		NoesisKey = Noesis::Key_OemCloseBrackets;
+	}
+
+	return NoesisKey;
+}
+
+FReply UNoesisInstance::NativeOnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& KeyEvent)
+{
+	if (XamlView)
+	{
+		FKey Key = KeyEvent.GetKey();
+
+		XamlView->KeyDown(KeyToNoesisKey(Key));
+	}
+
+	return Super::NativeOnKeyDown(MyGeometry, KeyEvent);
+}
+
+FReply UNoesisInstance::NativeOnKeyUp(const FGeometry& MyGeometry, const FKeyEvent& KeyEvent)
+{
+	if (XamlView)
+	{
+		FKey Key = KeyEvent.GetKey();
+
+		XamlView->KeyUp(KeyToNoesisKey(Key));
+	}
+
+	return Super::NativeOnKeyUp(MyGeometry, KeyEvent);
+}
+
+FReply UNoesisInstance::NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	if (XamlView)
+	{
+		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
+		FKey Button = MouseEvent.GetEffectingButton();
+
+		Noesis::MouseButton MouseButton;
+		if (Button == EKeys::LeftMouseButton)
+		{
+			MouseButton = Noesis::MouseButton_Left;
+		}
+		else if (Button == EKeys::RightMouseButton)
+		{
+			MouseButton = Noesis::MouseButton_Right;
+		}
+		else if (Button == EKeys::MiddleMouseButton)
+		{
+			MouseButton = Noesis::MouseButton_Middle;
+		}
+		else if (Button == EKeys::ThumbMouseButton)
+		{
+			MouseButton = Noesis::MouseButton_XButton1;
+		}
+		else
+		{
+			MouseButton = Noesis::MouseButton_XButton2;
+		}
+		XamlView->MouseButtonDown(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
+	}
+
+	return FReply::Handled();
+}
+
+FReply UNoesisInstance::NativeOnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	if (XamlView)
+	{
+		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
+		FKey Button = MouseEvent.GetEffectingButton();
+
+		Noesis::MouseButton MouseButton;
+		if (Button == EKeys::LeftMouseButton)
+		{
+			MouseButton = Noesis::MouseButton_Left;
+		}
+		else if (Button == EKeys::RightMouseButton)
+		{
+			MouseButton = Noesis::MouseButton_Right;
+		}
+		else if (Button == EKeys::MiddleMouseButton)
+		{
+			MouseButton = Noesis::MouseButton_Middle;
+		}
+		else if (Button == EKeys::ThumbMouseButton)
+		{
+			MouseButton = Noesis::MouseButton_XButton1;
+		}
+		else
+		{
+			MouseButton = Noesis::MouseButton_XButton2;
+		}
+		XamlView->MouseButtonUp(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
+	}
+
+	return FReply::Handled();
+}
+
+FReply UNoesisInstance::NativeOnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	if (XamlView)
+	{
+		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
+
+		XamlView->MouseMove(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y));
+	}
+
+	return FReply::Handled();
+}
+
+FReply UNoesisInstance::NativeOnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	if (XamlView)
+	{
+		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
+		float WheelDelta = MouseEvent.GetWheelDelta();
+
+		XamlView->MouseWheel(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), FPlatformMath::RoundToInt(WheelDelta * 120.f));
+	}
+
+	return FReply::Handled();
+}
+
+FReply UNoesisInstance::NativeOnTouchStarted(const FGeometry& MyGeometry, const FPointerEvent& TouchEvent)
+{
+	if (XamlView)
+	{
+		FVector2D Position = MyGeometry.AbsoluteToLocal(TouchEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
+		uint32 PointerIndex = TouchEvent.GetPointerIndex();
+
+		XamlView->TouchDown(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
+	}
+
+	return FReply::Handled();
+}
+
+FReply UNoesisInstance::NativeOnTouchMoved(const FGeometry& MyGeometry, const FPointerEvent& TouchEvent)
+{
+	if (XamlView)
+	{
+		FVector2D Position = MyGeometry.AbsoluteToLocal(TouchEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
+		uint32 PointerIndex = TouchEvent.GetPointerIndex();
+
+		XamlView->TouchMove(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
+	}
+
+	return FReply::Handled();
+}
+
+FReply UNoesisInstance::NativeOnTouchEnded(const FGeometry& MyGeometry, const FPointerEvent& TouchEvent)
+{
+	if (XamlView)
+	{
+		FVector2D Position = MyGeometry.AbsoluteToLocal(TouchEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
+		uint32 PointerIndex = TouchEvent.GetPointerIndex();
+
+		XamlView->TouchUp(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
+	}
+
+	return FReply::Handled();
+}
+
+FCursorReply UNoesisInstance::NativeOnCursorQuery(const FGeometry& MyGeometry, const FPointerEvent& CursorEvent)
+{
+	return FCursorReply::Cursor(EMouseCursor::Default);
+}
+
+FReply UNoesisInstance::NativeOnMouseButtonDoubleClick(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	if (XamlView)
+	{
+		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
+		FKey Button = MouseEvent.GetEffectingButton();
+
+		Noesis::MouseButton MouseButton;
+		if (Button == EKeys::LeftMouseButton)
+		{
+			MouseButton = Noesis::MouseButton_Left;
+		}
+		else if (Button == EKeys::RightMouseButton)
+		{
+			MouseButton = Noesis::MouseButton_Right;
+		}
+		else if (Button == EKeys::MiddleMouseButton)
+		{
+			MouseButton = Noesis::MouseButton_Middle;
+		}
+		else if (Button == EKeys::ThumbMouseButton)
+		{
+			MouseButton = Noesis::MouseButton_XButton1;
+		}
+		else
+		{
+			MouseButton = Noesis::MouseButton_XButton2;
+		}
+		XamlView->MouseDoubleClick(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
+	}
+
+	return FReply::Handled();
+}
+
+bool UNoesisInstance::NativeSupportsKeyboardFocus() const
+{
+	return true;
+}
+
 void UNoesisInstance::InitializeNativeClassData()
 {
 	Super::InitializeNativeClassData();
 
 	InitInstance();
-}
-
-TSharedRef<SWidget> UNoesisInstance::RebuildWidget()
-{
-	return SNew(SNoesisWidget).NoesisInstance(this);
 }

@@ -1,0 +1,65 @@
+#include "/Engine/Private/Common.ush"
+
+struct In
+{
+    half4 position: ATTRIBUTE0;
+
+#if HAS_COLOR
+    half4 color: ATTRIBUTE1;
+#endif
+
+#if HAS_UV0
+    half2 uv0: ATTRIBUTE2;
+#endif
+
+#if HAS_UV1
+    half2 uv1: ATTRIBUTE3;
+#endif
+
+#if HAS_COVERAGE
+    half coverage: ATTRIBUTE4;
+#endif
+};
+
+struct Out
+{
+#if HAS_COLOR
+    half4 color: COLOR;
+#endif
+
+#if HAS_UV0
+    half2 uv0: TEXCOORD0;
+#endif
+
+#if HAS_UV1
+    half2 uv1: TEXCOORD1;
+#endif
+
+#if HAS_COVERAGE
+    half coverage: TEXCOORD2;
+#endif
+};
+
+float4x4 projectionMtx;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void main(in In i, out Out o, out float4 out_position: SV_POSITION)
+{
+    out_position = mul(i.position, projectionMtx);
+
+#if HAS_COLOR
+    o.color FCOLOR_COMPONENT_SWIZZLE = i.color.bgra;
+#endif
+
+#if HAS_UV0
+    o.uv0 = i.uv0;
+#endif
+
+#if HAS_UV1
+    o.uv1 = i.uv1;
+#endif
+
+#if HAS_COVERAGE
+    o.coverage = i.coverage;
+#endif
+}
