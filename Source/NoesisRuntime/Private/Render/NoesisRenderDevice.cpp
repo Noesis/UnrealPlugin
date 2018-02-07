@@ -77,8 +77,8 @@ FNoesisRenderDevice::FNoesisRenderDevice()
 	: VertexBufferOffset(0), IndexBufferOffset(0), CurrentRenderTarget(0)
 {
 	FRHIResourceCreateInfo CreateInfo;
-	DynamicVertexBuffer = GDynamicRHI->RHICreateVertexBuffer(VertexBufferSize, BUF_Dynamic, CreateInfo);
-	DynamicIndexBuffer = GDynamicRHI->RHICreateIndexBuffer(sizeof(int16), IndexBufferSize, BUF_Dynamic, CreateInfo);
+	DynamicVertexBuffer = RHICreateVertexBuffer(VertexBufferSize, BUF_Dynamic, CreateInfo);
+	DynamicIndexBuffer = RHICreateIndexBuffer(sizeof(int16), IndexBufferSize, BUF_Dynamic, CreateInfo);
 
 	const auto FeatureLevel = GMaxRHIFeatureLevel;
 	auto ShaderMap = GetGlobalShaderMap(FeatureLevel);
@@ -343,7 +343,7 @@ void FNoesisRenderDevice::UpdateTexture(Noesis::Texture* InTexture, uint32 Level
 	uint32 SourcePitch = (uint32)Width * ((Texture->ShaderResourceTexture->GetFormat() == PF_B8G8R8A8) ? 4 : 1);
 	const uint8* SourceData = (const uint8*)Data;
 
-	GDynamicRHI->RHIUpdateTexture2D(Texture->ShaderResourceTexture, MipIndex, UpdateRegion, SourcePitch, SourceData);
+	RHIUpdateTexture2D(Texture->ShaderResourceTexture, MipIndex, UpdateRegion, SourcePitch, SourceData);
 }
 
 void FNoesisRenderDevice::BeginRender(bool Offscreen)
@@ -369,6 +369,7 @@ void FNoesisRenderDevice::BeginTile(const Noesis::Tile& Tile, uint32 SurfaceWidt
 	FRHICommandList* RHICmdList = ThreadLocal_GetRHICmdList();
 	check(RHICmdList);
 	check(SurfaceHeight == CurrentRenderTarget->Texture->ShaderResourceTexture->GetSizeY());
+
 	uint32 ScissorMinX = Tile.x;
 	uint32 ScissorMinY = SurfaceHeight - (Tile.y + Tile.height);
 	uint32 ScissorMaxX = Tile.x + Tile.width;
@@ -590,7 +591,7 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 
 	SetGraphicsPipelineState(*RHICmdList, GraphicsPSOInit);
 
-	FMatrix ProjectionMtxValue(FPlane((*Batch.projMtx)[0], (*Batch.projMtx)[4], (*Batch.projMtx)[8], (*Batch.projMtx)[12]),
+	FMatrix ProjectionMtxValue = FMatrix(FPlane((*Batch.projMtx)[0], (*Batch.projMtx)[4], (*Batch.projMtx)[8], (*Batch.projMtx)[12]),
 		FPlane((*Batch.projMtx)[1], (*Batch.projMtx)[5], (*Batch.projMtx)[9], (*Batch.projMtx)[13]),
 		FPlane((*Batch.projMtx)[2], (*Batch.projMtx)[6], (*Batch.projMtx)[10], (*Batch.projMtx)[14]),
 		FPlane((*Batch.projMtx)[3], (*Batch.projMtx)[7], (*Batch.projMtx)[11], (*Batch.projMtx)[15]));

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root xmlns:android="http://schemas.android.com/apk/res/android">
+	<init/>
+	<resourceCopies>
+		<isArch arch="armeabi-v7a">
+			<copyFile src="$S(PluginDir)/NoesisSDK/Bin/android_arm/libNoesis.so" dst="$S(BuildDir)/libs/armeabi-v7a/libNoesis.so"/>
+		</isArch>
+	</resourceCopies>
+	<soLoadLibrary>
+		<loadLibrary name="Noesis" failmsg="Could not load Noesis library"/>
+	</soLoadLibrary>
+</root>

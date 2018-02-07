@@ -86,12 +86,17 @@ public class Noesis : ModuleRules
 			string NoesisLibPath = NoesisBasePath + "Lib/ios/";
 			PublicLibraryPaths.Add(NoesisLibPath);
 			PublicAdditionalLibraries.Add("Noesis");
+
+			PublicAdditionalShadowFiles.Add(Path.Combine(NoesisLibPath, "libNoesis.a"));
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Android)
 		{
 			string NoesisLibPath = NoesisBasePath + "Bin/android_arm/";
 			PublicLibraryPaths.Add(NoesisLibPath);
-			PublicAdditionalLibraries.Add(NoesisLibPath + "libNoesis.so");
+			PublicAdditionalLibraries.Add("Noesis");
+
+			string NoesisAplPath = "/Noesis_APL.xml";
+			AdditionalPropertiesForReceipt.Add(new ReceiptProperty("AndroidPlugin", ModuleDirectory + NoesisAplPath));
 		}
 	}
 }

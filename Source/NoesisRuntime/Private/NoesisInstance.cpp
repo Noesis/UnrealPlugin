@@ -11,6 +11,9 @@
 // RenderCore includes
 #include "RenderingThread.h"
 
+// Renderer includes
+#include "Private/PostProcess/SceneRenderTargets.h"
+
 // ApplicationCore includes
 #include "HAL/PlatformApplicationMisc.h"
 #include "GenericPlatform/ITextInputMethodSystem.h"
@@ -36,6 +39,7 @@ public:
 	// End of ICustomSlateElement interface
 
 	class UNoesisInstance* NoesisInstance;
+	FTexture2DRHIRef DepthStencilTarget;
 
 	float Left;
 	float Top;
@@ -52,6 +56,28 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 {
 	if (NoesisInstance)
 	{
+		FTexture2DRHIRef ColorTarget = *(FTexture2DRHIRef*)InWindowBackBuffer;
+		if (!DepthStencilTarget.IsValid() || DepthStencilTarget->GetSizeX() != ColorTarget->GetSizeX() || DepthStencilTarget->GetSizeY() != ColorTarget->GetSizeY() || DepthStencilTarget->GetNumSamples() != ColorTarget->GetNumSamples())
+		{
+			DepthStencilTarget.SafeRelease();
+
+			uint32 SizeX = ColorTarget->GetSizeX();
+			uint32 SizeY = ColorTarget->GetSizeY();
+			uint8 Format = (uint8)PF_DepthStencil;
+			uint32 NumMips = 1;
+			uint32 NumSamples = ColorTarget->GetNumSamples();
+			uint32 TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
+			FRHIResourceCreateInfo CreateInfo;
+			CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
+			DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, CreateInfo);
+		}
+
+		FRHIRenderTargetView ColorView(ColorTarget, 0, -1, ERenderTargetLoadAction::ENoAction, ERenderTargetStoreAction::EStore);
+		FRHIDepthRenderTargetView DepthStencilView(DepthStencilTarget	, ERenderTargetLoadAction::ENoAction, ERenderTargetStoreAction::ENoAction, ERenderTargetLoadAction::EClear, ERenderTargetStoreAction::ENoAction);
+		FRHISetRenderTargetsInfo Info(1, &ColorView, DepthStencilView);
+
+		// Clear the stencil buffer
+		RHICmdList.SetRenderTargetsAndClear(Info);
 		RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
 		NoesisInstance->Draw_RenderThread(RHICmdList, 0, 0);
 	}
@@ -344,7 +370,7 @@ void UNoesisInstance::Draw_RenderThread(FRHICommandListImmediate& RHICmdList, FT
 		SCOPED_DRAW_EVENT(RHICmdList, NoesisDraw);
 		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
 		Noesis::IRenderer* Renderer = XamlView->GetRenderer();
-		Renderer->Render();
+		Renderer->Render(FlipYAxis);
 		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
 	}
 }
@@ -469,24 +495,34 @@ void UNoesisInstance::BeginDestroy()
 	}
 }
 
+#if WITH_EDITOR
+void UNoesisInstance::SetDesignerFlags(EWidgetDesignFlags::Type NewFlags)
+{
+	// Enable native events in editor
+	Super::SetDesignerFlags((EWidgetDesignFlags::Type)(NewFlags & ~EWidgetDesignFlags::Designing));
+}
+#endif // WITH_EDITOR
+
 void UNoesisInstance::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
+	FlipYAxis = IsInViewport() && RHINeedsToSwitchVerticalAxis(GShaderPlatformForFeatureLevel[GMaxRHIFeatureLevel]);
+
 	FVector2D AbsolutePosition = MyGeometry.GetAbsolutePosition();
 	FVector2D AbsoluteSize = MyGeometry.GetAbsoluteSize();
 	Update(AbsolutePosition.X, AbsolutePosition.Y, AbsoluteSize.X, AbsoluteSize.Y);
-
-	ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(FNoesisInstance_DrawOffscreen,
-		UNoesisInstance*, NoesisInstance, this,
-		{
-			NoesisInstance->DrawOffscreen_RenderThread(RHICmdList, 0, 0);
-		});
 }
 
 void UNoesisInstance::NativePaint(FPaintContext& InContext) const
 {
 	Super::NativePaint(InContext);
+
+	ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(FNoesisInstance_DrawOffscreen,
+		UNoesisInstance*, NoesisInstance, (UNoesisInstance*)this,
+		{
+			NoesisInstance->DrawOffscreen_RenderThread(RHICmdList, 0, 0);
+		});
 
 	const FSlateRect& MyClippingRect = InContext.MyCullingRect;
 	FSlateWindowElementList& OutDrawElements = InContext.OutDrawElements;
@@ -495,11 +531,7 @@ void UNoesisInstance::NativePaint(FPaintContext& InContext) const
 	NoesisSlateElement->Top = MyClippingRect.Top;
 	NoesisSlateElement->Right = MyClippingRect.Right;
 	NoesisSlateElement->Bottom = MyClippingRect.Bottom;
-	// Push an unaligned clip zone to force Slate to create a stencil buffer
-	FSlateClippingZone Clip(FVector2D(MyClippingRect.Left - 1, MyClippingRect.Top - 1), FVector2D(MyClippingRect.Right, MyClippingRect.Top), FVector2D(MyClippingRect.Left, MyClippingRect.Bottom), FVector2D(MyClippingRect.Right + 1, MyClippingRect.Bottom + 1));
-	OutDrawElements.PushClip(Clip);
 	FSlateDrawElement::MakeCustom(OutDrawElements, InContext.LayerId, NoesisSlateElement);
-	OutDrawElements.PopClip();
 
 	InContext.MaxLayer = InContext.LayerId;
 }

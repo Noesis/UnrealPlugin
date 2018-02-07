@@ -41,6 +41,7 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	float Width;
 	float Height;
 	float StartTime;
+	bool FlipYAxis;
 
 	typedef TSharedPtr<class FNoesisSlateElement, ESPMode::ThreadSafe> FNoesisSlateElementPtr;
 	FNoesisSlateElementPtr NoesisSlateElement;
@@ -93,6 +94,12 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	virtual class UWorld* GetWorld() const override;
 	virtual void BeginDestroy() override;
 	// End of UObject interface
+
+#if WITH_EDITOR
+	// UWidget interface
+	virtual void SetDesignerFlags(EWidgetDesignFlags::Type NewFlags) override;
+	// End of UWidget interface
+#endif // WITH_EDITOR
 
 	// UUserWidget interface
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
