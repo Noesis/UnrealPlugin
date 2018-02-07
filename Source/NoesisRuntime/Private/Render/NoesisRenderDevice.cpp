@@ -204,7 +204,7 @@ FRHICommandList* FNoesisRenderDevice::ThreadLocal_GetRHICmdList()
 
 Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InTexture)
 {
-	if (!InTexture->Resource)
+	if (!InTexture || !InTexture->Resource)
 		return nullptr;
 
 	FNoesisTexture* Texture = nullptr;
