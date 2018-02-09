@@ -17,6 +17,16 @@ struct FGenericStruct;
 
 #define HostProject_Plugins_NoesisGUI_Source_NoesisRuntime_Classes_NoesisFunctionLibrary_h_21_RPC_WRAPPERS \
  \
+	DECLARE_FUNCTION(execTrySetDataContext) \
+	{ \
+		P_GET_OBJECT(UObject,Z_Param_Element); \
+		P_GET_OBJECT(UObject,Z_Param_DataContext); \
+		P_FINISH; \
+		P_NATIVE_BEGIN; \
+		UNoesisFunctionLibrary::TrySetDataContext(Z_Param_Element,Z_Param_DataContext); \
+		P_NATIVE_END; \
+	} \
+ \
 	DECLARE_FUNCTION(execNotifyArrayChanged) \
 	{ \
 		P_GET_OBJECT(UObject,Z_Param_Owner); \
@@ -39,6 +49,16 @@ struct FGenericStruct;
 
 
 #define HostProject_Plugins_NoesisGUI_Source_NoesisRuntime_Classes_NoesisFunctionLibrary_h_21_RPC_WRAPPERS_NO_PURE_DECLS \
+ \
+	DECLARE_FUNCTION(execTrySetDataContext) \
+	{ \
+		P_GET_OBJECT(UObject,Z_Param_Element); \
+		P_GET_OBJECT(UObject,Z_Param_DataContext); \
+		P_FINISH; \
+		P_NATIVE_BEGIN; \
+		UNoesisFunctionLibrary::TrySetDataContext(Z_Param_Element,Z_Param_DataContext); \
+		P_NATIVE_END; \
+	} \
  \
 	DECLARE_FUNCTION(execNotifyArrayChanged) \
 	{ \

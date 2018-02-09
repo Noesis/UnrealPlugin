@@ -26,6 +26,9 @@ class NOESISRUNTIME_API UNoesisFunctionLibrary : public UBlueprintFunctionLibrar
 	UFUNCTION(BlueprintCallable, Category = "NoesisGUI", meta = (HidePin = "Target"))
 	static void NotifyArrayChanged(UObject* Owner, FName PropertyName);
 
+	UFUNCTION(BlueprintCallable, Category = "NoesisGUI", meta = (HidePin = "Target"))
+	static void TrySetDataContext(UObject* Element, UObject* DataContext);
+
 	UFUNCTION(BlueprintCallable, CustomThunk, meta = (BlueprintInternalUseOnly = "true", CustomStructureParam = "A, B"), Category = "Noesis|Struct")
 	static bool NoesisStruct_NotEqual(const FGenericStruct& A, const FGenericStruct& B);
 

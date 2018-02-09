@@ -5,6 +5,12 @@
 
 #include "NoesisEditorModule.h"
 
+// UnrealEd includes
+#include "Editor.h"
+
+// NoesisRuntime includes
+#include "NoesisXaml.h"
+
 // NoesisEditor includes
 #include "NoesisBlueprintAssetTypeActions.h"
 #include "NoesisXamlAssetTypeActions.h"
@@ -13,6 +19,15 @@
 #include "NoesisStyle.h"
 
 #define LOCTEXT_NAMESPACE "NoesisEditorModule"
+
+void OnObjectReimported(UFactory* ImportFactory, UObject* InObject)
+{
+	for (TObjectIterator<UNoesisXaml> It; It; ++It)
+	{
+		UNoesisXaml* Xaml = *It;
+		Xaml->DestroyThumbnailRenderData();
+	}
+}
 
 class FNoesisEditorModule : public INoesisEditorModuleInterface
 {
@@ -51,6 +66,8 @@ public:
 		UThumbnailManager::Get().RegisterCustomRenderer(UNoesisXaml::StaticClass(), UNoesisXamlThumbnailRenderer::StaticClass());
 
 		NoesisEditorModuleInterface = this;
+
+		AssetImportHandle = FEditorDelegates::OnAssetPostImport.AddStatic(&OnObjectReimported);
 	}
 
 	virtual void ShutdownModule() override
@@ -86,6 +103,11 @@ public:
 		{
 			UThumbnailManager::Get().UnregisterCustomRenderer(UNoesisXaml::StaticClass());
 		}
+
+		if (AssetImportHandle.IsValid())
+		{
+			FEditorDelegates::OnAssetPostImport.Remove(AssetImportHandle);
+		}
 	}
 	// End of IModuleInterface interface
 
@@ -95,6 +117,7 @@ private:
 	TSharedPtr<FNoesisBlueprintAssetTypeActions> NoesisBlueprintAssetTypeActions;
 	TSharedPtr<FNoesisXamlAssetTypeActions> NoesisXamlAssetTypeActions;
 	TSharedPtr<FNoesisBlueprintCompiler> NoesisBlueprintCompiler;
+	FDelegateHandle AssetImportHandle;
 };
 
 INoesisEditorModuleInterface* FNoesisEditorModule::NoesisEditorModuleInterface = 0;

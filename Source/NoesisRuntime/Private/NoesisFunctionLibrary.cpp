@@ -15,6 +15,7 @@
 
 // NoesisRuntime includes
 #include "NoesisTypeClass.h"
+#include "NoesisBaseComponent.h"
 
 UNoesisFunctionLibrary::UNoesisFunctionLibrary(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -29,6 +30,21 @@ void UNoesisFunctionLibrary::NotifyChanged(UObject* Owner, FName PropertyName)
 void UNoesisFunctionLibrary::NotifyArrayChanged(UObject* Owner, FName PropertyName)
 {
 	NoesisNotifyArrayPropertyChanged(Owner, PropertyName);
+}
+
+void UNoesisFunctionLibrary::TrySetDataContext(UObject* Element, UObject* DataContext)
+{
+	UNoesisBaseComponent* BaseComponent = Cast<UNoesisBaseComponent>(Element);
+	if (BaseComponent)
+	{
+		Noesis::FrameworkElement* NoesisElement = NsDynamicCast<Noesis::FrameworkElement*>(BaseComponent->NoesisComponent.GetPtr());
+
+		if (NoesisElement)
+		{
+			Noesis::Ptr<Noesis::BaseComponent> NoesisDataContext = NoesisCreateComponentForUObject(DataContext);
+			NoesisElement->SetDataContext(NoesisDataContext);
+		}
+	}
 }
 
 void UNoesisFunctionLibrary::execNoesisStruct_NotEqual(FFrame& Stack, RESULT_DECL)

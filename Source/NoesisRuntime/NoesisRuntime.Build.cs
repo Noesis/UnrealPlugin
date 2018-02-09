@@ -32,7 +32,6 @@ public class NoesisRuntime : ModuleRules
 				"Engine",
 				"RHI",
 				"RenderCore",
-				"Renderer",
 				"ShaderCore",
 				"SlateCore",
 				"InputCore",

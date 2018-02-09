@@ -32,6 +32,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisFunctionLibrary() {}
 	NOESISRUNTIME_API UFunction* Z_Construct_UFunction_UNoesisFunctionLibrary_NotifyArrayChanged();
 	COREUOBJECT_API UClass* Z_Construct_UClass_UObject_NoRegister();
 	NOESISRUNTIME_API UFunction* Z_Construct_UFunction_UNoesisFunctionLibrary_NotifyChanged();
+	NOESISRUNTIME_API UFunction* Z_Construct_UFunction_UNoesisFunctionLibrary_TrySetDataContext();
 // End Cross Module References
 	void UNoesisFunctionLibrary::StaticRegisterNativesUNoesisFunctionLibrary()
 	{
@@ -50,6 +51,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisFunctionLibrary() {}
 			{ "NoesisStruct_NotEqual", (Native)&UNoesisFunctionLibrary::execNoesisStruct_NotEqual },
 			{ "NotifyArrayChanged", (Native)&UNoesisFunctionLibrary::execNotifyArrayChanged },
 			{ "NotifyChanged", (Native)&UNoesisFunctionLibrary::execNotifyChanged },
+			{ "TrySetDataContext", (Native)&UNoesisFunctionLibrary::execTrySetDataContext },
 		};
 		FNativeFunctionRegistrar::RegisterFunctions(Class, Funcs, ARRAY_COUNT(Funcs));
 	}
@@ -591,6 +593,34 @@ void EmptyLinkFunctionForGeneratedCodeNoesisFunctionLibrary() {}
 		}
 		return ReturnFunction;
 	}
+	UFunction* Z_Construct_UFunction_UNoesisFunctionLibrary_TrySetDataContext()
+	{
+		struct NoesisFunctionLibrary_eventTrySetDataContext_Parms
+		{
+			UObject* Element;
+			UObject* DataContext;
+		};
+		static UFunction* ReturnFunction = nullptr;
+		if (!ReturnFunction)
+		{
+			static const UE4CodeGen_Private::FObjectPropertyParams NewProp_DataContext = { UE4CodeGen_Private::EPropertyClass::Object, "DataContext", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000000080, 1, nullptr, STRUCT_OFFSET(NoesisFunctionLibrary_eventTrySetDataContext_Parms, DataContext), Z_Construct_UClass_UObject_NoRegister, METADATA_PARAMS(nullptr, 0) };
+			static const UE4CodeGen_Private::FObjectPropertyParams NewProp_Element = { UE4CodeGen_Private::EPropertyClass::Object, "Element", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000000080, 1, nullptr, STRUCT_OFFSET(NoesisFunctionLibrary_eventTrySetDataContext_Parms, Element), Z_Construct_UClass_UObject_NoRegister, METADATA_PARAMS(nullptr, 0) };
+			static const UE4CodeGen_Private::FPropertyParamsBase* const PropPointers[] = {
+				(const UE4CodeGen_Private::FPropertyParamsBase*)&NewProp_DataContext,
+				(const UE4CodeGen_Private::FPropertyParamsBase*)&NewProp_Element,
+			};
+#if WITH_METADATA
+			static const UE4CodeGen_Private::FMetaDataPairParam Function_MetaDataParams[] = {
+				{ "Category", "NoesisGUI" },
+				{ "HidePin", "Target" },
+				{ "ModuleRelativePath", "Classes/NoesisFunctionLibrary.h" },
+			};
+#endif
+			static const UE4CodeGen_Private::FFunctionParams FuncParams = { (UObject*(*)())Z_Construct_UClass_UNoesisFunctionLibrary, "TrySetDataContext", RF_Public|RF_Transient|RF_MarkAsNative, nullptr, (EFunctionFlags)0x04022401, sizeof(NoesisFunctionLibrary_eventTrySetDataContext_Parms), PropPointers, ARRAY_COUNT(PropPointers), 0, 0, METADATA_PARAMS(Function_MetaDataParams, ARRAY_COUNT(Function_MetaDataParams)) };
+			UE4CodeGen_Private::ConstructUFunction(ReturnFunction, FuncParams);
+		}
+		return ReturnFunction;
+	}
 	UClass* Z_Construct_UClass_UNoesisFunctionLibrary_NoRegister()
 	{
 		return UNoesisFunctionLibrary::StaticClass();
@@ -618,6 +648,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisFunctionLibrary() {}
 				{ &Z_Construct_UFunction_UNoesisFunctionLibrary_NoesisStruct_NotEqual, "NoesisStruct_NotEqual" }, // 2198068011
 				{ &Z_Construct_UFunction_UNoesisFunctionLibrary_NotifyArrayChanged, "NotifyArrayChanged" }, // 585300534
 				{ &Z_Construct_UFunction_UNoesisFunctionLibrary_NotifyChanged, "NotifyChanged" }, // 3950502718
+				{ &Z_Construct_UFunction_UNoesisFunctionLibrary_TrySetDataContext, "TrySetDataContext" }, // 4084366279
 			};
 #if WITH_METADATA
 			static const UE4CodeGen_Private::FMetaDataPairParam Class_MetaDataParams[] = {
@@ -643,7 +674,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisFunctionLibrary() {}
 		}
 		return OuterClass;
 	}
-	IMPLEMENT_CLASS(UNoesisFunctionLibrary, 1258832609);
+	IMPLEMENT_CLASS(UNoesisFunctionLibrary, 533684364);
 	static FCompiledInDefer Z_CompiledInDefer_UClass_UNoesisFunctionLibrary(Z_Construct_UClass_UNoesisFunctionLibrary, &UNoesisFunctionLibrary::StaticClass, TEXT("/Script/NoesisRuntime"), TEXT("UNoesisFunctionLibrary"), false, nullptr, nullptr, nullptr);
 	DEFINE_VTABLE_PTR_HELPER_CTOR(UNoesisFunctionLibrary);
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
