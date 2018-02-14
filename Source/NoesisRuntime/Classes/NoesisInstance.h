@@ -90,6 +90,8 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	void OnPreviewGotKeyboardFocus(Noesis::BaseComponent* Component, const Noesis::KeyboardFocusChangedEventArgs& Args);
 	void OnPreviewLostKeyboardFocus(Noesis::BaseComponent* Component, const Noesis::KeyboardFocusChangedEventArgs& Args);
 
+	bool HitTest(FVector2D Position);
+
 	// UObject interface
 	virtual class UWorld* GetWorld() const override;
 	virtual void BeginDestroy() override;

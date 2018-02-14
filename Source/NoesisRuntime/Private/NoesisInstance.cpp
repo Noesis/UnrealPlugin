@@ -445,6 +445,36 @@ void UNoesisInstance::OnPreviewLostKeyboardFocus(Noesis::BaseComponent* Componen
 	}
 }
 
+struct NoesisHitTestVisibleTester
+{
+	NoesisHitTestVisibleTester()
+		: Hit(nullptr)
+	{
+	}
+
+	void OnElementHit(Noesis::Visual* Visual)
+	{
+		if (!Hit)
+		{
+			Noesis::UIElement* Element = NsDynamicCast<Noesis::UIElement*>(Visual);
+			if (Element && Element->GetIsEnabled())
+			{
+				Hit = Element;
+			}
+		}
+	}
+
+	Noesis::UIElement* Hit;
+};
+
+bool UNoesisInstance::HitTest(FVector2D Position)
+{
+	NoesisHitTestVisibleTester HitTester;
+	Noesis::VisualTreeHelper::HitTest(Xaml.GetPtr(), Noesis::Point(Position.X, Position.Y), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::OnElementHit));
+
+	return HitTester.Hit != nullptr;
+}
+
 class UWorld* UNoesisInstance::GetWorld() const
 {
 	UObject* Outer = GetOuter();
@@ -970,28 +1000,6 @@ FReply UNoesisInstance::NativeOnKeyUp(const FGeometry& MyGeometry, const FKeyEve
 	return Super::NativeOnKeyUp(MyGeometry, KeyEvent);
 }
 
-struct NoesisHitTestVisibleTester
-{
-	NoesisHitTestVisibleTester()
-		: Hit(nullptr)
-	{
-	}
-
-	void OnElementHit(Noesis::Visual* Visual)
-	{
-		if (!Hit)
-		{
-			Noesis::UIElement* Element = NsDynamicCast<Noesis::UIElement*>(Visual);
-			if (Element && Element->GetIsEnabled())
-			{
-				Hit = Element;
-			}
-		}
-	}
-
-	Noesis::UIElement* Hit;
-};
-
 FReply UNoesisInstance::NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	if (XamlView)
@@ -1022,10 +1030,7 @@ FReply UNoesisInstance::NativeOnMouseButtonDown(const FGeometry& MyGeometry, con
 		}
 		XamlView->MouseButtonDown(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
 
-		NoesisHitTestVisibleTester HitTester;
-		Noesis::VisualTreeHelper::HitTest(Xaml.GetPtr(), Noesis::Point(Position.X, Position.Y), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::OnElementHit));
-
-		if (HitTester.Hit)
+		if (HitTest(Position))
 		{
 			return FReply::Handled();
 		}
@@ -1064,10 +1069,7 @@ FReply UNoesisInstance::NativeOnMouseButtonUp(const FGeometry& MyGeometry, const
 		}
 		XamlView->MouseButtonUp(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
 
-		NoesisHitTestVisibleTester HitTester;
-		Noesis::VisualTreeHelper::HitTest(Xaml.GetPtr(), Noesis::Point(Position.X, Position.Y), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::OnElementHit));
-
-		if (HitTester.Hit)
+		if (HitTest(Position))
 		{
 			return FReply::Handled();
 		}
@@ -1084,10 +1086,7 @@ FReply UNoesisInstance::NativeOnMouseMove(const FGeometry& MyGeometry, const FPo
 
 		XamlView->MouseMove(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y));
 
-		NoesisHitTestVisibleTester HitTester;
-		Noesis::VisualTreeHelper::HitTest(Xaml.GetPtr(), Noesis::Point(Position.X, Position.Y), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::OnElementHit));
-
-		if (HitTester.Hit)
+		if (HitTest(Position))
 		{
 			return FReply::Handled();
 		}
@@ -1105,10 +1104,7 @@ FReply UNoesisInstance::NativeOnMouseWheel(const FGeometry& MyGeometry, const FP
 
 		XamlView->MouseWheel(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), FPlatformMath::RoundToInt(WheelDelta * 120.f));
 
-		NoesisHitTestVisibleTester HitTester;
-		Noesis::VisualTreeHelper::HitTest(Xaml.GetPtr(), Noesis::Point(Position.X, Position.Y), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::OnElementHit));
-
-		if (HitTester.Hit)
+		if (HitTest(Position))
 		{
 			return FReply::Handled();
 		}
@@ -1126,10 +1122,7 @@ FReply UNoesisInstance::NativeOnTouchStarted(const FGeometry& MyGeometry, const 
 
 		XamlView->TouchDown(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
 
-		NoesisHitTestVisibleTester HitTester;
-		Noesis::VisualTreeHelper::HitTest(Xaml.GetPtr(), Noesis::Point(Position.X, Position.Y), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::OnElementHit));
-
-		if (HitTester.Hit)
+		if (HitTest(Position))
 		{
 			return FReply::Handled();
 		}
@@ -1147,10 +1140,7 @@ FReply UNoesisInstance::NativeOnTouchMoved(const FGeometry& MyGeometry, const FP
 
 		XamlView->TouchMove(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
 
-		NoesisHitTestVisibleTester HitTester;
-		Noesis::VisualTreeHelper::HitTest(Xaml.GetPtr(), Noesis::Point(Position.X, Position.Y), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::OnElementHit));
-
-		if (HitTester.Hit)
+		if (HitTest(Position))
 		{
 			return FReply::Handled();
 		}
@@ -1168,10 +1158,7 @@ FReply UNoesisInstance::NativeOnTouchEnded(const FGeometry& MyGeometry, const FP
 
 		XamlView->TouchUp(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
 
-		NoesisHitTestVisibleTester HitTester;
-		Noesis::VisualTreeHelper::HitTest(Xaml.GetPtr(), Noesis::Point(Position.X, Position.Y), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::OnElementHit));
-
-		if (HitTester.Hit)
+		if (HitTest(Position))
 		{
 			return FReply::Handled();
 		}
@@ -1215,10 +1202,7 @@ FReply UNoesisInstance::NativeOnMouseButtonDoubleClick(const FGeometry& MyGeomet
 		}
 		XamlView->MouseDoubleClick(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
 
-		NoesisHitTestVisibleTester HitTester;
-		Noesis::VisualTreeHelper::HitTest(Xaml.GetPtr(), Noesis::Point(Position.X, Position.Y), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::OnElementHit));
-
-		if (HitTester.Hit)
+		if (HitTest(Position))
 		{
 			return FReply::Handled();
 		}
