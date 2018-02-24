@@ -19,8 +19,8 @@ public class Noesis : ModuleRules
 		PublicIncludePaths.Add(NoesisIncludePath);
 
 		// Let's try to make sure the right version of the SDK is in the right place.
-		const string RequiredRevision = "(r6868)";
-		const string RequiredVersionName = "2.1.0rc1";
+		const string RequiredRevision = "(r6925)";
+		const string RequiredVersionName = "2.1.0rc3";
 		if (!Directory.Exists(NoesisBasePath))
 		{
 			throw new BuildException("Could not find NoesisGUI SDK in " + NoesisBasePath + ". Minimum required version is " + RequiredVersionName);
@@ -97,6 +97,11 @@ public class Noesis : ModuleRules
 
 			string NoesisAplPath = "/Noesis_APL.xml";
 			AdditionalPropertiesForReceipt.Add(new ReceiptProperty("AndroidPlugin", ModuleDirectory + NoesisAplPath));
+		}
+		else if (Target.Platform == UnrealTargetPlatform.PS4)
+		{
+			string NoesisLibPath = NoesisBasePath + "Lib/ps4/";
+			PublicAdditionalLibraries.Add(NoesisLibPath + "Noesis.a");
 		}
 	}
 }

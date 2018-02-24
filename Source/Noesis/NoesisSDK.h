@@ -11,7 +11,6 @@
 #endif
 #endif
 
-#define EA_CHAR32_NATIVE 0
 #include "Noesis_pch.h"
 
 #ifdef PLATFORM_WINDOWS

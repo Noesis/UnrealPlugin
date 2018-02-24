@@ -1389,11 +1389,14 @@ void UStructTypeFiller(Noesis::Type* Type)
 	{
 		UProperty* Property = *PropertyIt;
 		FString PropertyName = Property->GetName();
-		int32 UnderscorePosition = INDEX_NONE;
-		ensure(PropertyName.FindLastChar(TEXT('_'), UnderscorePosition));
-		PropertyName = PropertyName.LeftChop(PropertyName.Len() - UnderscorePosition);
-		ensure(PropertyName.FindLastChar(TEXT('_'), UnderscorePosition));
-		PropertyName = PropertyName.LeftChop(PropertyName.Len() - UnderscorePosition);
+		if (!(Class->StructFlags & STRUCT_Native))
+		{
+			int32 UnderscorePosition = INDEX_NONE;
+			ensure(PropertyName.FindLastChar(TEXT('_'), UnderscorePosition));
+			PropertyName = PropertyName.LeftChop(PropertyName.Len() - UnderscorePosition);
+			ensure(PropertyName.FindLastChar(TEXT('_'), UnderscorePosition));
+			PropertyName = PropertyName.LeftChop(PropertyName.Len() - UnderscorePosition);
+		}
 		NsSymbol PropertyId = NsSymbol(TCHARToNsString(*PropertyName).c_str());
 
 		if (Property->IsA<UIntProperty>())
