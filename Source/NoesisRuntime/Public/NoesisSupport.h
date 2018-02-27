@@ -5,6 +5,9 @@
 
 #pragma once
 
+// Core includes
+#include "CoreMinimal.h"
+
 // Noesis includes
 #include "NoesisSDK.h"
 

@@ -8,11 +8,16 @@
 // Engine includes
 #include "Engine/GameViewportClient.h"
 
+// SlateCore includes
+#include "Application/SlateApplicationBase.h"
+#include "Layout/WidgetPath.h"
+
 // UMG includes
 #include "Slate/SObjectWidget.h"
 
 // NoesisRuntime includes
 #include "Render/NoesisRenderDevice.h"
+#include "NoesisInstance.h"
 
 Noesis::Ptr<Noesis::Texture> NoesisCreateTexture(UTexture* Texture)
 {
