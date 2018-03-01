@@ -20,9 +20,11 @@ private: \
 	static void StaticRegisterNativesUNoesisSettings(); \
 	friend NOESISRUNTIME_API class UClass* Z_Construct_UClass_UNoesisSettings(); \
 public: \
-	DECLARE_CLASS(UNoesisSettings, UObject, COMPILED_IN_FLAGS(0), 0, TEXT("/Script/NoesisRuntime"), NO_API) \
+	DECLARE_CLASS(UNoesisSettings, UObject, COMPILED_IN_FLAGS(0 | CLASS_DefaultConfig | CLASS_Config), 0, TEXT("/Script/NoesisRuntime"), NO_API) \
 	DECLARE_SERIALIZER(UNoesisSettings) \
-	enum {IsIntrinsic=COMPILED_IN_INTRINSIC};
+	enum {IsIntrinsic=COMPILED_IN_INTRINSIC}; \
+	static const TCHAR* StaticConfigName() {return TEXT("Engine");} \
+
 
 
 #define HostProject_Plugins_NoesisGUI_Source_NoesisRuntime_Classes_NoesisSettings_h_46_INCLASS \
@@ -30,9 +32,11 @@ private: \
 	static void StaticRegisterNativesUNoesisSettings(); \
 	friend NOESISRUNTIME_API class UClass* Z_Construct_UClass_UNoesisSettings(); \
 public: \
-	DECLARE_CLASS(UNoesisSettings, UObject, COMPILED_IN_FLAGS(0), 0, TEXT("/Script/NoesisRuntime"), NO_API) \
+	DECLARE_CLASS(UNoesisSettings, UObject, COMPILED_IN_FLAGS(0 | CLASS_DefaultConfig | CLASS_Config), 0, TEXT("/Script/NoesisRuntime"), NO_API) \
 	DECLARE_SERIALIZER(UNoesisSettings) \
-	enum {IsIntrinsic=COMPILED_IN_INTRINSIC};
+	enum {IsIntrinsic=COMPILED_IN_INTRINSIC}; \
+	static const TCHAR* StaticConfigName() {return TEXT("Engine");} \
+
 
 
 #define HostProject_Plugins_NoesisGUI_Source_NoesisRuntime_Classes_NoesisSettings_h_46_STANDARD_CONSTRUCTORS \

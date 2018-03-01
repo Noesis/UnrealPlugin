@@ -20,7 +20,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisSettings() {}
 	NOESISRUNTIME_API UClass* Z_Construct_UClass_UNoesisSettings_NoRegister();
 	NOESISRUNTIME_API UClass* Z_Construct_UClass_UNoesisSettings();
 	COREUOBJECT_API UClass* Z_Construct_UClass_UObject();
-	NOESISRUNTIME_API UClass* Z_Construct_UClass_UNoesisXaml_NoRegister();
+	COREUOBJECT_API UScriptStruct* Z_Construct_UScriptStruct_FSoftObjectPath();
 // End Cross Module References
 	static UEnum* ENoesisLoggingSettings_StaticEnum()
 	{
@@ -202,7 +202,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisSettings() {}
 				{ "ToolTip", "Maximum number of offscreen textures (0 = unlimited)." },
 			};
 #endif
-			static const UE4CodeGen_Private::FEnumPropertyParams NewProp_LogVerbosity = { UE4CodeGen_Private::EPropertyClass::Enum, "LogVerbosity", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000000001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, LogVerbosity), Z_Construct_UEnum_NoesisRuntime_ENoesisLoggingSettings, METADATA_PARAMS(NewProp_LogVerbosity_MetaData, ARRAY_COUNT(NewProp_LogVerbosity_MetaData)) };
+			static const UE4CodeGen_Private::FEnumPropertyParams NewProp_LogVerbosity = { UE4CodeGen_Private::EPropertyClass::Enum, "LogVerbosity", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000004001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, LogVerbosity), Z_Construct_UEnum_NoesisRuntime_ENoesisLoggingSettings, METADATA_PARAMS(NewProp_LogVerbosity_MetaData, ARRAY_COUNT(NewProp_LogVerbosity_MetaData)) };
 			static const UE4CodeGen_Private::FBytePropertyParams NewProp_LogVerbosity_Underlying = { UE4CodeGen_Private::EPropertyClass::Byte, "UnderlyingType", RF_Public|RF_Transient|RF_MarkAsNative, 0x0000000000000000, 1, nullptr, 0, nullptr, METADATA_PARAMS(nullptr, 0) };
 #if WITH_METADATA
 			static const UE4CodeGen_Private::FMetaDataPairParam NewProp_OffscreenMaxSurfaces_MetaData[] = {
@@ -214,7 +214,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisSettings() {}
 				{ "UIMin", "0" },
 			};
 #endif
-			static const UE4CodeGen_Private::FIntPropertyParams NewProp_OffscreenMaxSurfaces = { UE4CodeGen_Private::EPropertyClass::Int, "OffscreenMaxSurfaces", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000000001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, OffscreenMaxSurfaces), METADATA_PARAMS(NewProp_OffscreenMaxSurfaces_MetaData, ARRAY_COUNT(NewProp_OffscreenMaxSurfaces_MetaData)) };
+			static const UE4CodeGen_Private::FIntPropertyParams NewProp_OffscreenMaxSurfaces = { UE4CodeGen_Private::EPropertyClass::Int, "OffscreenMaxSurfaces", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000004001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, OffscreenMaxSurfaces), METADATA_PARAMS(NewProp_OffscreenMaxSurfaces_MetaData, ARRAY_COUNT(NewProp_OffscreenMaxSurfaces_MetaData)) };
 #if WITH_METADATA
 			static const UE4CodeGen_Private::FMetaDataPairParam NewProp_OffscreenInitSurfaces_MetaData[] = {
 				{ "Category", "Offscreen" },
@@ -225,7 +225,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisSettings() {}
 				{ "UIMin", "0" },
 			};
 #endif
-			static const UE4CodeGen_Private::FIntPropertyParams NewProp_OffscreenInitSurfaces = { UE4CodeGen_Private::EPropertyClass::Int, "OffscreenInitSurfaces", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000000001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, OffscreenInitSurfaces), METADATA_PARAMS(NewProp_OffscreenInitSurfaces_MetaData, ARRAY_COUNT(NewProp_OffscreenInitSurfaces_MetaData)) };
+			static const UE4CodeGen_Private::FIntPropertyParams NewProp_OffscreenInitSurfaces = { UE4CodeGen_Private::EPropertyClass::Int, "OffscreenInitSurfaces", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000004001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, OffscreenInitSurfaces), METADATA_PARAMS(NewProp_OffscreenInitSurfaces_MetaData, ARRAY_COUNT(NewProp_OffscreenInitSurfaces_MetaData)) };
 #if WITH_METADATA
 			static const UE4CodeGen_Private::FMetaDataPairParam NewProp_OffscreenTextureSampleCount_MetaData[] = {
 				{ "Category", "Offscreen" },
@@ -234,7 +234,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisSettings() {}
 				{ "ToolTip", "Multisampling of offscreen textures." },
 			};
 #endif
-			static const UE4CodeGen_Private::FEnumPropertyParams NewProp_OffscreenTextureSampleCount = { UE4CodeGen_Private::EPropertyClass::Enum, "OffscreenTextureSampleCount", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000000001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, OffscreenTextureSampleCount), Z_Construct_UEnum_NoesisRuntime_ENoesisOffscreenSampleCount, METADATA_PARAMS(NewProp_OffscreenTextureSampleCount_MetaData, ARRAY_COUNT(NewProp_OffscreenTextureSampleCount_MetaData)) };
+			static const UE4CodeGen_Private::FEnumPropertyParams NewProp_OffscreenTextureSampleCount = { UE4CodeGen_Private::EPropertyClass::Enum, "OffscreenTextureSampleCount", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000004001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, OffscreenTextureSampleCount), Z_Construct_UEnum_NoesisRuntime_ENoesisOffscreenSampleCount, METADATA_PARAMS(NewProp_OffscreenTextureSampleCount_MetaData, ARRAY_COUNT(NewProp_OffscreenTextureSampleCount_MetaData)) };
 			static const UE4CodeGen_Private::FBytePropertyParams NewProp_OffscreenTextureSampleCount_Underlying = { UE4CodeGen_Private::EPropertyClass::Byte, "UnderlyingType", RF_Public|RF_Transient|RF_MarkAsNative, 0x0000000000000000, 1, nullptr, 0, nullptr, METADATA_PARAMS(nullptr, 0) };
 #if WITH_METADATA
 			static const UE4CodeGen_Private::FMetaDataPairParam NewProp_OffscreenTextureHeight_MetaData[] = {
@@ -246,7 +246,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisSettings() {}
 				{ "UIMin", "0" },
 			};
 #endif
-			static const UE4CodeGen_Private::FIntPropertyParams NewProp_OffscreenTextureHeight = { UE4CodeGen_Private::EPropertyClass::Int, "OffscreenTextureHeight", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000000001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, OffscreenTextureHeight), METADATA_PARAMS(NewProp_OffscreenTextureHeight_MetaData, ARRAY_COUNT(NewProp_OffscreenTextureHeight_MetaData)) };
+			static const UE4CodeGen_Private::FIntPropertyParams NewProp_OffscreenTextureHeight = { UE4CodeGen_Private::EPropertyClass::Int, "OffscreenTextureHeight", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000004001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, OffscreenTextureHeight), METADATA_PARAMS(NewProp_OffscreenTextureHeight_MetaData, ARRAY_COUNT(NewProp_OffscreenTextureHeight_MetaData)) };
 #if WITH_METADATA
 			static const UE4CodeGen_Private::FMetaDataPairParam NewProp_OffscreenTextureWidth_MetaData[] = {
 				{ "Category", "Offscreen" },
@@ -257,7 +257,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisSettings() {}
 				{ "UIMin", "0" },
 			};
 #endif
-			static const UE4CodeGen_Private::FIntPropertyParams NewProp_OffscreenTextureWidth = { UE4CodeGen_Private::EPropertyClass::Int, "OffscreenTextureWidth", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000000001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, OffscreenTextureWidth), METADATA_PARAMS(NewProp_OffscreenTextureWidth_MetaData, ARRAY_COUNT(NewProp_OffscreenTextureWidth_MetaData)) };
+			static const UE4CodeGen_Private::FIntPropertyParams NewProp_OffscreenTextureWidth = { UE4CodeGen_Private::EPropertyClass::Int, "OffscreenTextureWidth", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000004001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, OffscreenTextureWidth), METADATA_PARAMS(NewProp_OffscreenTextureWidth_MetaData, ARRAY_COUNT(NewProp_OffscreenTextureWidth_MetaData)) };
 #if WITH_METADATA
 			static const UE4CodeGen_Private::FMetaDataPairParam NewProp_GlyphMeshThreshold_MetaData[] = {
 				{ "Category", "Text Rendering" },
@@ -270,7 +270,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisSettings() {}
 				{ "UIMin", "32" },
 			};
 #endif
-			static const UE4CodeGen_Private::FIntPropertyParams NewProp_GlyphMeshThreshold = { UE4CodeGen_Private::EPropertyClass::Int, "GlyphMeshThreshold", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000000001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, GlyphMeshThreshold), METADATA_PARAMS(NewProp_GlyphMeshThreshold_MetaData, ARRAY_COUNT(NewProp_GlyphMeshThreshold_MetaData)) };
+			static const UE4CodeGen_Private::FIntPropertyParams NewProp_GlyphMeshThreshold = { UE4CodeGen_Private::EPropertyClass::Int, "GlyphMeshThreshold", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000004001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, GlyphMeshThreshold), METADATA_PARAMS(NewProp_GlyphMeshThreshold_MetaData, ARRAY_COUNT(NewProp_GlyphMeshThreshold_MetaData)) };
 #if WITH_METADATA
 			static const UE4CodeGen_Private::FMetaDataPairParam NewProp_GlyphTextureSize_MetaData[] = {
 				{ "Category", "Text Rendering" },
@@ -279,16 +279,17 @@ void EmptyLinkFunctionForGeneratedCodeNoesisSettings() {}
 				{ "ToolTip", "Dimensions of texture used to cache glyphs." },
 			};
 #endif
-			static const UE4CodeGen_Private::FEnumPropertyParams NewProp_GlyphTextureSize = { UE4CodeGen_Private::EPropertyClass::Enum, "GlyphTextureSize", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000000001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, GlyphTextureSize), Z_Construct_UEnum_NoesisRuntime_ENoesisGlyphCacheDimensions, METADATA_PARAMS(NewProp_GlyphTextureSize_MetaData, ARRAY_COUNT(NewProp_GlyphTextureSize_MetaData)) };
+			static const UE4CodeGen_Private::FEnumPropertyParams NewProp_GlyphTextureSize = { UE4CodeGen_Private::EPropertyClass::Enum, "GlyphTextureSize", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000004001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, GlyphTextureSize), Z_Construct_UEnum_NoesisRuntime_ENoesisGlyphCacheDimensions, METADATA_PARAMS(NewProp_GlyphTextureSize_MetaData, ARRAY_COUNT(NewProp_GlyphTextureSize_MetaData)) };
 			static const UE4CodeGen_Private::FBytePropertyParams NewProp_GlyphTextureSize_Underlying = { UE4CodeGen_Private::EPropertyClass::Byte, "UnderlyingType", RF_Public|RF_Transient|RF_MarkAsNative, 0x0000000000000000, 1, nullptr, 0, nullptr, METADATA_PARAMS(nullptr, 0) };
 #if WITH_METADATA
 			static const UE4CodeGen_Private::FMetaDataPairParam NewProp_ApplicationResources_MetaData[] = {
+				{ "AllowedClasses", "NoesisXaml" },
 				{ "Category", "Noesis Settings" },
 				{ "ModuleRelativePath", "Classes/NoesisSettings.h" },
 				{ "ToolTip", "Sets a collection of application-scope resources, such as styles and brushes. Provides a simple way to support a consistent theme across your application" },
 			};
 #endif
-			static const UE4CodeGen_Private::FObjectPropertyParams NewProp_ApplicationResources = { UE4CodeGen_Private::EPropertyClass::Object, "ApplicationResources", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000000001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, ApplicationResources), Z_Construct_UClass_UNoesisXaml_NoRegister, METADATA_PARAMS(NewProp_ApplicationResources_MetaData, ARRAY_COUNT(NewProp_ApplicationResources_MetaData)) };
+			static const UE4CodeGen_Private::FStructPropertyParams NewProp_ApplicationResources = { UE4CodeGen_Private::EPropertyClass::Struct, "ApplicationResources", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000004001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, ApplicationResources), Z_Construct_UScriptStruct_FSoftObjectPath, METADATA_PARAMS(NewProp_ApplicationResources_MetaData, ARRAY_COUNT(NewProp_ApplicationResources_MetaData)) };
 			static const UE4CodeGen_Private::FPropertyParamsBase* const PropPointers[] = {
 				(const UE4CodeGen_Private::FPropertyParamsBase*)&NewProp_LogVerbosity,
 				(const UE4CodeGen_Private::FPropertyParamsBase*)&NewProp_LogVerbosity_Underlying,
@@ -309,10 +310,10 @@ void EmptyLinkFunctionForGeneratedCodeNoesisSettings() {}
 			static const UE4CodeGen_Private::FClassParams ClassParams = {
 				&UNoesisSettings::StaticClass,
 				DependentSingletons, ARRAY_COUNT(DependentSingletons),
-				0x00100080u,
+				0x00100086u,
 				nullptr, 0,
 				PropPointers, ARRAY_COUNT(PropPointers),
-				nullptr,
+				"Engine",
 				&StaticCppClassTypeInfo,
 				nullptr, 0,
 				METADATA_PARAMS(Class_MetaDataParams, ARRAY_COUNT(Class_MetaDataParams))
@@ -321,7 +322,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisSettings() {}
 		}
 		return OuterClass;
 	}
-	IMPLEMENT_CLASS(UNoesisSettings, 3676178300);
+	IMPLEMENT_CLASS(UNoesisSettings, 1047930508);
 	static FCompiledInDefer Z_CompiledInDefer_UClass_UNoesisSettings(Z_Construct_UClass_UNoesisSettings, &UNoesisSettings::StaticClass, TEXT("/Script/NoesisRuntime"), TEXT("UNoesisSettings"), false, nullptr, nullptr, nullptr);
 	DEFINE_VTABLE_PTR_HELPER_CTOR(UNoesisSettings);
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

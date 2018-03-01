@@ -7,10 +7,11 @@
 
 static void SetApplicationResources()
 {
-	UNoesisXaml* ApplicationResources = GetDefault<UNoesisSettings>()->ApplicationResources;
+	UNoesisXaml* ApplicationResources = Cast<UNoesisXaml>(GetDefault<UNoesisSettings>()->ApplicationResources.TryLoad());
 	if (ApplicationResources)
 	{
-		Noesis::ResourceDictionary* Dictionary = NsDynamicCast<Noesis::ResourceDictionary*>(ApplicationResources->LoadXaml().GetPtr());
+		Noesis::Ptr<Noesis::BaseComponent> Component = Noesis::GUI::LoadXaml(TCHARToNsString(*ApplicationResources->GetPathName()).c_str());
+		Noesis::ResourceDictionary* Dictionary = NsDynamicCast<Noesis::ResourceDictionary*>(Component.GetPtr());
 		if (Dictionary)
 		{
 			Noesis::GUI::SetApplicationResources(Dictionary);
