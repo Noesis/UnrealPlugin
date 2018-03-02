@@ -147,6 +147,10 @@ void UNoesisXaml::RenderThumbnail(FIntRect ViewportRect, const FTexture2DRHIRef&
 
 void UNoesisXaml::DestroyThumbnailRenderData()
 {
-	ThumbnailRenderInstance = nullptr;
+	if (ThumbnailRenderInstance)
+	{
+		ThumbnailRenderInstance->TermInstance();
+		ThumbnailRenderInstance = nullptr;
+	}
 }
 #endif

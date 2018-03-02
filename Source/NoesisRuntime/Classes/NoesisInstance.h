@@ -92,6 +92,8 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 
 	bool HitTest(FVector2D Position);
 
+	void TermInstance();
+
 	// UObject interface
 	virtual class UWorld* GetWorld() const override;
 	virtual void BeginDestroy() override;

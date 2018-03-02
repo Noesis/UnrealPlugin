@@ -475,28 +475,8 @@ bool UNoesisInstance::HitTest(FVector2D Position)
 	return HitTester.Hit != nullptr;
 }
 
-class UWorld* UNoesisInstance::GetWorld() const
+void UNoesisInstance::TermInstance()
 {
-	UObject* Outer = GetOuter();
-
-	while (Outer)
-	{
-		UWorld* World = Outer->GetWorld();
-		if (World)
-		{
-			return World;
-		}
-
-		Outer = Outer->GetOuter();
-	}
-
-	return 0;
-}
-
-void UNoesisInstance::BeginDestroy()
-{
-	Super::BeginDestroy();
-
 	if (XamlView)
 	{
 		Noesis::IRenderer* Renderer = XamlView->GetRenderer();
@@ -523,6 +503,31 @@ void UNoesisInstance::BeginDestroy()
 			TextInputMethodSystem->UnregisterContext(TextInputMethodContextPair.Value.ToSharedRef());
 		}
 	}
+}
+
+class UWorld* UNoesisInstance::GetWorld() const
+{
+	UObject* Outer = GetOuter();
+
+	while (Outer)
+	{
+		UWorld* World = Outer->GetWorld();
+		if (World)
+		{
+			return World;
+		}
+
+		Outer = Outer->GetOuter();
+	}
+
+	return 0;
+}
+
+void UNoesisInstance::BeginDestroy()
+{
+	Super::BeginDestroy();
+
+	TermInstance();
 }
 
 #if WITH_EDITOR
