@@ -449,6 +449,10 @@ void ImportImages(FString BasePackageName, FString Path, TArray<FImageDescriptor
 
 		if (Texture != NULL)
 		{
+			Texture->LODGroup = TEXTUREGROUP_UI;
+			void FixPremultipliedPNGTexture(UTexture2D*);
+			FixPremultipliedPNGTexture(Texture);
+
 			// Notify the asset registry
 			FAssetRegistryModule::AssetCreated(Texture);
 

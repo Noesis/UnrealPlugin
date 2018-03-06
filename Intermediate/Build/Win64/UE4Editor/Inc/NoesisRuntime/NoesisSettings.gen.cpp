@@ -196,6 +196,16 @@ void EmptyLinkFunctionForGeneratedCodeNoesisSettings() {}
 			};
 #endif
 #if WITH_METADATA
+			static const UE4CodeGen_Private::FMetaDataPairParam NewProp_RestoreUITexturePNGPremultipliedAlpha_MetaData[] = {
+				{ "Category", "Editor Settings" },
+				{ "DisplayName", "Fix for premultiplied alpha UI textures" },
+				{ "ModuleRelativePath", "Classes/NoesisSettings.h" },
+				{ "ToolTip", "Restores the color of UI PNG texture texels with an alpha value of zero." },
+			};
+#endif
+			auto NewProp_RestoreUITexturePNGPremultipliedAlpha_SetBit = [](void* Obj){ ((UNoesisSettings*)Obj)->RestoreUITexturePNGPremultipliedAlpha = 1; };
+			static const UE4CodeGen_Private::FBoolPropertyParams NewProp_RestoreUITexturePNGPremultipliedAlpha = { UE4CodeGen_Private::EPropertyClass::Bool, "RestoreUITexturePNGPremultipliedAlpha", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000004001, 1, nullptr, sizeof(bool), UE4CodeGen_Private::ENativeBool::Native, sizeof(UNoesisSettings), &UE4CodeGen_Private::TBoolSetBitWrapper<decltype(NewProp_RestoreUITexturePNGPremultipliedAlpha_SetBit)>::SetBit, METADATA_PARAMS(NewProp_RestoreUITexturePNGPremultipliedAlpha_MetaData, ARRAY_COUNT(NewProp_RestoreUITexturePNGPremultipliedAlpha_MetaData)) };
+#if WITH_METADATA
 			static const UE4CodeGen_Private::FMetaDataPairParam NewProp_LogVerbosity_MetaData[] = {
 				{ "Category", "Editor Settings" },
 				{ "ModuleRelativePath", "Classes/NoesisSettings.h" },
@@ -291,6 +301,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisSettings() {}
 #endif
 			static const UE4CodeGen_Private::FStructPropertyParams NewProp_ApplicationResources = { UE4CodeGen_Private::EPropertyClass::Struct, "ApplicationResources", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000004001, 1, nullptr, STRUCT_OFFSET(UNoesisSettings, ApplicationResources), Z_Construct_UScriptStruct_FSoftObjectPath, METADATA_PARAMS(NewProp_ApplicationResources_MetaData, ARRAY_COUNT(NewProp_ApplicationResources_MetaData)) };
 			static const UE4CodeGen_Private::FPropertyParamsBase* const PropPointers[] = {
+				(const UE4CodeGen_Private::FPropertyParamsBase*)&NewProp_RestoreUITexturePNGPremultipliedAlpha,
 				(const UE4CodeGen_Private::FPropertyParamsBase*)&NewProp_LogVerbosity,
 				(const UE4CodeGen_Private::FPropertyParamsBase*)&NewProp_LogVerbosity_Underlying,
 				(const UE4CodeGen_Private::FPropertyParamsBase*)&NewProp_OffscreenMaxSurfaces,
@@ -322,7 +333,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisSettings() {}
 		}
 		return OuterClass;
 	}
-	IMPLEMENT_CLASS(UNoesisSettings, 1047930508);
+	IMPLEMENT_CLASS(UNoesisSettings, 3541941688);
 	static FCompiledInDefer Z_CompiledInDefer_UClass_UNoesisSettings(Z_Construct_UClass_UNoesisSettings, &UNoesisSettings::StaticClass, TEXT("/Script/NoesisRuntime"), TEXT("UNoesisSettings"), false, nullptr, nullptr, nullptr);
 	DEFINE_VTABLE_PTR_HELPER_CTOR(UNoesisSettings);
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

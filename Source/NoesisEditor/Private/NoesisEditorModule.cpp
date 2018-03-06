@@ -5,6 +5,12 @@
 
 #include "NoesisEditorModule.h"
 
+// CoreUObject includes
+#include "UObject/UObjectGlobals.h"
+
+// Engine includes
+#include "EditorFramework/AssetImportData.h"
+
 // UnrealEd includes
 #include "Editor.h"
 
@@ -20,12 +26,101 @@
 
 #define LOCTEXT_NAMESPACE "NoesisEditorModule"
 
+void FixPremultipliedPNGTexture(UTexture2D* Texture)
+{
+	if (!GetDefault<UNoesisSettings>()->RestoreUITexturePNGPremultipliedAlpha)
+	{
+		return;
+	}
+
+	if (Texture->LODGroup != TEXTUREGROUP_UI)
+	{
+		return;
+	}
+
+	UAssetImportData* TextureImportData = Texture->AssetImportData;
+	if (!TextureImportData->GetFirstFilename().ToLower().EndsWith(".png"))
+	{
+		return;
+	}
+
+	FTextureSource& TextureSource = Texture->Source;
+	const ETextureSourceFormat SourceFormat = TextureSource.GetFormat();
+	int32 TextureWidth = TextureSource.GetSizeX();
+	int32 TextureHeight = TextureSource.GetSizeY();
+
+	switch (SourceFormat)
+	{
+	case TSF_BGRA8:
+		{
+			uint8* SourceData = TextureSource.LockMip(0);
+			for (int32 Y = 0; Y < TextureHeight; ++Y)
+			{
+				for (int32 X = 0; X < TextureWidth; ++X)
+				{
+					uint8* PixelData = SourceData + (Y * TextureWidth + X) * 4;
+
+					if (PixelData[3] == 0)
+					{
+						uint32* ColorData = (uint32*)PixelData;
+						*ColorData = 0;
+					}
+				}
+			}
+			TextureSource.UnlockMip(0);
+			Texture->PostEditChange();
+			break;
+		}
+
+	case TSF_RGBA16:
+		{
+			uint16* SourceData = (uint16*)TextureSource.LockMip(0);
+			for (int32 Y = 0; Y < TextureHeight; ++Y)
+			{
+				for (int32 X = 0; X < TextureWidth; ++X)
+				{
+					uint16* PixelData = SourceData + (Y * TextureWidth + X) * 4;
+
+					if (PixelData[3] == 0)
+					{
+						uint64* ColorData = (uint64*)PixelData;
+						*ColorData = 0;
+					}
+				}
+			}
+			TextureSource.UnlockMip(0);
+			Texture->PostEditChange();
+			break;
+		}
+
+	default:
+		UE_LOG(LogNoesisEditor, Warning, TEXT("Texture %s format invalid"), *Texture->GetPathName());
+		break;
+	}
+}
+
 void OnObjectReimported(UFactory* ImportFactory, UObject* InObject)
 {
 	for (TObjectIterator<UNoesisXaml> It; It; ++It)
 	{
 		UNoesisXaml* Xaml = *It;
 		Xaml->DestroyThumbnailRenderData();
+	}
+
+	if (InObject->IsA<UTexture2D>())
+	{
+		UTexture2D* Texture = (UTexture2D*)InObject;
+		FixPremultipliedPNGTexture(Texture);
+	}
+}
+
+void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Event)
+{
+	static FName LODGroup = "LODGroup";
+	if (Object->IsA<UTexture2D>() && Event.Property && Event.Property->GetFName() == LODGroup)
+	{
+		UTexture2D* Texture = (UTexture2D*)Object;
+		FixPremultipliedPNGTexture(Texture);
 	}
 }
 
@@ -68,6 +163,8 @@ public:
 		NoesisEditorModuleInterface = this;
 
 		AssetImportHandle = FEditorDelegates::OnAssetPostImport.AddStatic(&OnObjectReimported);
+
+		ObjectPropertyChangedHandle = FCoreUObjectDelegates::OnObjectPropertyChanged.AddStatic(&OnObjectPropertyChanged);
 	}
 
 	virtual void ShutdownModule() override
@@ -108,6 +205,11 @@ public:
 		{
 			FEditorDelegates::OnAssetPostImport.Remove(AssetImportHandle);
 		}
+
+		if (ObjectPropertyChangedHandle.IsValid())
+		{
+			FCoreUObjectDelegates::OnObjectPropertyChanged.Remove(ObjectPropertyChangedHandle);
+		}
 	}
 	// End of IModuleInterface interface
 
@@ -118,6 +220,7 @@ private:
 	TSharedPtr<FNoesisXamlAssetTypeActions> NoesisXamlAssetTypeActions;
 	TSharedPtr<FNoesisBlueprintCompiler> NoesisBlueprintCompiler;
 	FDelegateHandle AssetImportHandle;
+	FDelegateHandle ObjectPropertyChangedHandle;
 };
 
 INoesisEditorModuleInterface* FNoesisEditorModule::NoesisEditorModuleInterface = 0;
