@@ -16,6 +16,7 @@
 // NoesisRuntime includes
 #include "NoesisTypeClass.h"
 #include "NoesisBaseComponent.h"
+#include "NoesisXaml.h"
 
 UNoesisFunctionLibrary::UNoesisFunctionLibrary(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -45,6 +46,11 @@ void UNoesisFunctionLibrary::TrySetDataContext(UObject* Element, UObject* DataCo
 			NoesisElement->SetDataContext(NoesisDataContext);
 		}
 	}
+}
+
+UObject*UNoesisFunctionLibrary::LoadXaml(class UNoesisXaml* Xaml)
+{
+	return NoesisCreateUObjectForComponent(Xaml->LoadXaml().GetPtr());
 }
 
 void UNoesisFunctionLibrary::execNoesisStruct_NotEqual(FFrame& Stack, RESULT_DECL)

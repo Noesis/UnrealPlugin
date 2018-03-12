@@ -2184,12 +2184,6 @@ NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUOb
 		return BaseComponent->NoesisComponent;
 	}
 
-	UNoesisXaml* NoesisXaml = Cast<UNoesisXaml>(Object);
-	if (NoesisXaml)
-	{
-		return NoesisXaml->LoadXaml();
-	}
-
 	Noesis::Ptr<Noesis::BaseComponent>* ComponentPtr = ObjectMap.Find(Object);
 	if (ComponentPtr)
 	{

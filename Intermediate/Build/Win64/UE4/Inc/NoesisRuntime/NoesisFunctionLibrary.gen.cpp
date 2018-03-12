@@ -17,6 +17,9 @@ void EmptyLinkFunctionForGeneratedCodeNoesisFunctionLibrary() {}
 	NOESISRUNTIME_API UClass* Z_Construct_UClass_UNoesisFunctionLibrary();
 	ENGINE_API UClass* Z_Construct_UClass_UBlueprintFunctionLibrary();
 	UPackage* Z_Construct_UPackage__Script_NoesisRuntime();
+	NOESISRUNTIME_API UFunction* Z_Construct_UFunction_UNoesisFunctionLibrary_LoadXaml();
+	COREUOBJECT_API UClass* Z_Construct_UClass_UObject_NoRegister();
+	NOESISRUNTIME_API UClass* Z_Construct_UClass_UNoesisXaml_NoRegister();
 	NOESISRUNTIME_API UFunction* Z_Construct_UFunction_UNoesisFunctionLibrary_NoesisArray_Add();
 	NOESISRUNTIME_API UFunction* Z_Construct_UFunction_UNoesisFunctionLibrary_NoesisArray_AddUnique();
 	NOESISRUNTIME_API UFunction* Z_Construct_UFunction_UNoesisFunctionLibrary_NoesisArray_Append();
@@ -30,7 +33,6 @@ void EmptyLinkFunctionForGeneratedCodeNoesisFunctionLibrary() {}
 	NOESISRUNTIME_API UFunction* Z_Construct_UFunction_UNoesisFunctionLibrary_NoesisStruct_NotEqual();
 	ENGINE_API UScriptStruct* Z_Construct_UScriptStruct_FGenericStruct();
 	NOESISRUNTIME_API UFunction* Z_Construct_UFunction_UNoesisFunctionLibrary_NotifyArrayChanged();
-	COREUOBJECT_API UClass* Z_Construct_UClass_UObject_NoRegister();
 	NOESISRUNTIME_API UFunction* Z_Construct_UFunction_UNoesisFunctionLibrary_NotifyChanged();
 	NOESISRUNTIME_API UFunction* Z_Construct_UFunction_UNoesisFunctionLibrary_TrySetDataContext();
 // End Cross Module References
@@ -38,6 +40,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisFunctionLibrary() {}
 	{
 		UClass* Class = UNoesisFunctionLibrary::StaticClass();
 		static const FNameNativePtrPair Funcs[] = {
+			{ "LoadXaml", (Native)&UNoesisFunctionLibrary::execLoadXaml },
 			{ "NoesisArray_Add", (Native)&UNoesisFunctionLibrary::execNoesisArray_Add },
 			{ "NoesisArray_AddUnique", (Native)&UNoesisFunctionLibrary::execNoesisArray_AddUnique },
 			{ "NoesisArray_Append", (Native)&UNoesisFunctionLibrary::execNoesisArray_Append },
@@ -54,6 +57,34 @@ void EmptyLinkFunctionForGeneratedCodeNoesisFunctionLibrary() {}
 			{ "TrySetDataContext", (Native)&UNoesisFunctionLibrary::execTrySetDataContext },
 		};
 		FNativeFunctionRegistrar::RegisterFunctions(Class, Funcs, ARRAY_COUNT(Funcs));
+	}
+	UFunction* Z_Construct_UFunction_UNoesisFunctionLibrary_LoadXaml()
+	{
+		struct NoesisFunctionLibrary_eventLoadXaml_Parms
+		{
+			UNoesisXaml* Xaml;
+			UObject* ReturnValue;
+		};
+		static UFunction* ReturnFunction = nullptr;
+		if (!ReturnFunction)
+		{
+			static const UE4CodeGen_Private::FObjectPropertyParams NewProp_ReturnValue = { UE4CodeGen_Private::EPropertyClass::Object, "ReturnValue", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000000580, 1, nullptr, STRUCT_OFFSET(NoesisFunctionLibrary_eventLoadXaml_Parms, ReturnValue), Z_Construct_UClass_UObject_NoRegister, METADATA_PARAMS(nullptr, 0) };
+			static const UE4CodeGen_Private::FObjectPropertyParams NewProp_Xaml = { UE4CodeGen_Private::EPropertyClass::Object, "Xaml", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000000080, 1, nullptr, STRUCT_OFFSET(NoesisFunctionLibrary_eventLoadXaml_Parms, Xaml), Z_Construct_UClass_UNoesisXaml_NoRegister, METADATA_PARAMS(nullptr, 0) };
+			static const UE4CodeGen_Private::FPropertyParamsBase* const PropPointers[] = {
+				(const UE4CodeGen_Private::FPropertyParamsBase*)&NewProp_ReturnValue,
+				(const UE4CodeGen_Private::FPropertyParamsBase*)&NewProp_Xaml,
+			};
+#if WITH_METADATA
+			static const UE4CodeGen_Private::FMetaDataPairParam Function_MetaDataParams[] = {
+				{ "Category", "NoesisGUI" },
+				{ "HidePin", "Target" },
+				{ "ModuleRelativePath", "Classes/NoesisFunctionLibrary.h" },
+			};
+#endif
+			static const UE4CodeGen_Private::FFunctionParams FuncParams = { (UObject*(*)())Z_Construct_UClass_UNoesisFunctionLibrary, "LoadXaml", RF_Public|RF_Transient|RF_MarkAsNative, nullptr, (EFunctionFlags)0x04022401, sizeof(NoesisFunctionLibrary_eventLoadXaml_Parms), PropPointers, ARRAY_COUNT(PropPointers), 0, 0, METADATA_PARAMS(Function_MetaDataParams, ARRAY_COUNT(Function_MetaDataParams)) };
+			UE4CodeGen_Private::ConstructUFunction(ReturnFunction, FuncParams);
+		}
+		return ReturnFunction;
 	}
 	UFunction* Z_Construct_UFunction_UNoesisFunctionLibrary_NoesisArray_Add()
 	{
@@ -635,6 +666,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisFunctionLibrary() {}
 				(UObject* (*)())Z_Construct_UPackage__Script_NoesisRuntime,
 			};
 			static const FClassFunctionLinkInfo FuncInfo[] = {
+				{ &Z_Construct_UFunction_UNoesisFunctionLibrary_LoadXaml, "LoadXaml" }, // 674550273
 				{ &Z_Construct_UFunction_UNoesisFunctionLibrary_NoesisArray_Add, "NoesisArray_Add" }, // 407442035
 				{ &Z_Construct_UFunction_UNoesisFunctionLibrary_NoesisArray_AddUnique, "NoesisArray_AddUnique" }, // 4001971059
 				{ &Z_Construct_UFunction_UNoesisFunctionLibrary_NoesisArray_Append, "NoesisArray_Append" }, // 1760319785
@@ -674,7 +706,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisFunctionLibrary() {}
 		}
 		return OuterClass;
 	}
-	IMPLEMENT_CLASS(UNoesisFunctionLibrary, 533684364);
+	IMPLEMENT_CLASS(UNoesisFunctionLibrary, 500026234);
 	static FCompiledInDefer Z_CompiledInDefer_UClass_UNoesisFunctionLibrary(Z_Construct_UClass_UNoesisFunctionLibrary, &UNoesisFunctionLibrary::StaticClass, TEXT("/Script/NoesisRuntime"), TEXT("UNoesisFunctionLibrary"), false, nullptr, nullptr, nullptr);
 	DEFINE_VTABLE_PTR_HELPER_CTOR(UNoesisFunctionLibrary);
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

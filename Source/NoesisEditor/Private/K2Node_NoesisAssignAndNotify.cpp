@@ -247,7 +247,8 @@ void UK2Node_NoesisAssignAndNotify::GetMenuActions(FBlueprintActionDatabaseRegis
 			UProperty* Property = *PropertyIt;
 
 			bool const bIsAccessible = Property->HasAllPropertyFlags(CPF_BlueprintVisible);
-			bool IsPropertyBlueprintVisible = !Property->HasAnyPropertyFlags(CPF_Parm) && bIsAccessible;
+			bool const bIsReadOnly = Property->HasAllPropertyFlags(CPF_BlueprintReadOnly);
+			bool IsPropertyBlueprintVisible = !Property->HasAnyPropertyFlags(CPF_Parm) && bIsAccessible && !bIsReadOnly;
 
 			if (IsPropertyBlueprintVisible && ActionRegistrar.IsOpenForRegistration(Property))
 			{

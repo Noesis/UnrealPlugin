@@ -8,6 +8,7 @@
 #include "ScriptMacros.h"
 
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
+class UNoesisXaml;
 class UObject;
 struct FGenericStruct;
 #ifdef NOESISRUNTIME_NoesisFunctionLibrary_generated_h
@@ -16,6 +17,15 @@ struct FGenericStruct;
 #define NOESISRUNTIME_NoesisFunctionLibrary_generated_h
 
 #define HostProject_Plugins_NoesisGUI_Source_NoesisRuntime_Classes_NoesisFunctionLibrary_h_21_RPC_WRAPPERS \
+ \
+	DECLARE_FUNCTION(execLoadXaml) \
+	{ \
+		P_GET_OBJECT(UNoesisXaml,Z_Param_Xaml); \
+		P_FINISH; \
+		P_NATIVE_BEGIN; \
+		*(UObject**)Z_Param__Result=UNoesisFunctionLibrary::LoadXaml(Z_Param_Xaml); \
+		P_NATIVE_END; \
+	} \
  \
 	DECLARE_FUNCTION(execTrySetDataContext) \
 	{ \
@@ -49,6 +59,15 @@ struct FGenericStruct;
 
 
 #define HostProject_Plugins_NoesisGUI_Source_NoesisRuntime_Classes_NoesisFunctionLibrary_h_21_RPC_WRAPPERS_NO_PURE_DECLS \
+ \
+	DECLARE_FUNCTION(execLoadXaml) \
+	{ \
+		P_GET_OBJECT(UNoesisXaml,Z_Param_Xaml); \
+		P_FINISH; \
+		P_NATIVE_BEGIN; \
+		*(UObject**)Z_Param__Result=UNoesisFunctionLibrary::LoadXaml(Z_Param_Xaml); \
+		P_NATIVE_END; \
+	} \
  \
 	DECLARE_FUNCTION(execTrySetDataContext) \
 	{ \
