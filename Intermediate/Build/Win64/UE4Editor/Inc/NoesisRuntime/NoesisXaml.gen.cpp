@@ -40,6 +40,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisXaml() {}
 			};
 #if WITH_METADATA
 			static const UE4CodeGen_Private::FMetaDataPairParam Class_MetaDataParams[] = {
+				{ "BlueprintType", "true" },
 				{ "IncludePath", "NoesisXaml.h" },
 				{ "ModuleRelativePath", "Classes/NoesisXaml.h" },
 			};
@@ -121,7 +122,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisXaml() {}
 		}
 		return OuterClass;
 	}
-	IMPLEMENT_CLASS(UNoesisXaml, 3122360877);
+	IMPLEMENT_CLASS(UNoesisXaml, 85026086);
 	static FCompiledInDefer Z_CompiledInDefer_UClass_UNoesisXaml(Z_Construct_UClass_UNoesisXaml, &UNoesisXaml::StaticClass, TEXT("/Script/NoesisRuntime"), TEXT("UNoesisXaml"), false, nullptr, nullptr, nullptr);
 	DEFINE_VTABLE_PTR_HELPER_CTOR(UNoesisXaml);
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

@@ -19,7 +19,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisRuntime_init() {}
 			static const UE4CodeGen_Private::FPackageParams PackageParams = {
 				"/Script/NoesisRuntime",
 				PKG_CompiledIn | 0x00000000,
-				0x9AB2670B,
+				0x6C978F2A,
 				0x057C2C84,
 				nullptr, 0,
 				METADATA_PARAMS(nullptr, 0)

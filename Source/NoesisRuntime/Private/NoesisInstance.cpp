@@ -977,6 +977,54 @@ Noesis::Key KeyToNoesisKey(FKey Key)
 	{
 		NoesisKey = Noesis::Key_OemCloseBrackets;
 	}
+	else if (Key == EKeys::Gamepad_DPad_Up)
+	{
+		NoesisKey = Noesis::Key_GamepadUp;
+	}
+	else if (Key == EKeys::Gamepad_DPad_Down)
+	{
+		NoesisKey = Noesis::Key_GamepadDown;
+	}
+	else if (Key == EKeys::Gamepad_DPad_Left)
+	{
+		NoesisKey = Noesis::Key_GamepadLeft;
+	}
+	else if (Key == EKeys::Gamepad_DPad_Right)
+	{
+		NoesisKey = Noesis::Key_GamepadRight;
+	}
+	else if (Key == EKeys::Gamepad_FaceButton_Bottom)
+	{
+		NoesisKey = Noesis::Key_GamepadAccept;
+	}
+	else if (Key == EKeys::Gamepad_FaceButton_Right)
+	{
+		NoesisKey = Noesis::Key_GamepadCancel;
+	}
+	else if (Key == EKeys::Gamepad_LeftShoulder)
+	{
+		NoesisKey = Noesis::Key_GamepadPageLeft;
+	}
+	else if (Key == EKeys::Gamepad_RightShoulder)
+	{
+		NoesisKey = Noesis::Key_GamepadPageRight;
+	}
+	else if (Key == EKeys::Gamepad_LeftTrigger)
+	{
+		NoesisKey = Noesis::Key_GamepadPageUp;
+	}
+	else if (Key == EKeys::Gamepad_RightTrigger)
+	{
+		NoesisKey = Noesis::Key_GamepadPageDown;
+	}
+	else if (Key == EKeys::Gamepad_Special_Left)
+	{
+		NoesisKey = Noesis::Key_GamepadView;
+	}
+	else if (Key == EKeys::Gamepad_Special_Right)
+	{
+		NoesisKey = Noesis::Key_GamepadMenu;
+	}
 
 	return NoesisKey;
 }

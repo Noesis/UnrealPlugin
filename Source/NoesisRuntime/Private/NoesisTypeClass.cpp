@@ -18,6 +18,7 @@
 #include "NoesisStructs.h"
 #include "NoesisRuntimeModule.h"
 #include "NoesisBaseComponent.h"
+#include "NoesisXaml.h"
 
 // Noesis includes
 #include "NoesisSDK.h"
@@ -2181,6 +2182,12 @@ NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUOb
 	if (BaseComponent)
 	{
 		return BaseComponent->NoesisComponent;
+	}
+
+	UNoesisXaml* NoesisXaml = Cast<UNoesisXaml>(Object);
+	if (NoesisXaml)
+	{
+		return NoesisXaml->LoadXaml();
 	}
 
 	Noesis::Ptr<Noesis::BaseComponent>* ComponentPtr = ObjectMap.Find(Object);

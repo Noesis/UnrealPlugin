@@ -208,6 +208,7 @@ NoesisDuration|Noesis::Duration
 NoesisKeyTime|Noesis::KeyTime
 Texture2D|Noesis::ImageSource
 TextureRenderTarget2D|Noesis::ImageSource
+NoesisXaml|Noesis::BaseComponent
 
 The plugin also supports custom Blueprint Enums, Structures and Classes. Blueprint Structures and Classes work similarly and they both expose their members as subproperties. The difference is that Structures are treated as atomic objects, and the performance characteristics are different. We recommend you use Blueprint Classes for long lived objects, and Blueprint Structures for small objects with shorter lifespans that don't require a full Blueprint Class.
 

@@ -14,7 +14,7 @@
 // Generated header include
 #include "NoesisXaml.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class NOESISRUNTIME_API UNoesisXaml : public UObject
 {
 	GENERATED_UCLASS_BODY()
