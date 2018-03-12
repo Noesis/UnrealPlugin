@@ -22,6 +22,8 @@ In order to use NoesisGUI in your UE4 project, you're going to need:
 
 After you read this document, we have a few samples so you can see some of the concepts in action:
 
+* [HelloWorld](https://github.com/Noesis/Tutorials/tree/master/Samples/HelloWorld/UE4): A minimal sample showing how to present the contents of a XAML on the screen.
+
 * [Buttons](https://github.com/Noesis/Tutorials/tree/master/Samples/Buttons/UE4): A simple game that shows how you can use `Binding`s to implement `Command`s as `Blueprint` functions.
 
 * [Widget3D](https://github.com/Noesis/Tutorials/tree/master/Samples/Widget3D/UE4): A similar UI, but this time presented in 3D using Unreal Engine's `WidgetComponent`.
@@ -31,6 +33,10 @@ After you read this document, we have a few samples so you can see some of the c
 * [QuestLog](https://github.com/Noesis/Tutorials/tree/master/Samples/QuestLog/UE4): This samples shows how to use `Binding`s to more complex data, such as `Texture`s and `Array`s of `Object`s.
 
 * [Scoreboard](https://github.com/Noesis/Tutorials/tree/master/Samples/Scoreboard/UE4): This sample shows more advanced ways to expose data on `Blueprint`s so that it can be used in `Binding`s, such as using Getter functions and manually notifying property changes.
+
+* [Localization](https://github.com/Noesis/Tutorials/tree/master/Samples/Localization/UE4): A sample showing a way to implement content localization using `ResourceDictionary`s.
+
+* [UserControl](https://github.com/Noesis/Tutorials/tree/master/Samples/UserControl/UE4): This sample shows how to implement an `UserControl` using a XAML and a C++ code-behind class, and how to use it from another XAML.
 
 * [Menu3D](https://github.com/Noesis/Tutorials/tree/master/Samples/Menu3D/UE4): This sample shows how to use `UserControl`s to implement a multi-panel game main menu.
 
