@@ -59,7 +59,9 @@ You can use the NoesisGUI Unreal Engine plugin as either an Engine plugin or a P
 
 3. Download the NoesisGUI SDK version 2.1 from [our developer portal](http://noesisengine.com/forums/) and extract it into `[NoesisGUIPlugin]/Source/Noesis/NoesisSDK`.
 
-4. If you've installed the plugin as an Engine plugin you need to run `[NoesisGUIPlugin]/BuildNoesisGUIPlugin.bat` to finish the setup. This step is not required if you've installed it as a Project plugin.
+4. If you've installed the plugin as an Engine plugin you need to run `[NoesisGUIPlugin]/BuildNoesisGUIPlugin.bat` (`[NoesisGUIPlugin]/BuildNoesisGUIPlugin.command` on Mac) to finish the setup. This step is not required if you've installed it as a Project plugin.
+
+5. If you've installed the plugin as an Engine plugin and you want to target other platforms, you need to run `[NoesisGUIPlugin]/BuildNoesisGUIPlugin_<Platform>.bat` (`[NoesisGUIPlugin]/BuildNoesisGUIPlugin_<Platform>.command` on Mac) for each of the platforms you want to build. This step is not required if you've installed it as a Project plugin.
 
 ### Setup with source code from GitHub
 
