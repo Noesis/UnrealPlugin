@@ -53,7 +53,7 @@ UObject*UNoesisFunctionLibrary::LoadXaml(class UNoesisXaml* Xaml)
 	return NoesisCreateUObjectForComponent(Xaml->LoadXaml().GetPtr());
 }
 
-void UNoesisFunctionLibrary::execNoesisStruct_NotEqual(FFrame& Stack, RESULT_DECL)
+DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisStruct_NotEqual)
 {
 	Stack.StepCompiledIn<UStructProperty>(NULL);
 	UStructProperty* AProperty = CastChecked<UStructProperty>(Stack.MostRecentProperty);
@@ -71,7 +71,7 @@ void UNoesisFunctionLibrary::execNoesisStruct_NotEqual(FFrame& Stack, RESULT_DEC
 	P_NATIVE_END;
 }
 
-void UNoesisFunctionLibrary::execNoesisArray_Add(FFrame& Stack, RESULT_DECL)
+DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Add)
 {
 	Stack.MostRecentProperty = nullptr;
 	Stack.StepCompiledIn<UArrayProperty>(NULL);
@@ -102,7 +102,7 @@ void UNoesisFunctionLibrary::execNoesisArray_Add(FFrame& Stack, RESULT_DECL)
 	NoesisNotifyArrayPropertyAdd(ArrayAddr);
 }
 
-void UNoesisFunctionLibrary::execNoesisArray_AddUnique(FFrame& Stack, RESULT_DECL)
+DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_AddUnique)
 {
 	Stack.MostRecentProperty = nullptr;
 	Stack.StepCompiledIn<UArrayProperty>(NULL);
@@ -139,7 +139,7 @@ void UNoesisFunctionLibrary::execNoesisArray_AddUnique(FFrame& Stack, RESULT_DEC
 	}
 }
 
-void UNoesisFunctionLibrary::execNoesisArray_Shuffle(FFrame& Stack, RESULT_DECL)
+DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Shuffle)
 {
 	Stack.MostRecentProperty = nullptr;
 	Stack.StepCompiledIn<UArrayProperty>(NULL);
@@ -159,7 +159,7 @@ void UNoesisFunctionLibrary::execNoesisArray_Shuffle(FFrame& Stack, RESULT_DECL)
 	NoesisNotifyArrayPropertyChanged(ArrayAddr);
 }
 
-void UNoesisFunctionLibrary::execNoesisArray_Append(FFrame& Stack, RESULT_DECL)
+DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Append)
 {
 	// Retrieve the target array
 	Stack.MostRecentProperty = nullptr;
@@ -192,7 +192,7 @@ void UNoesisFunctionLibrary::execNoesisArray_Append(FFrame& Stack, RESULT_DECL)
 	NoesisNotifyArrayPropertyAppend(TargetArrayAddr, NumItems);
 }
 
-void UNoesisFunctionLibrary::execNoesisArray_Insert(FFrame& Stack, RESULT_DECL)
+DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Insert)
 {
 	Stack.MostRecentProperty = nullptr;
 	Stack.StepCompiledIn<UArrayProperty>(NULL);
@@ -224,7 +224,7 @@ void UNoesisFunctionLibrary::execNoesisArray_Insert(FFrame& Stack, RESULT_DECL)
 	NoesisNotifyArrayPropertyInsert(ArrayAddr, Index);
 }
 
-void UNoesisFunctionLibrary::execNoesisArray_Remove(FFrame& Stack, RESULT_DECL)
+DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Remove)
 {
 	Stack.MostRecentProperty = nullptr;
 	Stack.StepCompiledIn<UArrayProperty>(NULL);
@@ -245,7 +245,7 @@ void UNoesisFunctionLibrary::execNoesisArray_Remove(FFrame& Stack, RESULT_DECL)
 	NoesisNotifyArrayPropertyRemove(ArrayAddr, Index);
 }
 
-void UNoesisFunctionLibrary::execNoesisArray_RemoveItem(FFrame& Stack, RESULT_DECL)
+DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_RemoveItem)
 {
 	Stack.MostRecentProperty = nullptr;
 	Stack.StepCompiledIn<UArrayProperty>(NULL);
@@ -297,7 +297,7 @@ void UNoesisFunctionLibrary::execNoesisArray_RemoveItem(FFrame& Stack, RESULT_DE
 	InnerProp->DestroyValue(StorageSpace);
 }
 
-void UNoesisFunctionLibrary::execNoesisArray_Clear(FFrame& Stack, RESULT_DECL)
+DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Clear)
 {
 	Stack.MostRecentProperty = nullptr;
 	Stack.StepCompiledIn<UArrayProperty>(NULL);
@@ -316,7 +316,7 @@ void UNoesisFunctionLibrary::execNoesisArray_Clear(FFrame& Stack, RESULT_DECL)
 	NoesisNotifyArrayPropertyClear(ArrayAddr);
 }
 
-void UNoesisFunctionLibrary::execNoesisArray_Resize(FFrame& Stack, RESULT_DECL)
+DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Resize)
 {
 	Stack.MostRecentProperty = nullptr;
 	Stack.StepCompiledIn<UArrayProperty>(NULL);
@@ -336,7 +336,7 @@ void UNoesisFunctionLibrary::execNoesisArray_Resize(FFrame& Stack, RESULT_DECL)
 	NoesisNotifyArrayPropertyResize(ArrayAddr);
 }
 
-void UNoesisFunctionLibrary::execNoesisArray_Set(FFrame& Stack, RESULT_DECL)
+DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Set)
 {
 	Stack.MostRecentProperty = nullptr;
 	Stack.StepCompiledIn<UArrayProperty>(NULL);

@@ -27,6 +27,6 @@ class UK2Node_NoesisAssignAndNotify : public UK2Node_Variable
 	virtual FText GetMenuCategory() const override { return FText::FromString(TEXT("NoesisGUI")); }
 	// End of UK2Node interface
 
-	FString GetVariableOutputPinName() const;
+	FName GetVariableOutputPinName() const;
 	void CreateOutputPinTooltip();
 };

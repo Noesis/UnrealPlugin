@@ -66,9 +66,9 @@ public class Noesis : ModuleRules
 			PublicAdditionalLibraries.Add("Noesis.lib");
 
 			string NoesisDllPath = "/NoesisSDK/Bin/windows_x86_64/Noesis.dll";
-			RuntimeDependencies.Add(new RuntimeDependency(ModuleDirectory + NoesisDllPath));
+			RuntimeDependencies.Add(ModuleDirectory + NoesisDllPath);
 
-			Definitions.Add("NOESISGUI_DLL_PATH=\"NoesisGUI/Source/Noesis/" + NoesisDllPath + "\"");
+			PublicDefinitions.Add("NOESISGUI_DLL_PATH=\"NoesisGUI/Source/Noesis/" + NoesisDllPath + "\"");
 
 			PublicDelayLoadDLLs.Add("Noesis.dll");
 		}
@@ -79,7 +79,7 @@ public class Noesis : ModuleRules
 			PublicAdditionalLibraries.Add(NoesisLibPath + "Noesis.dylib");
 
 			string NoesisDylibPath = "/NoesisSDK/Bin/osx/Noesis.dylib";
-			RuntimeDependencies.Add(new RuntimeDependency(ModuleDirectory + NoesisDylibPath));
+			RuntimeDependencies.Add(ModuleDirectory + NoesisDylibPath);
 		}
 		else if (Target.Platform == UnrealTargetPlatform.IOS)
 		{
@@ -96,7 +96,7 @@ public class Noesis : ModuleRules
 			PublicAdditionalLibraries.Add("Noesis");
 
 			string NoesisAplPath = "/Noesis_APL.xml";
-			AdditionalPropertiesForReceipt.Add(new ReceiptProperty("AndroidPlugin", ModuleDirectory + NoesisAplPath));
+			AdditionalPropertiesForReceipt.Add("AndroidPlugin", ModuleDirectory + NoesisAplPath);
 		}
 		else if (Target.Platform == UnrealTargetPlatform.PS4)
 		{

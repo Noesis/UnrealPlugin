@@ -1,4 +1,4 @@
-// Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 /*===========================================================================
 	Generated code exported from UnrealHeaderTool.
 	DO NOT modify this manually! Edit the corresponding .h files instead!
@@ -91,5 +91,6 @@ PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
 #define FOREACH_ENUM_ENOESISTESSELLATIONQUALITY(op) \
 	op(ENoesisTessellationQuality::Low) \
-	op(ENoesisTessellationQuality::Medium) 
+	op(ENoesisTessellationQuality::Medium) \
+	op(ENoesisTessellationQuality::High) 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

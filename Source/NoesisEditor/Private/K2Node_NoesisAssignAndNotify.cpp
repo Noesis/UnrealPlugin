@@ -185,8 +185,8 @@ UK2Node_NoesisAssignAndNotify::UK2Node_NoesisAssignAndNotify(const FObjectInitia
 
 void UK2Node_NoesisAssignAndNotify::AllocateDefaultPins()
 {
-	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Exec, FString(), nullptr, UEdGraphSchema_K2::PN_Execute);
-	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, FString(), nullptr, UEdGraphSchema_K2::PN_Then);
+	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Exec, FName(), nullptr, UEdGraphSchema_K2::PN_Execute);
+	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, FName(), nullptr, UEdGraphSchema_K2::PN_Then);
 
 	if (GetVarName() != NAME_None)
 	{
@@ -204,7 +204,7 @@ void UK2Node_NoesisAssignAndNotify::AllocateDefaultPins()
 	Super::AllocateDefaultPins();
 }
 
-FString UK2Node_NoesisAssignAndNotify::GetVariableOutputPinName() const
+FName UK2Node_NoesisAssignAndNotify::GetVariableOutputPinName() const
 {
 	return TEXT("Output_Get");
 }

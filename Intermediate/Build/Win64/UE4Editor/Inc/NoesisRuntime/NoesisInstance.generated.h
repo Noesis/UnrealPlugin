@@ -1,4 +1,4 @@
-// Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 /*===========================================================================
 	Generated code exported from UnrealHeaderTool.
 	DO NOT modify this manually! Edit the corresponding .h files instead!
@@ -23,7 +23,7 @@ class UObject;
 		P_GET_OBJECT(APlayerController,Z_Param_SpecificPlayer); \
 		P_FINISH; \
 		P_NATIVE_BEGIN; \
-		this->ExecuteConsoleCommand(Z_Param_Command,Z_Param_SpecificPlayer); \
+		P_THIS->ExecuteConsoleCommand(Z_Param_Command,Z_Param_SpecificPlayer); \
 		P_NATIVE_END; \
 	} \
  \
@@ -31,7 +31,7 @@ class UObject;
 	{ \
 		P_FINISH; \
 		P_NATIVE_BEGIN; \
-		*(float*)Z_Param__Result=this->GetTimeSeconds(); \
+		*(float*)Z_Param__Result=P_THIS->GetTimeSeconds(); \
 		P_NATIVE_END; \
 	} \
  \
@@ -40,7 +40,7 @@ class UObject;
 		P_GET_PROPERTY(UStrProperty,Z_Param_Name); \
 		P_FINISH; \
 		P_NATIVE_BEGIN; \
-		*(UObject**)Z_Param__Result=this->FindResource(Z_Param_Name); \
+		*(UObject**)Z_Param__Result=P_THIS->FindResource(Z_Param_Name); \
 		P_NATIVE_END; \
 	} \
  \
@@ -49,7 +49,7 @@ class UObject;
 		P_GET_PROPERTY(UStrProperty,Z_Param_Name); \
 		P_FINISH; \
 		P_NATIVE_BEGIN; \
-		*(UObject**)Z_Param__Result=this->FindName(Z_Param_Name); \
+		*(UObject**)Z_Param__Result=P_THIS->FindName(Z_Param_Name); \
 		P_NATIVE_END; \
 	} \
  \
@@ -58,7 +58,7 @@ class UObject;
 		P_GET_OBJECT(UObject,Z_Param_DataContext); \
 		P_FINISH; \
 		P_NATIVE_BEGIN; \
-		this->SetDataContext(Z_Param_DataContext); \
+		P_THIS->SetDataContext(Z_Param_DataContext); \
 		P_NATIVE_END; \
 	} \
  \
@@ -66,7 +66,7 @@ class UObject;
 	{ \
 		P_FINISH; \
 		P_NATIVE_BEGIN; \
-		this->InitInstance(); \
+		P_THIS->InitInstance(); \
 		P_NATIVE_END; \
 	}
 
@@ -79,7 +79,7 @@ class UObject;
 		P_GET_OBJECT(APlayerController,Z_Param_SpecificPlayer); \
 		P_FINISH; \
 		P_NATIVE_BEGIN; \
-		this->ExecuteConsoleCommand(Z_Param_Command,Z_Param_SpecificPlayer); \
+		P_THIS->ExecuteConsoleCommand(Z_Param_Command,Z_Param_SpecificPlayer); \
 		P_NATIVE_END; \
 	} \
  \
@@ -87,7 +87,7 @@ class UObject;
 	{ \
 		P_FINISH; \
 		P_NATIVE_BEGIN; \
-		*(float*)Z_Param__Result=this->GetTimeSeconds(); \
+		*(float*)Z_Param__Result=P_THIS->GetTimeSeconds(); \
 		P_NATIVE_END; \
 	} \
  \
@@ -96,7 +96,7 @@ class UObject;
 		P_GET_PROPERTY(UStrProperty,Z_Param_Name); \
 		P_FINISH; \
 		P_NATIVE_BEGIN; \
-		*(UObject**)Z_Param__Result=this->FindResource(Z_Param_Name); \
+		*(UObject**)Z_Param__Result=P_THIS->FindResource(Z_Param_Name); \
 		P_NATIVE_END; \
 	} \
  \
@@ -105,7 +105,7 @@ class UObject;
 		P_GET_PROPERTY(UStrProperty,Z_Param_Name); \
 		P_FINISH; \
 		P_NATIVE_BEGIN; \
-		*(UObject**)Z_Param__Result=this->FindName(Z_Param_Name); \
+		*(UObject**)Z_Param__Result=P_THIS->FindName(Z_Param_Name); \
 		P_NATIVE_END; \
 	} \
  \
@@ -114,7 +114,7 @@ class UObject;
 		P_GET_OBJECT(UObject,Z_Param_DataContext); \
 		P_FINISH; \
 		P_NATIVE_BEGIN; \
-		this->SetDataContext(Z_Param_DataContext); \
+		P_THIS->SetDataContext(Z_Param_DataContext); \
 		P_NATIVE_END; \
 	} \
  \
@@ -122,7 +122,7 @@ class UObject;
 	{ \
 		P_FINISH; \
 		P_NATIVE_BEGIN; \
-		this->InitInstance(); \
+		P_THIS->InitInstance(); \
 		P_NATIVE_END; \
 	}
 
@@ -211,5 +211,6 @@ PRAGMA_ENABLE_DEPRECATION_WARNINGS
 #define FOREACH_ENUM_NOESISINSTANCERENDERFLAGS(op) \
 	op(NoesisInstanceRenderFlags::Normal) \
 	op(NoesisInstanceRenderFlags::Wireframe) \
-	op(NoesisInstanceRenderFlags::ColorBatches) 
+	op(NoesisInstanceRenderFlags::ColorBatches) \
+	op(NoesisInstanceRenderFlags::Overdraw) 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
