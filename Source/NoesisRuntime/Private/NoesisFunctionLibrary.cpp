@@ -28,6 +28,15 @@ void UNoesisFunctionLibrary::NotifyChanged(UObject* Owner, FName PropertyName)
 	NoesisNotifyPropertyChanged(Owner, PropertyName);
 }
 
+void UNoesisFunctionLibrary::NotifyChanges(UObject* Owner, FName PropertyNames)
+{
+	TArray<FString> Names;
+	PropertyNames.ToString().ParseIntoArray(Names, TEXT(","));
+
+	for (auto& Name : Names)
+		NoesisNotifyArrayPropertyChanged(Owner, FName(*Name));
+}
+
 void UNoesisFunctionLibrary::NotifyArrayChanged(UObject* Owner, FName PropertyName)
 {
 	NoesisNotifyArrayPropertyChanged(Owner, PropertyName);
