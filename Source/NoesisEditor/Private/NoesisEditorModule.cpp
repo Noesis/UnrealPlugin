@@ -16,13 +16,18 @@
 
 // NoesisRuntime includes
 #include "NoesisXaml.h"
+#include "NoesisBlueprint.h"
 
 // NoesisEditor includes
 #include "NoesisBlueprintAssetTypeActions.h"
 #include "NoesisXamlAssetTypeActions.h"
 #include "NoesisBlueprintCompiler.h"
+#include "NoesisBlueprintCompilerContext.h"
 #include "NoesisXamlThumbnailRenderer.h"
 #include "NoesisStyle.h"
+
+// KismetCompiler includes
+#include "KismetCompiler.h"
 
 #define LOCTEXT_NAMESPACE "NoesisEditorModule"
 
@@ -124,6 +129,12 @@ void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Even
 	}
 }
 
+TSharedPtr<FKismetCompilerContext> GetCompilerForNoesisBlueprint(UBlueprint* Blueprint, FCompilerResultsLog& Results, const FKismetCompilerOptions& CompilerOptions)
+{
+	UNoesisBlueprint* NoesisBlueprint = CastChecked<UNoesisBlueprint>(Blueprint);
+	return TSharedPtr<FKismetCompilerContext>(new FNoesisBlueprintCompilerContext(NoesisBlueprint, Results, CompilerOptions, nullptr));
+}
+
 class FNoesisEditorModule : public INoesisEditorModuleInterface
 {
 public:
@@ -147,6 +158,7 @@ public:
 		NoesisBlueprintCompiler = MakeShareable(new FNoesisBlueprintCompiler());
 		IKismetCompilerInterface& KismetCompilerModule = FModuleManager::LoadModuleChecked<IKismetCompilerInterface>("KismetCompiler");
 		KismetCompilerModule.GetCompilers().Add(NoesisBlueprintCompiler.Get());
+		FKismetCompilerContext::RegisterCompilerForBP(UNoesisBlueprint::StaticClass(), &GetCompilerForNoesisBlueprint);
 
 		// Register settings
 		if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))

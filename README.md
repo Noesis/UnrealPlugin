@@ -275,10 +275,6 @@ You can filter the NoesisGUI log messages by selecting the LogNoesis  category f
 
 There are a couple of issues of which we are aware of and are either out of our control or we are working to resolve.
 
-* NoesisViews don't compile correctly if the Blueprint Compilation Manager is enabled. The feature seems to disable the custom Blueprint compiler for NoesisViews, which results in unusable widgets. We are investigating the problem and will get in touch with Epic about it. For now, please disable the Blueprint Compilation Manager by opening the Project Settings dialog from the Edit menu, then scrolling down to the Editor section on the left panel, and finally Blueprints and uncheck the Use Compilation Manager on the right panel.
-
-![Disabling Blueprint Compilation Manager](https://noesis.github.io/NoesisGUI/UE4Plugin/BlueprintCompilationManager.PNG)
-
 * It is not possible to change the cursor to use with a NoesisView generated Widget by using the Set Cursor function. This will be fixed in a future release.
 
 ![Set Cursor does not work at the moment](https://noesis.github.io/NoesisGUI/UE4Plugin/SetCursor.PNG)

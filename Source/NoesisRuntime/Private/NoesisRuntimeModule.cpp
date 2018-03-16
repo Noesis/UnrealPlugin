@@ -132,12 +132,6 @@ public:
 void OnBlueprintPreCompile(UBlueprint* Blueprint)
 {
 	NoesisDestroyTypeClassForBlueprint(Blueprint);
-
-	extern COREUOBJECT_API bool GBlueprintUseCompilationManager;
-	if (Blueprint->IsA<UNoesisBlueprint>() && GBlueprintUseCompilationManager)
-	{
-		FPlatformMisc::MessageBoxExt(EAppMsgType::Ok, TEXT("The Blueprint Compilation Manager is enabled. Please disable it to be able to compile NoesisViews."), TEXT("Error"));
-	}
 }
 
 void OnAssetRenamed(const FAssetData&, const FString&)
