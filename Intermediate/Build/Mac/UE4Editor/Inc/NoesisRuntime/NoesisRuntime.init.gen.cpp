@@ -1,4 +1,4 @@
-// Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 /*===========================================================================
 	Generated code exported from UnrealHeaderTool.
 	DO NOT modify this manually! Edit the corresponding .h files instead!
@@ -19,7 +19,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisRuntime_init() {}
 			static const UE4CodeGen_Private::FPackageParams PackageParams = {
 				"/Script/NoesisRuntime",
 				PKG_CompiledIn | 0x00000000,
-				0xBCA65B74,
+				0x4AC9CA09,
 				0x8904E718,
 				nullptr, 0,
 				METADATA_PARAMS(nullptr, 0)

@@ -1,4 +1,4 @@
-// Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 /*===========================================================================
 	Generated code exported from UnrealHeaderTool.
 	DO NOT modify this manually! Edit the corresponding .h files instead!
@@ -95,13 +95,16 @@ PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
 #define FOREACH_ENUM_ENOESISLOGGINGSETTINGS(op) \
 	op(ENoesisLoggingSettings::Quiet) \
-	op(ENoesisLoggingSettings::Normal) 
+	op(ENoesisLoggingSettings::Normal) \
+	op(ENoesisLoggingSettings::Bindings) 
 #define FOREACH_ENUM_ENOESISGLYPHCACHEDIMENSIONS(op) \
 	op(ENoesisGlyphCacheDimensions::x256) \
 	op(ENoesisGlyphCacheDimensions::x512) \
 	op(ENoesisGlyphCacheDimensions::x1024) \
-	op(ENoesisGlyphCacheDimensions::x2048) 
+	op(ENoesisGlyphCacheDimensions::x2048) \
+	op(ENoesisGlyphCacheDimensions::x4096) 
 #define FOREACH_ENUM_ENOESISOFFSCREENSAMPLECOUNT(op) \
 	op(ENoesisOffscreenSampleCount::One) \
-	op(ENoesisOffscreenSampleCount::Two) 
+	op(ENoesisOffscreenSampleCount::Two) \
+	op(ENoesisOffscreenSampleCount::Four) 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

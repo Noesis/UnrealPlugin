@@ -1,4 +1,4 @@
-// Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 /*===========================================================================
 	Generated code exported from UnrealHeaderTool.
 	DO NOT modify this manually! Edit the corresponding .h files instead!
@@ -87,12 +87,12 @@ void EmptyLinkFunctionForGeneratedCodeNoesisInstance() {}
 	{
 		UClass* Class = UNoesisInstance::StaticClass();
 		static const FNameNativePtrPair Funcs[] = {
-			{ "ExecuteConsoleCommand", (Native)&UNoesisInstance::execExecuteConsoleCommand },
-			{ "FindName", (Native)&UNoesisInstance::execFindName },
-			{ "FindResource", (Native)&UNoesisInstance::execFindResource },
-			{ "GetTimeSeconds", (Native)&UNoesisInstance::execGetTimeSeconds },
-			{ "InitInstance", (Native)&UNoesisInstance::execInitInstance },
-			{ "SetDataContext", (Native)&UNoesisInstance::execSetDataContext },
+			{ "ExecuteConsoleCommand", &UNoesisInstance::execExecuteConsoleCommand },
+			{ "FindName", &UNoesisInstance::execFindName },
+			{ "FindResource", &UNoesisInstance::execFindResource },
+			{ "GetTimeSeconds", &UNoesisInstance::execGetTimeSeconds },
+			{ "InitInstance", &UNoesisInstance::execInitInstance },
+			{ "SetDataContext", &UNoesisInstance::execSetDataContext },
 		};
 		FNativeFunctionRegistrar::RegisterFunctions(Class, Funcs, ARRAY_COUNT(Funcs));
 	}
@@ -343,7 +343,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisInstance() {}
 		}
 		return OuterClass;
 	}
-	IMPLEMENT_CLASS(UNoesisInstance, 1010432552);
+	IMPLEMENT_CLASS(UNoesisInstance, 3487908049);
 	static FCompiledInDefer Z_CompiledInDefer_UClass_UNoesisInstance(Z_Construct_UClass_UNoesisInstance, &UNoesisInstance::StaticClass, TEXT("/Script/NoesisRuntime"), TEXT("UNoesisInstance"), false, nullptr, nullptr, nullptr);
 	DEFINE_VTABLE_PTR_HELPER_CTOR(UNoesisInstance);
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

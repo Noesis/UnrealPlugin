@@ -1,4 +1,4 @@
-// Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 /*===========================================================================
 	Generated code exported from UnrealHeaderTool.
 	DO NOT modify this manually! Edit the corresponding .h files instead!
@@ -40,21 +40,21 @@ void EmptyLinkFunctionForGeneratedCodeNoesisFunctionLibrary() {}
 	{
 		UClass* Class = UNoesisFunctionLibrary::StaticClass();
 		static const FNameNativePtrPair Funcs[] = {
-			{ "LoadXaml", (Native)&UNoesisFunctionLibrary::execLoadXaml },
-			{ "NoesisArray_Add", (Native)&UNoesisFunctionLibrary::execNoesisArray_Add },
-			{ "NoesisArray_AddUnique", (Native)&UNoesisFunctionLibrary::execNoesisArray_AddUnique },
-			{ "NoesisArray_Append", (Native)&UNoesisFunctionLibrary::execNoesisArray_Append },
-			{ "NoesisArray_Clear", (Native)&UNoesisFunctionLibrary::execNoesisArray_Clear },
-			{ "NoesisArray_Insert", (Native)&UNoesisFunctionLibrary::execNoesisArray_Insert },
-			{ "NoesisArray_Remove", (Native)&UNoesisFunctionLibrary::execNoesisArray_Remove },
-			{ "NoesisArray_RemoveItem", (Native)&UNoesisFunctionLibrary::execNoesisArray_RemoveItem },
-			{ "NoesisArray_Resize", (Native)&UNoesisFunctionLibrary::execNoesisArray_Resize },
-			{ "NoesisArray_Set", (Native)&UNoesisFunctionLibrary::execNoesisArray_Set },
-			{ "NoesisArray_Shuffle", (Native)&UNoesisFunctionLibrary::execNoesisArray_Shuffle },
-			{ "NoesisStruct_NotEqual", (Native)&UNoesisFunctionLibrary::execNoesisStruct_NotEqual },
-			{ "NotifyArrayChanged", (Native)&UNoesisFunctionLibrary::execNotifyArrayChanged },
-			{ "NotifyChanged", (Native)&UNoesisFunctionLibrary::execNotifyChanged },
-			{ "TrySetDataContext", (Native)&UNoesisFunctionLibrary::execTrySetDataContext },
+			{ "LoadXaml", &UNoesisFunctionLibrary::execLoadXaml },
+			{ "NoesisArray_Add", &UNoesisFunctionLibrary::execNoesisArray_Add },
+			{ "NoesisArray_AddUnique", &UNoesisFunctionLibrary::execNoesisArray_AddUnique },
+			{ "NoesisArray_Append", &UNoesisFunctionLibrary::execNoesisArray_Append },
+			{ "NoesisArray_Clear", &UNoesisFunctionLibrary::execNoesisArray_Clear },
+			{ "NoesisArray_Insert", &UNoesisFunctionLibrary::execNoesisArray_Insert },
+			{ "NoesisArray_Remove", &UNoesisFunctionLibrary::execNoesisArray_Remove },
+			{ "NoesisArray_RemoveItem", &UNoesisFunctionLibrary::execNoesisArray_RemoveItem },
+			{ "NoesisArray_Resize", &UNoesisFunctionLibrary::execNoesisArray_Resize },
+			{ "NoesisArray_Set", &UNoesisFunctionLibrary::execNoesisArray_Set },
+			{ "NoesisArray_Shuffle", &UNoesisFunctionLibrary::execNoesisArray_Shuffle },
+			{ "NoesisStruct_NotEqual", &UNoesisFunctionLibrary::execNoesisStruct_NotEqual },
+			{ "NotifyArrayChanged", &UNoesisFunctionLibrary::execNotifyArrayChanged },
+			{ "NotifyChanged", &UNoesisFunctionLibrary::execNotifyChanged },
+			{ "TrySetDataContext", &UNoesisFunctionLibrary::execTrySetDataContext },
 		};
 		FNativeFunctionRegistrar::RegisterFunctions(Class, Funcs, ARRAY_COUNT(Funcs));
 	}

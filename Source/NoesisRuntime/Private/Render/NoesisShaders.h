@@ -113,6 +113,8 @@ public:
 	{
 	}
 
+	static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& Parameters) { return true; }
+
 	virtual bool Serialize(FArchive& Ar) override
 	{
 		bool bShaderHasOutdatedParameters = FGlobalShader::Serialize(Ar);
@@ -149,9 +151,9 @@ class FNoesisVS : public FNoesisVSBase
 		return true;
 	}
 
-	static void ModifyCompilationEnvironment(EShaderPlatform Platform, FShaderCompilerEnvironment& OutEnvironment)
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 	{
-		FGlobalShader::ModifyCompilationEnvironment(Platform, OutEnvironment);
+		FGlobalShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 		OutEnvironment.SetDefine(TEXT("HAS_COLOR"), HasColor);
 		OutEnvironment.SetDefine(TEXT("HAS_UV0"), HasUv0);
 		OutEnvironment.SetDefine(TEXT("HAS_UV1"), HasUv1);
@@ -190,6 +192,8 @@ public:
 	FNoesisPSBase()
 	{
 	}
+
+	static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& Parameters) { return true; }
 
 	virtual bool Serialize(FArchive& Ar) override
 	{
@@ -291,9 +295,9 @@ class FNoesisPS : public FNoesisPSBase
 		return true;
 	}
 
-	static void ModifyCompilationEnvironment(EShaderPlatform Platform, FShaderCompilerEnvironment& OutEnvironment)
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 	{
-		FGlobalShader::ModifyCompilationEnvironment(Platform, OutEnvironment);
+		FGlobalShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 		OutEnvironment.SetDefine(TEXT("EFFECT"), Effect);
 		OutEnvironment.SetDefine(TEXT("PAINT"), Paint);
 	}
