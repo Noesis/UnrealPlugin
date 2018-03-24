@@ -9,6 +9,7 @@
 
 #include "Classes/K2Node_NoesisAssignAndNotify.h"
 #include "Classes/NoesisBlueprintFactory.h"
+#include "Classes/NoesisEditorUserSettings.h"
 #include "Classes/NoesisXamlFactory.h"
 #include "Classes/NoesisXamlReimportFactory.h"
 #include "Classes/NoesisXamlThumbnailRenderer.h"

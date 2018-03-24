@@ -25,6 +25,7 @@
 #include "NoesisBlueprintCompilerContext.h"
 #include "NoesisXamlThumbnailRenderer.h"
 #include "NoesisStyle.h"
+#include "NoesisEditorUserSettings.h"
 
 // KismetCompiler includes
 #include "KismetCompiler.h"
@@ -165,8 +166,14 @@ public:
 		{
 			SettingsModule->RegisterSettings("Project", "Plugins", "NoesisGUI",
 				LOCTEXT("NoesisSettingsName", "NoesisGUI"),
-				LOCTEXT("NoesisSettingsDescroption", "Configure the NoesisGUI plugin"),
+				LOCTEXT("NoesisSettingsDescroption", "Configure the NoesisGUI plugin."),
 				GetMutableDefault<UNoesisSettings>());
+
+			SettingsModule->RegisterSettings("Editor", "Plugins", "NoesisGUI",
+				LOCTEXT("NoesisEditorUserSettingsName", "NoesisGUI Editor"),
+				LOCTEXT("NoesisEditorUserSettingsDescription", "Configure the NoesisGUI editor."),
+				GetMutableDefault<UNoesisEditorUserSettings>()
+			);
 		}
 
 		// Register thumbnail renderers

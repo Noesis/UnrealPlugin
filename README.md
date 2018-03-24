@@ -155,7 +155,11 @@ At this point you're ready to start using NoesisGUI in your project. The first s
 
 ### Absolute URIs and Unreal Engine
 
-When importing your XAML files, these may contain references to other XAML files, as well as images and fonts, as stated above. These references may be in the form of relative or absolut URIs. When working with absolute URIs in Unreal Engine, these are considered as relative to the Content folder of your game project.
+When importing your XAML files, these may contain references to other XAML files, as well as images and fonts, as stated above. These references may be in the form of relative or absolut URIs. When working with absolute URIs in Unreal Engine, by default these are considered as relative to the Content folder of your game project.
+
+Alternatively, if you want to keep your XAML project separate from your game's assets, you can specify a different root directory for your absolute URIs. To do this, open the Editor Preferences dialog from the Edit menu, then scroll down to the Plugins section on the left panel, and finally NoesisGUI Editor.
+
+![NoesisGUI Editor user settings](https://noesis.github.io/NoesisGUI/UE4Plugin/NoesisPluginEditorUserSettings.PNG)
 
 Please refer to the document [URIs in NoesisGUI](https://www.noesisengine.com/docs/Gui.Core.URIs.html) for more information.
 
@@ -205,6 +209,7 @@ Boolean|bool
 Integer|int32_t
 Float|float
 String|NsString
+Text|NsString
 Color|Noesis::Color
 Vector2D|Noesis::Point
 NoesisRect|Noesis::Rect

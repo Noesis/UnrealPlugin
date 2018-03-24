@@ -36,7 +36,7 @@ Noesis::Ptr<Noesis::Stream> FNoesisResourceProvider::LoadXaml(const char* Path)
 
 UTexture2D* FNoesisResourceProvider::GetTexture(FString TexturePath)
 {
-	return LoadObject<UTexture2D>(nullptr, *(FString(TEXT("/")) + TexturePath));
+	return LoadObject<UTexture2D>(nullptr, TexturePath[0] == TEXT('/') ? *TexturePath : *(FString(TEXT("/")) + TexturePath));
 }
 
 Noesis::TextureInfo FNoesisResourceProvider::GetTextureInfo(const char* Path)
@@ -58,7 +58,7 @@ Noesis::Ptr<Noesis::Texture> FNoesisResourceProvider::LoadTexture(const char* Pa
 
 void FNoesisResourceProvider::ScanFolder(const char* InFolder)
 {
-	UFont* Font = LoadObject<UFont>(nullptr, *(FString(TEXT("/")) + NsStringToFString(InFolder)));
+	UFont* Font = LoadObject<UFont>(nullptr, InFolder[0] == '/' ? *NsStringToFString(InFolder) : *(FString(TEXT("/")) + NsStringToFString(InFolder)));
 	if (Font)
 	{
 		for (auto TypefaceEntry : Font->CompositeFont.DefaultTypeface.Fonts)
@@ -70,7 +70,7 @@ void FNoesisResourceProvider::ScanFolder(const char* InFolder)
 
 Noesis::Ptr<Noesis::Stream> FNoesisResourceProvider::OpenFont(const char* InFolder, const char* InFilename) const
 {
-	UFont* Font = LoadObject<UFont>(nullptr, *(FString(TEXT("/")) + NsStringToFString(InFolder)));
+	UFont* Font = LoadObject<UFont>(nullptr, InFolder[0] == '/' ? *NsStringToFString(InFolder) : *(FString(TEXT("/")) + NsStringToFString(InFolder)));
 	if (Font)
 	{
 		for (auto TypefaceEntry : Font->CompositeFont.DefaultTypeface.Fonts)

@@ -8,6 +8,9 @@
 // Core includes
 #include "UObject/PropertyPortFlags.h"
 
+// CoreUObject includes
+#include "UObject/TextProperty.h"
+
 // Engine includes
 #include "Engine/Texture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
@@ -423,10 +426,19 @@ void SetProperty<bool>(void* BasePointer, UProperty* Property, Noesis::BaseCompo
 template<>
 Noesis::Ptr<Noesis::BaseComponent> GetProperty<NsString>(void* BasePointer, UProperty* Property)
 {
-	check(Property->IsA<UStrProperty>());
-	UStrProperty* StrProperty = (UStrProperty*)Property;
-	FString Value = StrProperty->GetPropertyValue(StrProperty->ContainerPtrToValuePtr<void>(BasePointer));
-	return Noesis::Boxing::Box<NsString>(TCHARToNsString(*Value));
+	if (Property->IsA<UStrProperty>())
+	{
+		UStrProperty* StrProperty = (UStrProperty*)Property;
+		FString Value = StrProperty->GetPropertyValue(StrProperty->ContainerPtrToValuePtr<void>(BasePointer));
+		return Noesis::Boxing::Box<NsString>(TCHARToNsString(*Value));
+	}
+	else
+	{
+		check(Property->IsA<UTextProperty>());
+		UTextProperty* TextProperty = (UTextProperty*)Property;
+		FText Value = TextProperty->GetPropertyValue(TextProperty->ContainerPtrToValuePtr<void>(BasePointer));
+		return Noesis::Boxing::Box<NsString>(TCHARToNsString(*Value.ToString()));
+	}
 }
 
 template<>
@@ -435,9 +447,17 @@ void SetProperty<NsString>(void* BasePointer, UProperty* Property, Noesis::BaseC
 	Noesis::Boxed<NsString>* StrValue = NsDynamicCast<Noesis::Boxed<NsString>*>(Value);
 	if (StrValue)
 	{
-		check(Property->IsA<UStrProperty>());
-		UStrProperty* StrProperty = (UStrProperty*)Property;
-		StrProperty->SetPropertyValue(StrProperty->ContainerPtrToValuePtr<void>(BasePointer), NsStringToFString(Noesis::Boxing::Unbox<NsString>(StrValue).c_str()));
+		if (Property->IsA<UStrProperty>())
+		{
+			UStrProperty* StrProperty = (UStrProperty*)Property;
+			StrProperty->SetPropertyValue(StrProperty->ContainerPtrToValuePtr<void>(BasePointer), NsStringToFString(Noesis::Boxing::Unbox<NsString>(StrValue).c_str()));
+		}
+		else
+		{
+			check(Property->IsA<UTextProperty>());
+			UTextProperty* TextProperty = (UTextProperty*)Property;
+			TextProperty->SetPropertyValue(TextProperty->ContainerPtrToValuePtr<void>(BasePointer), FText::FromString(NsStringToFString(Noesis::Boxing::Unbox<NsString>(StrValue).c_str())));
+		}
 	}
 }
 
@@ -1420,6 +1440,11 @@ void UStructTypeFiller(Noesis::Type* Type)
 			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NsString>(), &NoesisStructWrapper::GetProperty<NsString>, nullptr, TypePropertyData(Property));
 			TypeClassBuilder->AddProperty(TypeProperty);
 		}
+		else if (Property->IsA<UTextProperty>())
+		{
+			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NsString>(), &NoesisStructWrapper::GetProperty<NsString>, nullptr, TypePropertyData(Property));
+			TypeClassBuilder->AddProperty(TypeProperty);
+		}
 		else if (UStructProperty* StructProperty = Cast<UStructProperty>(Property))
 		{
 			if (StructProperty->Struct->GetFName() == NAME_Color)
@@ -1521,6 +1546,11 @@ void UStructTypeFiller(Noesis::Type* Type)
 				TypeClassBuilder->AddProperty(TypeProperty);
 			}
 			else if (InnerProperty->IsA<UStrProperty>())
+			{
+				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<NsString>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
+				TypeClassBuilder->AddProperty(TypeProperty);
+			}
+			else if (InnerProperty->IsA<UTextProperty>())
 			{
 				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<NsString>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
 				TypeClassBuilder->AddProperty(TypeProperty);
@@ -1660,6 +1690,11 @@ void UClassTypeFiller(Noesis::Type* Type)
 			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NsString>(), &NoesisObjectWrapper::GetProperty<NsString>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<NsString>, TypePropertyData(Property));
 			TypeClassBuilder->AddProperty(TypeProperty);
 		}
+		else if (Property->IsA<UTextProperty>())
+		{
+			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NsString>(), &NoesisObjectWrapper::GetProperty<NsString>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<NsString>, TypePropertyData(Property));
+			TypeClassBuilder->AddProperty(TypeProperty);
+		}
 		else if (UStructProperty* StructProperty = Cast<UStructProperty>(Property))
 		{
 			if (StructProperty->Struct->GetFName() == NAME_Color)
@@ -1761,6 +1796,11 @@ void UClassTypeFiller(Noesis::Type* Type)
 				TypeClassBuilder->AddProperty(TypeProperty);
 			}
 			else if (InnerProperty->IsA<UStrProperty>())
+			{
+				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<NsString>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<NsString>, TypePropertyData(ArrayProperty, InnerProperty));
+				TypeClassBuilder->AddProperty(TypeProperty);
+			}
+			else if (InnerProperty->IsA<UTextProperty>())
 			{
 				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<NsString>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<NsString>, TypePropertyData(ArrayProperty, InnerProperty));
 				TypeClassBuilder->AddProperty(TypeProperty);
@@ -1898,6 +1938,11 @@ void UClassTypeFiller(Noesis::Type* Type)
 				TypeClassBuilder->AddProperty(TypeProperty);
 			}
 			else if (OutParam->IsA<UStrProperty>())
+			{
+				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName().RightChop(3)).c_str()), Noesis::TypeOf<NsString>(), &NoesisObjectWrapper::GetFunctionProperty<NsString>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<NsString> : nullptr, TypePropertyData(Function, Setter));
+				TypeClassBuilder->AddProperty(TypeProperty);
+			}
+			else if (OutParam->IsA<UTextProperty>())
 			{
 				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName().RightChop(3)).c_str()), Noesis::TypeOf<NsString>(), &NoesisObjectWrapper::GetFunctionProperty<NsString>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<NsString> : nullptr, TypePropertyData(Function, Setter));
 				TypeClassBuilder->AddProperty(TypeProperty);
