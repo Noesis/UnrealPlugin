@@ -103,5 +103,11 @@ public class Noesis : ModuleRules
 			string NoesisLibPath = NoesisBasePath + "Lib/ps4/";
 			PublicAdditionalLibraries.Add(NoesisLibPath + "Noesis.a");
 		}
+		else if (Target.Platform == UnrealTargetPlatform.XboxOne)
+		{
+			string NoesisLibPath = NoesisBasePath + "Bin/xbox_one/";
+			PublicLibraryPaths.Add(NoesisLibPath);
+			PublicAdditionalLibraries.Add("Noesis.lib");
+		}
 	}
 }

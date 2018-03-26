@@ -2282,8 +2282,14 @@ void NoesisNotifyArrayPropertyChanged(UObject* Owner, FName ArrayPropertyName)
 		NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)WrapperPtr->GetPtr();
 		const Noesis::TypeClass* WrapperTypeClass = Wrapper->GetClassType();
 		const Noesis::TypeProperty* ArrayTypeProperty = WrapperTypeClass->FindProperty(NsSymbol(TCHARToNsString(*ArrayPropertyName.ToString())));
-		NoesisArrayWrapperBase* Array = (NoesisArrayWrapperBase*)(ArrayTypeProperty->GetComponent(Wrapper).GetPtr());
-		Array->NotifyChanged();
+		if (ArrayTypeProperty)
+		{
+			NoesisArrayWrapperBase* Array = (NoesisArrayWrapperBase*)(ArrayTypeProperty->GetComponent(Wrapper).GetPtr());
+			if (Array)
+			{
+				Array->NotifyChanged();
+			}
+		}
 	}
 }
 
