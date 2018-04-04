@@ -55,7 +55,7 @@ void ExtractPaths(FString FileUri, FString BaseFilePath, FString BasePackage, FS
 	FString BasePackagePath;
 	FString BasePackageName;
 	FPackageName::SplitLongPackageName(BasePackage, BasePackageRoot, BasePackagePath, BasePackageName, false);
-	PackagePath = FString(TEXT("/")) + BasePackageRoot / FilePath;
+	PackagePath = FString(TEXT("/")) + BasePackageRoot / BasePackagePath / FilePath;
 	PackagePath = PackageTools::SanitizePackageName(PackagePath);
 	PackageName = ObjectTools::SanitizeObjectName(FPaths::GetBaseFilename(FileName));
 

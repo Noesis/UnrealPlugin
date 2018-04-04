@@ -21,7 +21,7 @@ class NOESISEDITOR_API UNoesisEditorUserSettings : public UObject
 
 	/** The directory that is the root of absolute URIs in XAML files for the project. */
 	UPROPERTY(EditAnywhere, Config, Category = "Editor Settings", DisplayName = "Project URI Root")
-	FString ProjectURIRoot;
+	FDirectoryPath ProjectURIRoot;
 
 	FString GetProjectURIRoot() const;
 };

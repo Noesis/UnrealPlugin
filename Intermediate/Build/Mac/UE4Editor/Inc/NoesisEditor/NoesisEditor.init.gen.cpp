@@ -19,7 +19,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisEditor_init() {}
 			static const UE4CodeGen_Private::FPackageParams PackageParams = {
 				"/Script/NoesisEditor",
 				PKG_CompiledIn | 0x00000040,
-				0x920B60E5,
+				0x2E2201D1,
 				0x79D2CED0,
 				nullptr, 0,
 				METADATA_PARAMS(nullptr, 0)

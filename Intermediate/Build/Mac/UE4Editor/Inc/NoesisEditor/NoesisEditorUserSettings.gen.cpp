@@ -17,6 +17,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisEditorUserSettings() {}
 	NOESISEDITOR_API UClass* Z_Construct_UClass_UNoesisEditorUserSettings();
 	COREUOBJECT_API UClass* Z_Construct_UClass_UObject();
 	UPackage* Z_Construct_UPackage__Script_NoesisEditor();
+	ENGINE_API UScriptStruct* Z_Construct_UScriptStruct_FDirectoryPath();
 // End Cross Module References
 	void UNoesisEditorUserSettings::StaticRegisterNativesUNoesisEditorUserSettings()
 	{
@@ -48,7 +49,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisEditorUserSettings() {}
 				{ "ToolTip", "The directory that is the root of absolute URIs in XAML files for the project." },
 			};
 #endif
-			static const UE4CodeGen_Private::FStrPropertyParams NewProp_ProjectURIRoot = { UE4CodeGen_Private::EPropertyClass::Str, "ProjectURIRoot", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000004001, 1, nullptr, STRUCT_OFFSET(UNoesisEditorUserSettings, ProjectURIRoot), METADATA_PARAMS(NewProp_ProjectURIRoot_MetaData, ARRAY_COUNT(NewProp_ProjectURIRoot_MetaData)) };
+			static const UE4CodeGen_Private::FStructPropertyParams NewProp_ProjectURIRoot = { UE4CodeGen_Private::EPropertyClass::Struct, "ProjectURIRoot", RF_Public|RF_Transient|RF_MarkAsNative, 0x0010000000004001, 1, nullptr, STRUCT_OFFSET(UNoesisEditorUserSettings, ProjectURIRoot), Z_Construct_UScriptStruct_FDirectoryPath, METADATA_PARAMS(NewProp_ProjectURIRoot_MetaData, ARRAY_COUNT(NewProp_ProjectURIRoot_MetaData)) };
 			static const UE4CodeGen_Private::FPropertyParamsBase* const PropPointers[] = {
 				(const UE4CodeGen_Private::FPropertyParamsBase*)&NewProp_ProjectURIRoot,
 			};
@@ -70,7 +71,7 @@ void EmptyLinkFunctionForGeneratedCodeNoesisEditorUserSettings() {}
 		}
 		return OuterClass;
 	}
-	IMPLEMENT_CLASS(UNoesisEditorUserSettings, 628969668);
+	IMPLEMENT_CLASS(UNoesisEditorUserSettings, 1708083010);
 	static FCompiledInDefer Z_CompiledInDefer_UClass_UNoesisEditorUserSettings(Z_Construct_UClass_UNoesisEditorUserSettings, &UNoesisEditorUserSettings::StaticClass, TEXT("/Script/NoesisEditor"), TEXT("UNoesisEditorUserSettings"), false, nullptr, nullptr, nullptr);
 	DEFINE_VTABLE_PTR_HELPER_CTOR(UNoesisEditorUserSettings);
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

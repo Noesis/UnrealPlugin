@@ -15,9 +15,9 @@ UNoesisEditorUserSettings::UNoesisEditorUserSettings(const FObjectInitializer& O
 
 FString UNoesisEditorUserSettings::GetProjectURIRoot() const
 {
-	if (FPaths::DirectoryExists(ProjectURIRoot))
+	if (!ProjectURIRoot.Path.IsEmpty() && FPaths::DirectoryExists(ProjectURIRoot.Path))
 	{
-		FString Path = ProjectURIRoot;
+		FString Path = ProjectURIRoot.Path;
 		FPaths::RemoveDuplicateSlashes(Path);
 		FPaths::NormalizeDirectoryName(Path);
 		FPaths::CollapseRelativeDirectories(Path);
