@@ -35,6 +35,13 @@ void ExtractPaths(FString FileUri, FString BaseFilePath, FString BasePackage, FS
 		FilePath = FilePath.RightChop(ComponentUriIndex + ComponentUri.Len());
 	}
 
+	FString FilePathForPackage = FilePath;
+	FPaths::RemoveDuplicateSlashes(FilePathForPackage);
+	FPaths::NormalizeFilename(FilePathForPackage);
+	FPaths::CollapseRelativeDirectories(FilePathForPackage);
+
+	FilePathForPackage = FPaths::GetPath(FilePathForPackage);
+
 	if (FPaths::IsRelative(FilePath))
 	{
 		FilePath = BaseFilePath / FilePath;
@@ -55,7 +62,7 @@ void ExtractPaths(FString FileUri, FString BaseFilePath, FString BasePackage, FS
 	FString BasePackagePath;
 	FString BasePackageName;
 	FPackageName::SplitLongPackageName(BasePackage, BasePackageRoot, BasePackagePath, BasePackageName, false);
-	PackagePath = FString(TEXT("/")) + BasePackageRoot / BasePackagePath / FilePath;
+	PackagePath = FString(TEXT("/")) + BasePackageRoot / BasePackagePath / FilePathForPackage;
 	PackagePath = PackageTools::SanitizePackageName(PackagePath);
 	PackageName = ObjectTools::SanitizeObjectName(FPaths::GetBaseFilename(FileName));
 
