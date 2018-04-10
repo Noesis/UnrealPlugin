@@ -27,12 +27,6 @@
 // Noesis includes
 #include "NoesisSDK.h"
 
-#if PLATFORM_WINDOWS
-#include "AllowWindowsPlatformTypes.h"
-#include <DelayImp.h>
-#include "HideWindowsPlatformTypes.h"
-#endif
-
 static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* Desc, bool Fatal)
 {
 	if (Fatal)
@@ -71,36 +65,6 @@ static void NoesisLogHandler(const char* File, uint32_t Line, uint32_t Level, co
 		}
 	}
 }
-
-#if PLATFORM_WINDOWS
-extern "C" FARPROC WINAPI delayLoadHook(uint32 dliNotify, PDelayLoadInfo pdli)
-{
-	if (dliNotify == dliNotePreLoadLibrary && FCStringAnsi::Stricmp(pdli->szDll, "Noesis.dll") == 0)
-	{
-		FString BaseDirs[] = { FPaths::EnginePluginsDir(), FPaths::EnterprisePluginsDir(), FPaths::ProjectPluginsDir() };
-		for (auto BaseDir : BaseDirs)
-		{
-			FString NoesisDllPath = BaseDir / TEXT(NOESISGUI_DLL_PATH);
-			if (FPaths::DirectoryExists(*FPaths::GetPath(NoesisDllPath)))
-			{
-				FPlatformProcess::PushDllDirectory(*FPaths::GetPath(NoesisDllPath));
-				void* DllHandle = FPlatformProcess::GetDllHandle(*NoesisDllPath);
-				FPlatformProcess::PopDllDirectory(*FPaths::GetPath(NoesisDllPath));
-				if (DllHandle)
-				{
-					return (FARPROC)DllHandle;
-				}
-			}
-		}
-	}
-
-	return NULL;
-}
-
-void* DllHandle = FPlatformProcess::GetDllHandle(*(FPaths::EngineDir() / TEXT(NOESISGUI_DLL_PATH)));
-
-const PfnDliHook __pfnDliNotifyHook2 = delayLoadHook;
-#endif
 
 #if WITH_EDITOR
 class NotifyEnumChanged : public FEnumEditorUtils::INotifyOnEnumChanged

@@ -5,6 +5,9 @@
 
 #include "NoesisXamlFactory.h"
 
+// UnrealEd includes
+#include "Settings/EditorLoadingSavingSettings.h"
+
 // NoesisEditor includes
 #include "NoesisEditorModule.h"
 #include "NoesisEditorUserSettings.h"
@@ -35,13 +38,6 @@ void ExtractPaths(FString FileUri, FString BaseFilePath, FString BasePackage, FS
 		FilePath = FilePath.RightChop(ComponentUriIndex + ComponentUri.Len());
 	}
 
-	FString FilePathForPackage = FilePath;
-	FPaths::RemoveDuplicateSlashes(FilePathForPackage);
-	FPaths::NormalizeFilename(FilePathForPackage);
-	FPaths::CollapseRelativeDirectories(FilePathForPackage);
-
-	FilePathForPackage = FPaths::GetPath(FilePathForPackage);
-
 	if (FPaths::IsRelative(FilePath))
 	{
 		FilePath = BaseFilePath / FilePath;
@@ -58,11 +54,7 @@ void ExtractPaths(FString FileUri, FString BaseFilePath, FString BasePackage, FS
 	FileName = FPaths::GetCleanFilename(FilePath);
 	FilePath = FPaths::GetPath(FilePath);
 
-	FString BasePackageRoot;
-	FString BasePackagePath;
-	FString BasePackageName;
-	FPackageName::SplitLongPackageName(BasePackage, BasePackageRoot, BasePackagePath, BasePackageName, false);
-	PackagePath = FString(TEXT("/")) + BasePackageRoot / BasePackagePath / FilePathForPackage;
+	PackagePath = FString(TEXT("/")) + BasePackage / FilePath;
 	PackagePath = PackageTools::SanitizePackageName(PackagePath);
 	PackageName = ObjectTools::SanitizeObjectName(FPaths::GetBaseFilename(FileName));
 
@@ -402,7 +394,7 @@ TArray<FImageDescriptor> ParseForImages(FString XamlText)
 	{
 		int32 Index;
 		Format.FindChar(TEXT(';'), Index);
-		Strings += ScanKeyword(XamlText, Format.Left(Index));
+		Strings += ScanKeyword(XamlText, FString(TEXT(".")) + Format.Left(Index));
 	}
 
 	for (auto String : Strings)
@@ -485,23 +477,32 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 	FString Filename = FullFilename;
 	FString Directory = FPaths::GetPath(Filename);
 	Filename = FPaths::GetCleanFilename(Filename);
-	FString ProjectURIRoot = GetDefault<UNoesisEditorUserSettings>()->GetProjectURIRoot();
+	FString ProjectURIRoot;
+	FString BasePackageName;
+	for (const auto& Setting : GetDefault<UEditorLoadingSavingSettings>()->AutoReimportDirectorySettings)
+	{
+		FString RelativeFilename = FullFilename;
+		FString SourceDirectory = Setting.SourceDirectory + TEXT("/");
+		if (FPaths::MakePathRelativeTo(RelativeFilename, *SourceDirectory))
+		{
+			FPaths::CollapseRelativeDirectories(RelativeFilename);
+			FPaths::NormalizeFilename(RelativeFilename);
+			if (!RelativeFilename.StartsWith(TEXT("..")))
+			{
+				ProjectURIRoot = SourceDirectory;
+				BasePackageName = Setting.MountPoint + TEXT("/");
+				break;
+			}
+		}
+	}
+	if (ProjectURIRoot.IsEmpty())
+	{
+		ProjectURIRoot = FPaths::ProjectContentDir();
+		BasePackageName = TEXT("/Game/");
+	}
 	FPaths::MakePathRelativeTo(Directory, *ProjectURIRoot);
-	FString BasePackageName = Parent->GetPathName();
-
-	FString FilePath;
-	FString FileName;
-	FString PackagePath;
-	FString PackageName;
-	ExtractPaths(Filename, Directory, BasePackageName, ProjectURIRoot, FilePath, FileName, PackagePath, PackageName);
 
 	FString XamlText = NsStringToFString((const char*)Buffer);
-
-	if (BasePackageName != (PackagePath / PackageName))
-	{
-		Parent = CreatePackage(NULL, *(PackagePath / PackageName));
-		BasePackageName = PackagePath / PackageName;
-	}
 
 	TArray<FString> Comments;
 	FRegexPattern CommentPattern(TEXT("<!--.*-->"));
@@ -547,16 +548,39 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 		}
 	}
 
-	UPackage* XamlPackage = NULL;
-	UNoesisXaml* ExistingXaml = LoadObject<UNoesisXaml>(Parent, *Name.ToString());
+	UNoesisXaml* NoesisXaml = nullptr;
 
-	if (ExistingXaml)
 	{
-		XamlPackage = ExistingXaml->GetOutermost();
-		XamlPackage->FullyLoad();
-		ExistingXaml->DestroyThumbnailRenderData();
+		FString XamlPath;
+		FString FileName;
+		FString PackagePath;
+		FString XamlName;
+		ExtractPaths(Filename, Directory, BasePackageName, ProjectURIRoot, XamlPath, FileName, PackagePath, XamlName);
+
+		UPackage* XamlPackage = NULL;
+
+		FString XamlObjectPath = PackagePath / XamlName + TEXT(".") + XamlName;
+		UNoesisXaml* ExistingXaml = LoadObject<UNoesisXaml>(NULL, *XamlObjectPath);
+
+		if (!ExistingXaml)
+		{
+			const FString Suffix(TEXT(""));
+
+			XamlPackage = CreatePackage(NULL, *(PackagePath / XamlName));
+			NoesisXaml = NewObject<UNoesisXaml>(XamlPackage, Class, Name, Flags);
+		}
+		else
+		{
+			XamlPackage = ExistingXaml->GetOutermost();
+			XamlPackage->FullyLoad();
+			ExistingXaml->DestroyThumbnailRenderData();
+			NoesisXaml = ExistingXaml;
+			NoesisXaml->XamlText.Empty();
+			NoesisXaml->Xamls.Empty();
+			NoesisXaml->Textures.Empty();
+			NoesisXaml->Fonts.Empty();
+		}
 	}
-	UNoesisXaml* NoesisXaml = NewObject<UNoesisXaml>(Parent, Class, Name, Flags);
 
 	for (auto XamlDescriptor : XamlDescriptors)
 	{

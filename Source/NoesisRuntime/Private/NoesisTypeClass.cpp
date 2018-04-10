@@ -58,7 +58,7 @@ public:
 class NoesisEnumWrapper : public Noesis::BoxedValue
 {
 public:
-	NoesisEnumWrapper(NoesisTypeEnum* InTypeEnum, int8 InValue)
+	NoesisEnumWrapper(NoesisTypeEnum* InTypeEnum, int64 InValue)
 		: TypeEnum(InTypeEnum), Value(InValue)
 	{
 	}
@@ -90,7 +90,7 @@ public:
 	}
 
 	NoesisTypeEnum* TypeEnum;
-	int8 Value;
+	int64 Value;
 
 	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisEnumWrapper, Noesis::BoxedValue)
 };
@@ -110,7 +110,7 @@ public:
 
 	virtual uint32 Unbox(Noesis::BaseComponent* Value) const override
 	{
-		return ((NoesisEnumWrapper*)Value)->Value;
+		return (uint32)((NoesisEnumWrapper*)Value)->Value;
 	}
 
 	const Noesis::TypeEnum* TypeEnum;
@@ -144,10 +144,10 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<NoesisEnumWrapper>(void* BasePoin
 {
 	if (UEnumProperty* EnumProperty = Cast<UEnumProperty>(Property))
 	{
-		check(EnumProperty->GetUnderlyingProperty()->IsA<UByteProperty>());
 		Noesis::TypeEnum* TypeEnum = NoesisCreateTypeEnumForUEnum(EnumProperty->GetEnum());
-		UByteProperty* ByteProperty = (UByteProperty*)EnumProperty->GetUnderlyingProperty();
-		const uint8& Value = ByteProperty->GetPropertyValue(ByteProperty->template ContainerPtrToValuePtr<void>(BasePointer));
+		UNumericProperty* UnderlyingProperty = EnumProperty->GetUnderlyingProperty();
+		check(UnderlyingProperty->IsInteger());
+		int64 Value = UnderlyingProperty->GetSignedIntPropertyValue(EnumProperty->template ContainerPtrToValuePtr<void>(BasePointer));
 		return *new NoesisEnumWrapper((NoesisTypeEnum*)TypeEnum, Value);
 	}
 	else 
@@ -158,7 +158,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<NoesisEnumWrapper>(void* BasePoin
 		{
 			Noesis::TypeEnum* TypeEnum = NoesisCreateTypeEnumForUEnum(ByteProperty->Enum);
 			const uint8& Value = ByteProperty->GetPropertyValue(ByteProperty->template ContainerPtrToValuePtr<void>(BasePointer));
-			return *new NoesisEnumWrapper((NoesisTypeEnum*)TypeEnum, Value);
+			return *new NoesisEnumWrapper((NoesisTypeEnum*)TypeEnum, (int64)Value);
 		}
 	}
 
@@ -171,9 +171,18 @@ void SetProperty<NoesisEnumWrapper>(void* BasePointer, UProperty* Property, Noes
 	NoesisEnumWrapper* BoxedValue = NsDynamicCast<NoesisEnumWrapper*>(Value);
 	if (BoxedValue)
 	{
-		check(Property->IsA<UByteProperty>());
-		UByteProperty* ByteProperty = (UByteProperty*)Property;
-		ByteProperty->SetPropertyValue(ByteProperty->template ContainerPtrToValuePtr<void>(BasePointer), BoxedValue->Value);
+		if (UEnumProperty* EnumProperty = Cast<UEnumProperty>(Property))
+		{
+			UNumericProperty* UnderlyingProperty = EnumProperty->GetUnderlyingProperty();
+			check(UnderlyingProperty->IsInteger());
+			UnderlyingProperty->SetIntPropertyValue(EnumProperty->template ContainerPtrToValuePtr<void>(BasePointer), BoxedValue->Value);
+		}
+		else
+		{
+			check(Property->IsA<UByteProperty>());
+			UByteProperty* ByteProperty = (UByteProperty*)Property;
+			ByteProperty->SetPropertyValue(ByteProperty->template ContainerPtrToValuePtr<void>(BasePointer), BoxedValue->Value);
+		}
 	}
 }
 
@@ -945,7 +954,7 @@ public:
 
 	bool CanExecute(Noesis::BaseComponent* Param) const override
 	{
-		if (CanExecuteFunction)
+		if (!Object->IsPendingKill() && CanExecuteFunction)
 		{
 			int32 ReturnValue = 0;
 			Object->ProcessEvent(CanExecuteFunction, &ReturnValue);
@@ -958,26 +967,29 @@ public:
 
 	void Execute(Noesis::BaseComponent* Param) const override
 	{
-		if (Function->NumParms == 1)
+		if (!Object->IsPendingKill())
 		{
-			check(Function->Children->IsA<UObjectProperty>());
-			UObjectProperty* InputParam = (UObjectProperty*)Function->Children;
-			uint8* Params = (uint8*)FMemory_Alloca(Function->ParmsSize);
-			FMemory::Memzero(Params, Function->ParmsSize);
-			UObject* UnrealParam = NoesisCreateUObjectForComponent(Param);
-			if (!UnrealParam || (UnrealParam->GetClass()->IsChildOf(InputParam->PropertyClass)))
+			if (Function->NumParms == 1)
 			{
-				InputParam->SetPropertyValue(InputParam->ContainerPtrToValuePtr<void>(Params), UnrealParam);
-				(Object)->ProcessEvent(Function, Params);
+				check(Function->Children->IsA<UObjectProperty>());
+				UObjectProperty* InputParam = (UObjectProperty*)Function->Children;
+				uint8* Params = (uint8*)FMemory_Alloca(Function->ParmsSize);
+				FMemory::Memzero(Params, Function->ParmsSize);
+				UObject* UnrealParam = NoesisCreateUObjectForComponent(Param);
+				if (!UnrealParam || (UnrealParam->GetClass()->IsChildOf(InputParam->PropertyClass)))
+				{
+					InputParam->SetPropertyValue(InputParam->ContainerPtrToValuePtr<void>(Params), UnrealParam);
+					(Object)->ProcessEvent(Function, Params);
+				}
+				else
+				{
+					UE_LOG(LogNoesis, Error, TEXT("Couldn't convert parameter to function %s from %s to "), *Function->GetName(), *UnrealParam->GetClass()->GetName(), *InputParam->PropertyClass->GetName());
+				}
 			}
 			else
 			{
-				UE_LOG(LogNoesis, Error, TEXT("Couldn't convert parameter to function %s from %s to "), *Function->GetName(), *UnrealParam->GetClass()->GetName(), *InputParam->PropertyClass->GetName());
+				Object->ProcessEvent(Function, nullptr);
 			}
-		}
-		else
-		{
-			Object->ProcessEvent(Function, nullptr);
 		}
 	}
 
@@ -1513,9 +1525,8 @@ void UStructTypeFiller(Noesis::Type* Type)
 		}
 		else if (UEnumProperty* EnumProperty = Cast<UEnumProperty>(Property))
 		{
-			check(EnumProperty->GetUnderlyingProperty()->IsA<TProperty_Numeric<uint8> >());
 			Noesis::TypeEnum* TypeEnum = NoesisCreateTypeEnumForUEnum(EnumProperty->GetEnum());
-			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, TypeEnum, &NoesisStructWrapper::GetProperty<NoesisEnumWrapper>, nullptr, TypePropertyData(EnumProperty->GetUnderlyingProperty()));
+			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, TypeEnum, &NoesisStructWrapper::GetProperty<NoesisEnumWrapper>, nullptr, TypePropertyData(EnumProperty));
 			TypeClassBuilder->AddProperty(TypeProperty);
 		}
 		else if (UByteProperty* ByteProperty = Cast<UByteProperty>(Property))
@@ -1623,9 +1634,8 @@ void UStructTypeFiller(Noesis::Type* Type)
 			}
 			else if (UEnumProperty* EnumInnerProperty = Cast<UEnumProperty>(InnerProperty))
 			{
-				check(EnumInnerProperty->GetUnderlyingProperty()->IsA<TProperty_Numeric<uint8> >());
 				NoesisCreateTypeEnumForUEnum(EnumInnerProperty->GetEnum());
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<NoesisEnumWrapper>, nullptr, TypePropertyData(ArrayProperty, EnumInnerProperty->GetUnderlyingProperty()));
+				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<NoesisEnumWrapper>, nullptr, TypePropertyData(ArrayProperty, EnumInnerProperty));
 				TypeClassBuilder->AddProperty(TypeProperty);
 			}
 			else if (UByteProperty* ByteInnerProperty = Cast<UByteProperty>(InnerProperty))
@@ -1763,9 +1773,8 @@ void UClassTypeFiller(Noesis::Type* Type)
 		}
 		else if (UEnumProperty* EnumProperty = Cast<UEnumProperty>(Property))
 		{
-			check(EnumProperty->GetUnderlyingProperty()->IsA<TProperty_Numeric<uint8> >());
 			Noesis::TypeEnum* TypeEnum = NoesisCreateTypeEnumForUEnum(EnumProperty->GetEnum());
-			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, TypeEnum, &NoesisObjectWrapper::GetProperty<NoesisEnumWrapper>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<NoesisEnumWrapper>, TypePropertyData(EnumProperty->GetUnderlyingProperty()));
+			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, TypeEnum, &NoesisObjectWrapper::GetProperty<NoesisEnumWrapper>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<NoesisEnumWrapper>, TypePropertyData(EnumProperty));
 			TypeClassBuilder->AddProperty(TypeProperty);
 		}
 		else if (UByteProperty* ByteProperty = Cast<UByteProperty>(Property))
@@ -1873,9 +1882,8 @@ void UClassTypeFiller(Noesis::Type* Type)
 			}
 			else if (UEnumProperty* EnumInnerProperty = Cast<UEnumProperty>(InnerProperty))
 			{
-				check(EnumInnerProperty->GetUnderlyingProperty()->IsA<TProperty_Numeric<uint8> >());
 				NoesisCreateTypeEnumForUEnum(EnumInnerProperty->GetEnum());
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<NoesisEnumWrapper>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<NoesisEnumWrapper>, TypePropertyData(ArrayProperty, EnumInnerProperty->GetUnderlyingProperty()));
+				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<NoesisEnumWrapper>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<NoesisEnumWrapper>, TypePropertyData(ArrayProperty, EnumInnerProperty));
 				TypeClassBuilder->AddProperty(TypeProperty);
 			}
 			else if (UByteProperty* ByteInnerProperty = Cast<UByteProperty>(InnerProperty))
@@ -2015,7 +2023,6 @@ void UClassTypeFiller(Noesis::Type* Type)
 			}
 			else if (UEnumProperty* EnumOutParam = Cast<UEnumProperty>(OutParam))
 			{
-				check(EnumOutParam->GetUnderlyingProperty()->IsA<TProperty_Numeric<uint8> >());
 				Noesis::TypeEnum* TypeEnum = NoesisCreateTypeEnumForUEnum(EnumOutParam->GetEnum());
 				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName().RightChop(3)).c_str()), TypeEnum, &NoesisObjectWrapper::GetFunctionProperty<NoesisEnumWrapper>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<NoesisEnumWrapper> : nullptr, TypePropertyData(Function, Setter));
 				TypeClassBuilder->AddProperty(TypeProperty);

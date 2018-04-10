@@ -1122,7 +1122,7 @@ FReply UNoesisInstance::NativeOnMouseButtonUp(const FGeometry& MyGeometry, const
 
 FReply UNoesisInstance::NativeOnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
-	if (XamlView)
+	if (XamlView && !MouseEvent.GetCursorDelta().IsZero()) // Ignore synthetic events that are messing with the tooltip code.
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
 
