@@ -29,3 +29,5 @@ NOESISRUNTIME_API void NoesisNotifyArrayPropertyClear(void*);
 NOESISRUNTIME_API void NoesisNotifyArrayPropertyResize(void*);
 NOESISRUNTIME_API void NoesisNotifyArrayPropertySet(void*, int32);
 NOESISRUNTIME_API void NoesisGarbageCollected();
+void NoesisReflectionRegistryCallback(NsSymbol TypeId, Noesis::ReflectionRegistry* Registry);
+void NoesisRegisterTypes();

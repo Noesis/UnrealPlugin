@@ -10,11 +10,19 @@
 
 // CoreUObject includes
 #include "UObject/TextProperty.h"
+#include "UObject/UObjectIterator.h"
+#include "UObject/UObjectThreadContext.h"
 
 // Engine includes
 #include "Engine/Texture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Engine/Blueprint.h"
+#include "Engine/UserDefinedStruct.h"
+#include "Engine/UserDefinedEnum.h"
+
+// AssetRegistry includes
+#include "AssetRegistryModule.h"
+#include "IAssetRegistry.h"
 
 // NoesisRuntime includes
 #include "NoesisSupport.h"
@@ -31,10 +39,34 @@ TMap<UStruct*, TPair<Noesis::TypeClass*, const char*> > ClassMap;
 TMap<UEnum*, TPair<Noesis::TypeEnum*, const char*> > EnumMap;
 TMap<uint32, class NoesisTypeEnum*> ConverterIdMap;
 TMap<void*, class NoesisArrayWrapperBase*> ArrayMap;
+TMap<FString, FString> RegisterNameMap;
 
 class NoesisObjectWrapper;
 class NoesisStructWrapper;
 class NoesisEnumWrapper;
+
+FString RegisterNameFromPath(FString Path)
+{
+	static FString ProjectName = FApp::GetProjectName();
+
+	check(Path.StartsWith(TEXT("/")));
+	Path = Path.RightChop(1);
+	int32 FirstSlashIndex;
+	Path.FindChar(TEXT('/'), FirstSlashIndex);
+	int32 DotIndex;
+	Path.FindLastChar(TEXT('.'), DotIndex);
+
+	FString RegisterName = ProjectName + TEXT(".");
+	if (!Path.StartsWith(TEXT("Script")))
+	{
+		RegisterName += Path.Left(DotIndex).RightChop(FirstSlashIndex + 1).Replace(TEXT("/"), TEXT("."));
+	}
+	else
+	{
+		RegisterName += Path.RightChop(DotIndex + 1);
+	}
+	return RegisterName;
+}
 
 class NoesisTypeEnum : public Noesis::TypeEnum
 {
@@ -1395,6 +1427,10 @@ public:
 #if WITH_EDITOR
 	FDelegateHandle ChangeDelegateHandle;
 #endif
+
+	UStruct* Class;
+
+	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisTypeClass, Noesis::TypeClass)
 };
 
 Noesis::Type* UClassTypeCreator(const Noesis::TypeInfo& TypeInfo)
@@ -1405,11 +1441,13 @@ Noesis::Type* UClassTypeCreator(const Noesis::TypeInfo& TypeInfo)
 void UStructTypeFiller(Noesis::Type* Type)
 {
 	const char* ClassName = Type->GetName();
-	UScriptStruct* Class = LoadObject<UScriptStruct>(nullptr, *NsStringToFString(ClassName));
+	check(RegisterNameMap.Find(NsStringToFString(ClassName)));
+	UScriptStruct* Class = LoadObject<UScriptStruct>(nullptr, **RegisterNameMap.Find(NsStringToFString(ClassName)));
 
 	const Noesis::TypeClass* ParentType = NoesisStructWrapper::StaticGetClassType();
 
-	Noesis::TypeClass* TypeClass = NsDynamicCast<Noesis::TypeClass*>(Type);
+	NoesisTypeClass* TypeClass = NsDynamicCast<NoesisTypeClass*>(Type);
+	TypeClass->Class = Class;
 	check(TypeClass);
 
 	Noesis::TypeClassBuilder* TypeClassBuilder = (Noesis::TypeClassBuilder*)TypeClass;
@@ -1655,7 +1693,8 @@ void UStructTypeFiller(Noesis::Type* Type)
 void UClassTypeFiller(Noesis::Type* Type)
 {
 	const char* ClassName = Type->GetName();
-	UClass* Class = LoadObject<UClass>(nullptr, *NsStringToFString(ClassName));
+	check(RegisterNameMap.Find(NsStringToFString(ClassName)));
+	UClass* Class = LoadObject<UClass>(nullptr, **RegisterNameMap.Find(NsStringToFString(ClassName)));
 
 	const Noesis::TypeClass* ParentType = NoesisObjectWrapper::StaticGetClassType();
 	UClass* SuperClass = Class->GetSuperClass();
@@ -1664,7 +1703,8 @@ void UClassTypeFiller(Noesis::Type* Type)
 		ParentType = NoesisCreateTypeClassForUClass(SuperClass);
 	}
 
-	Noesis::TypeClass* TypeClass = NsDynamicCast<Noesis::TypeClass*>(Type);
+	NoesisTypeClass* TypeClass = NsDynamicCast<NoesisTypeClass*>(Type);
+	TypeClass->Class = Class;
 	check(TypeClass);
 
 	Noesis::TypeClassBuilder* TypeClassBuilder = (Noesis::TypeClassBuilder*)TypeClass;
@@ -2042,8 +2082,17 @@ void UClassTypeFiller(Noesis::Type* Type)
 
 Noesis::TypeClass* NoesisCreateTypeClassForUClass(UClass* Class)
 {
-	FString ClassName = Class->GetPathName();
-	FName AnsiClassName(TCHARToNsString(*ClassName).c_str());
+	FString ClassName;
+	if (Class->ClassGeneratedBy)
+	{
+		ClassName = Class->ClassGeneratedBy->GetPathName();
+	}
+	else
+	{
+		ClassName = Class->GetPathName();
+	}
+	FName AnsiClassName(TCHARToNsString(*RegisterNameFromPath(ClassName)).c_str());
+	RegisterNameMap.Add(AnsiClassName.ToString(), Class->GetPathName());
 	Noesis::TypeClass* TypeClass = nullptr;
 	if (auto TypeClassPtr = ClassMap.Find(Class))
 	{
@@ -2074,7 +2123,9 @@ Noesis::Type* UEnumTypeCreator(const Noesis::TypeInfo& TypeInfo)
 void UEnumTypeFiller(Noesis::Type* Type)
 {
 	const char* EnumName = Type->GetName();
-	UEnum* Enum = LoadObject<UEnum>(nullptr, *NsStringToFString(EnumName));
+	check(RegisterNameMap.Find(NsStringToFString(EnumName)));
+	UEnum* Enum = LoadObject<UEnum>(nullptr, **RegisterNameMap.Find(NsStringToFString(EnumName)));
+
 
 	Noesis::TypeEnum* TypeEnum = NsDynamicCast<Noesis::TypeEnum*>(Type);
 	check(TypeEnum);
@@ -2103,7 +2154,8 @@ Noesis::BaseComponent* CallbackCreateEnumConverter(NsSymbol Id)
 Noesis::TypeEnum* NoesisCreateTypeEnumForUEnum(UEnum* Enum)
 {
 	FString EnumName = Enum->GetPathName();
-	FName AnsiEnumName(TCHARToNsString(*EnumName).c_str());
+	FName AnsiEnumName(TCHARToNsString(*RegisterNameFromPath(EnumName)).c_str());
+	RegisterNameMap.Add(AnsiEnumName.ToString(), EnumName);
 	Noesis::TypeEnum* TypeEnum = nullptr;
 	if (auto TypeEnumPtr = EnumMap.Find(Enum))
 	{
@@ -2178,7 +2230,9 @@ void NoesisDestroyAllTypes()
 
 void AssignStruct(void* BasePointer, UStructProperty* StructProperty, Noesis::BaseComponent* Value)
 {
-	check(Value->GetClassType() == NoesisStructWrapper::StaticGetClassType());
+	check(Value->GetClassType()->IsDescendantOf(NoesisStructWrapper::StaticGetClassType()));
+	check(NsDynamicCast<const NoesisTypeClass*>(Value->GetClassType()));
+	check(((NoesisTypeClass*)Value->GetClassType())->Class == StructProperty->Struct);
 
 	void* Dest = StructProperty->ContainerPtrToValuePtr<void>(BasePointer);
 	void* Src = ((NoesisStructWrapper*)Value) + 1;
@@ -2188,7 +2242,8 @@ void AssignStruct(void* BasePointer, UStructProperty* StructProperty, Noesis::Ba
 Noesis::TypeClass* NoesisCreateTypeClassForUStruct(UScriptStruct* Class)
 {
 	FString ClassName = Class->GetPathName();
-	FName AnsiClassName(TCHARToNsString(*ClassName).c_str());
+	FName AnsiClassName(TCHARToNsString(*RegisterNameFromPath(ClassName)).c_str());
+	RegisterNameMap.Add(AnsiClassName.ToString(), ClassName);
 	Noesis::TypeClass* TypeClass = nullptr;
 	if (auto TypeClassPtr = ClassMap.Find(Class))
 	{
@@ -2410,5 +2465,102 @@ void NoesisGarbageCollected()
 			Noesis::TypeRegister::Unregister(ClassTypeClassPair.Value.Key);
 			It.RemoveCurrent();
 		}
+	}
+}
+
+void NoesisReflectionRegistryCallback(NsSymbol TypeId, Noesis::ReflectionRegistry* Registry)
+{
+	const char* TypeName = TypeId.GetStr();
+	FString* ObjectPath = RegisterNameMap.Find(NsStringToFString(TypeName));
+	if (!ObjectPath)
+	{
+		NoesisRegisterTypes();
+		ObjectPath = RegisterNameMap.Find(NsStringToFString(TypeName));
+		if (!ObjectPath)
+		{
+			return;
+		}
+	}
+
+	UObject* Object = LoadObject<UObject>(nullptr, **ObjectPath);
+	if (!Object)
+	{
+		return;
+	}
+	if (Object->IsA<UClass>())
+	{
+		NoesisCreateTypeClassForUClass((UClass*)Object);
+	}
+	else if (Object->IsA<UScriptStruct>())
+	{
+		NoesisCreateTypeClassForUStruct((UScriptStruct*)Object);
+	}
+	else if (Object->IsA<UEnum>())
+	{
+		NoesisCreateTypeEnumForUEnum((UEnum*)Object);
+	}
+}
+
+void NoesisRegisterTypes()
+{
+	RegisterNameMap.Empty();
+
+	for (TObjectIterator<UClass> It; It; ++It)
+	{
+		UClass* Class = *It;
+		if (Class->ClassGeneratedBy)
+		{
+			UBlueprint* Blueprint = Cast<UBlueprint>(Class->ClassGeneratedBy);
+
+			FString RegisterName = RegisterNameFromPath(Blueprint->GetPathName());
+			RegisterNameMap.Add(RegisterName, Class->GetPathName());
+		}
+		else
+		{
+			FString RegisterName = RegisterNameFromPath(Class->GetPathName());
+			RegisterNameMap.Add(RegisterName, Class->GetPathName());
+		}
+	}
+
+	for (TObjectIterator<UScriptStruct> It; It; ++It)
+	{
+		UScriptStruct* Struct = *It;
+
+		FString RegisterName = RegisterNameFromPath(Struct->GetPathName());
+		RegisterNameMap.Add(RegisterName, Struct->GetPathName());
+	}
+
+	for (TObjectIterator<UEnum> It; It; ++It)
+	{
+		UEnum* Enum = *It;
+
+		FString RegisterName = RegisterNameFromPath(Enum->GetPathName());
+		RegisterNameMap.Add(RegisterName, Enum->GetPathName());
+	}
+
+	IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry").Get();
+	TArray<FAssetData> Assets;
+
+	AssetRegistry.GetAssetsByClass(UBlueprint::StaticClass()->GetFName(), Assets, true);
+	for (auto Asset : Assets)
+	{
+		FString RegisterName = RegisterNameFromPath(Asset.ObjectPath.ToString());
+		RegisterNameMap.Add(RegisterName, Asset.ObjectPath.ToString() + TEXT("_C"));
+	}
+
+	Assets.Empty();
+	AssetRegistry.GetAssetsByClass(UUserDefinedStruct::StaticClass()->GetFName(), Assets, true);
+	for (auto Asset : Assets)
+	{
+		FString RegisterName = RegisterNameFromPath(Asset.ObjectPath.ToString());
+		RegisterNameMap.Add(RegisterName, Asset.ObjectPath.ToString());
+	}
+
+	Assets.Empty();
+	AssetRegistry.GetAssetsByClass(UUserDefinedEnum::StaticClass()->GetFName(), Assets, true);
+	for (auto Asset : Assets)
+	{
+		FString RegisterName = RegisterNameFromPath(Asset.ObjectPath.ToString());
+		RegisterNameMap.Add(RegisterName, Asset.ObjectPath.ToString());
 	}
 }

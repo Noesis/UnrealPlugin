@@ -104,7 +104,7 @@ void OnAssetRenamed(const FAssetData&, const FString&)
 }
 #endif
 
-void AddOnBlueprintPreCompileDelegate()
+void OnPostEngineInit()
 {
 #if WITH_EDITOR
 	if (GEditor)
@@ -122,6 +122,8 @@ void AddOnBlueprintPreCompileDelegate()
 	// Workaround: Standalone mode doesn't load the editor modules, so blueprints that use the set and notify don't work correctly.
 	FModuleManager::Get().LoadModule("NoesisEditor");
 #endif
+
+	NoesisRegisterTypes();
 }
 
 void ShowTextBoxVirtualKeyboard(Noesis::TextBox*);
@@ -346,11 +348,15 @@ public:
 
 		PostGarbageCollectConditionalBeginDestroyDelegateHandle = FCoreUObjectDelegates::PostGarbageCollectConditionalBeginDestroy.AddStatic(NoesisGarbageCollected);
 
-		PostEngineInitDelegateHandle = FCoreDelegates::OnPostEngineInit.AddStatic(AddOnBlueprintPreCompileDelegate);
+		PostEngineInitDelegateHandle = FCoreDelegates::OnPostEngineInit.AddStatic(OnPostEngineInit);
+
+		NsGetKernel()->GetReflectionRegistry()->SetFallbackHandler(&NoesisReflectionRegistryCallback);
 	}
 
 	virtual void ShutdownModule() override
 	{
+		NsGetKernel()->GetReflectionRegistry()->SetFallbackHandler(nullptr);
+
 		FCoreDelegates::OnPostEngineInit.Remove(PostEngineInitDelegateHandle);
 
 		FCoreUObjectDelegates::PostGarbageCollectConditionalBeginDestroy.Remove(PostGarbageCollectConditionalBeginDestroyDelegateHandle);
