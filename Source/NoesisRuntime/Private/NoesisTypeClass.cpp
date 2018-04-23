@@ -2503,8 +2503,6 @@ void NoesisReflectionRegistryCallback(NsSymbol TypeId, Noesis::ReflectionRegistr
 
 void NoesisRegisterTypes()
 {
-	RegisterNameMap.Empty();
-
 	for (TObjectIterator<UClass> It; It; ++It)
 	{
 		UClass* Class = *It;
