@@ -37,6 +37,30 @@ static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* De
 	UE_LOG(LogNoesis, Warning, TEXT("%s"), *NsStringToFString(Desc));
 }
 
+DECLARE_DWORD_COUNTER_STAT(TEXT("NoesisMemory"), STAT_NoesisMemory, STATGROUP_Noesis);
+class NoesisMemoryAllocator : public Noesis::MemoryAllocator
+{
+public:
+
+	virtual void* Alloc(SIZE_T Size) override
+	{
+		void* Result = FMemory::Malloc(Size);
+		INC_DWORD_STAT_BY(STAT_NoesisMemory, FMemory::GetAllocSize(Result));
+		return Result;
+	}
+
+	virtual void* Realloc(void* Ptr, SIZE_T Size) override
+	{
+		return FMemory::Realloc(Ptr, Size);
+	}
+
+	virtual void Dealloc(void* Ptr)
+	{
+		DEC_DWORD_STAT_BY(STAT_NoesisMemory, FMemory::GetAllocSize(Ptr));
+		FMemory::Free(Ptr);
+	}
+};
+
 static void NoesisLogHandler(const char* File, uint32_t Line, uint32_t Level, const char* Channel, const char* Message)
 {
 	if (UObjectInitialized())
@@ -333,7 +357,7 @@ public:
 	// IModuleInterface interface
 	virtual void StartupModule() override
 	{
-		Noesis::GUI::Init(&NoesisErrorHandler, &NoesisLogHandler);
+		Noesis::GUI::Init(&NoesisErrorHandler, &NoesisLogHandler, &Allocator);
 
 		NoesisResourceProvider = new FNoesisResourceProvider();
 		Noesis::GUI::SetXamlProvider(NoesisResourceProvider);
@@ -384,6 +408,7 @@ public:
 	FNoesisResourceProvider* NoesisResourceProvider;
 	FDelegateHandle PostGarbageCollectConditionalBeginDestroyDelegateHandle;
 	FDelegateHandle PostEngineInitDelegateHandle;
+	NoesisMemoryAllocator Allocator;
 };
 
 INoesisRuntimeModuleInterface* FNoesisRuntimeModule::NoesisRuntimeModuleInterface = 0;

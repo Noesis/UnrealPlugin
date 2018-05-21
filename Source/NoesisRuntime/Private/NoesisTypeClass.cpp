@@ -34,6 +34,17 @@
 // Noesis includes
 #include "NoesisSDK.h"
 
+DECLARE_CYCLE_STAT(TEXT("NoesisNotifyPropertyChanged"), STAT_NoesisNotifyPropertyChanged, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertyAdd"), STAT_NoesisNotifyArrayPropertyAdd, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertyChanged"), STAT_NoesisNotifyArrayPropertyChanged, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertyAppend"), STAT_NoesisNotifyArrayPropertyAppend, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertyInsert"), STAT_NoesisNotifyArrayPropertyInsert, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertyRemove"), STAT_NoesisNotifyArrayPropertyRemove, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertyClear"), STAT_NoesisNotifyArrayPropertyClear, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertyResize"), STAT_NoesisNotifyArrayPropertyResize, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertySet"), STAT_NoesisNotifyArrayPropertySet, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisGarbageCollected"), STAT_NoesisGarbageCollected, STATGROUP_Noesis);
+
 TMap<UObject*, Noesis::Ptr<Noesis::BaseComponent> > ObjectMap;
 TMap<UStruct*, TPair<Noesis::TypeClass*, const char*> > ClassMap;
 TMap<UEnum*, TPair<Noesis::TypeEnum*, const char*> > EnumMap;
@@ -269,7 +280,7 @@ void SetProperty<Noesis::Point>(void* BasePointer, UProperty* Property, Noesis::
 	{
 		check(Property->IsA<UStructProperty>());
 		UStructProperty* StructProperty = (UStructProperty*)Property;
-		check(StructProperty->Struct->GetFName() == NAME_Color);
+		check(StructProperty->Struct->GetFName() == NAME_Vector2D);
 		Noesis::Point UnboxedValue = Noesis::Boxing::Unbox<Noesis::Point>(BoxedValue);
 		*StructProperty->ContainerPtrToValuePtr<FVector2D>(BasePointer) = FVector2D(UnboxedValue.x, UnboxedValue.y);
 	}
@@ -293,7 +304,7 @@ void SetProperty<Noesis::Rect>(void* BasePointer, UProperty* Property, Noesis::B
 	{
 		check(Property->IsA<UStructProperty>());
 		UStructProperty* StructProperty = (UStructProperty*)Property;
-		check(StructProperty->Struct->GetFName() == NAME_Color);
+		check(StructProperty->Struct->GetName() == TEXT("NoesisRect"));
 		Noesis::Rect UnboxedValue = Noesis::Boxing::Unbox<Noesis::Rect>(BoxedValue);
 		*StructProperty->ContainerPtrToValuePtr<FNoesisRect>(BasePointer) = FNoesisRect(UnboxedValue);
 	}
@@ -304,7 +315,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::Size>(void* BasePointer, 
 {
 	check(Property->IsA<UStructProperty>());
 	UStructProperty* StructProperty = (UStructProperty*)Property;
-	check(StructProperty->Struct->GetName() == TEXT("NoesisRect"));
+	check(StructProperty->Struct->GetName() == TEXT("NoesisSize"));
 	const FNoesisSize& Value = *StructProperty->ContainerPtrToValuePtr<FNoesisSize>(BasePointer);
 	return Noesis::Boxing::Box<Noesis::Size>(Value.ToNoesis());
 }
@@ -317,7 +328,7 @@ void SetProperty<Noesis::Size>(void* BasePointer, UProperty* Property, Noesis::B
 	{
 		check(Property->IsA<UStructProperty>());
 		UStructProperty* StructProperty = (UStructProperty*)Property;
-		check(StructProperty->Struct->GetFName() == NAME_Color);
+		check(StructProperty->Struct->GetName() == TEXT("NoesisSize"));
 		Noesis::Size UnboxedValue = Noesis::Boxing::Unbox<Noesis::Size>(BoxedValue);
 		*StructProperty->ContainerPtrToValuePtr<FNoesisSize>(BasePointer) = FNoesisSize(UnboxedValue);
 	}
@@ -328,7 +339,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::Thickness>(void* BasePoin
 {
 	check(Property->IsA<UStructProperty>());
 	UStructProperty* StructProperty = (UStructProperty*)Property;
-	check(StructProperty->Struct->GetName() == TEXT("NoesisRect"));
+	check(StructProperty->Struct->GetName() == TEXT("NoesisThickness"));
 	const FNoesisThickness& Value = *StructProperty->ContainerPtrToValuePtr<FNoesisThickness>(BasePointer);
 	return Noesis::Boxing::Box<Noesis::Thickness>(Value.ToNoesis());
 }
@@ -341,7 +352,7 @@ void SetProperty<Noesis::Thickness>(void* BasePointer, UProperty* Property, Noes
 	{
 		check(Property->IsA<UStructProperty>());
 		UStructProperty* StructProperty = (UStructProperty*)Property;
-		check(StructProperty->Struct->GetFName() == NAME_Color);
+		check(StructProperty->Struct->GetName() == TEXT("NoesisThickness"));
 		Noesis::Thickness UnboxedValue = Noesis::Boxing::Unbox<Noesis::Thickness>(BoxedValue);
 		*StructProperty->ContainerPtrToValuePtr<FNoesisThickness>(BasePointer) = FNoesisThickness(UnboxedValue);
 	}
@@ -352,7 +363,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::CornerRadius>(void* BaseP
 {
 	check(Property->IsA<UStructProperty>());
 	UStructProperty* StructProperty = (UStructProperty*)Property;
-	check(StructProperty->Struct->GetName() == TEXT("NoesisRect"));
+	check(StructProperty->Struct->GetName() == TEXT("NoesisCornerRadius"));
 	const FNoesisCornerRadius& Value = *StructProperty->ContainerPtrToValuePtr<FNoesisCornerRadius>(BasePointer);
 	return Noesis::Boxing::Box<Noesis::CornerRadius>(Value.ToNoesis());
 }
@@ -365,7 +376,7 @@ void SetProperty<Noesis::CornerRadius>(void* BasePointer, UProperty* Property, N
 	{
 		check(Property->IsA<UStructProperty>());
 		UStructProperty* StructProperty = (UStructProperty*)Property;
-		check(StructProperty->Struct->GetFName() == NAME_Color);
+		check(StructProperty->Struct->GetName() == TEXT("NoesisCornerRadius"));
 		Noesis::CornerRadius UnboxedValue = Noesis::Boxing::Unbox<Noesis::CornerRadius>(BoxedValue);
 		*StructProperty->ContainerPtrToValuePtr<FNoesisCornerRadius>(BasePointer) = FNoesisCornerRadius(UnboxedValue);
 	}
@@ -376,7 +387,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::TimeSpan>(void* BasePoint
 {
 	check(Property->IsA<UStructProperty>());
 	UStructProperty* StructProperty = (UStructProperty*)Property;
-	check(StructProperty->Struct->GetName() == TEXT("NoesisRect"));
+	check(StructProperty->Struct->GetName() == TEXT("NoesisTimeSpan"));
 	const FNoesisTimeSpan& Value = *StructProperty->ContainerPtrToValuePtr<FNoesisTimeSpan>(BasePointer);
 	return Noesis::Boxing::Box<Noesis::TimeSpan>(Value.ToNoesis());
 }
@@ -389,7 +400,7 @@ void SetProperty<Noesis::TimeSpan>(void* BasePointer, UProperty* Property, Noesi
 	{
 		check(Property->IsA<UStructProperty>());
 		UStructProperty* StructProperty = (UStructProperty*)Property;
-		check(StructProperty->Struct->GetFName() == NAME_Color);
+		check(StructProperty->Struct->GetName() == TEXT("NoesisTimeSpan"));
 		Noesis::TimeSpan UnboxedValue = Noesis::Boxing::Unbox<Noesis::TimeSpan>(BoxedValue);
 		*StructProperty->ContainerPtrToValuePtr<FNoesisTimeSpan>(BasePointer) = FNoesisTimeSpan(UnboxedValue);
 	}
@@ -400,7 +411,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::Duration>(void* BasePoint
 {
 	check(Property->IsA<UStructProperty>());
 	UStructProperty* StructProperty = (UStructProperty*)Property;
-	check(StructProperty->Struct->GetName() == TEXT("NoesisRect"));
+	check(StructProperty->Struct->GetName() == TEXT("NoesisDuration"));
 	const FNoesisDuration& Value = *StructProperty->ContainerPtrToValuePtr<FNoesisDuration>(BasePointer);
 	return Noesis::Boxing::Box<Noesis::Duration>(Value.ToNoesis());
 }
@@ -413,7 +424,7 @@ void SetProperty<Noesis::Duration>(void* BasePointer, UProperty* Property, Noesi
 	{
 		check(Property->IsA<UStructProperty>());
 		UStructProperty* StructProperty = (UStructProperty*)Property;
-		check(StructProperty->Struct->GetFName() == NAME_Color);
+		check(StructProperty->Struct->GetName() == TEXT("NoesisDuration"));
 		Noesis::Duration UnboxedValue = Noesis::Boxing::Unbox<Noesis::Duration>(BoxedValue);
 		*StructProperty->ContainerPtrToValuePtr<FNoesisDuration>(BasePointer) = FNoesisDuration(UnboxedValue);
 	}
@@ -424,7 +435,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::KeyTime>(void* BasePointe
 {
 	check(Property->IsA<UStructProperty>());
 	UStructProperty* StructProperty = (UStructProperty*)Property;
-	check(StructProperty->Struct->GetName() == TEXT("NoesisRect"));
+	check(StructProperty->Struct->GetName() == TEXT("NoesisKeyTime"));
 	const FNoesisKeyTime& Value = *StructProperty->ContainerPtrToValuePtr<FNoesisKeyTime>(BasePointer);
 	return Noesis::Boxing::Box<Noesis::KeyTime>(Value.ToNoesis());
 }
@@ -437,7 +448,7 @@ void SetProperty<Noesis::KeyTime>(void* BasePointer, UProperty* Property, Noesis
 	{
 		check(Property->IsA<UStructProperty>());
 		UStructProperty* StructProperty = (UStructProperty*)Property;
-		check(StructProperty->Struct->GetFName() == NAME_Color);
+		check(StructProperty->Struct->GetName() == TEXT("NoesisKeyTime"));
 		Noesis::KeyTime UnboxedValue = Noesis::Boxing::Unbox<Noesis::KeyTime>(BoxedValue);
 		*StructProperty->ContainerPtrToValuePtr<FNoesisKeyTime>(BasePointer) = FNoesisKeyTime(UnboxedValue);
 	}
@@ -840,18 +851,18 @@ public:
 
 	void NotifyAdd()
 	{
-		uint32 Index = ArrayHelper.Num() - 1;
+		uint32 Index = NativeSize() - 1;
 		NotifyInsert(Index);
 	}
 
 	void NotifyInsert(uint32 Index)
 	{
-		if (Index > (uint32)ComponentArray.Num())
+		if (Index >= (uint32)ComponentArray.Num())
 		{
-			ComponentArray.SetNum(Index);
+			ComponentArray.SetNum(Index + 1);
 		}
 		Noesis::Ptr<Noesis::BaseComponent> Item = NativeGet(Index);
-		ComponentArray.Insert(Item, Index);
+		ComponentArray[Index] = Item;
 
 		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs(Noesis::NotifyCollectionChangedAction_Add, -1, Index, nullptr, Item.GetPtr());
 		CollectionChangedHandler(this, CollectionChangedArgs);
@@ -883,7 +894,7 @@ public:
 	{
 		if (Index >= (uint32)ComponentArray.Num())
 		{
-			ComponentArray.SetNum(Index);
+			ComponentArray.SetNum(Index + 1);
 		}
 		Noesis::Ptr<Noesis::BaseComponent> Item = ComponentArray[Index];
 		ComponentArray.RemoveAt(Index);
@@ -894,21 +905,18 @@ public:
 
 	void NotifyChanged()
 	{
-		ComponentArray.Empty();
-
-		for (int32 Index = 0; Index != NativeSize(); ++Index)
+		uint32 Count = FMath::Min(NativeSize(), (uint32)ComponentArray.Num());
+		for (int32 Index = 0; Index != Count; ++Index)
 		{
-			Noesis::Ptr<Noesis::BaseComponent> Item = NativeGet(Index);
-			ComponentArray.Add(Item);
+			NotifySet(Index);
 		}
 
-		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs(Noesis::NotifyCollectionChangedAction_Reset, -1, -1, nullptr, nullptr);
-		CollectionChangedHandler(this, CollectionChangedArgs);
+		NotifyResize();
 	}
 
 	void NotifyAppend(uint32 NumItems)
 	{
-		uint32 Count = ArrayHelper.Num();
+		uint32 Count = NativeSize();
 		for (uint32 Index = Count - NumItems; Index != Count; ++Index)
 		{
 			NotifyInsert(Index);
@@ -917,7 +925,7 @@ public:
 
 	void NotifyResize()
 	{
-		uint32 Count = ArrayHelper.Num();
+		uint32 Count = NativeSize();
 		while ((uint32)ComponentArray.Num() < Count)
 		{
 			NotifyInsert((uint32)ComponentArray.Num());
@@ -925,7 +933,7 @@ public:
 
 		while ((uint32)ComponentArray.Num() > Count)
 		{
-			NotifyRemoveAt((uint32)ComponentArray.Num());
+			NotifyRemoveAt((uint32)ComponentArray.Num() - 1);
 		}
 	}
 
@@ -1125,21 +1133,10 @@ public:
 	template<class T>
 	Noesis::Ptr<Noesis::BaseComponent> GetArrayProperty(const TypePropertyData& Data) const
 	{
-		auto ListPtr = ArrayToList.Find(Data.ArrayProperty);
-		if (ListPtr)
-		{
-			return *ListPtr;
-		}
-
-		Noesis::Ptr<Noesis::BaseComponent> Wrapper = *new NoesisValueArrayWrapper<T>(BasePointer, Data.ArrayProperty, Data.ArrayInnerProperty);
-		ArrayToList.Add(Data.ArrayProperty, Wrapper);
-		return Wrapper;
+		return *new NoesisValueArrayWrapper<T>(BasePointer, Data.ArrayProperty, Data.ArrayInnerProperty);
 	}
 
 public:
-	Noesis::PropertyChangedEventHandler PropertyChangedHandler;
-	mutable TMap<UFunction*, Noesis::Ptr<Noesis::BaseComponent> > FunctionToCommand;
-	mutable TMap<UArrayProperty*, Noesis::Ptr<Noesis::BaseComponent> > ArrayToList;
 	Noesis::TypeClass* TypeClass;
 	UScriptStruct* Struct;
 	void* BasePointer;
@@ -2326,9 +2323,20 @@ NOESISRUNTIME_API UObject* NoesisCreateUObjectForComponent(Noesis::BaseComponent
 	return BaseComponent;
 }
 
-void NoesisNotifyPropertyChanged(UObject* Owner, FName PropertyName)
+NOESISRUNTIME_API void NoesisCopyUStructFromComponent(UScriptStruct* Struct, Noesis::BaseComponent* Component, void* Dest)
 {
-	Noesis::Ptr<Noesis::BaseComponent>* WrapperPtr = ObjectMap.Find(Owner);
+	check(Component->GetClassType()->IsDescendantOf(NoesisStructWrapper::StaticGetClassType()));
+	check(NsDynamicCast<const NoesisTypeClass*>(Component->GetClassType()));
+	check(((NoesisTypeClass*)Component->GetClassType())->Class == Struct);
+
+	void* Src = ((NoesisStructWrapper*)Component) + 1;
+	Struct->CopyScriptStruct(Dest, Src, 1);
+}
+
+ void NoesisNotifyPropertyChanged(UObject* Owner, FName PropertyName)
+{
+	 SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyPropertyChanged);
+	 Noesis::Ptr<Noesis::BaseComponent>* WrapperPtr = ObjectMap.Find(Owner);
 	if (WrapperPtr)
 	{
 		NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)WrapperPtr->GetPtr();
@@ -2338,6 +2346,7 @@ void NoesisNotifyPropertyChanged(UObject* Owner, FName PropertyName)
 
 void NoesisNotifyArrayPropertyChanged(UObject* Owner, FName ArrayPropertyName)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyChanged);
 	Noesis::Ptr<Noesis::BaseComponent>* WrapperPtr = ObjectMap.Find(Owner);
 	if (WrapperPtr)
 	{
@@ -2357,6 +2366,7 @@ void NoesisNotifyArrayPropertyChanged(UObject* Owner, FName ArrayPropertyName)
 
 void NoesisNotifyArrayPropertyAdd(void* ArrayPointer)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyAdd);
 	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
@@ -2367,6 +2377,7 @@ void NoesisNotifyArrayPropertyAdd(void* ArrayPointer)
 
 void NoesisNotifyArrayPropertyChanged(void* ArrayPointer)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyChanged);
 	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
@@ -2377,6 +2388,7 @@ void NoesisNotifyArrayPropertyChanged(void* ArrayPointer)
 
 void NoesisNotifyArrayPropertyAppend(void* ArrayPointer, int32 NumItems)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyAppend);
 	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
@@ -2387,6 +2399,7 @@ void NoesisNotifyArrayPropertyAppend(void* ArrayPointer, int32 NumItems)
 
 void NoesisNotifyArrayPropertyInsert(void* ArrayPointer, int32 Index)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyInsert);
 	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
@@ -2397,6 +2410,7 @@ void NoesisNotifyArrayPropertyInsert(void* ArrayPointer, int32 Index)
 
 void NoesisNotifyArrayPropertyRemove(void* ArrayPointer, int32 Index)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyRemove);
 	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
@@ -2407,6 +2421,7 @@ void NoesisNotifyArrayPropertyRemove(void* ArrayPointer, int32 Index)
 
 void NoesisNotifyArrayPropertyClear(void* ArrayPointer)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyClear);
 	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
@@ -2417,6 +2432,7 @@ void NoesisNotifyArrayPropertyClear(void* ArrayPointer)
 
 void NoesisNotifyArrayPropertyResize(void* ArrayPointer)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyResize);
 	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
@@ -2427,6 +2443,7 @@ void NoesisNotifyArrayPropertyResize(void* ArrayPointer)
 
 void NoesisNotifyArrayPropertySet(void* ArrayPointer, int32 Index)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertySet);
 	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
@@ -2448,6 +2465,7 @@ void NoesisDeleteMaps()
 
 void NoesisGarbageCollected()
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisGarbageCollected);
 	for (auto It = ObjectMap.CreateIterator(); It; ++It)
 	{
 		auto& ObjectComponentPair = *It;

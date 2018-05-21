@@ -32,6 +32,21 @@
 #include "NoesisXaml.h"
 #include "NoesisSupport.h"
 
+DECLARE_CYCLE_STAT(TEXT("NoesisInstance::Update"), STAT_NoesisInstance_Update, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisInstance::DrawOffscreen_RenderThread"), STAT_NoesisInstance_DrawOffscreen, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisInstance::Draw_RenderThread"), STAT_NoesisInstance_Draw, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnKeyChar"), STAT_NoesisInstance_OnKeyChar, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnKeyDown"), STAT_NoesisInstance_OnKeyDown, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnKeyUp"), STAT_NoesisInstance_OnKeyUp, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnMouseButtonDown"), STAT_NoesisInstance_OnMouseButtonDown, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnMouseButtonUp"), STAT_NoesisInstance_OnMouseButtonUp, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnMouseMove"), STAT_NoesisInstance_OnMouseMove, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnMouseWheel"), STAT_NoesisInstance_OnMouseWheel, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnTouchStarted"), STAT_NoesisInstance_OnTouchStarted, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnTouchMoved"), STAT_NoesisInstance_OnTouchMoved, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnTouchEnded"), STAT_NoesisInstance_OnTouchEnded, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnMouseButtonDoubleClick"), STAT_NoesisInstance_OnMouseButtonDoubleClick, STATGROUP_Noesis);
+
 class FNoesisSlateElement : public ICustomSlateElement
 {
 public:
@@ -314,6 +329,7 @@ void UNoesisInstance::ExecuteConsoleCommand(FString Command, class APlayerContro
 
 void UNoesisInstance::Update(float InLeft, float InTop, float InWidth, float InHeight)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Update);
 	Left = InLeft;
 	Top = InTop;
 	Width = InWidth;
@@ -330,6 +346,7 @@ void UNoesisInstance::Update(float InLeft, float InTop, float InWidth, float InH
 
 void UNoesisInstance::DrawOffscreen_RenderThread(FRHICommandListImmediate& RHICmdList, FTexture2DRHIParamRef BackBuffer, FTexture2DRHIParamRef DepthStencilTarget)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_DrawOffscreen);
 	if (XamlView)
 	{
 		SCOPED_DRAW_EVENT(RHICmdList, NoesisDrawOffscreen);
@@ -346,6 +363,7 @@ void UNoesisInstance::DrawOffscreen_RenderThread(FRHICommandListImmediate& RHICm
 
 void UNoesisInstance::Draw_RenderThread(FRHICommandListImmediate& RHICmdList, FTexture2DRHIParamRef BackBuffer, FTexture2DRHIParamRef DepthStencilTarget)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
 	if (XamlView)
 	{
 		SCOPED_DRAW_EVENT(RHICmdList, NoesisDraw);
@@ -565,6 +583,7 @@ void UNoesisInstance::NativePaint(FPaintContext& InContext) const
 
 FReply UNoesisInstance::NativeOnKeyChar(const FGeometry& MyGeometry, const FCharacterEvent& CharacterEvent)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_OnKeyChar);
 	if (XamlView)
 	{
 		TCHAR Character = CharacterEvent.GetCharacter();
@@ -1020,6 +1039,7 @@ Noesis::Key KeyToNoesisKey(FKey Key)
 
 FReply UNoesisInstance::NativeOnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& KeyEvent)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_OnKeyDown);
 	if (XamlView)
 	{
 		FKey Key = KeyEvent.GetKey();
@@ -1032,6 +1052,7 @@ FReply UNoesisInstance::NativeOnKeyDown(const FGeometry& MyGeometry, const FKeyE
 
 FReply UNoesisInstance::NativeOnKeyUp(const FGeometry& MyGeometry, const FKeyEvent& KeyEvent)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_OnKeyUp);
 	if (XamlView)
 	{
 		FKey Key = KeyEvent.GetKey();
@@ -1044,6 +1065,7 @@ FReply UNoesisInstance::NativeOnKeyUp(const FGeometry& MyGeometry, const FKeyEve
 
 FReply UNoesisInstance::NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_OnMouseButtonDown);
 	if (XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
@@ -1083,6 +1105,7 @@ FReply UNoesisInstance::NativeOnMouseButtonDown(const FGeometry& MyGeometry, con
 
 FReply UNoesisInstance::NativeOnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_OnMouseButtonUp);
 	if (XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
@@ -1122,6 +1145,7 @@ FReply UNoesisInstance::NativeOnMouseButtonUp(const FGeometry& MyGeometry, const
 
 FReply UNoesisInstance::NativeOnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_OnMouseMove);
 	if (XamlView && !MouseEvent.GetCursorDelta().IsZero()) // Ignore synthetic events that are messing with the tooltip code.
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
@@ -1139,6 +1163,7 @@ FReply UNoesisInstance::NativeOnMouseMove(const FGeometry& MyGeometry, const FPo
 
 FReply UNoesisInstance::NativeOnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_OnMouseWheel);
 	if (XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
@@ -1157,6 +1182,7 @@ FReply UNoesisInstance::NativeOnMouseWheel(const FGeometry& MyGeometry, const FP
 
 FReply UNoesisInstance::NativeOnTouchStarted(const FGeometry& MyGeometry, const FPointerEvent& TouchEvent)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_OnTouchStarted);
 	if (XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(TouchEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
@@ -1175,6 +1201,7 @@ FReply UNoesisInstance::NativeOnTouchStarted(const FGeometry& MyGeometry, const 
 
 FReply UNoesisInstance::NativeOnTouchMoved(const FGeometry& MyGeometry, const FPointerEvent& TouchEvent)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_OnTouchMoved);
 	if (XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(TouchEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
@@ -1193,6 +1220,7 @@ FReply UNoesisInstance::NativeOnTouchMoved(const FGeometry& MyGeometry, const FP
 
 FReply UNoesisInstance::NativeOnTouchEnded(const FGeometry& MyGeometry, const FPointerEvent& TouchEvent)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_OnTouchEnded);
 	if (XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(TouchEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
@@ -1216,6 +1244,7 @@ FCursorReply UNoesisInstance::NativeOnCursorQuery(const FGeometry& MyGeometry, c
 
 FReply UNoesisInstance::NativeOnMouseButtonDoubleClick(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
+	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_OnMouseButtonDoubleClick);
 	if (XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
