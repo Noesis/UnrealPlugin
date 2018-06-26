@@ -42,7 +42,7 @@ In order to use NoesisGUI in your UE4 project, you're going to need:
 
 * The NoesisGUI SDK version 2.1. You can download it from [our website](https://noesisengine.com).
 
-* Python 2.7 with some additional modules to run the installation script.
+* Python with some additional modules to run the installation script (tested with Python 2.7 and 3.6).
 
 ## Setup
 
@@ -57,7 +57,7 @@ You can use the NoesisGUI Unreal Engine plugin as either an Engine plugin or a P
 ![Installed Engine version options](https://noesis.github.io/NoesisGUI/UE4Plugin/VersionOptions.png)
 ![Engine Source installed](https://noesis.github.io/NoesisGUI/UE4Plugin/EngineSource.png)
 
-2. Download and install Python 2.7. Additionally, you need to install the following modules: `configparser` (both on Windows and Mac), `pywin32` (on Windows) and `pyobjc` (on Mac). If you're not sure how to do this, for your convenience we provide `InstallPythonPrerequisites.bat` and `InstallPythonPrerequisites.command` that will check these prerequisites and will install the required packages for you. Please, read the following section [Plugin installation](#plugin-installation) for more details.
+2. Download and install Python. Additionally, you need to install the following modules: `configparser` (both on Windows and Mac), `pywin32` (on Windows) and `pyobjc` (on Mac). If you're not sure how to do this, for your convenience we provide `InstallPythonPrerequisites.bat` and `InstallPythonPrerequisites.command` that will check these prerequisites and will install the required packages for you. Please, read the following section [Plugin installation](#plugin-installation) for more details. The installation scripts have been tested with Python 2.7 and 3.6. Other versions may work, but they are untested.
 
 ### Plugin installation
 

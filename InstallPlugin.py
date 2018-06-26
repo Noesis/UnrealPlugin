@@ -11,11 +11,11 @@ import collections
 scriptPath = os.path.realpath(os.getcwd())
 pluginFile = os.path.join(scriptPath, "NoesisGUI.uplugin")
 if not os.path.isfile(pluginFile):
-	print "This script must be run from the NoesisGUI plugin directory. Exiting..."
+	print("This script must be run from the NoesisGUI plugin directory. Exiting...")
 	exit(1)
 
 if not os.path.isfile(os.path.join(scriptPath, "Source", "Noesis", "NoesisSDK", "Include", "Noesis_pch.h")):
-	print "You must install the NoesisGUI native SDK in Source/Noesis/NoesisSDK. Exiting..."
+	print("You must install the NoesisGUI native SDK in Source/Noesis/NoesisSDK. Exiting...")
 	exit(1)
 
 if platform.platform().startswith("Windows"):
@@ -28,7 +28,7 @@ allInstallations = collections.OrderedDict()
 try:
 	import configparser
 except:
-	print "Module configparser not installed. Exiting..."
+	print("Module configparser not installed. Exiting...")
 	exit(1)
 
 if hostPlatform == "Win64":
@@ -36,29 +36,23 @@ if hostPlatform == "Win64":
 		import win32api
 		import win32con
 	except:
-		print "Module pywin32 not installed. Exiting..."
+		print("Module pywin32 not installed. Exiting...")
 		exit(1)
 
 	import ctypes
 	from ctypes import wintypes, windll
+	from win32com.shell import shellcon, shell
 
 	def getProgramDataPath():
 		try:
-			CSIDL_COMMON_APPDATA = 35
-
-			_SHGetFolderPath = windll.shell32.SHGetFolderPathW
-			_SHGetFolderPath.argtypes = [wintypes.HWND, ctypes.c_int, wintypes.HANDLE, wintypes.DWORD, wintypes.LPCWSTR]
-
-			path_buf = wintypes.create_unicode_buffer(wintypes.MAX_PATH)
-			result = _SHGetFolderPath(0, CSIDL_COMMON_APPDATA, 0, 0, path_buf)
-			return path_buf.value
+			return shell.SHGetFolderPath(0, shellcon.CSIDL_APPDATA, 0, 0)
 		except:
 			return ""
 
 	programDataPath = getProgramDataPath()
 
 	if programDataPath == "":
-		print "Can't find application support folder" 
+		print("Can't find application support folder")
 		exit(1)
 
 	applicationSettingsPath = os.path.join(programDataPath, "Epic")
@@ -89,13 +83,13 @@ if hostPlatform == "Mac":
 	try:
 		import Cocoa
 	except:
-		print "Module pyobjc not installed. Exiting..."
+		print("Module pyobjc not installed. Exiting...")
 		exit(1)
 
 	applicationSupportPaths = Cocoa.NSSearchPathForDirectoriesInDomains(Cocoa.NSApplicationSupportDirectory, Cocoa.NSUserDomainMask, True)
 
 	if len(applicationSupportPaths) == 0:
-		print "Can't find application support folder" 
+		print("Can't find application support folder")
 		exit(1)
 
 	applicationSettingsPath = applicationSupportPaths[0].stringByAppendingPathComponent_("Epic")
@@ -115,14 +109,15 @@ if hostPlatform == "Mac":
 	configFile = applicationSettingsPath.stringByAppendingPathComponent_("UnrealEngine").stringByAppendingPathComponent_("Install.ini")
 	if os.path.isfile(configFile):
 		config = configparser.ConfigParser()
-		config.read(configFile.cStringUsingEncoding_(Cocoa.NSUTF8StringEncoding))
-		installations = config["Installations"]
-		if installations is not None:
-			allInstallations.update(installations)
+		config.read(configFile)
+		if "Installations" in config:
+			installations = config["Installations"]
+			if installations is not None:
+				allInstallations.update(installations)
 
-print "Found the following engine installations:"
+print("Found the following engine installations:")
 for id, path in allInstallations.items():
-	print id + " = " +  path
+	print(id + " = " +  path)
 
 engineInstall = False
 installerEngineInstall = False
@@ -134,39 +129,39 @@ for id, installation in allInstallations.items():
 		if not id.startswith("{"):
 			installerEngineInstall = True
 		pluginEnginePath = enginePath
-		print "Found engine for plugin at " + pluginEnginePath
+		print("Found engine for plugin at " + pluginEnginePath)
 		break
 
 if pluginEnginePath is None:
-	print "Plugin is not installed in any of the installed engines. Looking for projects..."
+	print("Plugin is not installed in any of the installed engines. Looking for projects...")
 	currentPath, currentDir = os.path.split(scriptPath)
 	while currentDir != "":
 		projectFiles = glob.glob(os.path.join(currentPath, "*.uproject"))
 		if projectFiles:
 			projectFile = projectFiles[0]
-			print "Found project for plugin at " + projectFile
+			print("Found project for plugin at " + projectFile)
 			try:
 				project = json.load(open(projectFile), object_pairs_hook=collections.OrderedDict)
 				engineAssociation = project["EngineAssociation"]
 				if engineAssociation is not None:
 					if engineAssociation in allInstallations:
 						pluginEnginePath = os.path.realpath(allInstallations[engineAssociation])
-						print "Found associated engine at " + pluginEnginePath
+						print("Found associated engine at " + pluginEnginePath)
 						break
 					else:
-						print "Couldn't find an engine with id " + engineAssociation
+						print("Couldn't find an engine with id " + engineAssociation)
 						exit(1)
 			except:
-				print "Malformed project file. Exiting..."
+				print("Malformed project file. Exiting...")
 				exit(1)
 		currentPath, currentDir = os.path.split(currentPath)
 
 if pluginEnginePath is None:
-	print "Couldn't find an engine for the plugin. Exiting..."
+	print("Couldn't find an engine for the plugin. Exiting...")
 	exit(1)
 
 if not os.path.isdir(pluginEnginePath):
-	print pluginEnginePath + " doesn't exist. Exiting..."
+	print(pluginEnginePath + " doesn't exist. Exiting...")
 	exit(1)
 
 if engineInstall:
@@ -188,24 +183,26 @@ else:
 			if plugin["Name"] == "NoesisGUI":
 				foundPlugin = True
 				if not plugin["Enabled"]:
-					print "Project includes NoesisGUI plugin, but it's disabled. Enabling..."
+					print("Project includes NoesisGUI plugin, but it's disabled. Enabling...")
 					plugin["Enabled"] = True
 		if not foundPlugin:
-			print "Project does not include NoesisGUI plugin. Including..."
+			print("Project does not include NoesisGUI plugin. Including...")
 			plugins += [ collections.OrderedDict([("Name", "NoesisGUI"), ("Enabled", True)]) ]
 	else:
-		print "Project does not include NoesisGUI plugin. Including..."
+		print("Project does not include NoesisGUI plugin. Including...")
 		project["Plugins"] = [ collections.OrderedDict([("Name", "NoesisGUI"), ("Enabled", True)]) ]
 	json.dump(project, open(projectFile, "w+"), indent=2, separators=(',', ': '))
+
+arguments = sys.argv[1:]
 
 if hostPlatform == "Win64":
 	ubtFile = os.path.join(pluginEnginePath, "Engine", "Binaries", "DotNET", "UnrealBuildTool.exe")
 	if not os.path.isfile(ubtFile):
-		print pluginEnginePath + " doesn't appear to be a valid engine installation. Exiting..."
+		print(pluginEnginePath + " doesn't appear to be a valid engine installation. Exiting...")
 		exit(1)
 	runUatFile = os.path.join(pluginEnginePath, "Engine", "Build", "BatchFiles", "RunUAT.bat")
 	if not os.path.isfile(runUatFile):
-			print pluginEnginePath + " doesn't appear to be a valid engine installation. Exiting..."
+			print(pluginEnginePath + " doesn't appear to be a valid engine installation. Exiting...")
 			exit(1)
 
 	def build(target, configurations, platforms):
@@ -214,15 +211,18 @@ if hostPlatform == "Win64":
 			modulesCmdLine += ["-module=NoesisEditor"]
 		else:
 			modulesCmdLine += ["-ignorejunk"]
+		additionalCmdLine = []
+		if "-verbose" in arguments:
+			additionalCmdLine += ["-verbose"]
 		for platform in platforms:
 			for configuration in configurations:
-				print "Building " + target + " " + configuration + " " + platform
-				buildCmdLine = [ubtFile, target, platform, configuration, "-iwyu", "-nocreatestub", "-NoHotReload"] + modulesCmdLine + projectCmdLine
+				print("Building " + target + " " + configuration + " " + platform)
+				buildCmdLine = [ubtFile, target, platform, configuration, "-iwyu", "-nocreatestub", "-NoHotReload"] + modulesCmdLine + projectCmdLine + additionalCmdLine
 				process = subprocess.Popen(buildCmdLine)
 				while process.poll() is None:
 					stdout, stderr = process.communicate()
 					if stdout is not None:
-						print stdout
+						print(stdout)
 
 	def buildPlugin(platforms):
 		hostPlatformCmdLine = []
@@ -234,20 +234,20 @@ if hostPlatform == "Win64":
 		while process.poll() is None:
 			stdout, stderr = process.communicate()
 			if stdout is not None:
-				print stdout
+				print(stdout)
 
 if hostPlatform == "Mac":
 	monoFile = os.path.join(pluginEnginePath, "Engine", "Build", "BatchFiles", "Mac", "RunMono.sh")
 	if not os.path.isfile(monoFile):
-		print pluginEnginePath + " doesn't appear to be a valid engine installation. Exiting..."
+		print(pluginEnginePath + " doesn't appear to be a valid engine installation. Exiting...")
 		exit(1)
 	ubtFile = os.path.join(pluginEnginePath, "Engine", "Binaries", "DotNET", "UnrealBuildTool.exe")
 	if not os.path.isfile(ubtFile):
-		print pluginEnginePath + " doesn't appear to be a valid engine installation. Exiting..."
+		print(pluginEnginePath + " doesn't appear to be a valid engine installation. Exiting...")
 		exit(1)
 	runUatFile = os.path.join(pluginEnginePath, "Engine", "Build", "BatchFiles", "RunUAT.sh")
 	if not os.path.isfile(runUatFile):
-			print pluginEnginePath + " doesn't appear to be a valid engine installation. Exiting..."
+			print(pluginEnginePath + " doesn't appear to be a valid engine installation. Exiting...")
 			exit(1)
 
 	def build(target, configurations, platforms):
@@ -256,15 +256,18 @@ if hostPlatform == "Mac":
 			modulesCmdLine += ["-module=NoesisEditor"]
 		else:
 			modulesCmdLine += ["-ignorejunk"]
+		additionalCmdLine = []
+		if "-verbose" in arguments:
+			additionalCmdLine += ["-verbose"]
 		for platform in platforms:
 			for configuration in configurations:
-				print "Building " + target + " " + configuration + " " + platform
-				buildCmdLine = [monoFile, ubtFile, target, platform, configuration, "-iwyu", "-nocreatestub", "-NoHotReload"] + modulesCmdLine + projectCmdLine
+				print("Building " + target + " " + configuration + " " + platform)
+				buildCmdLine = [monoFile, ubtFile, target, platform, configuration, "-iwyu", "-nocreatestub", "-NoHotReload"] + modulesCmdLine + projectCmdLine + additionalCmdLine
 				process = subprocess.Popen(buildCmdLine)
 				while process.poll() is None:
 					stdout, stderr = process.communicate()
 					if stdout is not None:
-						print stdout
+						print(stdout)
 
 	def buildPlugin(platforms):
 		hostPlatformCmdLine = []
@@ -276,9 +279,7 @@ if hostPlatform == "Mac":
 		while process.poll() is None:
 			stdout, stderr = process.communicate()
 			if stdout is not None:
-				print stdout
-
-arguments = sys.argv[1:]
+				print(stdout)
 
 allowedPlatforms = [ "Win64", "Mac", "IOS", "Android", "PS4", "XboxOne" ]
 excludedPlatforms = []
@@ -292,7 +293,7 @@ for buildPlatform in arguments:
 if hostPlatform == "Win64":
 	noesisDllPath = os.path.join(scriptPath, "Source", "Noesis", "NoesisSDK", "Bin", "windows_x86_64", "Noesis.dll")
 	pluginEngineBinariesPath = os.path.join(pluginEnginePath, "Engine", "Binaries", "Win64")
-	print "Copying " + noesisDllPath + " to " + pluginEngineBinariesPath
+	print("Copying " + noesisDllPath + " to " + pluginEngineBinariesPath)
 	shutil.copy2(noesisDllPath, pluginEngineBinariesPath)
 
 if not installerEngineInstall:
@@ -305,16 +306,16 @@ if not installerEngineInstall:
 				build("UE4Editor", ["Development"], [hostPlatform])
 			build("UE4Game", ["Development", "Shipping"], buildPlatforms)
 		else:
-			print "No valid platforms specified. Exiting..."
+			print("No valid platforms specified. Exiting...")
 else:
-	print "Launcher engine installation detected. Using BuildPlugin"
+	print("Launcher engine installation detected. Using BuildPlugin")
 	if not arguments:
 		buildPlugin([hostPlatform])
 	else:
 		if buildPlatforms:
 			buildPlugin(buildPlatforms)
 		else:
-			print "No valid platforms specified. Exiting..."
+			print("No valid platforms specified. Exiting...")
 
 if engineInstall:
 	if installerEngineInstall:

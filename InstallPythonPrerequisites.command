@@ -6,13 +6,16 @@ if [[ ! $? -eq 0 ]]; then
 	exit 1
 fi
 
-python --version 2>&1 | grep -q "2.7"
+python --version 2>&1 | grep -q "3.6"
 if [[ ! $? -eq 0 ]]; then
-	echo "Error: Wrong version of Python detected"
-	exit 1
+	python --version 2>&1 | grep -q "2.7"
+	if [[ ! $? -eq 0 ]]; then
+		echo "Error: Wrong version of Python detected. 2.7.x or 3.6.x required"
+		exit 1
+	fi
 fi
 
-echo "Python 2.7 installed. Checking required modules..."
+echo "Python installed. Checking required modules..."
 
 python -c "import pip" > /dev/null 2>&1
 if [[ ! $? -eq 0 ]]; then
