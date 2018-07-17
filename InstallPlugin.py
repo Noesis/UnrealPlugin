@@ -45,7 +45,7 @@ if hostPlatform == "Win64":
 
 	def getProgramDataPath():
 		try:
-			return shell.SHGetFolderPath(0, shellcon.CSIDL_APPDATA, 0, 0)
+			return shell.SHGetFolderPath(0, shellcon.CSIDL_COMMON_APPDATA, 0, 0)
 		except:
 			return ""
 
