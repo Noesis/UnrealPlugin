@@ -24,7 +24,7 @@
 #include "ShaderParameterUtils.h"
 
 // CoreUObject includes
-#include "UObjectGlobals.h"
+#include "UObject/UObjectGlobals.h"
 
 // UMG includes
 #include "Blueprint/UserWidget.h"
@@ -46,7 +46,7 @@
 #include "RenderingThread.h"
 
 // SlateCore includes
-#include "SLeafWidget.h"
+#include "Widgets/SLeafWidget.h"
 #include "Rendering/DrawElements.h"
 
 // ApplicationCore includes

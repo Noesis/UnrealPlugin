@@ -11,9 +11,6 @@
 // RenderCore includes
 #include "RenderingThread.h"
 
-// Renderer includes
-#include "Private/PostProcess/SceneRenderTargets.h"
-
 // UtilityShaders includes
 #include "ClearQuad.h"
 
@@ -548,9 +545,9 @@ void UNoesisInstance::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	Update(AbsolutePosition.X, AbsolutePosition.Y, AbsoluteSize.X, AbsoluteSize.Y);
 }
 
-void UNoesisInstance::NativePaint(FPaintContext& InContext) const
+int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
-	Super::NativePaint(InContext);
+	int32 MaxLayer = Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
 
 	if (XamlView)
 	{
@@ -560,8 +557,7 @@ void UNoesisInstance::NativePaint(FPaintContext& InContext) const
 				NoesisInstance->DrawOffscreen_RenderThread(RHICmdList, 0, 0);
 			});
 
-		const FSlateRect& MyClippingRect = InContext.MyCullingRect;
-		FSlateWindowElementList& OutDrawElements = InContext.OutDrawElements;
+		const FSlateRect& MyClippingRect = MyCullingRect;
 
 		NoesisSlateElement->Left = MyClippingRect.Left;
 		NoesisSlateElement->Top = MyClippingRect.Top;
@@ -574,11 +570,13 @@ void UNoesisInstance::NativePaint(FPaintContext& InContext) const
 		FVector2D BottomRight(MyClippingRect.Right + 1, MyClippingRect.Bottom + 1);
 		FSlateClippingZone Clip(TopLeft, TopRight, BottomLeft, BottomRight);
 		OutDrawElements.PushClip(Clip);
-		FSlateDrawElement::MakeCustom(OutDrawElements, InContext.LayerId, NoesisSlateElement);
+		FSlateDrawElement::MakeCustom(OutDrawElements, LayerId, NoesisSlateElement);
 		OutDrawElements.PopClip();
 
-		InContext.MaxLayer = InContext.LayerId;
+		MaxLayer = FMath::Max(MaxLayer, LayerId);
 	}
+
+	return MaxLayer;
 }
 
 FReply UNoesisInstance::NativeOnKeyChar(const FGeometry& MyGeometry, const FCharacterEvent& CharacterEvent)
