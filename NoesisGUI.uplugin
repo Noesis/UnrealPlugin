@@ -10,7 +10,7 @@
 	"DocsURL": "http://www.noesisengine.com/docs",
 	"MarketplaceURL": "",
 	"SupportURL": "http://www.noesisengine.com/forums",
-	"EngineVersion": "4.19.0",
+	"EngineVersion": "4.20.0",
 	"CanContainContent": true,
 	"Installed": true,
 	"Modules": [

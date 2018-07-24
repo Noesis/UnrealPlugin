@@ -17,6 +17,7 @@ public class Noesis : ModuleRules
 		string NoesisBasePath = ModuleDirectory + "/NoesisSDK/";
 		string NoesisIncludePath = NoesisBasePath + "Include/";
 
+		PublicIncludePaths.Add(ModuleDirectory);
 		PublicIncludePaths.Add(NoesisIncludePath);
 
 		// Let's try to make sure the right version of the SDK is in the right place.
@@ -66,10 +67,13 @@ public class Noesis : ModuleRules
 			PublicLibraryPaths.Add(NoesisLibPath);
 			PublicAdditionalLibraries.Add("Noesis.lib");
 
-			string BaseTargetPath;
+			string BaseTargetPath = "";
 			if (Target.LinkType == TargetLinkType.Monolithic)
 			{
-				BaseTargetPath = DirectoryReference.FromFile(Target.ProjectFile).ToString();
+				if (Target.ProjectFile != null)
+				{
+					BaseTargetPath = DirectoryReference.FromFile(Target.ProjectFile).ToString();
+				}
 			}
 			else
 			{
@@ -79,21 +83,6 @@ public class Noesis : ModuleRules
 			string NoesisDllPath = "/NoesisSDK/Bin/windows_x86_64/Noesis.dll";
 			string NoesisDllTargetPath = "/Binaries/Win64/Noesis.dll";
 
-			try
-			{
-				if (!System.IO.Directory.Exists(BaseTargetPath + "/Binaries/Win64"))
-				{
-					System.IO.Directory.CreateDirectory(BaseTargetPath + "/Binaries/Win64");
-				}
-				System.IO.File.Copy(ModuleDirectory + NoesisDllPath, BaseTargetPath + NoesisDllTargetPath, true);
-			}
-			catch (IOException Exception)
-			{
-				if (Exception.HResult != -2147024864) // 0x80070020: The process cannot access the file ... because it is being used by another process.
-				{
-					throw;
-				}
-			}
 			if (Target.LinkType == TargetLinkType.Monolithic)
 			{
 				RuntimeDependencies.Add("$(ProjectDir)" + NoesisDllTargetPath);
@@ -101,6 +90,25 @@ public class Noesis : ModuleRules
 			else
 			{
 				RuntimeDependencies.Add("$(EngineDir)" + NoesisDllTargetPath);
+			}
+
+			if (BaseTargetPath != "")
+			{
+				try
+				{
+					if (!System.IO.Directory.Exists(BaseTargetPath + "/Binaries/Win64"))
+					{
+						System.IO.Directory.CreateDirectory(BaseTargetPath + "/Binaries/Win64");
+					}
+					System.IO.File.Copy(ModuleDirectory + NoesisDllPath, BaseTargetPath + NoesisDllTargetPath, true);
+				}
+				catch (IOException Exception)
+				{
+					if (Exception.HResult != -2147024864) // 0x80070020: The process cannot access the file ... because it is being used by another process.
+					{
+						throw;
+					}
+				}
 			}
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Mac)

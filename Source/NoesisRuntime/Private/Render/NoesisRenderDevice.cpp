@@ -407,13 +407,12 @@ void FNoesisRenderDevice::ResolveRenderTarget(Noesis::RenderTarget* Surface, con
 		uint32 ResolveMaxX = Tile.x + Tile.width;
 		uint32 ResolveMaxY = CurrentRenderTarget->Texture->ShaderResourceTexture->GetSizeY() - Tile.y;
 
-		bool PreserveRenderTargetContents = false;
 		FResolveParams ResolveParams;
 		ResolveParams.Rect.X1 = ResolveMinX;
 		ResolveParams.Rect.Y1 = ResolveMinY;
 		ResolveParams.Rect.X2 = ResolveMaxX;
 		ResolveParams.Rect.Y2 = ResolveMaxY;
-		RHICmdList->CopyToResolveTarget(CurrentRenderTarget->ColorTarget, CurrentRenderTarget->Texture->ShaderResourceTexture, PreserveRenderTargetContents, ResolveParams);
+		RHICmdList->CopyToResolveTarget(CurrentRenderTarget->ColorTarget, CurrentRenderTarget->Texture->ShaderResourceTexture, ResolveParams);
 	}
 }
 

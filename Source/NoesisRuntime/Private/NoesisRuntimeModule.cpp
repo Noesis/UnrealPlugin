@@ -231,6 +231,11 @@ public:
 		return Keyboard_Default;
 	}
 
+	virtual FVirtualKeyboardOptions GetVirtualKeyboardOptions() const
+	{
+		return FVirtualKeyboardOptions();
+	}
+
 	virtual bool IsMultilineEntry() const override
 	{
 		return IsMultiline;
@@ -277,6 +282,11 @@ public:
 	virtual EKeyboardType GetVirtualKeyboardType() const override
 	{
 		return Keyboard_Password;
+	}
+
+	virtual FVirtualKeyboardOptions GetVirtualKeyboardOptions() const
+	{
+		return FVirtualKeyboardOptions();
 	}
 
 	virtual bool IsMultilineEntry() const override

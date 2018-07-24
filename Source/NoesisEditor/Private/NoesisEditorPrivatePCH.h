@@ -66,7 +66,7 @@ THIRD_PARTY_INCLUDES_END
 #include "AssetRegistryModule.h"
 
 // EditorStyle includes
-#include "EditorStyleSettings.h"
+#include "Classes/EditorStyleSettings.h"
 
 // KismetCompiler includes
 #include "KismetCompiler.h"

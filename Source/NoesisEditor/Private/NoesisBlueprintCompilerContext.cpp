@@ -6,7 +6,7 @@
 #include "NoesisBlueprintCompilerContext.h"
 
 // UnrealEd includes
-#include "KismetReinstanceUtilities.h"
+#include "Kismet2/KismetReinstanceUtilities.h"
 
 FNoesisBlueprintCompilerContext::FNoesisBlueprintCompilerContext(UNoesisBlueprint* NoesisBlueprint, FCompilerResultsLog& Results, const FKismetCompilerOptions& CompilerOptions, TArray<UObject*>* ObjLoaded)
 	: Super(NoesisBlueprint, Results, CompilerOptions, ObjLoaded)
