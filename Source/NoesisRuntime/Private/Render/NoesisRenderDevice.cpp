@@ -412,6 +412,10 @@ void FNoesisRenderDevice::ResolveRenderTarget(Noesis::RenderTarget* Surface, con
 		ResolveParams.Rect.Y1 = ResolveMinY;
 		ResolveParams.Rect.X2 = ResolveMaxX;
 		ResolveParams.Rect.Y2 = ResolveMaxY;
+		ResolveParams.DestRect.X1 = ResolveMinX;
+		ResolveParams.DestRect.Y1 = ResolveMinY;
+		ResolveParams.DestRect.X2 = ResolveMaxX;
+		ResolveParams.DestRect.Y2 = ResolveMaxY;
 		RHICmdList->CopyToResolveTarget(CurrentRenderTarget->ColorTarget, CurrentRenderTarget->Texture->ShaderResourceTexture, ResolveParams);
 	}
 }
