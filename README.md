@@ -48,7 +48,7 @@ In order to use NoesisGUI in your UE4 project, you're going to need:
 
 The plugin works with versions of Unreal Engine installed trough the Epic Games Launcher as well as those built by yourself from the source code in GitHub.
 
-You can use the NoesisGUI Unreal Engine plugin as either an Engine plugin or a Project (Game) plugin. For more information about Unreal Engine Plugins, please refer to the [Plugins](https://docs.unrealengine.com/latest/INT/Programming/Plugins/index.html) documentation.
+With versions of Unreal Engine built from the source code in GitHub you can use the NoesisGUI Unreal Engine plugin as either an Engine plugin or a Project (Game) plugin. However, if you're using an Epic Games Launcher version of the engine, you can only install the plugin as a Project plugin. For more information about Unreal Engine Plugins, please refer to the [Plugins](https://docs.unrealengine.com/latest/INT/Programming/Plugins/index.html) documentation.
 
 ### Prerequisites
 
@@ -68,6 +68,8 @@ You can use the NoesisGUI Unreal Engine plugin as either an Engine plugin or a P
 3. If you haven't installed the required Python modules, or you want to verify they are correctly installed, you can execute `InstallPythonPrerequisites.bat` and `InstallPythonPrerequisites.command` from the Command Prompt on Windows or Terminal on Mac. Navigate to the plugin directory and execute them from there. These will test whether the required modules are installed or not, and will install them if they're not present. You only need to install them once, so you don't need to perform this step every time you update the plugin or Unreal Engine.
 
 3. Install the plugin by executing `InstallPlugin.bat` from the Command Prompt on Windows or `InstallPlugin.command` from the Terminal on Mac. If you're targeting more than one platform, you can pass them as arguments like this: `InstallPlugin.command Mac IOS`. The installer uses the same platform names as Unreal. The valid platform names are `Win64`, `Mac`, `IOS`, `Android`, `PS4` and `XboxOne`. The host platform (`Win64` or `Mac`) is always built, as those binaries are required to run the editor. If you've installed the plugin as a project plugin the installer will enable it automatically by adding it to your `.uproject` file, as described in [Enabling and configuring the plugin](#enabling-and-configuring-the-plugin). IMPORTANT: You will need to perform this step every time you update Unreal Engine or get a new version of this plugin or the NoesisGUI SDK.
+
+4. Even after these steps, sometimes the Editor will warn you that the modules NoesisRuntime and NoesisEditor are out of date when you try to launch it. This may happen if you're running a configuration other than Development or if you've changed to a different engine version. Just click accept so the modules are rebuilt to target the correct version of Unreal Engine.
 
 ## Directory structure
 
