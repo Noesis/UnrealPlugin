@@ -299,23 +299,15 @@ if hostPlatform == "Win64":
 if not installerEngineInstall:
 	if not arguments:
 		build("UE4Editor", ["Development"], [hostPlatform])
-		build("UE4Game", ["Development", "Shipping"], [hostPlatform])
 	else:
 		if buildPlatforms:
 			if hostPlatform in buildPlatforms:
 				build("UE4Editor", ["Development"], [hostPlatform])
-			build("UE4Game", ["Development", "Shipping"], buildPlatforms)
 		else:
 			print("No valid platforms specified. Exiting...")
 else:
-	print("Launcher engine installation detected. Using BuildPlugin")
-	if not arguments:
-		buildPlugin([hostPlatform])
-	else:
-		if buildPlatforms:
-			buildPlugin(buildPlatforms)
-		else:
-			print("No valid platforms specified. Exiting...")
+	print("Launcher engine installation detected. This configuration is no longer supported. Please install as a project plugin.")
+	exit(1)
 
 if engineInstall:
 	if installerEngineInstall:
