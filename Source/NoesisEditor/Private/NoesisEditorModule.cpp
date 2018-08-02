@@ -122,11 +122,22 @@ void OnObjectReimported(UFactory* ImportFactory, UObject* InObject)
 
 void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Event)
 {
-	static FName LODGroup = "LODGroup";
-	if (Object->IsA<UTexture2D>() && Event.Property && Event.Property->GetFName() == LODGroup)
+	static uint32 ReentryGuard = 0;
+	if (!ReentryGuard)
 	{
-		UTexture2D* Texture = (UTexture2D*)Object;
-		FixPremultipliedPNGTexture(Texture);
+		ReentryGuard = 1;
+		for (TObjectIterator<UNoesisXaml> It; It; ++It)
+		{
+			UNoesisXaml* Xaml = *It;
+			Xaml->DestroyThumbnailRenderData();
+		}
+
+		if (Object->IsA<UTexture2D>())
+		{
+			UTexture2D* Texture = (UTexture2D*)Object;
+			FixPremultipliedPNGTexture(Texture);
+		}
+		ReentryGuard = 0;
 	}
 }
 
