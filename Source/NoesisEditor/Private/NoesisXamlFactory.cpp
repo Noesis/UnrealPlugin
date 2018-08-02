@@ -453,6 +453,7 @@ void ImportImages(FString BasePackageName, FString ProjectURIRoot, FString Path,
 		if (Texture != NULL)
 		{
 			Texture->LODGroup = TEXTUREGROUP_UI;
+			Texture->SRGB = false;
 			void FixPremultipliedPNGTexture(UTexture2D*);
 			FixPremultipliedPNGTexture(Texture);
 
