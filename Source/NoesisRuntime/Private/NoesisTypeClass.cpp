@@ -2344,17 +2344,11 @@ void NoesisNotifyPropertyChanged(UObject* Owner, FName PropertyName)
 #if DO_CHECK // Skip in shipping build
 		if (!Wrapper->GetClassType()->FindProperty(PropertySymbol))
 		{
-			UE_LOG(LogNoesis, Error, TEXT("Couldn't resolve property %s::%s"), *Owner->GetClass()->GetFName().ToString(), *PropertyName.ToString());
+			UE_LOG(LogNoesis, Warning, TEXT("Couldn't resolve property %s::%s"), *Owner->GetClass()->GetFName().ToString(), *PropertyName.ToString());
 		}
 #endif
 		Wrapper->NotifyPropertyChanged(PropertySymbol);
 	}
-#if DO_CHECK // Skip in shipping build
-	else
-	{
-		UE_LOG(LogNoesis, Error, TEXT("Couldn't resolve class %s"), *Owner->GetClass()->GetFName().ToString());
-	}
-#endif
 }
 
 void NoesisNotifyArrayPropertyChanged(UObject* Owner, FName ArrayPropertyName)
@@ -2377,16 +2371,10 @@ void NoesisNotifyArrayPropertyChanged(UObject* Owner, FName ArrayPropertyName)
 #if DO_CHECK // Skip in shipping build
 		else
 		{
-			UE_LOG(LogNoesis, Error, TEXT("Couldn't resolve property %s::%s"), *Owner->GetClass()->GetFName().ToString(), *ArrayPropertyName.ToString());
+			UE_LOG(LogNoesis, Warning, TEXT("Couldn't resolve property %s::%s"), *Owner->GetClass()->GetFName().ToString(), *ArrayPropertyName.ToString());
 		}
 #endif
 	}
-#if DO_CHECK // Skip in shipping build
-	else
-	{
-		UE_LOG(LogNoesis, Error, TEXT("Couldn't resolve class %s"), *Owner->GetClass()->GetFName().ToString());
-	}
-#endif
 }
 
 void NoesisNotifyArrayPropertyAdd(void* ArrayPointer)
