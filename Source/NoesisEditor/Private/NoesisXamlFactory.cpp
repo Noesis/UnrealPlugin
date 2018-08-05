@@ -5,8 +5,12 @@
 
 #include "NoesisXamlFactory.h"
 
+// UnrealEd includes
+#include "Settings/EditorLoadingSavingSettings.h"
+
 // NoesisEditor includes
 #include "NoesisEditorModule.h"
+#include "NoesisEditorUserSettings.h"
 
 UNoesisXamlFactory::UNoesisXamlFactory(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -17,7 +21,7 @@ UNoesisXamlFactory::UNoesisXamlFactory(const FObjectInitializer& ObjectInitializ
 	Formats.Add(TEXT("xaml;NoesisGUI XAML"));
 }
 
-void ExtractPaths(FString FileUri, FString BaseFilePath, FString BasePackage, FString& FilePath, FString& FileName, FString& PackagePath, FString& PackageName)
+void ExtractPaths(FString FileUri, FString BaseFilePath, FString BasePackage, FString ProjectURIRoot, FString& FilePath, FString& FileName, FString& PackagePath, FString& PackageName)
 {
 	FilePath = FileUri;
 	FString PackUri = TEXT("pack://application:,,,");
@@ -50,15 +54,11 @@ void ExtractPaths(FString FileUri, FString BaseFilePath, FString BasePackage, FS
 	FileName = FPaths::GetCleanFilename(FilePath);
 	FilePath = FPaths::GetPath(FilePath);
 
-	FString BasePackageRoot;
-	FString BasePackagePath;
-	FString BasePackageName;
-	FPackageName::SplitLongPackageName(BasePackage, BasePackageRoot, BasePackagePath, BasePackageName, false);
-	PackagePath = FString(TEXT("/")) + BasePackageRoot / FilePath;
+	PackagePath = FString(TEXT("/")) + BasePackage / FilePath;
 	PackagePath = PackageTools::SanitizePackageName(PackagePath);
 	PackageName = ObjectTools::SanitizeObjectName(FPaths::GetBaseFilename(FileName));
 
-	FilePath = FPaths::ProjectContentDir() / FilePath;
+	FilePath = ProjectURIRoot / FilePath;
 	FPaths::RemoveDuplicateSlashes(FilePath);
 	FPaths::NormalizeFilename(FilePath);
 	FPaths::CollapseRelativeDirectories(FilePath);
@@ -115,7 +115,7 @@ TArray<FXamlDescriptor> ParseForXamls(FString XamlText)
 	return XamlDescriptors;
 }
 
-void ImportXamls(FString BasePackageName, FString Path, TArray<FXamlDescriptor>& XamlDescriptors)
+void ImportXamls(FString BasePackageName, FString ProjectURIRoot, FString Path, TArray<FXamlDescriptor>& XamlDescriptors)
 {
 	auto XamlFact = NewObject<UNoesisXamlFactory>();
 	XamlFact->AddToRoot();
@@ -126,7 +126,7 @@ void ImportXamls(FString BasePackageName, FString Path, TArray<FXamlDescriptor>&
 		FString FileName;
 		FString PackagePath;
 		FString XamlName;
-		ExtractPaths(XamlDescriptor.Path, Path, BasePackageName, XamlPath, FileName, PackagePath, XamlName);
+		ExtractPaths(XamlDescriptor.Path, Path, BasePackageName, ProjectURIRoot, XamlPath, FileName, PackagePath, XamlName);
 
 
 		UPackage* XamlPackage = NULL;
@@ -195,7 +195,7 @@ unsigned long StreamRead(FT_Stream Stream, unsigned long Offset, unsigned char* 
 
 void StreamClose(FT_Stream) {}
 
-void ImportFonts(FString BasePackageName, FString Path, TArray<FFontDescriptor>& FontDescriptors)
+void ImportFonts(FString BasePackageName, FString ProjectURIRoot, FString Path, TArray<FFontDescriptor>& FontDescriptors)
 {
 	TSet<FString> UniqueFontFamilies;
 	for (auto FontDescriptor : FontDescriptors)
@@ -332,7 +332,7 @@ void ImportFonts(FString BasePackageName, FString Path, TArray<FFontDescriptor>&
 		FString FontFileName;
 		FString FontPackagePath;
 		FString FontPackageName;
-		ExtractPaths(BaseUri, Path, BasePackageName, FontFilePath, FontFileName, FontPackagePath, FontPackageName);
+		ExtractPaths(BaseUri, Path, BasePackageName, ProjectURIRoot, FontFilePath, FontFileName, FontPackagePath, FontPackageName);
 
 		ScanFolderForFonts Visitor(FontPackagePath, FamilyName);
 		PlatformFile.IterateDirectory(*FontFilePath, Visitor);
@@ -388,11 +388,14 @@ TArray<FImageDescriptor> ParseForImages(FString XamlText)
 {
 	TArray<FImageDescriptor> ImageDescriptors;
 
-	TArray<FString> Strings = ScanKeyword(XamlText, TEXT(".jpg"));
-	Strings += ScanKeyword(XamlText, TEXT(".tga"));
-	Strings += ScanKeyword(XamlText, TEXT(".png"));
-	Strings += ScanKeyword(XamlText, TEXT(".gif"));
-	Strings += ScanKeyword(XamlText, TEXT(".bmp"));
+	TArray<FString> Strings;
+	auto TextureFact = NewObject<UTextureFactory>();
+	for (auto Format : TextureFact->Formats)
+	{
+		int32 Index;
+		Format.FindChar(TEXT(';'), Index);
+		Strings += ScanKeyword(XamlText, FString(TEXT(".")) + Format.Left(Index));
+	}
 
 	for (auto String : Strings)
 	{
@@ -403,7 +406,7 @@ TArray<FImageDescriptor> ParseForImages(FString XamlText)
 	return ImageDescriptors;
 }
 
-void ImportImages(FString BasePackageName, FString Path, TArray<FImageDescriptor>& ImageDescriptors)
+void ImportImages(FString BasePackageName, FString ProjectURIRoot, FString Path, TArray<FImageDescriptor>& ImageDescriptors)
 {
 	auto TextureFact = NewObject<UTextureFactory>();
 	TextureFact->AddToRoot();
@@ -422,7 +425,7 @@ void ImportImages(FString BasePackageName, FString Path, TArray<FImageDescriptor
 		FString FileName;
 		FString PackagePath;
 		FString TextureName;
-		ExtractPaths(ImagePath, Path, BasePackageName, TexturePath, FileName, PackagePath, TextureName);
+		ExtractPaths(ImagePath, Path, BasePackageName, ProjectURIRoot, TexturePath, FileName, PackagePath, TextureName);
 
 		UPackage* TexturePackage = NULL;
 
@@ -470,25 +473,36 @@ void ImportImages(FString BasePackageName, FString Path, TArray<FImageDescriptor
 
 UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject* Context, const TCHAR* Type, const uint8*& Buffer, const uint8* BufferEnd, FFeedbackContext* Warn)
 {
-	FString Filename = GetCurrentFilename();
+	FString FullFilename = GetCurrentFilename();
+	FString Filename = FullFilename;
 	FString Directory = FPaths::GetPath(Filename);
 	Filename = FPaths::GetCleanFilename(Filename);
-	FPaths::MakePathRelativeTo(Directory, *FPaths::ProjectContentDir());
-	FString BasePackageName = Parent->GetPathName();
-
-	FString FilePath;
-	FString FileName;
-	FString PackagePath;
-	FString PackageName;
-	ExtractPaths(Filename, Directory, BasePackageName, FilePath, FileName, PackagePath, PackageName);
+	FString ProjectURIRoot;
+	FString BasePackageName;
+	for (const auto& Setting : GetDefault<UEditorLoadingSavingSettings>()->AutoReimportDirectorySettings)
+	{
+		FString RelativeFilename = FullFilename;
+		FString SourceDirectory = Setting.SourceDirectory + TEXT("/");
+		if (FPaths::MakePathRelativeTo(RelativeFilename, *SourceDirectory))
+		{
+			FPaths::CollapseRelativeDirectories(RelativeFilename);
+			FPaths::NormalizeFilename(RelativeFilename);
+			if (!RelativeFilename.StartsWith(TEXT("..")))
+			{
+				ProjectURIRoot = SourceDirectory;
+				BasePackageName = Setting.MountPoint + TEXT("/");
+				break;
+			}
+		}
+	}
+	if (ProjectURIRoot.IsEmpty())
+	{
+		ProjectURIRoot = FPaths::ProjectContentDir();
+		BasePackageName = TEXT("/Game/");
+	}
+	FPaths::MakePathRelativeTo(Directory, *ProjectURIRoot);
 
 	FString XamlText = NsStringToFString((const char*)Buffer);
-
-	if (BasePackageName != (PackagePath / PackageName))
-	{
-		Parent = CreatePackage(NULL, *(PackagePath / PackageName));
-		BasePackageName = PackagePath / PackageName;
-	}
 
 	TArray<FString> Comments;
 	FRegexPattern CommentPattern(TEXT("<!--.*-->"));
@@ -505,7 +519,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 	}
 
 	TArray<FXamlDescriptor> XamlDescriptors = ParseForXamls(XamlText);
-	ImportXamls(BasePackageName, Directory, XamlDescriptors);
+	ImportXamls(BasePackageName, ProjectURIRoot, Directory, XamlDescriptors);
 	for (auto XamlDescriptor : XamlDescriptors)
 	{
 		if (!XamlDescriptor.Xaml)
@@ -515,7 +529,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 	}
 
 	TArray<FFontDescriptor> FontDescriptors = ParseForFonts(XamlText);
-	ImportFonts(BasePackageName, Directory, FontDescriptors);
+	ImportFonts(BasePackageName, ProjectURIRoot, Directory, FontDescriptors);
 	for (auto FontDescriptor : FontDescriptors)
 	{
 		if (!FontDescriptor.Font)
@@ -525,7 +539,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 	}
 
 	TArray<FImageDescriptor> ImageDescriptors = ParseForImages(XamlText);
-	ImportImages(BasePackageName, Directory, ImageDescriptors);
+	ImportImages(BasePackageName, ProjectURIRoot, Directory, ImageDescriptors);
 	for (auto ImageDescriptor : ImageDescriptors)
 	{
 		if (!ImageDescriptor.Texture)
@@ -534,7 +548,39 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 		}
 	}
 
-	UNoesisXaml* NoesisXaml = NewObject<UNoesisXaml>(Parent, Class, Name, Flags);
+	UNoesisXaml* NoesisXaml = nullptr;
+
+	{
+		FString XamlPath;
+		FString FileName;
+		FString PackagePath;
+		FString XamlName;
+		ExtractPaths(Filename, Directory, BasePackageName, ProjectURIRoot, XamlPath, FileName, PackagePath, XamlName);
+
+		UPackage* XamlPackage = NULL;
+
+		FString XamlObjectPath = PackagePath / XamlName + TEXT(".") + XamlName;
+		UNoesisXaml* ExistingXaml = LoadObject<UNoesisXaml>(NULL, *XamlObjectPath);
+
+		if (!ExistingXaml)
+		{
+			const FString Suffix(TEXT(""));
+
+			XamlPackage = CreatePackage(NULL, *(PackagePath / XamlName));
+			NoesisXaml = NewObject<UNoesisXaml>(XamlPackage, Class, Name, Flags);
+		}
+		else
+		{
+			XamlPackage = ExistingXaml->GetOutermost();
+			XamlPackage->FullyLoad();
+			ExistingXaml->DestroyThumbnailRenderData();
+			NoesisXaml = ExistingXaml;
+			NoesisXaml->XamlText.Empty();
+			NoesisXaml->Xamls.Empty();
+			NoesisXaml->Textures.Empty();
+			NoesisXaml->Fonts.Empty();
+		}
+	}
 
 	for (auto XamlDescriptor : XamlDescriptors)
 	{
@@ -574,7 +620,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 
 	NoesisXaml->LoadXaml();
 
-	NoesisXaml->AssetImportData->Update(Filename);
+	NoesisXaml->AssetImportData->Update(FullFilename);
 
 	return NoesisXaml;
 }

@@ -210,13 +210,23 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 	FNoesisTexture* Texture = nullptr;
 	if (InTexture->IsA<UTexture2D>())
 	{
+		FTexture2DRHIRef TextureRef = ((FTexture2DResource*)InTexture->Resource)->GetTexture2DRHI();
+		if (!TextureRef)
+		{
+			return nullptr;
+		}
 		Texture = new FNoesisTexture();
-		Texture->ShaderResourceTexture = ((FTexture2DResource*)InTexture->Resource)->GetTexture2DRHI();
+		Texture->ShaderResourceTexture = TextureRef;
 	}
 	else if (InTexture->IsA<UTextureRenderTarget2D>())
 	{
+		FTexture2DRHIRef TextureRef = ((FTextureRenderTarget2DResource*)InTexture->Resource)->GetTextureRHI();
+		if (!TextureRef)
+		{
+			return nullptr;
+		}
 		Texture = new FNoesisTexture();
-		Texture->ShaderResourceTexture = ((FTextureRenderTarget2DResource*)InTexture->Resource)->GetTextureRHI();
+		Texture->ShaderResourceTexture = TextureRef;
 	}
 	else
 	{

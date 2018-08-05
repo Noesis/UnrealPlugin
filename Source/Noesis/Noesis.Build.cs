@@ -6,6 +6,7 @@
 using UnrealBuildTool;
 using System;
 using System.IO;
+using Tools.DotNETCommon;
 
 public class Noesis : ModuleRules
 {
@@ -65,12 +66,42 @@ public class Noesis : ModuleRules
 			PublicLibraryPaths.Add(NoesisLibPath);
 			PublicAdditionalLibraries.Add("Noesis.lib");
 
+			string BaseTargetPath;
+			if (Target.LinkType == TargetLinkType.Monolithic)
+			{
+				BaseTargetPath = DirectoryReference.FromFile(Target.ProjectFile).ToString();
+			}
+			else
+			{
+				BaseTargetPath = Target.RelativeEnginePath;
+			}
+
 			string NoesisDllPath = "/NoesisSDK/Bin/windows_x86_64/Noesis.dll";
-			RuntimeDependencies.Add(ModuleDirectory + NoesisDllPath);
+			string NoesisDllTargetPath = "/Binaries/Win64/Noesis.dll";
 
-			PublicDefinitions.Add("NOESISGUI_DLL_PATH=\"NoesisGUI/Source/Noesis/" + NoesisDllPath + "\"");
-
-			PublicDelayLoadDLLs.Add("Noesis.dll");
+			try
+			{
+				if (!System.IO.Directory.Exists(BaseTargetPath + "/Binaries/Win64"))
+				{
+					System.IO.Directory.CreateDirectory(BaseTargetPath + "/Binaries/Win64");
+				}
+				System.IO.File.Copy(ModuleDirectory + NoesisDllPath, BaseTargetPath + NoesisDllTargetPath, true);
+			}
+			catch (IOException Exception)
+			{
+				if (Exception.HResult != -2147024864) // 0x80070020: The process cannot access the file ... because it is being used by another process.
+				{
+					throw;
+				}
+			}
+			if (Target.LinkType == TargetLinkType.Monolithic)
+			{
+				RuntimeDependencies.Add("$(ProjectDir)" + NoesisDllTargetPath);
+			}
+			else
+			{
+				RuntimeDependencies.Add("$(EngineDir)" + NoesisDllTargetPath);
+			}
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Mac)
 		{
@@ -102,6 +133,12 @@ public class Noesis : ModuleRules
 		{
 			string NoesisLibPath = NoesisBasePath + "Lib/ps4/";
 			PublicAdditionalLibraries.Add(NoesisLibPath + "Noesis.a");
+		}
+		else if (Target.Platform == UnrealTargetPlatform.XboxOne)
+		{
+			string NoesisLibPath = NoesisBasePath + "Bin/xbox_one/";
+			PublicLibraryPaths.Add(NoesisLibPath);
+			PublicAdditionalLibraries.Add("Noesis.lib");
 		}
 	}
 }

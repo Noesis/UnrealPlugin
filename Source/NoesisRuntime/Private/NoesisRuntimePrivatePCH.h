@@ -73,3 +73,5 @@
 
 #include "NoesisRuntimeClasses.h"
 #include "NoesisRuntimeModule.h"
+
+DECLARE_STATS_GROUP(TEXT("Noesis"), STATGROUP_Noesis, STATCAT_Advanced);

@@ -27,12 +27,6 @@
 // Noesis includes
 #include "NoesisSDK.h"
 
-#if PLATFORM_WINDOWS
-#include "AllowWindowsPlatformTypes.h"
-#include <DelayImp.h>
-#include "HideWindowsPlatformTypes.h"
-#endif
-
 static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* Desc, bool Fatal)
 {
 	if (Fatal)
@@ -42,6 +36,30 @@ static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* De
 	}
 	UE_LOG(LogNoesis, Warning, TEXT("%s"), *NsStringToFString(Desc));
 }
+
+DECLARE_DWORD_COUNTER_STAT(TEXT("NoesisMemory"), STAT_NoesisMemory, STATGROUP_Noesis);
+class NoesisMemoryAllocator : public Noesis::MemoryAllocator
+{
+public:
+
+	virtual void* Alloc(SIZE_T Size) override
+	{
+		void* Result = FMemory::Malloc(Size);
+		INC_DWORD_STAT_BY(STAT_NoesisMemory, FMemory::GetAllocSize(Result));
+		return Result;
+	}
+
+	virtual void* Realloc(void* Ptr, SIZE_T Size) override
+	{
+		return FMemory::Realloc(Ptr, Size);
+	}
+
+	virtual void Dealloc(void* Ptr)
+	{
+		DEC_DWORD_STAT_BY(STAT_NoesisMemory, FMemory::GetAllocSize(Ptr));
+		FMemory::Free(Ptr);
+	}
+};
 
 static void NoesisLogHandler(const char* File, uint32_t Line, uint32_t Level, const char* Channel, const char* Message)
 {
@@ -71,36 +89,6 @@ static void NoesisLogHandler(const char* File, uint32_t Line, uint32_t Level, co
 		}
 	}
 }
-
-#if PLATFORM_WINDOWS
-extern "C" FARPROC WINAPI delayLoadHook(uint32 dliNotify, PDelayLoadInfo pdli)
-{
-	if (dliNotify == dliNotePreLoadLibrary && FCStringAnsi::Stricmp(pdli->szDll, "Noesis.dll") == 0)
-	{
-		FString BaseDirs[] = { FPaths::EnginePluginsDir(), FPaths::EnterprisePluginsDir(), FPaths::ProjectPluginsDir() };
-		for (auto BaseDir : BaseDirs)
-		{
-			FString NoesisDllPath = BaseDir / TEXT(NOESISGUI_DLL_PATH);
-			if (FPaths::DirectoryExists(*FPaths::GetPath(NoesisDllPath)))
-			{
-				FPlatformProcess::PushDllDirectory(*FPaths::GetPath(NoesisDllPath));
-				void* DllHandle = FPlatformProcess::GetDllHandle(*NoesisDllPath);
-				FPlatformProcess::PopDllDirectory(*FPaths::GetPath(NoesisDllPath));
-				if (DllHandle)
-				{
-					return (FARPROC)DllHandle;
-				}
-			}
-		}
-	}
-
-	return NULL;
-}
-
-void* DllHandle = FPlatformProcess::GetDllHandle(*(FPaths::EngineDir() / TEXT(NOESISGUI_DLL_PATH)));
-
-const PfnDliHook __pfnDliNotifyHook2 = delayLoadHook;
-#endif
 
 #if WITH_EDITOR
 class NotifyEnumChanged : public FEnumEditorUtils::INotifyOnEnumChanged
@@ -140,7 +128,7 @@ void OnAssetRenamed(const FAssetData&, const FString&)
 }
 #endif
 
-void AddOnBlueprintPreCompileDelegate()
+void OnPostEngineInit()
 {
 #if WITH_EDITOR
 	if (GEditor)
@@ -158,6 +146,8 @@ void AddOnBlueprintPreCompileDelegate()
 	// Workaround: Standalone mode doesn't load the editor modules, so blueprints that use the set and notify don't work correctly.
 	FModuleManager::Get().LoadModule("NoesisEditor");
 #endif
+
+	NoesisRegisterTypes();
 }
 
 void ShowTextBoxVirtualKeyboard(Noesis::TextBox*);
@@ -367,7 +357,7 @@ public:
 	// IModuleInterface interface
 	virtual void StartupModule() override
 	{
-		Noesis::GUI::Init(&NoesisErrorHandler, &NoesisLogHandler);
+		Noesis::GUI::Init(&NoesisErrorHandler, &NoesisLogHandler, &Allocator);
 
 		NoesisResourceProvider = new FNoesisResourceProvider();
 		Noesis::GUI::SetXamlProvider(NoesisResourceProvider);
@@ -382,11 +372,15 @@ public:
 
 		PostGarbageCollectConditionalBeginDestroyDelegateHandle = FCoreUObjectDelegates::PostGarbageCollectConditionalBeginDestroy.AddStatic(NoesisGarbageCollected);
 
-		PostEngineInitDelegateHandle = FCoreDelegates::OnPostEngineInit.AddStatic(AddOnBlueprintPreCompileDelegate);
+		PostEngineInitDelegateHandle = FCoreDelegates::OnPostEngineInit.AddStatic(OnPostEngineInit);
+
+		NsGetKernel()->GetReflectionRegistry()->SetFallbackHandler(&NoesisReflectionRegistryCallback);
 	}
 
 	virtual void ShutdownModule() override
 	{
+		NsGetKernel()->GetReflectionRegistry()->SetFallbackHandler(nullptr);
+
 		FCoreDelegates::OnPostEngineInit.Remove(PostEngineInitDelegateHandle);
 
 		FCoreUObjectDelegates::PostGarbageCollectConditionalBeginDestroy.Remove(PostGarbageCollectConditionalBeginDestroyDelegateHandle);
@@ -414,6 +408,7 @@ public:
 	FNoesisResourceProvider* NoesisResourceProvider;
 	FDelegateHandle PostGarbageCollectConditionalBeginDestroyDelegateHandle;
 	FDelegateHandle PostEngineInitDelegateHandle;
+	NoesisMemoryAllocator Allocator;
 };
 
 INoesisRuntimeModuleInterface* FNoesisRuntimeModule::NoesisRuntimeModuleInterface = 0;
