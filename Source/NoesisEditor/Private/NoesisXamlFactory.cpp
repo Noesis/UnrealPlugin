@@ -498,7 +498,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 	}
 	if (ProjectURIRoot.IsEmpty())
 	{
-		ProjectURIRoot = FPaths::ProjectContentDir();
+		ProjectURIRoot = GetDefault<UNoesisEditorUserSettings>()->GetProjectURIRoot();
 		BasePackageName = TEXT("/Game/");
 	}
 	FPaths::MakePathRelativeTo(Directory, *ProjectURIRoot);
