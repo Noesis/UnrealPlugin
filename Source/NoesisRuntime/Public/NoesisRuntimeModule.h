@@ -8,8 +8,12 @@
 // Core includes
 #include "CoreMinimal.h"
 #include "Modules/ModuleInterface.h"
+#include "Stats/Stats.h"
+#include "Stats/Stats2.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogNoesis, VeryVerbose, All);
+
+DECLARE_STATS_GROUP(TEXT("Noesis"), STATGROUP_Noesis, STATCAT_Advanced);
 
 #define NOESISGUI_MODULE_NAME "NoesisRuntime"
 

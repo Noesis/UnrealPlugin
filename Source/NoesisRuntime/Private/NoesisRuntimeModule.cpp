@@ -9,6 +9,8 @@
 #include "CoreMinimal.h"
 #include "Misc/CoreDelegates.h"
 #include "Modules/ModuleManager.h"
+#include "Stats/Stats.h"
+#include "Stats/Stats2.h"
 
 // ApplicationCore includes
 #include "HAL/PlatformApplicationMisc.h"
