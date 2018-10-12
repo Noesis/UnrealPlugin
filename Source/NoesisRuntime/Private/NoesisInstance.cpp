@@ -5,6 +5,10 @@
 
 #include "NoesisInstance.h"
 
+// Core includes
+#include "Stats/Stats.h"
+#include "Stats/Stats2.h"
+
 // Engine includes
 #include "SceneUtils.h"
 
@@ -23,6 +27,7 @@
 #include "Framework/Application/SlateApplication.h"
 
 // NoesisRuntime includes
+#include "NoesisRuntimeModule.h"
 #include "NoesisBlueprintGeneratedClass.h"
 #include "Render/NoesisRenderDevice.h"
 #include "NoesisTypeClass.h"
