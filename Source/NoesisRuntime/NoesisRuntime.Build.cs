@@ -38,7 +38,8 @@ public class NoesisRuntime : ModuleRules
 				"InputCore",
 				"UMG",
 				"ApplicationCore",
-				"Slate"
+				"Slate",
+				"Projects"
 			}
 			);
 

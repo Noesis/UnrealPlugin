@@ -63,7 +63,9 @@ void FNoesisResourceProvider::ScanFolder(const char* InFolder)
 	{
 		for (auto TypefaceEntry : Font->CompositeFont.DefaultTypeface.Fonts)
 		{
-			RegisterFont(InFolder, TypefaceEntry.Name.GetPlainANSIString());
+			ANSICHAR TypefaceName[NAME_SIZE];
+			TypefaceEntry.Name.GetPlainANSIString(TypefaceName);
+			RegisterFont(InFolder, TypefaceName);
 		}
 	}
 }
@@ -75,7 +77,9 @@ Noesis::Ptr<Noesis::Stream> FNoesisResourceProvider::OpenFont(const char* InFold
 	{
 		for (auto TypefaceEntry : Font->CompositeFont.DefaultTypeface.Fonts)
 		{
-			if (FCStringAnsi::Strcmp(TypefaceEntry.Name.GetPlainANSIString(), InFilename) == 0)
+			ANSICHAR TypefaceName[NAME_SIZE];
+			TypefaceEntry.Name.GetPlainANSIString(TypefaceName);
+			if (FCStringAnsi::Strcmp(TypefaceName, InFilename) == 0)
 			{
 				const FFontData* FontData = &TypefaceEntry.Font;
 				const UFontFace* FontFace = Cast<UFontFace>(FontData->GetFontFaceAsset());

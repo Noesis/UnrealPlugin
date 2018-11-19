@@ -12,12 +12,18 @@
 #include "Stats/Stats.h"
 #include "Stats/Stats2.h"
 
+// ShaderCore includes
+#include "ShaderCore.h"
+
 // ApplicationCore includes
 #include "HAL/PlatformApplicationMisc.h"
 
 // Slate includes
 #include "Widgets/Input/IVirtualKeyboardEntry.h"
 #include "Framework/Application/SlateApplication.h"
+
+// Projects includes
+#include "Interfaces/IPluginManager.h"
 
 // NoesisRuntime includes
 #include "NoesisResourceProvider.h"
@@ -218,6 +224,12 @@ public:
 		}
 	}
 
+	virtual void SetSelectionFromVirtualKeyboard(int InSelStart, int SelEnd) override
+	{
+		TextBox->SetSelectionStart(InSelStart);
+		TextBox->SetSelectionLength(SelEnd - InSelStart);
+	}
+
 	virtual FText GetText() const override
 	{
 		return FText::FromString(InitialText);
@@ -269,6 +281,10 @@ public:
 			LastSelectedPasswordBox.Reset(PasswordBox);
 			LastSelectedPasswordBox->TouchUp() += OnTouchUpShowPasswordBoxVirtualKeyboard;
 		}
+	}
+
+	virtual void SetSelectionFromVirtualKeyboard(int InSelStart, int SelEnd) override
+	{
 	}
 
 	virtual FText GetText() const override
@@ -387,6 +403,9 @@ public:
 		PostEngineInitDelegateHandle = FCoreDelegates::OnPostEngineInit.AddStatic(OnPostEngineInit);
 
 		NsGetKernel()->GetReflectionRegistry()->SetFallbackHandler(&NoesisReflectionRegistryCallback);
+
+		FString PluginShaderDir = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("NoesisGUI"))->GetBaseDir(), TEXT("Shaders"));
+		AddShaderSourceDirectoryMapping(TEXT("/Plugin/NoesisGUI"), PluginShaderDir);
 	}
 
 	virtual void ShutdownModule() override

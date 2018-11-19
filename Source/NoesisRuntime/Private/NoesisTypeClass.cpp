@@ -56,6 +56,12 @@ class NoesisObjectWrapper;
 class NoesisStructWrapper;
 class NoesisEnumWrapper;
 
+const char* GetPersistentName(FString Name)
+{
+	NsSymbol Symbol(TCHARToNsString(*Name));
+	return Symbol.GetStr();
+}
+
 FString RegisterNameFromPath(FString Path)
 {
 	static FString ProjectName = FApp::GetProjectName();
@@ -2088,18 +2094,19 @@ Noesis::TypeClass* NoesisCreateTypeClassForUClass(UClass* Class)
 	{
 		ClassName = Class->GetPathName();
 	}
-	FName AnsiClassName(TCHARToNsString(*RegisterNameFromPath(ClassName)).c_str());
-	RegisterNameMap.Add(AnsiClassName.ToString(), Class->GetPathName());
+	FString AnsiClassName(TCHARToNsString(*RegisterNameFromPath(ClassName)).c_str());
+	RegisterNameMap.Add(AnsiClassName, Class->GetPathName());
+	const char* PersistentClassName = GetPersistentName(AnsiClassName);
 	Noesis::TypeClass* TypeClass = nullptr;
 	if (auto TypeClassPtr = ClassMap.Find(Class))
 	{
-		check(!FCStringAnsi::Strcmp(AnsiClassName.GetPlainANSIString(), TypeClassPtr->Value));
+		check(!FCStringAnsi::Strcmp(PersistentClassName, TypeClassPtr->Value));
 		TypeClass = TypeClassPtr->Key;
 	}
 	if (!TypeClass)
 	{
-		TypeClass = NsDynamicCast<Noesis::TypeClass*>(Noesis::TypeCreate::Create(Noesis::TypeInfo(AnsiClassName.GetPlainANSIString()), &UClassTypeCreator, &UClassTypeFiller));
-		ClassMap.Add(Class, MakeTuple(TypeClass, AnsiClassName.GetPlainANSIString()));
+		TypeClass = NsDynamicCast<Noesis::TypeClass*>(Noesis::TypeCreate::Create(Noesis::TypeInfo(PersistentClassName), &UClassTypeCreator, &UClassTypeFiller));
+		ClassMap.Add(Class, MakeTuple(TypeClass, PersistentClassName));
 
 #if WITH_EDITOR
 		if (UBlueprint* Blueprint = Cast<UBlueprint>(Class->ClassGeneratedBy))
@@ -2133,8 +2140,9 @@ void UEnumTypeFiller(Noesis::Type* Type)
 	for (int32 Index = 0; Index != Enum->NumEnums(); ++Index)
 	{
 		const FString EnumValueName = Enum->GetDisplayNameTextByIndex(Index).ToString();
-		FName AnsiEnumValueName(TCHARToNsString(*EnumValueName).c_str());
-		TypeEnum->AddValue(NsSymbol(AnsiEnumValueName.GetPlainANSIString()), (int)Enum->GetValueByIndex(Index));
+		FString AnsiEnumValueName(TCHARToNsString(*EnumValueName).c_str());
+		const char* PersistentEnumValueName = GetPersistentName(AnsiEnumValueName);
+		TypeEnum->AddValue(NsSymbol(PersistentEnumValueName), (int)Enum->GetValueByIndex(Index));
 	}
 }
 
@@ -2151,21 +2159,22 @@ Noesis::BaseComponent* CallbackCreateEnumConverter(NsSymbol Id)
 Noesis::TypeEnum* NoesisCreateTypeEnumForUEnum(UEnum* Enum)
 {
 	FString EnumName = Enum->GetPathName();
-	FName AnsiEnumName(TCHARToNsString(*RegisterNameFromPath(EnumName)).c_str());
-	RegisterNameMap.Add(AnsiEnumName.ToString(), EnumName);
+	FString AnsiEnumName(TCHARToNsString(*RegisterNameFromPath(EnumName)).c_str());
+	const char* PersistentEnumName = GetPersistentName(AnsiEnumName);
+	RegisterNameMap.Add(AnsiEnumName, EnumName);
 	Noesis::TypeEnum* TypeEnum = nullptr;
 	if (auto TypeEnumPtr = EnumMap.Find(Enum))
 	{
-		check(!FCStringAnsi::Strcmp(AnsiEnumName.GetPlainANSIString(), TypeEnumPtr->Value));
+		check(!FCStringAnsi::Strcmp(PersistentEnumName, TypeEnumPtr->Value));
 		TypeEnum = TypeEnumPtr->Key;
 	}
 	if (!TypeEnum)
 	{
-		TypeEnum = NsDynamicCast<Noesis::TypeEnum*>(Noesis::TypeCreate::Create(Noesis::TypeInfo(AnsiEnumName.GetPlainANSIString()), &UEnumTypeCreator, &UEnumTypeFiller));
+		TypeEnum = NsDynamicCast<Noesis::TypeEnum*>(Noesis::TypeCreate::Create(Noesis::TypeInfo(PersistentEnumName), &UEnumTypeCreator, &UEnumTypeFiller));
 
 		NsSymbol EnumConverterId = Noesis::IdOf("Converter", TypeEnum);
 		NsGetKernel()->GetComponentFactory()->RegisterComponent(EnumConverterId, NsSymbol::Null(), &CallbackCreateEnumConverter);
-		EnumMap.Add(Enum, MakeTuple(TypeEnum, AnsiEnumName.GetPlainANSIString()));
+		EnumMap.Add(Enum, MakeTuple(TypeEnum, PersistentEnumName));
 		ConverterIdMap.Add(EnumConverterId.GetId(), (NoesisTypeEnum*)TypeEnum);
 	}
 
@@ -2239,18 +2248,19 @@ void AssignStruct(void* BasePointer, UStructProperty* StructProperty, Noesis::Ba
 Noesis::TypeClass* NoesisCreateTypeClassForUStruct(UScriptStruct* Class)
 {
 	FString ClassName = Class->GetPathName();
-	FName AnsiClassName(TCHARToNsString(*RegisterNameFromPath(ClassName)).c_str());
-	RegisterNameMap.Add(AnsiClassName.ToString(), ClassName);
+	FString AnsiClassName(TCHARToNsString(*RegisterNameFromPath(ClassName)).c_str());
+	const char* PersistentClassName = GetPersistentName(AnsiClassName);
+	RegisterNameMap.Add(AnsiClassName, ClassName);
 	Noesis::TypeClass* TypeClass = nullptr;
 	if (auto TypeClassPtr = ClassMap.Find(Class))
 	{
-		check(!FCStringAnsi::Strcmp(AnsiClassName.GetPlainANSIString(), TypeClassPtr->Value));
+		check(!FCStringAnsi::Strcmp(PersistentClassName, TypeClassPtr->Value));
 		TypeClass = TypeClassPtr->Key;
 	}
 	if (!TypeClass)
 	{
-		TypeClass = NsDynamicCast<Noesis::TypeClass*>(Noesis::TypeCreate::Create(Noesis::TypeInfo(AnsiClassName.GetPlainANSIString()), &UClassTypeCreator, &UStructTypeFiller));
-		ClassMap.Add(Class, MakeTuple(TypeClass, AnsiClassName.GetPlainANSIString()));
+		TypeClass = NsDynamicCast<Noesis::TypeClass*>(Noesis::TypeCreate::Create(Noesis::TypeInfo(PersistentClassName), &UClassTypeCreator, &UStructTypeFiller));
+		ClassMap.Add(Class, MakeTuple(TypeClass, PersistentClassName));
 	}
 
 	return TypeClass;
