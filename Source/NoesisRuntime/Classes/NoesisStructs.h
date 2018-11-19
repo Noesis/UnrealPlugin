@@ -28,7 +28,7 @@ struct FNoesisSize
 	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
 	float Height;
 
-	FNoesisSize() {}
+	FNoesisSize() : Width(0.f), Height(0.f) {}
 
 	FNoesisSize(const Noesis::Size& Size);
 
@@ -52,7 +52,7 @@ struct FNoesisRect
 	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
 	float Height;
 
-	FNoesisRect() {}
+	FNoesisRect() : X(0.f), Y(0.f), Width(0.f), Height(0.f) {}
 
 	FNoesisRect(const Noesis::Rect& Rect);
 
@@ -70,7 +70,7 @@ struct FNoesisPoint
 	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
 	float Y;
 
-	FNoesisPoint() {}
+	FNoesisPoint() : X(0.f), Y(0.f) {}
 
 	FNoesisPoint(const Noesis::Point& Point);
 	
@@ -94,7 +94,7 @@ struct FNoesisCornerRadius
 	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
 	float BottomLeft;
 
-	FNoesisCornerRadius() {}
+	FNoesisCornerRadius() : TopLeft(0.f), TopRight(0.f), BottomRight(0.f), BottomLeft(0.f) {}
 
 	FNoesisCornerRadius(const Noesis::CornerRadius& CornerRadius);
 	
@@ -118,7 +118,7 @@ struct FNoesisThickness
 	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
 	float Bottom;
 
-	FNoesisThickness() {}
+	FNoesisThickness() : Left(0.f), Top(0.f), Right(0.f), Bottom(0.f) {}
 
 	FNoesisThickness(const Noesis::Thickness& Thickness);
 	
@@ -142,7 +142,7 @@ struct FNoesisColor
 	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
 	float Alpha;
 
-	FNoesisColor() {}
+	FNoesisColor() : Red(0.f), Green(0.f), Blue(0.f), Alpha(0.f) {}
 
 	FNoesisColor(const Noesis::Color& Color);
 	
@@ -160,7 +160,7 @@ struct FNoesisSizei
 	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
 	int32 Height;
 
-	FNoesisSizei() {}
+	FNoesisSizei() : Width(0), Height(0) {}
 
 	FNoesisSizei(const Noesis::Sizei& Size);
 
@@ -184,7 +184,7 @@ struct FNoesisRecti
 	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
 	int32 Height;
 
-	FNoesisRecti() {}
+	FNoesisRecti() : X(0), Y(0), Width(0), Height(0) {}
 
 	FNoesisRecti(const Noesis::Recti& Rect);
 
@@ -202,7 +202,7 @@ struct FNoesisPointi
 	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
 	int32 Y;
 
-	FNoesisPointi() {}
+	FNoesisPointi() : X(0), Y(0) {}
 
 	FNoesisPointi(const Noesis::Pointi& Point);
 	
@@ -220,7 +220,7 @@ struct FNoesisDuration
 	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
 	int32 Milliseconds;
 
-	FNoesisDuration() {}
+	FNoesisDuration() : DurationType(ENoesisDurationType::Automatic), Milliseconds(0) {}
 
 	FNoesisDuration(const Noesis::Duration& Duration);
 
@@ -295,7 +295,7 @@ struct FNoesisTimeSpan
 	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
 	int32 Milliseconds;
 
-	FNoesisTimeSpan() {}
+	FNoesisTimeSpan() : Days(0), Hours(0), Minutes(0), Seconds(0), Milliseconds(0) {}
 
 	FNoesisTimeSpan(const Noesis::TimeSpan& TimeSpan);
 
@@ -319,7 +319,7 @@ struct FNoesisManipulationDelta
 	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
 	FNoesisPoint Translation;
 
-	FNoesisManipulationDelta() {}
+	FNoesisManipulationDelta() : Expansion(), Rotation(0.f), Scale(0.f), Translation() {}
 
 	FNoesisManipulationDelta(const Noesis::ManipulationDelta& ManipulationDelta);
 
@@ -340,7 +340,7 @@ struct FNoesisManipulationVelocities
 	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
 	FNoesisPoint LinearVelocity;
 
-	FNoesisManipulationVelocities() {}
+	FNoesisManipulationVelocities() : AngularVelocity(0.f), ExpansionVelocity(), LinearVelocity() {}
 
 	FNoesisManipulationVelocities(const Noesis::ManipulationVelocities& ManipulationVelocities);
 
@@ -355,7 +355,7 @@ struct FNoesisInertiaExpansionBehavior
 	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
 	float DesiredDeceleration;
 
-	FNoesisInertiaExpansionBehavior() {}
+	FNoesisInertiaExpansionBehavior() : DesiredDeceleration(0.f) {}
 
 	FNoesisInertiaExpansionBehavior(const Noesis::InertiaExpansionBehavior& InertiaExpansionBehavior);
 
@@ -370,7 +370,7 @@ struct FNoesisInertiaRotationBehavior
 	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
 	float DesiredDeceleration;
 
-	FNoesisInertiaRotationBehavior() {}
+	FNoesisInertiaRotationBehavior() : DesiredDeceleration(0) {}
 
 	FNoesisInertiaRotationBehavior(const Noesis::InertiaRotationBehavior& InertiaRotationBehavior);
 
@@ -385,7 +385,7 @@ struct FNoesisInertiaTranslationBehavior
 	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
 	float DesiredDeceleration;
 
-	FNoesisInertiaTranslationBehavior() {}
+	FNoesisInertiaTranslationBehavior() : DesiredDeceleration(0) {}
 
 	FNoesisInertiaTranslationBehavior(const Noesis::InertiaTranslationBehavior& InertiaTranslationBehavior);
 
@@ -403,7 +403,7 @@ struct FNoesisGeneratorPosition
 	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
 	int32 Offset;
 
-	FNoesisGeneratorPosition() {}
+	FNoesisGeneratorPosition() : Index(0), Offset(0) {}
 
 	FNoesisGeneratorPosition(const Noesis::GeneratorPosition& GeneratorPosition);
 
