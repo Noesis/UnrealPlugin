@@ -121,27 +121,7 @@ void UNoesisXaml::RenderThumbnail(FIntRect ViewportRect, const FTexture2DRHIRef&
 
 	if (ThumbnailRenderInstance)
 	{
-		ThumbnailRenderInstance->Update(ViewportRect.Min.X, ViewportRect.Min.Y, ViewportRect.Max.X - ViewportRect.Min.X, ViewportRect.Max.Y - ViewportRect.Min.Y);
-
-		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-			FNoesisXamlThumbnailRendererDrawCommand,
-			UNoesisInstance*, NoesisInstance, ThumbnailRenderInstance,
-			const FTexture2DRHIRef&, BackBuffer, BackBuffer,
-			{
-				NoesisInstance->DrawOffscreen_RenderThread(RHICmdList, 0, 0);
-
-				uint32 SizeX = BackBuffer->GetSizeX();
-				uint32 SizeY = BackBuffer->GetSizeY();
-				uint8 Format = (uint8)PF_DepthStencil;
-				uint32 NumMips = BackBuffer->GetNumMips();
-				uint32 NumSamples = BackBuffer->GetNumSamples();
-				uint32 TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
-				FRHIResourceCreateInfo CreateInfo;
-				CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
-				FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, CreateInfo);
-				SetRenderTarget(RHICmdList, BackBuffer, DepthStencilTarget);
-				NoesisInstance->Draw_RenderThread(RHICmdList, BackBuffer, DepthStencilTarget);
-			});
+		ThumbnailRenderInstance->DrawThumbnail(ViewportRect, BackBuffer);
 	}
 }
 

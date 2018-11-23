@@ -50,29 +50,30 @@ DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnMouseButtonDoubleClick"), STAT_
 class FNoesisSlateElement : public ICustomSlateElement
 {
 public:
-	FNoesisSlateElement(class UNoesisInstance* InNoesisInstance);
+	FNoesisSlateElement(Noesis::Ptr<Noesis::IRenderer> InRenderer);
 
 	// ICustomSlateElement interface
 	virtual void DrawRenderThread(FRHICommandListImmediate& RHICmdList, const void* InWindowBackBuffer) override;
 	// End of ICustomSlateElement interface
 
-	class UNoesisInstance* NoesisInstance;
+	Noesis::Ptr<Noesis::IRenderer> Renderer;
 	FTexture2DRHIRef DepthStencilTarget;
 
 	float Left;
 	float Top;
 	float Right;
 	float Bottom;
+	bool FlipYAxis;
 };
 
-FNoesisSlateElement::FNoesisSlateElement(class UNoesisInstance* InNoesisInstance)
-	: NoesisInstance(InNoesisInstance)
+FNoesisSlateElement::FNoesisSlateElement(Noesis::Ptr<Noesis::IRenderer> InRenderer)
+	: Renderer(InRenderer)
 {
 }
 
 void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList, const void* InWindowBackBuffer)
 {
-	if (NoesisInstance)
+	if (Renderer)
 	{
 		FTexture2DRHIRef ColorTarget = *(FTexture2DRHIRef*)InWindowBackBuffer;
 		if (!DepthStencilTarget.IsValid() || DepthStencilTarget->GetSizeX() != ColorTarget->GetSizeX() || DepthStencilTarget->GetSizeY() != ColorTarget->GetSizeY() || DepthStencilTarget->GetNumSamples() != ColorTarget->GetNumSamples())
@@ -95,7 +96,11 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 		// Clear the stencil buffer
 		RHICmdList.SetRenderTargetsAndClear(Info);
 		RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
-		NoesisInstance->Draw_RenderThread(RHICmdList, 0, 0);
+		SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
+		SCOPED_DRAW_EVENT(RHICmdList, NoesisDraw);
+		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
+		Renderer->Render(FlipYAxis);
+		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
 	}
 }
 
@@ -267,8 +272,17 @@ void UNoesisInstance::InitInstance()
 
 		if (XamlView)
 		{
-			Noesis::IRenderer* Renderer = XamlView->GetRenderer();
-			Renderer->Init(FNoesisRenderDevice::Get());
+			Noesis::Ptr<Noesis::IRenderer> Renderer(XamlView->GetRenderer());
+
+			ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(FNoesisInstance_InitRenderer,
+				Noesis::Ptr<Noesis::IRenderer>, Renderer, Renderer,
+				{
+					FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
+					Renderer->Init(FNoesisRenderDevice::Get());
+					FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
+				});
+
+			NoesisSlateElement = MakeShared<FNoesisSlateElement, ESPMode::ThreadSafe>(Renderer);
 
 			StartTime = GetTimeSeconds();
 
@@ -277,8 +291,6 @@ void UNoesisInstance::InitInstance()
 
 		Xaml->PreviewGotKeyboardFocus() += Noesis::MakeDelegate(this, &UNoesisInstance::OnPreviewGotKeyboardFocus);
 		Xaml->PreviewLostKeyboardFocus() += Noesis::MakeDelegate(this, &UNoesisInstance::OnPreviewLostKeyboardFocus);
-
-		NoesisSlateElement = MakeShared<FNoesisSlateElement, ESPMode::ThreadSafe>(this);
 	}
 }
 
@@ -361,36 +373,6 @@ void UNoesisInstance::Update(float InLeft, float InTop, float InWidth, float InH
 		XamlView->SetTessellationQuality((Noesis::TessellationQuality)TessellationQuality);
 		XamlView->SetFlags((uint32)RenderFlags);
 		XamlView->Update(GetTimeSeconds() - StartTime);
-	}
-}
-
-void UNoesisInstance::DrawOffscreen_RenderThread(FRHICommandListImmediate& RHICmdList, FTexture2DRHIParamRef BackBuffer, FTexture2DRHIParamRef DepthStencilTarget)
-{
-	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_DrawOffscreen);
-	if (XamlView)
-	{
-		SCOPED_DRAW_EVENT(RHICmdList, NoesisDrawOffscreen);
-		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
-		Noesis::IRenderer* Renderer = XamlView->GetRenderer();
-		Renderer->UpdateRenderTree();
-		if (Renderer->NeedsOffscreen())
-		{
-			Renderer->RenderOffscreen();
-		}
-		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
-	}
-}
-
-void UNoesisInstance::Draw_RenderThread(FRHICommandListImmediate& RHICmdList, FTexture2DRHIParamRef BackBuffer, FTexture2DRHIParamRef DepthStencilTarget)
-{
-	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
-	if (XamlView)
-	{
-		SCOPED_DRAW_EVENT(RHICmdList, NoesisDraw);
-		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
-		Noesis::IRenderer* Renderer = XamlView->GetRenderer();
-		Renderer->Render(FlipYAxis);
-		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
 	}
 }
 
@@ -498,17 +480,18 @@ void UNoesisInstance::TermInstance()
 {
 	if (XamlView)
 	{
-		Noesis::IRenderer* Renderer = XamlView->GetRenderer();
-		Renderer->Shutdown();
+		Noesis::Ptr<Noesis::IRenderer> Renderer(XamlView->GetRenderer());
 		XamlView.Reset();
 		Xaml.Reset();
 
 		// Pass the slate element to the render thread so that it's deleted after it's shown for the last time
-		ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER
+		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER
 		(
 			SafeDeleteNoesisSlateElement,
+			Noesis::Ptr<Noesis::IRenderer>, Renderer, Renderer,
 			FNoesisSlateElementPtr, NoesisSlateElement, NoesisSlateElement,
 			{
+				Renderer->Shutdown();
 				NoesisSlateElement.Reset();
 			}
 		);
@@ -555,6 +538,40 @@ void UNoesisInstance::SetDesignerFlags(EWidgetDesignFlags::Type NewFlags)
 	// Enable native events in editor
 	Super::SetDesignerFlags((EWidgetDesignFlags::Type)(NewFlags & ~EWidgetDesignFlags::Designing));
 }
+
+void UNoesisInstance::DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRef& BackBuffer)
+{
+	Update(ViewportRect.Min.X, ViewportRect.Min.Y, ViewportRect.Max.X - ViewportRect.Min.X, ViewportRect.Max.Y - ViewportRect.Min.Y);
+
+	Noesis::Ptr<Noesis::IRenderer> Renderer(XamlView->GetRenderer());
+
+	ENQUEUE_UNIQUE_RENDER_COMMAND_THREEPARAMETER(
+		FNoesisXamlThumbnailRendererDrawCommand,
+		Noesis::Ptr<Noesis::IRenderer>, Renderer, Renderer,
+		bool, FlipYAxis, FlipYAxis,
+		const FTexture2DRHIRef&, BackBuffer, BackBuffer,
+		{
+			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
+			Renderer->UpdateRenderTree();
+			if (Renderer->NeedsOffscreen())
+			{
+				Renderer->RenderOffscreen();
+			}
+
+			uint32 SizeX = BackBuffer->GetSizeX();
+			uint32 SizeY = BackBuffer->GetSizeY();
+			uint8 Format = (uint8)PF_DepthStencil;
+			uint32 NumMips = BackBuffer->GetNumMips();
+			uint32 NumSamples = BackBuffer->GetNumSamples();
+			uint32 TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
+			FRHIResourceCreateInfo CreateInfo;
+			CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
+			FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, CreateInfo);
+			SetRenderTarget(RHICmdList, BackBuffer, DepthStencilTarget);
+			Renderer->Render(FlipYAxis);
+			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
+		});
+}
 #endif // WITH_EDITOR
 
 void UNoesisInstance::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -574,10 +591,20 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 
 	if (XamlView)
 	{
+		Noesis::Ptr<Noesis::IRenderer> Renderer(XamlView->GetRenderer());
+
 		ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(FNoesisInstance_DrawOffscreen,
-			UNoesisInstance*, NoesisInstance, (UNoesisInstance*)this,
+			Noesis::Ptr<Noesis::IRenderer>, Renderer, Renderer,
 			{
-				NoesisInstance->DrawOffscreen_RenderThread(RHICmdList, 0, 0);
+				SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_DrawOffscreen);
+				SCOPED_DRAW_EVENT(RHICmdList, NoesisDrawOffscreen);
+				FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
+				Renderer->UpdateRenderTree();
+				if (Renderer->NeedsOffscreen())
+				{
+					Renderer->RenderOffscreen();
+				}
+				FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
 			});
 
 		const FSlateRect& MyClippingRect = MyCullingRect;
@@ -586,6 +613,7 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 		NoesisSlateElement->Top = MyClippingRect.Top;
 		NoesisSlateElement->Right = MyClippingRect.Right;
 		NoesisSlateElement->Bottom = MyClippingRect.Bottom;
+		NoesisSlateElement->FlipYAxis = FlipYAxis;
 		FSlateDrawElement::MakeCustom(OutDrawElements, LayerId, NoesisSlateElement);
 
 		MaxLayer = FMath::Max(MaxLayer, LayerId);
