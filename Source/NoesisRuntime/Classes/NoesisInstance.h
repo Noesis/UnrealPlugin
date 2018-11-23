@@ -80,8 +80,6 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	void ExecuteConsoleCommand(FString Command, class APlayerController* SpecificPlayer);
 
 	void Update(float InLeft, float InTop, float InWidth, float InHeight);
-	void DrawOffscreen_RenderThread(FRHICommandListImmediate& RHICmdList, FTexture2DRHIParamRef BackBuffer, FTexture2DRHIParamRef DepthStencilTarget);
-	void Draw_RenderThread(FRHICommandListImmediate& RHICmdList, FTexture2DRHIParamRef BackBuffer, FTexture2DRHIParamRef DepthStencilTarget);
 
 	FVector2D GetSize() const;
 
@@ -103,6 +101,8 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	// UWidget interface
 	virtual void SetDesignerFlags(EWidgetDesignFlags::Type NewFlags) override;
 	// End of UWidget interface
+
+	void DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRef& BackBuffer);
 #endif // WITH_EDITOR
 
 	// UUserWidget interface
