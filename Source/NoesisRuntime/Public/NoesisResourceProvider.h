@@ -11,6 +11,15 @@
 // Noesis includes
 #include "NoesisSDK.h"
 
+enum class EResourceType
+{
+	RT_Unknown = 0,
+	RT_FontFace,
+	RT_Font,
+	RT_Texture,
+	RT_Xaml
+};
+
 class FNoesisResourceProvider : public Noesis::XamlProvider, public Noesis::TextureProvider, public Noesis::CachedFontProvider
 {
 public:
@@ -31,4 +40,7 @@ public:
 	virtual void ScanFolder(const char* Folder) override;
 	virtual Noesis::Ptr<Noesis::Stream> OpenFont(const char* Folder, const char* Filename) const override;
 	// End of CachedFontProvider interface
+
+	NOESISRUNTIME_API static FString ProcessPath(const FString& Path, EResourceType ResourceType = EResourceType::RT_Unknown);
+	NOESISRUNTIME_API static FString ProcessPath(const char* Path, EResourceType ResourceType = EResourceType::RT_Unknown);
 };

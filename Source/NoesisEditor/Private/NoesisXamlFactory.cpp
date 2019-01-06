@@ -12,6 +12,8 @@
 #include "NoesisEditorModule.h"
 #include "NoesisEditorUserSettings.h"
 
+#include "NoesisResourceProvider.h"
+
 UNoesisXamlFactory::UNoesisXamlFactory(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -132,6 +134,7 @@ void ImportXamls(FString BasePackageName, FString ProjectURIRoot, FString Path, 
 		UPackage* XamlPackage = NULL;
 
 		FString XamlObjectPath = PackagePath / XamlName + TEXT(".") + XamlName;
+		XamlObjectPath = FNoesisResourceProvider::ProcessPath(XamlObjectPath, EResourceType::RT_Xaml);
 		UNoesisXaml* ExistingXaml = LoadObject<UNoesisXaml>(NULL, *XamlObjectPath);
 
 		if (!ExistingXaml)
@@ -267,10 +270,12 @@ void ImportFonts(FString BasePackageName, FString ProjectURIRoot, FString Path, 
 										if (SubFace->family_name && FCStringAnsi::Strcmp(SubFace->family_name, StringCast<ANSICHAR>(*FamilyName).Get()) == 0)
 										{
 											FString FontFaceName = ObjectTools::SanitizeObjectName(FPaths::GetBaseFilename(FPaths::GetBaseFilename(FilenameOrDirectory)));
+											FontFaceName = "FF_" + FontFaceName;
 
 											UPackage* FontFacePackage = NULL;
 
 											FString FontFaceObjectPath = FontPackagePath / FontFaceName + TEXT(".") + FontFaceName;
+											FontFaceObjectPath = FNoesisResourceProvider::ProcessPath(FontFaceObjectPath, EResourceType::RT_FontFace);
 											UFontFace* ExistingFontFace = LoadObject<UFontFace>(NULL, *FontFaceObjectPath);
 
 											if (!ExistingFontFace)
@@ -341,8 +346,10 @@ void ImportFonts(FString BasePackageName, FString ProjectURIRoot, FString Path, 
 		{
 			UPackage* FontPackage = NULL;
 
-			FString FontName = ObjectTools::SanitizeObjectName(FamilyName + TEXT("_Font"));
+			//FString FontName = ObjectTools::SanitizeObjectName(FamilyName + TEXT("_Font"));
+			FString FontName = "F_" + ObjectTools::SanitizeObjectName(FamilyName);
 			FString FontObjectPath = FontPackagePath / FontName + TEXT(".") + FontName;
+			FontObjectPath = FNoesisResourceProvider::ProcessPath(FontObjectPath, EResourceType::RT_Font);
 			UFont* ExistingFont = LoadObject<UFont>(NULL, *FontObjectPath);
 
 			if (!ExistingFont)
@@ -427,9 +434,12 @@ void ImportImages(FString BasePackageName, FString ProjectURIRoot, FString Path,
 		FString TextureName;
 		ExtractPaths(ImagePath, Path, BasePackageName, ProjectURIRoot, TexturePath, FileName, PackagePath, TextureName);
 
+		TextureName = "T_" + TextureName;
+
 		UPackage* TexturePackage = NULL;
 
 		FString TextureObjectPath = PackagePath / TextureName + TEXT(".") + TextureName;
+		TextureObjectPath = FNoesisResourceProvider::ProcessPath(TextureObjectPath, EResourceType::RT_Texture);
 		UTexture2D* ExistingTexture = LoadObject<UTexture2D>(NULL, *TextureObjectPath);
 
 		if (!ExistingTexture)
@@ -561,6 +571,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 		UPackage* XamlPackage = NULL;
 
 		FString XamlObjectPath = PackagePath / XamlName + TEXT(".") + XamlName;
+		XamlObjectPath = FNoesisResourceProvider::ProcessPath(XamlObjectPath, EResourceType::RT_Xaml);
 		UNoesisXaml* ExistingXaml = LoadObject<UNoesisXaml>(NULL, *XamlObjectPath);
 
 		if (!ExistingXaml)

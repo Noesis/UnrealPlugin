@@ -20,7 +20,7 @@
 
 UNoesisXaml* FNoesisResourceProvider::GetXaml(FString XamlPath)
 {
-	return LoadObject<UNoesisXaml>(nullptr, XamlPath[0] == TEXT('/') ? *XamlPath : *(FString(TEXT("/")) + XamlPath));
+	return LoadObject<UNoesisXaml>(nullptr, *ProcessPath(TCHAR_TO_ANSI(*XamlPath), EResourceType::RT_Xaml));
 }
 
 Noesis::Ptr<Noesis::Stream> FNoesisResourceProvider::LoadXaml(const char* Path)
@@ -36,7 +36,7 @@ Noesis::Ptr<Noesis::Stream> FNoesisResourceProvider::LoadXaml(const char* Path)
 
 UTexture2D* FNoesisResourceProvider::GetTexture(FString TexturePath)
 {
-	return LoadObject<UTexture2D>(nullptr, TexturePath[0] == TEXT('/') ? *TexturePath : *(FString(TEXT("/")) + TexturePath));
+	return LoadObject<UTexture2D>(nullptr, *ProcessPath(TCHAR_TO_ANSI(*TexturePath), EResourceType::RT_Texture));
 }
 
 Noesis::TextureInfo FNoesisResourceProvider::GetTextureInfo(const char* Path)
@@ -58,7 +58,7 @@ Noesis::Ptr<Noesis::Texture> FNoesisResourceProvider::LoadTexture(const char* Pa
 
 void FNoesisResourceProvider::ScanFolder(const char* InFolder)
 {
-	UFont* Font = LoadObject<UFont>(nullptr, InFolder[0] == '/' ? *NsStringToFString(InFolder) : *(FString(TEXT("/")) + NsStringToFString(InFolder)));
+	UFont* Font = LoadObject<UFont>(nullptr, *ProcessPath(InFolder, EResourceType::RT_Font));
 	if (Font)
 	{
 		for (auto TypefaceEntry : Font->CompositeFont.DefaultTypeface.Fonts)
@@ -72,7 +72,7 @@ void FNoesisResourceProvider::ScanFolder(const char* InFolder)
 
 Noesis::Ptr<Noesis::Stream> FNoesisResourceProvider::OpenFont(const char* InFolder, const char* InFilename) const
 {
-	UFont* Font = LoadObject<UFont>(nullptr, InFolder[0] == '/' ? *NsStringToFString(InFolder) : *(FString(TEXT("/")) + NsStringToFString(InFolder)));
+	UFont* Font = LoadObject<UFont>(nullptr, *ProcessPath(InFolder, EResourceType::RT_Font));
 	if (Font)
 	{
 		for (auto TypefaceEntry : Font->CompositeFont.DefaultTypeface.Fonts)
@@ -112,4 +112,39 @@ Noesis::Ptr<Noesis::Stream> FNoesisResourceProvider::OpenFont(const char* InFold
 		}
 	}
 	return Noesis::Ptr<Noesis::Stream>();
+}
+
+FString FNoesisResourceProvider::ProcessPath(const char* Path, EResourceType ResourceType)
+{
+	FString Result = NsStringToFString(Path);
+
+	auto BasePath = FPaths::GetPath(Result);
+	BasePath = BasePath[0] == '/' ? BasePath : "/" + BasePath;
+	BasePath += "/";
+
+	auto FileName = FPaths::GetBaseFilename(Result);
+	Result = BasePath + FileName + "." + FileName;
+
+	/* NOTE: This is surely sub-optimal */
+	auto LoadedObject = LoadObject<UObject>(nullptr, *Result);
+	if (LoadedObject == nullptr)
+	{
+		if (ResourceType == EResourceType::RT_FontFace)
+			FileName = "FF_" + FileName;
+		else if (ResourceType == EResourceType::RT_Font)
+			FileName = "F_" + FileName;
+		else if (ResourceType == EResourceType::RT_Texture)
+			FileName = "T_" + FileName;
+		else if (ResourceType == EResourceType::RT_Xaml)
+			FileName = "XAML_" + FileName;
+
+		Result = BasePath + FileName + "." + FileName;
+	}
+
+	return Result;
+}
+
+FString FNoesisResourceProvider::ProcessPath(const FString& Path, EResourceType ResourceType /*= EResourceType::RT_Unknown*/)
+{
+	return ProcessPath(TCHAR_TO_ANSI(*Path), ResourceType);
 }
