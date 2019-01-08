@@ -8,6 +8,8 @@
 // Core includes
 #include "CoreMinimal.h"
 
+class UNoesisResourceResolver;
+
 // Noesis includes
 #include "NoesisSDK.h"
 
@@ -31,4 +33,7 @@ public:
 	virtual void ScanFolder(const char* Folder) override;
 	virtual Noesis::Ptr<Noesis::Stream> OpenFont(const char* Folder, const char* Filename) const override;
 	// End of CachedFontProvider interface
+
+protected:
+	UNoesisResourceResolver* GetResourceResolver() const;
 };

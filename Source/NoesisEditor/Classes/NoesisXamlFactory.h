@@ -8,12 +8,39 @@
 // Generated header include
 #include "NoesisXamlFactory.generated.h"
 
+class UNoesisResourceResolver;
+
+struct FXamlDescriptor
+{
+	FString Path;
+	UNoesisXaml* Xaml;
+};
+
+struct FFontDescriptor
+{
+	FString Family;
+	UFont* Font;
+};
+
+struct FImageDescriptor
+{
+	FString Path;
+	UTexture2D* Texture;
+};
+
 UCLASS()
 class NOESISEDITOR_API UNoesisXamlFactory : public UFactory
 {
 	GENERATED_UCLASS_BODY()
 
 	// UFactory interface
-		virtual UObject* FactoryCreateBinary(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject* Context, const TCHAR* Type, const uint8*& Buffer, const uint8* BufferEnd, FFeedbackContext* Warn) override;
+	virtual UObject* FactoryCreateBinary(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject* Context, const TCHAR* Type, const uint8*& Buffer, const uint8* BufferEnd, FFeedbackContext* Warn) override;
 	// End of UFactory interface
+
+protected:
+	void ImportXamls(FString BasePackageName, FString ProjectURIRoot, FString Path, TArray<FXamlDescriptor>& XamlDescriptors);
+	void ImportFonts(FString BasePackageName, FString ProjectURIRoot, FString Path, TArray<FFontDescriptor>& FontDescriptors);
+	void ImportImages(FString BasePackageName, FString ProjectURIRoot, FString Path, TArray<FImageDescriptor>& ImageDescriptors);
+
+	UNoesisResourceResolver* GetResourceResolver();
 };

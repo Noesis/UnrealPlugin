@@ -14,6 +14,8 @@
 // Generated header include
 #include "NoesisSettings.generated.h"
 
+class UNoesisResourceResolver;
+
 UENUM()
 enum class ENoesisOffscreenSampleCount : uint8
 {
@@ -84,4 +86,14 @@ class NOESISRUNTIME_API UNoesisSettings : public UObject
 	/** Restores the color of UI PNG texture texels with an alpha value of zero. */
 	UPROPERTY(EditAnywhere, Config, Category = "Editor Settings", DisplayName = "Fix for premultiplied alpha UI textures")
 	bool RestoreUITexturePNGPremultipliedAlpha;
+
+	/** A custom resource resolver */
+	UPROPERTY(EditAnywhere, Config, Category = "Noesis Settings")
+	TSoftClassPtr<UNoesisResourceResolver> ResourceResolverClass;
+
+	UNoesisResourceResolver* GetResourceResolver();
+
+protected:
+	UPROPERTY()
+	UNoesisResourceResolver* ResourceResolverInstance;
 };
