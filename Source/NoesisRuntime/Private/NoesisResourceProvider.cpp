@@ -18,6 +18,7 @@
 #include "NoesisXaml.h"
 #include "NoesisSupport.h"
 #include "NoesisResourceResolver.h"
+#include "NoesisSettings.h"
 
 UNoesisXaml* FNoesisResourceProvider::GetXaml(FString XamlPath)
 {
