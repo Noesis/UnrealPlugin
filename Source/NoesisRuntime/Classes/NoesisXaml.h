@@ -31,6 +31,9 @@ class NOESISRUNTIME_API UNoesisXaml : public UObject
 	UPROPERTY()
 	TArray<class UFont*> Fonts;
 
+	UPROPERTY()
+	TArray<class USoundWave*> Sounds;
+
 	Noesis::Ptr<Noesis::BaseComponent> LoadXaml();
 	void LoadComponent(Noesis::BaseComponent* Component);
 

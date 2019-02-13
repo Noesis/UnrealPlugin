@@ -33,13 +33,6 @@ public:
 		return (uint32)ShaderResourceTexture->GetSizeY();
 	}
 
-	virtual Noesis::TextureFormat::Enum GetFormat() const override
-	{
-		EPixelFormat PixelFormat = ShaderResourceTexture->GetFormat();
-		check(PixelFormat == PF_B8G8R8A8 || PixelFormat == PF_B8G8R8A8 || PixelFormat == PF_G8 || PixelFormat == PF_DXT1 || PixelFormat == PF_DXT3 || PixelFormat == PF_DXT5);
-		return Format;
-	}
-
 	virtual bool HasMipMaps() const override
 	{
 		return (bool)(ShaderResourceTexture->GetNumMips() > 1);
@@ -234,20 +227,11 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 	}
 	switch (Texture->ShaderResourceTexture->GetFormat())
 	{
-	case PF_B8G8R8A8:
-		Texture->Format = Noesis::TextureFormat::BGRA8;
+	case PF_R8G8B8A8:
+		Texture->Format = Noesis::TextureFormat::RGBA8;
 		break;
 	case PF_G8:
 		Texture->Format = Noesis::TextureFormat::R8;
-		break;
-	case PF_DXT1:
-		Texture->Format = Noesis::TextureFormat::BC1;
-		break;
-	case PF_DXT3:
-		Texture->Format = Noesis::TextureFormat::BC2;
-		break;
-	case PF_DXT5:
-		Texture->Format = Noesis::TextureFormat::BC3;
 		break;
 	}
 
@@ -256,7 +240,7 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 
 const Noesis::DeviceCaps& FNoesisRenderDevice::GetCaps() const
 {
-	static Noesis::DeviceCaps Caps = { 0.f, VertexBufferSize, IndexBufferSize, false, { true, true, true, true, true, true } };
+	static Noesis::DeviceCaps Caps = { 0.f, VertexBufferSize, IndexBufferSize, false };
 	return Caps;
 }
 
@@ -264,7 +248,7 @@ Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CreateRenderTarget(const 
 {
 	uint32 SizeX = (uint32)Width;
 	uint32 SizeY = (uint32)Height;
-	uint8 Format = (uint8)PF_B8G8R8A8;
+	uint8 Format = (uint8)PF_R8G8B8A8;
 	uint32 NumMips = 1;
 	uint32 Flags = 0;
 	uint32 TargetableTextureFlags = (uint32)TexCreate_RenderTargetable;
@@ -284,7 +268,7 @@ Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CreateRenderTarget(const 
 	RenderTarget->Texture = *new FNoesisTexture();
 	RenderTarget->ColorTarget = ColorTarget;
 	RenderTarget->Texture->ShaderResourceTexture = ShaderResourceTexture;
-	RenderTarget->Texture->Format = Noesis::TextureFormat::BGRA8;
+	RenderTarget->Texture->Format = Noesis::TextureFormat::RGBA8;
 	RenderTarget->DepthStencilTarget = DepthStencilTarget;
 
 	FName TextureName = FName(Label);
@@ -305,13 +289,13 @@ Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CloneRenderTarget(const c
 
 	uint32 SizeX = SharedRenderTarget->Texture->ShaderResourceTexture->GetSizeX();
 	uint32 SizeY = SharedRenderTarget->Texture->ShaderResourceTexture->GetSizeY();
-	uint8 Format = (uint8)PF_B8G8R8A8;
+	uint8 Format = (uint8)PF_R8G8B8A8;
 	uint32 NumMips = 1;
 	uint32 Flags = TexCreate_ResolveTargetable | TexCreate_ShaderResource;
 	FRHIResourceCreateInfo CreateInfo;
 	FTexture2DRHIRef ShaderResourceTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, 1, Flags, CreateInfo);
 	RenderTarget->Texture->ShaderResourceTexture = ShaderResourceTexture;
-	RenderTarget->Texture->Format = Noesis::TextureFormat::BGRA8;
+	RenderTarget->Texture->Format = Noesis::TextureFormat::RGBA8;
 
 	return Noesis::Ptr<Noesis::RenderTarget>(*RenderTarget);
 }
@@ -320,7 +304,7 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(const char* Labe
 {
 	uint32 SizeX = (uint32)Width;
 	uint32 SizeY = (uint32)Height;
-	EPixelFormat Formats[Noesis::TextureFormat::Count] = { PF_B8G8R8A8, PF_B8G8R8A8, PF_G8, PF_DXT1, PF_DXT3, PF_DXT5 };
+	EPixelFormat Formats[Noesis::TextureFormat::Count] = { PF_R8G8B8A8, PF_G8 };
 	uint8 Format = (uint8)Formats[TextureFormat];
 	uint32 NumMips = (uint32)NumLevels;
 	uint32 NumSamples = 1;
@@ -350,7 +334,7 @@ void FNoesisRenderDevice::UpdateTexture(Noesis::Texture* InTexture, uint32 Level
 	UpdateRegion.DestY = (uint32)Y;
 	UpdateRegion.Width = (uint32)Width;
 	UpdateRegion.Height = (uint32)Height;
-	uint32 SourcePitch = (uint32)Width * ((Texture->ShaderResourceTexture->GetFormat() == PF_B8G8R8A8) ? 4 : 1);
+	uint32 SourcePitch = (uint32)Width * ((Texture->ShaderResourceTexture->GetFormat() == PF_R8G8B8A8) ? 4 : 1);
 	const uint8* SourceData = (const uint8*)Data;
 
 	RHIUpdateTexture2D(Texture->ShaderResourceTexture, MipIndex, UpdateRegion, SourcePitch, SourceData);

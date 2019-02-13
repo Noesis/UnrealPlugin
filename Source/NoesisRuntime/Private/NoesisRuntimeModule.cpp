@@ -22,6 +22,9 @@
 #include "Widgets/Input/IVirtualKeyboardEntry.h"
 #include "Framework/Application/SlateApplication.h"
 
+// Engine includes
+#include "ActiveSound.h"
+
 // Projects includes
 #include "Interfaces/IPluginManager.h"
 
@@ -35,6 +38,8 @@
 // Noesis includes
 #include "NoesisSDK.h"
 
+extern "C" void NsRegisterReflectionAppInteractivity(Noesis::ComponentFactory*, bool);
+
 static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* Desc, bool Fatal)
 {
 	if (Fatal)
@@ -46,28 +51,32 @@ static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* De
 }
 
 DECLARE_DWORD_COUNTER_STAT(TEXT("NoesisMemory"), STAT_NoesisMemory, STATGROUP_Noesis);
-class NoesisMemoryAllocator : public Noesis::MemoryAllocator
+void* NoesisAllocationCallbackUserData = nullptr;
+void* NoesisAlloc(void* UserData, size_t Size)
 {
-public:
+	void* Result = FMemory::Malloc(Size);
+	INC_DWORD_STAT_BY(STAT_NoesisMemory, FMemory::GetAllocSize(Result));
+	return Result;
+}
 
-	virtual void* Alloc(SIZE_T Size) override
-	{
-		void* Result = FMemory::Malloc(Size);
-		INC_DWORD_STAT_BY(STAT_NoesisMemory, FMemory::GetAllocSize(Result));
-		return Result;
-	}
+void* NoesisRealloc(void* UserData, void* Ptr, size_t Size)
+{
+	DEC_DWORD_STAT_BY(STAT_NoesisMemory, FMemory::GetAllocSize(Ptr));
+	void* Result = FMemory::Realloc(Ptr, Size);
+	INC_DWORD_STAT_BY(STAT_NoesisMemory, FMemory::GetAllocSize(Result));
+	return Result;
+}
 
-	virtual void* Realloc(void* Ptr, SIZE_T Size) override
-	{
-		return FMemory::Realloc(Ptr, Size);
-	}
+void NoesisDealloc(void* UserData, void* Ptr)
+{
+	DEC_DWORD_STAT_BY(STAT_NoesisMemory, FMemory::GetAllocSize(Ptr));
+	FMemory::Free(Ptr);
+}
 
-	virtual void Dealloc(void* Ptr)
-	{
-		DEC_DWORD_STAT_BY(STAT_NoesisMemory, FMemory::GetAllocSize(Ptr));
-		FMemory::Free(Ptr);
-	}
-};
+size_t NoesisAllocSize(void* UserData, void* Ptr)
+{
+	return FMemory::GetAllocSize(Ptr);
+}
 
 static void NoesisLogHandler(const char* File, uint32_t Line, uint32_t Level, const char* Channel, const char* Message)
 {
@@ -344,38 +353,80 @@ void ShowPasswordBoxVirtualKeyboard(Noesis::PasswordBox* PasswordBox)
 	PasswordBoxVirtualKeyboardEntry = NewPasswordBoxVirtualKeyboardEntry;
 }
 
-bool NoesisShowSoftwareKeyboard(void* UserData, Noesis::UIElement* FocusedElement)
+void NoesisSoftwareKeyboardCallback(void* UserData, Noesis::UIElement* FocusedElement, bool Open)
 {
-	if (FocusedElement)
+	if (Open)
 	{
-		const Noesis::TypeClass* NewFocusClass = FocusedElement->GetClassType();
-		const Noesis::TypeClass* TextBoxClass = Noesis::TextBox::StaticGetClassType();
-		const Noesis::TypeClass* PasswordBoxClass = Noesis::PasswordBox::StaticGetClassType();
-		if (FPlatformApplicationMisc::RequiresVirtualKeyboard())
+		if (FocusedElement)
 		{
-			if (NewFocusClass == TextBoxClass || NewFocusClass->IsDescendantOf(TextBoxClass))
+			const Noesis::TypeClass* NewFocusClass = FocusedElement->GetClassType();
+			const Noesis::TypeClass* TextBoxClass = Noesis::TextBox::StaticGetClassType(nullptr);
+			const Noesis::TypeClass* PasswordBoxClass = Noesis::PasswordBox::StaticGetClassType(nullptr);
+			if (FPlatformApplicationMisc::RequiresVirtualKeyboard())
 			{
-				Noesis::TextBox* TextBox = (Noesis::TextBox*)FocusedElement;
+				if (NewFocusClass == TextBoxClass || NewFocusClass->IsDescendantOf(TextBoxClass))
+				{
+					Noesis::TextBox* TextBox = (Noesis::TextBox*)FocusedElement;
 
-				ShowTextBoxVirtualKeyboard(TextBox);
-			}
-			else if (NewFocusClass == PasswordBoxClass || NewFocusClass->IsDescendantOf(PasswordBoxClass))
-			{
-				Noesis::PasswordBox* PasswordBox = (Noesis::PasswordBox*)FocusedElement;
+					ShowTextBoxVirtualKeyboard(TextBox);
+				}
+				else if (NewFocusClass == PasswordBoxClass || NewFocusClass->IsDescendantOf(PasswordBoxClass))
+				{
+					Noesis::PasswordBox* PasswordBox = (Noesis::PasswordBox*)FocusedElement;
 
-				ShowPasswordBoxVirtualKeyboard(PasswordBox);
+					ShowPasswordBoxVirtualKeyboard(PasswordBox);
+				}
 			}
 		}
 	}
-
-	return false;
+	else
+	{
+		if (FSlateApplication::IsInitialized() && FPlatformApplicationMisc::RequiresVirtualKeyboard())
+		{
+			FSlateApplication::Get().ShowVirtualKeyboard(false, FSlateApplication::Get().GetUserIndexForKeyboard());
+		}
+	}
 }
 
-void NoesisHideSoftwareKeyboard(void* UserData)
+void NoesisPlaySoundCallback(void* UserData, const char* Filename, float Volume)
 {
-	if (FSlateApplication::IsInitialized() && FPlatformApplicationMisc::RequiresVirtualKeyboard())
+#if WITH_EDITOR
+	if (GIsEditor)
 	{
-		FSlateApplication::Get().ShowVirtualKeyboard(false, FSlateApplication::Get().GetUserIndexForKeyboard());
+		bool IsInGame = false;
+		for (const FWorldContext& Context : GEngine->GetWorldContexts())
+		{
+			if (Context.WorldType == EWorldType::PIE || Context.WorldType == EWorldType::Game)
+			{
+				IsInGame = true;
+			}
+		}
+
+		if (!IsInGame)
+			return;
+	}
+#endif
+
+	FString SoundName = Filename;
+	USoundWave* Sound = LoadObject<USoundWave>(nullptr, SoundName[0] == TEXT('/') ? *SoundName : *(FString(TEXT("/")) + SoundName));
+
+	if (!Sound)
+		return;
+
+	if (GEngine)
+	{
+		FAudioDevice* const AudioDevice = GEngine->GetActiveAudioDevice();
+		if (AudioDevice)
+		{
+			FActiveSound NewActiveSound;
+			NewActiveSound.SetSound(Sound);
+			NewActiveSound.bIsUISound = true;
+			NewActiveSound.UserIndex = FSlateApplication::Get().GetUserIndexForKeyboard();
+			NewActiveSound.Priority = Sound->Priority;
+			NewActiveSound.VolumeMultiplier = Volume;
+
+			AudioDevice->AddNewActiveSound(NewActiveSound);
+		}
 	}
 }
 
@@ -385,7 +436,9 @@ public:
 	// IModuleInterface interface
 	virtual void StartupModule() override
 	{
-		Noesis::GUI::Init(&NoesisErrorHandler, &NoesisLogHandler, &Allocator);
+		Noesis::MemoryCallbacks MemoryCallbacks{ NoesisAllocationCallbackUserData, &NoesisAlloc, &NoesisRealloc, &NoesisDealloc, &NoesisAllocSize };
+		Noesis::GUI::Init(&NoesisErrorHandler, &NoesisLogHandler, &MemoryCallbacks);
+		NsRegisterReflectionAppInteractivity(nullptr, true);
 
 		NoesisResourceProvider = new FNoesisResourceProvider();
 		Noesis::GUI::SetXamlProvider(NoesisResourceProvider);
@@ -394,7 +447,9 @@ public:
 
 		LastSelectedTextBox.Reset();
 		LastSelectedPasswordBox.Reset();
-		Noesis::GUI::SetSoftwareKeyboardCallbacks(nullptr, &NoesisShowSoftwareKeyboard, &NoesisHideSoftwareKeyboard);
+		Noesis::GUI::SetSoftwareKeyboardCallback(nullptr, &NoesisSoftwareKeyboardCallback);
+
+		Noesis::GUI::SetPlaySoundCallback(nullptr, &NoesisPlaySoundCallback);
 
 		NoesisRuntimeModuleInterface = this;
 
@@ -439,7 +494,6 @@ public:
 	FNoesisResourceProvider* NoesisResourceProvider;
 	FDelegateHandle PostGarbageCollectConditionalBeginDestroyDelegateHandle;
 	FDelegateHandle PostEngineInitDelegateHandle;
-	NoesisMemoryAllocator Allocator;
 };
 
 INoesisRuntimeModuleInterface* FNoesisRuntimeModule::NoesisRuntimeModuleInterface = 0;

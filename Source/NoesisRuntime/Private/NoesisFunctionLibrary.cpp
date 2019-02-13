@@ -38,7 +38,7 @@ void UNoesisFunctionLibrary::TrySetDataContext(UObject* Element, UObject* DataCo
 	UNoesisBaseComponent* BaseComponent = Cast<UNoesisBaseComponent>(Element);
 	if (BaseComponent)
 	{
-		Noesis::FrameworkElement* NoesisElement = NsDynamicCast<Noesis::FrameworkElement*>(BaseComponent->NoesisComponent.GetPtr());
+		Noesis::FrameworkElement* NoesisElement = Noesis::DynamicCast<Noesis::FrameworkElement*>(BaseComponent->NoesisComponent.GetPtr());
 
 		if (NoesisElement)
 		{
@@ -96,10 +96,9 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Add)
 	P_FINISH;
 	P_NATIVE_BEGIN;
 	*(int32*)RESULT_PARAM = UKismetArrayLibrary::GenericArray_Add(ArrayAddr, ArrayProperty, NewItemPtr);
+	NoesisNotifyArrayPropertyPostAdd(ArrayAddr);
 	P_NATIVE_END;
 	InnerProp->DestroyValue(StorageSpace);
-
-	NoesisNotifyArrayPropertyAdd(ArrayAddr);
 }
 
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_AddUnique)
@@ -124,19 +123,17 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_AddUnique)
 	Stack.StepCompiledIn<UProperty>(StorageSpace);
 	void* NewItemPtr = (Stack.MostRecentPropertyAddress != NULL && Stack.MostRecentProperty->GetClass() == InnerProp->GetClass()) ? Stack.MostRecentPropertyAddress : StorageSpace;
 
-	FScriptArrayHelper ArrayHelper = FScriptArrayHelper::CreateHelperFormInnerProperty(InnerProp, ArrayAddr);
-	int32 ArrayNum = ArrayHelper.Num();
-
 	P_FINISH;
 	P_NATIVE_BEGIN;
+	FScriptArrayHelper ArrayHelper = FScriptArrayHelper::CreateHelperFormInnerProperty(InnerProp, ArrayAddr);
+	int32 ArrayNum = ArrayHelper.Num();
 	*(int32*)RESULT_PARAM = UKismetArrayLibrary::GenericArray_AddUnique(ArrayAddr, ArrayProperty, NewItemPtr);
-	P_NATIVE_END;
-	InnerProp->DestroyValue(StorageSpace);
-
 	if (ArrayHelper.Num() != ArrayNum)
 	{
-		NoesisNotifyArrayPropertyAdd(ArrayAddr);
+		NoesisNotifyArrayPropertyPostAdd(ArrayAddr);
 	}
+	P_NATIVE_END;
+	InnerProp->DestroyValue(StorageSpace);
 }
 
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Shuffle)
@@ -154,9 +151,8 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Shuffle)
 	P_FINISH;
 	P_NATIVE_BEGIN;
 	UKismetArrayLibrary::GenericArray_Shuffle(ArrayAddr, ArrayProperty);
+	NoesisNotifyArrayPropertyPostChanged(ArrayAddr);
 	P_NATIVE_END;
-
-	NoesisNotifyArrayPropertyChanged(ArrayAddr);
 }
 
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Append)
@@ -184,12 +180,10 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Append)
 
 	P_FINISH;
 	P_NATIVE_BEGIN;
+	NoesisNotifyArrayPropertyPreAppend(TargetArrayAddr);
 	UKismetArrayLibrary::GenericArray_Append(TargetArrayAddr, TargetArrayProperty, SourceArrayAddr, SourceArrayProperty);
+	NoesisNotifyArrayPropertyPostAppend(TargetArrayAddr);
 	P_NATIVE_END;
-
-	FScriptArrayHelper SourceArrayHelper(SourceArrayProperty, SourceArrayAddr);
-	int32 NumItems = SourceArrayHelper.Num();
-	NoesisNotifyArrayPropertyAppend(TargetArrayAddr, NumItems);
 }
 
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Insert)
@@ -218,10 +212,14 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Insert)
 	P_FINISH;
 	P_NATIVE_BEGIN;
 	UKismetArrayLibrary::GenericArray_Insert(ArrayAddr, ArrayProperty, NewItemPtr, Index);
+	FScriptArrayHelper ArrayHelper = FScriptArrayHelper::CreateHelperFormInnerProperty(InnerProp, ArrayAddr);
+	int32 ArrayNum = ArrayHelper.Num();
+	if (ArrayHelper.IsValidIndex(Index))
+	{
+		NoesisNotifyArrayPropertyPostInsert(ArrayAddr, Index);
+	}
 	P_NATIVE_END;
 	InnerProp->DestroyValue(StorageSpace);
-
-	NoesisNotifyArrayPropertyInsert(ArrayAddr, Index);
 }
 
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Remove)
@@ -239,10 +237,10 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Remove)
 	P_GET_PROPERTY(UIntProperty, Index);
 	P_FINISH;
 	P_NATIVE_BEGIN;
+	NoesisNotifyArrayPropertyPreRemove(ArrayAddr, Index);
 	UKismetArrayLibrary::GenericArray_Remove(ArrayAddr, ArrayProperty, Index);
+	NoesisNotifyArrayPropertyPostRemove(ArrayAddr, Index);
 	P_NATIVE_END;
-
-	NoesisNotifyArrayPropertyRemove(ArrayAddr, Index);
 }
 
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_RemoveItem)
@@ -267,7 +265,6 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_RemoveItem)
 	void* ItemPtr = StorageSpace;
 
 	P_FINISH;
-
 	// Bools need to be processed internally by the property so that C++ bool value is properly set.
 	const UBoolProperty* BoolProperty = Cast<const UBoolProperty>(InnerProp);
 	if (BoolProperty)
@@ -277,23 +274,21 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_RemoveItem)
 	}
 	P_NATIVE_BEGIN;
 	*(bool*)RESULT_PARAM = false;
-
 	if (ArrayAddr)
 	{
 		int32 IndexToRemove = UKismetArrayLibrary::GenericArray_Find(ArrayAddr, ArrayProperty, ItemPtr);
 		while (IndexToRemove != INDEX_NONE)
 		{
+			NoesisNotifyArrayPropertyPreRemove(ArrayAddr, IndexToRemove);
 			UKismetArrayLibrary::GenericArray_Remove(ArrayAddr, ArrayProperty, IndexToRemove);
 			*(bool*)RESULT_PARAM = true; //removed
-			NoesisNotifyArrayPropertyRemove(ArrayAddr, IndexToRemove);
+			NoesisNotifyArrayPropertyPostRemove(ArrayAddr, IndexToRemove);
 
 			// See if there is another in the array
 			IndexToRemove = UKismetArrayLibrary::GenericArray_Find(ArrayAddr, ArrayProperty, ItemPtr);
 		}
 	}
-
 	P_NATIVE_END;
-
 	InnerProp->DestroyValue(StorageSpace);
 }
 
@@ -311,9 +306,8 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Clear)
 	P_FINISH;
 	P_NATIVE_BEGIN;
 	UKismetArrayLibrary::GenericArray_Clear(ArrayAddr, ArrayProperty);
+	NoesisNotifyArrayPropertyPostClear(ArrayAddr);
 	P_NATIVE_END;
-
-	NoesisNotifyArrayPropertyClear(ArrayAddr);
 }
 
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Resize)
@@ -327,13 +321,27 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Resize)
 		Stack.bArrayContextFailed = true;
 		return;
 	}
+
 	P_GET_PROPERTY(UIntProperty, Size);
+
 	P_FINISH;
 	P_NATIVE_BEGIN;
-	UKismetArrayLibrary::GenericArray_Resize(ArrayAddr, ArrayProperty, Size);
+	const UProperty* InnerProp = ArrayProperty->Inner;
+	FScriptArrayHelper ArrayHelper = FScriptArrayHelper::CreateHelperFormInnerProperty(InnerProp, ArrayAddr);
+	int32 ArrayNum = ArrayHelper.Num();
+	for (int32 Index = ArrayNum; Index-- > Size;)
+	{
+		NoesisNotifyArrayPropertyPreRemove(ArrayAddr, Index);
+		UKismetArrayLibrary::GenericArray_Remove(ArrayAddr, ArrayProperty, Index);
+		NoesisNotifyArrayPropertyPostRemove(ArrayAddr, Index);
+	}
+	if (Size > ArrayNum)
+	{
+		NoesisNotifyArrayPropertyPreAppend(ArrayAddr);
+		UKismetArrayLibrary::GenericArray_Resize(ArrayAddr, ArrayProperty, Size);
+		NoesisNotifyArrayPropertyPostAppend(ArrayAddr);
+	}
 	P_NATIVE_END;
-
-	NoesisNotifyArrayPropertyResize(ArrayAddr);
 }
 
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Set)
@@ -360,13 +368,23 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Set)
 	void* NewItemPtr = (Stack.MostRecentPropertyAddress != NULL && Stack.MostRecentProperty->GetClass() == InnerProp->GetClass()) ? Stack.MostRecentPropertyAddress : StorageSpace;
 
 	P_GET_UBOOL(bSizeToFit);
-
 	P_FINISH;
-
 	P_NATIVE_BEGIN;
-	UKismetArrayLibrary::GenericArray_Set(ArrayAddr, ArrayProperty, Index, NewItemPtr, bSizeToFit);
+	FScriptArrayHelper ArrayHelper = FScriptArrayHelper::CreateHelperFormInnerProperty(InnerProp, ArrayAddr);
+	int32 ArrayNum = ArrayHelper.Num();
+	if (bSizeToFit && Index >= ArrayNum)
+	{
+		NoesisNotifyArrayPropertyPreAppend(ArrayAddr);
+		UKismetArrayLibrary::GenericArray_Resize(ArrayAddr, ArrayProperty, Index + 1);
+		NoesisNotifyArrayPropertyPostAppend(ArrayAddr);
+		ArrayNum = Index + 1;
+	}
+	if (bSizeToFit || Index < ArrayNum)
+	{
+		NoesisNotifyArrayPropertyPreSet(ArrayAddr, Index);
+		UKismetArrayLibrary::GenericArray_Set(ArrayAddr, ArrayProperty, Index, NewItemPtr, bSizeToFit);
+		NoesisNotifyArrayPropertyPostSet(ArrayAddr, Index);
+	}
 	P_NATIVE_END;
 	InnerProp->DestroyValue(StorageSpace);
-
-	NoesisNotifyArrayPropertySet(ArrayAddr, Index);
 }
