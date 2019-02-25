@@ -38,14 +38,16 @@ StructType NoesisGetUStructFromComponent(Noesis::BaseComponent* Component)
 
 NOESISRUNTIME_API void NoesisNotifyPropertyChanged(class UObject*, FName);
 NOESISRUNTIME_API void NoesisNotifyArrayPropertyChanged(class UObject*, FName);
-NOESISRUNTIME_API void NoesisNotifyArrayPropertyAdd(void*);
-NOESISRUNTIME_API void NoesisNotifyArrayPropertyChanged(void*);
-NOESISRUNTIME_API void NoesisNotifyArrayPropertyAppend(void*, int32);
-NOESISRUNTIME_API void NoesisNotifyArrayPropertyInsert(void*, int32);
-NOESISRUNTIME_API void NoesisNotifyArrayPropertyRemove(void*, int32);
-NOESISRUNTIME_API void NoesisNotifyArrayPropertyClear(void*);
-NOESISRUNTIME_API void NoesisNotifyArrayPropertyResize(void*);
-NOESISRUNTIME_API void NoesisNotifyArrayPropertySet(void*, int32);
+NOESISRUNTIME_API void NoesisNotifyArrayPropertyPostAdd(void*);
+NOESISRUNTIME_API void NoesisNotifyArrayPropertyPostChanged(void*);
+NOESISRUNTIME_API void NoesisNotifyArrayPropertyPreAppend(void*);
+NOESISRUNTIME_API void NoesisNotifyArrayPropertyPostAppend(void*);
+NOESISRUNTIME_API void NoesisNotifyArrayPropertyPostInsert(void*, int32);
+NOESISRUNTIME_API void NoesisNotifyArrayPropertyPreRemove(void*, int32);
+NOESISRUNTIME_API void NoesisNotifyArrayPropertyPostRemove(void*, int32);
+NOESISRUNTIME_API void NoesisNotifyArrayPropertyPostClear(void*);
+NOESISRUNTIME_API void NoesisNotifyArrayPropertyPreSet(void*, int32);
+NOESISRUNTIME_API void NoesisNotifyArrayPropertyPostSet(void*, int32);
 NOESISRUNTIME_API void NoesisGarbageCollected();
 void NoesisReflectionRegistryCallback(NsSymbol TypeId, Noesis::ReflectionRegistry* Registry);
 void NoesisRegisterTypes();

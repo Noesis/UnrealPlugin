@@ -35,9 +35,9 @@ void ExtractPaths(FString FileUri, FString BaseFilePath, FString BasePackage, FS
 
 	FString ComponentUri = TEXT(";component");
 	int32 ComponentUriIndex = FilePath.Find(ComponentUri);
+	
 	if (ComponentUriIndex != INDEX_NONE)
-	{
-		FilePath = FilePath.RightChop(ComponentUriIndex + ComponentUri.Len());
+	{		FilePath = FilePath.RightChop(ComponentUriIndex + ComponentUri.Len());
 	}
 
 	if (FPaths::IsRelative(FilePath))
@@ -187,6 +187,8 @@ void StreamClose(FT_Stream) {}
 
 void UNoesisXamlFactory::ImportFonts(FString BasePackageName, FString ProjectURIRoot, FString Path, TArray<FFontDescriptor>& FontDescriptors)
 {
+	FString BaseUri, FamilyName;
+	Family.Split(TEXT("#"), &BaseUri, &FamilyName);
 	TSet<FString> UniqueFontFamilies;
 	for (auto FontDescriptor : FontDescriptors)
 	{
@@ -200,171 +202,172 @@ void UNoesisXamlFactory::ImportFonts(FString BasePackageName, FString ProjectURI
 		FString BaseUri, FamilyName;
 		Family.Split(TEXT("#"), &BaseUri, &FamilyName);
 
-		IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 
-		class ScanFolderForFonts : public IPlatformFile::FDirectoryVisitor
-		{
-		public:
-			FString FontPackagePath;
-			FString FamilyName;
-			TArray<FTypefaceEntry> Fonts;
-			FT_Library FTLibrary;
-			UNoesisResourceResolver* ResourceResolver;
+	class ScanFolderForFonts : public IPlatformFile::FDirectoryVisitor
+	{
+	public:
+		FString FontPackagePath;
+		FString FamilyName;
+		TArray<FTypefaceEntry> Fonts;
+		FT_Library FTLibrary;
+		UNoesisResourceResolver* ResourceResolver;
 
-			ScanFolderForFonts(FString InFontPackagePath, FString InFamilyName, UNoesisResourceResolver* InResourceResolver)
+		ScanFolderForFonts(FString InFontPackagePath, FString InFamilyName, UNoesisResourceResolver* InResourceResolver)
 				: FontPackagePath(InFontPackagePath), FamilyName(InFamilyName), ResourceResolver(InResourceResolver)
-			{
-				int32 Error = FT_Init_FreeType(&FTLibrary);
-				checkf(Error == 0, TEXT("Could not init Freetype"));
-			}
+		{
+			int32 Error = FT_Init_FreeType(&FTLibrary);
+			checkf(Error == 0, TEXT("Could not init Freetype"));
+		}
 
-			~ScanFolderForFonts()
-			{
-				FT_Done_FreeType(FTLibrary);
+		~ScanFolderForFonts()
+		{
+			FT_Done_FreeType(FTLibrary);
 				ResourceResolver = nullptr;
-			}
+		}
 
-			virtual bool Visit(const TCHAR* FilenameOrDirectory, bool IsDirectory) override
+		virtual bool Visit(const TCHAR* FilenameOrDirectory, bool IsDirectory) override
+		{
+			if (!IsDirectory)
 			{
-				if (!IsDirectory)
+				FString Extension = FPaths::GetExtension(FilenameOrDirectory).ToLower();
+				if (Extension == TEXT("ttf") || Extension == TEXT("otf"))
 				{
-					FString Extension = FPaths::GetExtension(FilenameOrDirectory).ToLower();
-					if (Extension == TEXT("ttf") || Extension == TEXT("otf"))
+					TArray<uint8> FileData;
+					if (FFileHelper::LoadFileToArray(FileData, FilenameOrDirectory))
 					{
-						TArray<uint8> FileData;
-						if (FFileHelper::LoadFileToArray(FileData, FilenameOrDirectory))
+						FT_StreamRec Stream;
+						FMemory::Memset(&Stream, 0, sizeof(Stream));
+						Stream.descriptor.pointer = FileData.GetData();
+						Stream.size = FileData.Num();
+						Stream.read = &StreamRead;
+						Stream.close = &StreamClose;
+
+						FT_Open_Args Args;
+						FMemory::Memset(&Args, 0, sizeof(Args));
+						Args.flags = FT_OPEN_STREAM;
+						Args.stream = &Stream;
+
+						FT_Face Face;
+						FT_Error Error = FT_Open_Face(FTLibrary, &Args, -1, &Face);
+						if (Error == 0)
 						{
-							FT_StreamRec Stream;
-							FMemory::Memset(&Stream, 0, sizeof(Stream));
-							Stream.descriptor.pointer = FileData.GetData();
-							Stream.size = FileData.Num();
-							Stream.read = &StreamRead;
-							Stream.close = &StreamClose;
-
-							FT_Open_Args Args;
-							FMemory::Memset(&Args, 0, sizeof(Args));
-							Args.flags = FT_OPEN_STREAM;
-							Args.stream = &Stream;
-
-							FT_Face Face;
-							FT_Error Error = FT_Open_Face(FTLibrary, &Args, -1, &Face);
-							if (Error == 0)
+							for (FT_Long FaceIndex = 0; FaceIndex < Face->num_faces; FaceIndex++)
 							{
-								for (FT_Long FaceIndex = 0; FaceIndex < Face->num_faces; FaceIndex++)
+								FT_Face SubFace;
+								Error = FT_Open_Face(FTLibrary, &Args, FaceIndex, &SubFace);
+								if (Error == 0)
 								{
-									FT_Face SubFace;
-									Error = FT_Open_Face(FTLibrary, &Args, FaceIndex, &SubFace);
-									if (Error == 0)
+									if (SubFace->family_name && FCStringAnsi::Strcmp(SubFace->family_name, StringCast<ANSICHAR>(*FamilyName).Get()) == 0)
 									{
-										if (SubFace->family_name && FCStringAnsi::Strcmp(SubFace->family_name, StringCast<ANSICHAR>(*FamilyName).Get()) == 0)
-										{
-											FString FontFaceName = ObjectTools::SanitizeObjectName(FPaths::GetBaseFilename(FPaths::GetBaseFilename(FilenameOrDirectory)));
+										FString FontFaceName = ObjectTools::SanitizeObjectName(FPaths::GetBaseFilename(FPaths::GetBaseFilename(FilenameOrDirectory)));
 											FontFaceName = "FF_" + FontFaceName;
 
-											UPackage* FontFacePackage = NULL;
+										UPackage* FontFacePackage = NULL;
 
-											FString FontFaceObjectPath = FontPackagePath / FontFaceName + TEXT(".") + FontFaceName;
+										FString FontFaceObjectPath = FontPackagePath / FontFaceName + TEXT(".") + FontFaceName;
 											FontFaceObjectPath = ResourceResolver->ResolvePath(FontFaceObjectPath, ENoesisResourceType::NRT_FontFace);
-											UFontFace* ExistingFontFace = LoadObject<UFontFace>(NULL, *FontFaceObjectPath);
+										UFontFace* ExistingFontFace = LoadObject<UFontFace>(NULL, *FontFaceObjectPath);
 
-											if (!ExistingFontFace)
-											{
-												const FString Suffix(TEXT(""));
+										if (!ExistingFontFace)
+										{
+											const FString Suffix(TEXT(""));
 
-												FontFacePackage = CreatePackage(NULL, *(FontPackagePath / FontFaceName));
-											}
-											else
-											{
-												FontFacePackage = ExistingFontFace->GetOutermost();
-												FontFacePackage->FullyLoad();
-											}
-
-											auto FontFaceFactory = NewObject<UFontFileImportFactory>();
-											FontFaceFactory->AddToRoot();
-
-											UAutomatedAssetImportData* AutomatedAssetImportData = NewObject<UAutomatedAssetImportData>();
-											FontFaceFactory->SetAutomatedAssetImportData(AutomatedAssetImportData);
-
-											bool Cancelled = false;
-											UFontFace* FontFace = (UFontFace*)FontFaceFactory->ImportObject(UFontFace::StaticClass(), FontFacePackage, *FontFaceName, RF_Standalone | RF_Public, FilenameOrDirectory, TEXT(""), Cancelled);
-
-											if (FontFace != NULL)
-											{
-												FontFace->LoadingPolicy = EFontLoadingPolicy::Inline;
-
-												// Notify the asset registry
-												FAssetRegistryModule::AssetCreated(FontFace);
-
-												// Set the dirty flag so this package will get saved later
-												FontFacePackage->SetDirtyFlag(true);
-											}
-
-											FontFaceFactory->RemoveFromRoot();
-
-											// Add a default typeface referencing the newly created font face
-											FTypefaceEntry& DefaultTypefaceEntry = Fonts[Fonts.AddDefaulted()];
-											DefaultTypefaceEntry.Name = SubFace->style_name;
-											DefaultTypefaceEntry.Font = FFontData(FontFace);
-
+											FontFacePackage = CreatePackage(NULL, *(FontPackagePath / FontFaceName));
+										}
+										else
+										{
+											FontFacePackage = ExistingFontFace->GetOutermost();
+											FontFacePackage->FullyLoad();
 										}
 
-										FT_Done_Face(SubFace);
-									}
-								}
+										auto FontFaceFactory = NewObject<UFontFileImportFactory>();
+										FontFaceFactory->AddToRoot();
 
-								FT_Done_Face(Face);
+										UAutomatedAssetImportData* AutomatedAssetImportData = NewObject<UAutomatedAssetImportData>();
+										FontFaceFactory->SetAutomatedAssetImportData(AutomatedAssetImportData);
+
+										bool Cancelled = false;
+										UFontFace* FontFace = (UFontFace*)FontFaceFactory->ImportObject(UFontFace::StaticClass(), FontFacePackage, *FontFaceName, RF_Standalone | RF_Public, FilenameOrDirectory, TEXT(""), Cancelled);
+
+										if (FontFace != NULL)
+										{
+											FontFace->LoadingPolicy = EFontLoadingPolicy::Inline;
+
+											// Notify the asset registry
+											FAssetRegistryModule::AssetCreated(FontFace);
+
+											// Set the dirty flag so this package will get saved later
+											FontFacePackage->SetDirtyFlag(true);
+										}
+
+										FontFaceFactory->RemoveFromRoot();
+
+										// Add a default typeface referencing the newly created font face
+										FTypefaceEntry& DefaultTypefaceEntry = Fonts[Fonts.AddDefaulted()];
+										DefaultTypefaceEntry.Name = SubFace->style_name;
+										DefaultTypefaceEntry.Font = FFontData(FontFace);
+
+									}
+
+									FT_Done_Face(SubFace);
+								}
 							}
+
+							FT_Done_Face(Face);
 						}
 					}
 				}
-
-				return true;
 			}
-		};
 
-		FString FontFilePath;
-		FString FontFileName;
-		FString FontPackagePath;
-		FString FontPackageName;
-		ExtractPaths(BaseUri, Path, BasePackageName, ProjectURIRoot, FontFilePath, FontFileName, FontPackagePath, FontPackageName);
+			return true;
+		}
+	};
 
-		ScanFolderForFonts Visitor(FontPackagePath, FamilyName, GetResourceResolver());
-		PlatformFile.IterateDirectory(*FontFilePath, Visitor);
+	FString FontFilePath;
+	FString FontFileName;
+	FString FontPackagePath;
+	FString FontPackageName;
+	ExtractPaths(BaseUri, Path, BasePackageName, ProjectURIRoot, FontFilePath, FontFileName, FontPackagePath, FontPackageName);
 
-		if (Visitor.Fonts.Num())
-		{
-			UPackage* FontPackage = NULL;
+	ScanFolderForFonts Visitor(FontPackagePath, FamilyName, GetResourceResolver());
+	PlatformFile.IterateDirectory(*FontFilePath, Visitor);
 
-			FString FontName = GetResourceResolver()->ResolveName(FamilyName, ENoesisResourceType::NRT_Font);
-			FString FontObjectPath = FontPackagePath / FontName + TEXT(".") + FontName;
+	if (Visitor.Fonts.Num())
+	{
+		UPackage* FontPackage = NULL;
+
+		FString FontName = GetResourceResolver()->ResolveName(FamilyName, ENoesisResourceType::NRT_Font);
+		FString FontObjectPath = FontPackagePath / FontName + TEXT(".") + FontName;
 			FontObjectPath = GetResourceResolver()->ResolvePath(FontObjectPath, ENoesisResourceType::NRT_Font);
-			UFont* ExistingFont = LoadObject<UFont>(NULL, *FontObjectPath);
+		UFont* ExistingFont = LoadObject<UFont>(NULL, *FontObjectPath);
 
-			if (!ExistingFont)
-			{
-				const FString Suffix(TEXT(""));
+		if (!ExistingFont)
+		{
+			const FString Suffix(TEXT(""));
 
-				FontPackage = CreatePackage(NULL, *(FontPackagePath / FontName));
-			}
-			else
-			{
-				FontPackage = ExistingFont->GetOutermost();
-				FontPackage->FullyLoad();
-			}
+			FontPackage = CreatePackage(NULL, *(FontPackagePath / FontName));
+		}
+		else
+		{
+			FontPackage = ExistingFont->GetOutermost();
+			FontPackage->FullyLoad();
+		}
 
-			UFontFactory* FontFactory = NewObject<UFontFactory>();
-			FontFactory->bEditAfterNew = false;
+		UFontFactory* FontFactory = NewObject<UFontFactory>();
+		FontFactory->bEditAfterNew = false;
 
-			UFont* Font = Cast<UFont>(FontFactory->FactoryCreateNew(UFont::StaticClass(), FontPackage, *FontName, RF_Standalone | RF_Public, nullptr, nullptr));
-			if (Font)
-			{
-				Font->FontCacheType = EFontCacheType::Runtime;
+		UFont* Font = Cast<UFont>(FontFactory->FactoryCreateNew(UFont::StaticClass(), FontPackage, *FontName, RF_Standalone | RF_Public, nullptr, nullptr));
+		if (Font)
+		{
+			Font->FontCacheType = EFontCacheType::Runtime;
 
-				FAssetRegistryModule::AssetCreated(Font);
-				FontPackage->MarkPackageDirty();
+			FAssetRegistryModule::AssetCreated(Font);
+			FontPackage->MarkPackageDirty();
 
-				Font->CompositeFont.DefaultTypeface.Fonts = Visitor.Fonts;
+			Font->CompositeFont.DefaultTypeface.Fonts = Visitor.Fonts;
 
+			return Font;
 				FFontDescriptor& FontDescriptor = *new(FontDescriptors)FFontDescriptor;
 				FontDescriptor.Family = Family;
 				FontDescriptor.Font = Font;
@@ -461,7 +464,7 @@ void UNoesisXamlFactory::ImportImages(FString BasePackageName, FString ProjectUR
 		ImageDescriptor.Texture = Texture;
 	}
 
-	TextureFact->RemoveFromRoot();
+	return nullptr;
 }
 
 UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject* Context, const TCHAR* Type, const uint8*& Buffer, const uint8* BufferEnd, FFeedbackContext* Warn)
@@ -576,16 +579,57 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 		}
 	}
 
-	for (auto XamlDescriptor : XamlDescriptors)
-	{
-		if (XamlDescriptor.Xaml)
-		{
-			FString XamlPath = XamlDescriptor.Xaml->GetPathName();
-			XamlText = XamlText.Replace(*XamlDescriptor.Path, *XamlPath);
-			NoesisXaml->Xamls.Add(XamlDescriptor.Xaml);
-		}
-	}
+	NsString Text = TCHARToNsString(*XamlText);
 
+	Noesis::MemoryStream XamlStream(Text.c_str(), Text.length());
+	TArray<NsString> Dependencies;
+	auto DependencyCallback = [](void* UserData, const char* URI)
+	{
+		TArray<NsString>& Dependencies = *(TArray<NsString>*)UserData;
+		Dependencies.AddUnique(URI);
+	};
+	Noesis::GUI::GetXamlDependencies(&XamlStream, &Dependencies, DependencyCallback);
+
+	FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
+	UAutomatedAssetImportData* AutomatedAssetImportData = NewObject<UAutomatedAssetImportData>();
+	AutomatedAssetImportData->bReplaceExisting = true;
+	for (auto& Dependency : Dependencies)
+	{
+		NsString::size_type hashPos = Dependency.find('#');
+		if (hashPos != NsString::npos)
+		{
+			FString Family = NsStringToFString(Dependency.c_str());
+			UFont* Font = ImportFontFamily(Directory, Family, BasePackageName, ProjectURIRoot);
+
+			if (Font)
+			{
+				FString FontPath = Font->GetPathName();
+				XamlText = XamlText.Replace(*Family, *(FontPath / TEXT("#") + NsStringToFString(Dependency.c_str() + hashPos + 1)));
+				NoesisXaml->Fonts.Add(Font);
+			}
+		}
+		else
+		{
+			FString DependencyPath;
+			FString FileName;
+			FString PackagePath;
+			FString DependencyName;
+			ExtractPaths(Dependency.c_str(), Directory, BasePackageName, ProjectURIRoot, DependencyPath, FileName, PackagePath, DependencyName);
+
+			AutomatedAssetImportData->Filenames.Empty(1);
+			AutomatedAssetImportData->Filenames.Add(DependencyPath / FileName);
+			AutomatedAssetImportData->DestinationPath = PackagePath;
+			TArray<UObject*> Assets = AssetToolsModule.Get().ImportAssetsAutomated(AutomatedAssetImportData);
+
+
+			for (auto Asset : Assets)
+			{
+				if (UTexture2D* Texture = Cast<UTexture2D>(Asset))
+				{
+					Texture->LODGroup = TEXTUREGROUP_UI;
+					Texture->SRGB = false;
+					void FixPremultipliedPNGTexture(UTexture2D*);
+					FixPremultipliedPNGTexture(Texture);
 	for (auto FontDescriptor : FontDescriptors)
 	{
 		if (FontDescriptor.Font)
@@ -598,13 +642,23 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 		}
 	}
 
-	for (auto ImageDescriptor : ImageDescriptors)
-	{
-		if (ImageDescriptor.Texture)
-		{
-			FString ImagePath = ImageDescriptor.Texture->GetPathName();
-			XamlText = XamlText.Replace(*ImageDescriptor.Path, *ImagePath);
-			NoesisXaml->Textures.Add(ImageDescriptor.Texture);
+					FString ImagePath = Texture->GetPathName();
+					XamlText = XamlText.Replace(*NsStringToFString(Dependency.c_str()), *ImagePath);
+					NoesisXaml->Textures.Add(Texture);
+				}
+				else if (UNoesisXaml* Xaml = Cast<UNoesisXaml>(Asset))
+				{
+					FString XamlPath = Xaml->GetPathName();
+					XamlText = XamlText.Replace(*NsStringToFString(Dependency.c_str()), *XamlPath);
+					NoesisXaml->Xamls.Add(Xaml);
+				}
+				else if (USoundWave* Sound = Cast<USoundWave>(Asset))
+				{
+					FString SoundPath = Sound->GetPathName();
+					XamlText = XamlText.Replace(*NsStringToFString(Dependency.c_str()), *SoundPath);
+					NoesisXaml->Sounds.Add(Sound);
+				}
+			}
 		}
 	}
 

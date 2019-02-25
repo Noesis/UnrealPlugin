@@ -1,4 +1,4 @@
-﻿////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // NoesisGUI - http://www.noesisengine.com
 // Copyright (c) 2013 Noesis Technologies S.L. All Rights Reserved.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -16,13 +16,15 @@ public class Noesis : ModuleRules
 
 		string NoesisBasePath = ModuleDirectory + "/NoesisSDK/";
 		string NoesisIncludePath = NoesisBasePath + "Include/";
+		string NoesisInteractivityIncludePath = NoesisBasePath + "Src/Packages/App/Interactivity/Include/";
 
 		PublicIncludePaths.Add(ModuleDirectory);
 		PublicIncludePaths.Add(NoesisIncludePath);
+		PublicIncludePaths.Add(NoesisInteractivityIncludePath);
 
 		// Let's try to make sure the right version of the SDK is in the right place.
-		const string RequiredRevision = "(r6972)";
-		const string RequiredVersionName = "2.1.0f1";
+		const string RequiredRevision = "(r7619)";
+		const string RequiredVersionName = "2.2.0b5";
 		if (!Directory.Exists(NoesisBasePath))
 		{
 			throw new BuildException("Could not find NoesisGUI SDK in " + NoesisBasePath + ". Minimum required version is " + RequiredVersionName);
@@ -132,6 +134,8 @@ public class Noesis : ModuleRules
 		{
 			string NoesisLibPath = NoesisBasePath + "Bin/android_arm/";
 			PublicLibraryPaths.Add(NoesisLibPath);
+			string NoesisLib64Path = NoesisBasePath + "Bin/android_arm64/";
+			PublicLibraryPaths.Add(NoesisLib64Path);
 			PublicAdditionalLibraries.Add("Noesis");
 
 			string NoesisAplPath = "/Noesis_APL.xml";
@@ -147,6 +151,11 @@ public class Noesis : ModuleRules
 			string NoesisLibPath = NoesisBasePath + "Bin/xbox_one/";
 			PublicLibraryPaths.Add(NoesisLibPath);
 			PublicAdditionalLibraries.Add("Noesis.lib");
+		}
+		else if (Target.Platform == UnrealTargetPlatform.HTML5)
+		{
+			string NoesisLibPath = NoesisBasePath + "Bin/wasm/";
+			PublicAdditionalLibraries.Add(NoesisLibPath + "Noesis.bc");
 		}
 	}
 }

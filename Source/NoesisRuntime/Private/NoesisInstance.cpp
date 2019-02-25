@@ -164,13 +164,13 @@ public:
 	virtual bool GetTextBounds(const uint32 InBeginIndex, const uint32 InLength, FVector2D& OutPosition, FVector2D& OutSize) override
 	{
 		Noesis::Rect TextRangeBounds = TextBox->GetRangeBounds(InBeginIndex, InBeginIndex + InLength);
-		Noesis::Visual* ContentHost = TextBox->GetContentHost();
+		Noesis::Visual* ContentHost = TextBox->GetTextView();
 
-		if (Noesis::ScrollViewer* ScrollViewer = NsDynamicCast<Noesis::ScrollViewer*>(ContentHost))
+		if (Noesis::ScrollViewer* ScrollViewer = Noesis::DynamicCast<Noesis::ScrollViewer*>(ContentHost))
 		{
 			ContentHost = ScrollViewer;
 		}
-		else if (Noesis::Decorator* Decorator = NsDynamicCast<Noesis::Decorator*>(ContentHost))
+		else if (Noesis::Decorator* Decorator = Noesis::DynamicCast<Noesis::Decorator*>(ContentHost))
 		{
 			ContentHost = Decorator;
 		}
@@ -262,7 +262,7 @@ void UNoesisInstance::InitInstance()
 
 	Noesis::Ptr<Noesis::BaseComponent> DataContext = Noesis::Ptr<Noesis::BaseComponent>(NoesisCreateComponentForUObject(this));
 
-	Xaml.Reset(NsDynamicCast<Noesis::FrameworkElement*>(BaseXaml->LoadXaml().GetPtr()));
+	Xaml.Reset(Noesis::DynamicCast<Noesis::FrameworkElement*>(BaseXaml->LoadXaml().GetPtr()));
 
 	if (Xaml)
 	{
@@ -370,7 +370,20 @@ void UNoesisInstance::Update(float InLeft, float InTop, float InWidth, float InH
 	{
 		XamlView->SetSize(Width, Height);
 		XamlView->SetIsPPAAEnabled(EnablePPAA);
-		XamlView->SetTessellationQuality((Noesis::TessellationQuality)TessellationQuality);
+		Noesis::TessellationMaxPixelError mpe = Noesis::TessellationMaxPixelError::MediumQuality();
+		switch (TessellationQuality)
+		{
+		case ENoesisTessellationQuality::Low:
+			mpe = Noesis::TessellationMaxPixelError::LowQuality();
+			break;
+		case ENoesisTessellationQuality::Medium:
+			mpe = Noesis::TessellationMaxPixelError::MediumQuality();
+			break;
+		case ENoesisTessellationQuality::High:
+			mpe = Noesis::TessellationMaxPixelError::HighQuality();
+			break;
+		}
+		XamlView->SetTessellationMaxPixelError(mpe);
 		XamlView->SetFlags((uint32)RenderFlags);
 		XamlView->Update(GetTimeSeconds() - StartTime);
 	}
@@ -388,7 +401,7 @@ FVector2D UNoesisInstance::GetSize() const
 void UNoesisInstance::OnPreviewGotKeyboardFocus(Noesis::BaseComponent* Component, const Noesis::KeyboardFocusChangedEventArgs& Args)
 {
 	const Noesis::TypeClass* NewFocusClass = Args.newFocus->GetClassType();
-	const Noesis::TypeClass* TextBoxClass = Noesis::TextBox::StaticGetClassType();
+	const Noesis::TypeClass* TextBoxClass = Noesis::TextBox::StaticGetClassType(nullptr);
 	if (!FPlatformApplicationMisc::RequiresVirtualKeyboard())
 	{
 		if (NewFocusClass == TextBoxClass || NewFocusClass->IsDescendantOf(TextBoxClass))
@@ -426,7 +439,7 @@ void UNoesisInstance::OnPreviewGotKeyboardFocus(Noesis::BaseComponent* Component
 void UNoesisInstance::OnPreviewLostKeyboardFocus(Noesis::BaseComponent* Component, const Noesis::KeyboardFocusChangedEventArgs& Args)
 {
 	const Noesis::TypeClass* OldFocusClass = Args.oldFocus->GetClassType();
-	const Noesis::TypeClass* TextBoxClass = Noesis::TextBox::StaticGetClassType();
+	const Noesis::TypeClass* TextBoxClass = Noesis::TextBox::StaticGetClassType(nullptr);
 	if (!FPlatformApplicationMisc::RequiresVirtualKeyboard())
 	{
 		if (OldFocusClass == TextBoxClass || OldFocusClass->IsDescendantOf(TextBoxClass))
@@ -457,7 +470,7 @@ struct NoesisHitTestVisibleTester
 	{
 		if (!Hit)
 		{
-			Noesis::UIElement* Element = NsDynamicCast<Noesis::UIElement*>(Visual);
+			Noesis::UIElement* Element = Noesis::DynamicCast<Noesis::UIElement*>(Visual);
 			if (Element && Element->GetIsEnabled())
 			{
 				Hit = Element;

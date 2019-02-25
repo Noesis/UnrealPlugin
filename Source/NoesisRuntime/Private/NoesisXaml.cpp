@@ -11,7 +11,7 @@ static void SetApplicationResources()
 	if (ApplicationResources)
 	{
 		Noesis::Ptr<Noesis::BaseComponent> Component = Noesis::GUI::LoadXaml(TCHARToNsString(*ApplicationResources->GetPathName()).c_str());
-		Noesis::ResourceDictionary* Dictionary = NsDynamicCast<Noesis::ResourceDictionary*>(Component.GetPtr());
+		Noesis::ResourceDictionary* Dictionary = Noesis::DynamicCast<Noesis::ResourceDictionary*>(Component.GetPtr());
 		if (Dictionary)
 		{
 			Noesis::GUI::SetApplicationResources(Dictionary);
