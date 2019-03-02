@@ -471,7 +471,7 @@ struct NoesisHitTestVisibleTester
 bool UNoesisInstance::HitTest(FVector2D Position)
 {
 	NoesisHitTestVisibleTester HitTester;
-	Noesis::VisualTreeHelper::HitTest(Xaml.GetPtr(), Noesis::Point(Position.X, Position.Y), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::OnElementHit));
+	Noesis::VisualTreeHelper::HitTest(Noesis::VisualTreeHelper::GetRoot(Xaml.GetPtr()), Noesis::Point(Position.X, Position.Y), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::OnElementHit));
 
 	return HitTester.Hit != nullptr;
 }
