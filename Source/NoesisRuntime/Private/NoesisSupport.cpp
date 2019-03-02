@@ -53,6 +53,11 @@ bool NoesisIsViewportHovered(UGameViewportClient* ViewportClient)
 	Windows.Add(ViewportWindow.ToSharedRef());
 	FWidgetPath HitTestResults = SlateApplicationBase.LocateWindowUnderMouse(SlateApplicationBase.GetCursorPos(), Windows, false);
 
+	if (!HitTestResults.IsValid())
+	{
+		return false;
+	}
+
 	TSharedRef<SWidget> TopmostWidget = HitTestResults.GetLastWidget();
 
 	if (TopmostWidget->GetType() != FName(TEXT("SObjectWidget")))
