@@ -9,12 +9,14 @@
 #include "Stats/Stats.h"
 #include "Stats/Stats2.h"
 
-
 // Engine includes
 #include "SceneUtils.h"
 
 // RenderCore includes
 #include "RenderingThread.h"
+
+// UtilityShaders includes
+#include "ClearQuad.h"
 
 // ApplicationCore includes
 #include "HAL/PlatformApplicationMisc.h"
@@ -75,35 +77,63 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 {
 	if (Renderer)
 	{
+		FGraphicsPipelineStateInitializer GraphicsPSOInit;
+		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 		FTexture2DRHIRef ColorTarget = *(FTexture2DRHIRef*)InWindowBackBuffer;
-		if (!DepthStencilTarget.IsValid() || DepthStencilTarget->GetSizeX() != ColorTarget->GetSizeX() || DepthStencilTarget->GetSizeY() != ColorTarget->GetSizeY() || DepthStencilTarget->GetNumSamples() != ColorTarget->GetNumSamples())
+		check(GraphicsPSOInit.RenderTargetsEnabled == 1);
+		check(GraphicsPSOInit.RenderTargetFormats[0] == ColorTarget->GetFormat());
+		check(GraphicsPSOInit.RenderTargetFlags[0] == ColorTarget->GetFlags());
+		check(GraphicsPSOInit.NumSamples == ColorTarget->GetNumSamples());
+
+		if (GraphicsPSOInit.DepthStencilTargetFormat == PF_Unknown)
 		{
-			DepthStencilTarget.SafeRelease();
-			uint32 SizeX = ColorTarget->GetSizeX();
-			uint32 SizeY = ColorTarget->GetSizeY();
-			uint8 Format = (uint8)PF_DepthStencil;
-			uint32 NumMips = 1;
-			uint32 NumSamples = ColorTarget->GetNumSamples();
-			uint32 TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
-			FRHIResourceCreateInfo CreateInfo;
-			CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
-			DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, CreateInfo);
+			// There's no stencil attached
+			if (!DepthStencilTarget.IsValid() || DepthStencilTarget->GetSizeX() != ColorTarget->GetSizeX() || DepthStencilTarget->GetSizeY() != ColorTarget->GetSizeY() || DepthStencilTarget->GetNumSamples() != ColorTarget->GetNumSamples())
+			{
+				DepthStencilTarget.SafeRelease();
+				uint32 SizeX = ColorTarget->GetSizeX();
+				uint32 SizeY = ColorTarget->GetSizeY();
+				uint8 Format = (uint8)PF_DepthStencil;
+				uint32 NumMips = 1;
+				uint32 NumSamples = ColorTarget->GetNumSamples();
+				uint32 TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
+				FRHIResourceCreateInfo CreateInfo;
+				CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
+				DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, CreateInfo);
+			}
+			FRHIRenderTargetView ColorView(ColorTarget, 0, -1, ERenderTargetLoadAction::ELoad, ERenderTargetStoreAction::EStore);
+			FRHIDepthRenderTargetView DepthStencilView(DepthStencilTarget, ERenderTargetLoadAction::ENoAction, ERenderTargetStoreAction::ENoAction, ERenderTargetLoadAction::EClear, ERenderTargetStoreAction::ENoAction,
+				FExclusiveDepthStencil::DepthNop_StencilWrite);
+			FRHISetRenderTargetsInfo Info(1, &ColorView, DepthStencilView);
+			// Clear the stencil buffer
+			RHICmdList.SetRenderTargetsAndClear(Info);
+			RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
+			SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
+			SCOPED_DRAW_EVENT(RHICmdList, NoesisDraw);
+			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
+			Renderer->Render(FlipYAxis);
+			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
+			FRHIDepthRenderTargetView RestoreDepthStencilView(nullptr,
+				GraphicsPSOInit.DepthTargetLoadAction, GraphicsPSOInit.DepthTargetStoreAction,
+				GraphicsPSOInit.StencilTargetLoadAction, GraphicsPSOInit.StencilTargetStoreAction,
+				GraphicsPSOInit.DepthStencilAccess);
+
+			RHICmdList.SetRenderTargets(1, &ColorView, &RestoreDepthStencilView, 0, nullptr);
 		}
-		FRHIRenderTargetView ColorView(ColorTarget, 0, -1, ERenderTargetLoadAction::ELoad, ERenderTargetStoreAction::EStore);
-		FRHIDepthRenderTargetView DepthStencilView(DepthStencilTarget, ERenderTargetLoadAction::ENoAction, ERenderTargetStoreAction::ENoAction, ERenderTargetLoadAction::EClear, ERenderTargetStoreAction::ENoAction,
-			FExclusiveDepthStencil::DepthNop_StencilWrite);
-		FRHISetRenderTargetsInfo Info(1, &ColorView, DepthStencilView);
-		// Clear the stencil buffer
-		RHICmdList.SetRenderTargetsAndClear(Info);
-		RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
-		SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
-		SCOPED_DRAW_EVENT(RHICmdList, NoesisDraw);
-		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
-		Renderer->Render(FlipYAxis);
-		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
+		else
+		{
+			// There's already a stencil buffer
+			RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
+			DrawClearQuad(RHICmdList, false, FLinearColor::Black, false, 0.0f, true, 0);
+			SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
+			SCOPED_DRAW_EVENT(RHICmdList, NoesisDraw);
+			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
+			Renderer->Render(FlipYAxis);
+			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
+
+		}
 	}
 }
-
 class NoesisTextBoxTextInputMethodContext : public ITextInputMethodContext
 {
 public:

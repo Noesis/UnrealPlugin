@@ -436,6 +436,16 @@ public:
 	// IModuleInterface interface
 	virtual void StartupModule() override
 	{
+#if PLATFORM_WINDOWS
+		if (FCStringAnsi::Strcmp(Noesis::GetBuildVersion(), NOESIS_VERSION_NAME) != 0)
+		{
+			void* NoesisDllHandle = FPlatformProcess::GetDllHandle(TEXT("Noesis.dll"));
+			TCHAR NoesisDllPath[WINDOWS_MAX_PATH];
+			GetModuleFileName((HMODULE)NoesisDllHandle, NoesisDllPath, WINDOWS_MAX_PATH);
+			UE_LOG(LogNoesis, Error, TEXT("Loaded incorrect Noesis.dll from path %s. Please delete it manually."), NoesisDllPath);
+		}
+#endif
+
 		Noesis::MemoryCallbacks MemoryCallbacks{ NoesisAllocationCallbackUserData, &NoesisAlloc, &NoesisRealloc, &NoesisDealloc, &NoesisAllocSize };
 		Noesis::GUI::Init(&NoesisErrorHandler, &NoesisLogHandler, &MemoryCallbacks);
 		NsRegisterReflectionAppInteractivity(nullptr, true);
