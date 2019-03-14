@@ -466,16 +466,21 @@ struct NoesisHitTestVisibleTester
 	{
 	}
 
-	void OnElementHit(Noesis::Visual* Visual)
+	Noesis::HitTestFilterBehavior Filter(Noesis::Visual*)
 	{
-		if (!Hit)
+		return Noesis::HitTestFilterBehavior_Continue;
+	}
+
+	Noesis::HitTestResultBehavior Result(const Noesis::HitTestResult& Result)
+	{
+		Noesis::UIElement* Element = Noesis::DynamicCast<Noesis::UIElement*>(Result.visualHit);
+		if (Element && Element->GetIsEnabled())
 		{
-			Noesis::UIElement* Element = Noesis::DynamicCast<Noesis::UIElement*>(Visual);
-			if (Element && Element->GetIsEnabled())
-			{
-				Hit = Element;
-			}
+			Hit = Element;
+			return Noesis::HitTestResultBehavior_Stop;
 		}
+
+		return Noesis::HitTestResultBehavior_Continue;
 	}
 
 	Noesis::UIElement* Hit;
@@ -484,7 +489,7 @@ struct NoesisHitTestVisibleTester
 bool UNoesisInstance::HitTest(FVector2D Position)
 {
 	NoesisHitTestVisibleTester HitTester;
-	Noesis::VisualTreeHelper::HitTest(Noesis::VisualTreeHelper::GetRoot(Xaml.GetPtr()), Noesis::Point(Position.X, Position.Y), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::OnElementHit));
+	Noesis::VisualTreeHelper::HitTest(Noesis::VisualTreeHelper::GetRoot(Xaml.GetPtr()), Noesis::Point(Position.X, Position.Y), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::Filter), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::Result));
 
 	return HitTester.Hit != nullptr;
 }

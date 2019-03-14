@@ -407,8 +407,8 @@ void NoesisPlaySoundCallback(void* UserData, const char* Filename, float Volume)
 	}
 #endif
 
-	FString SoundName = Filename;
-	USoundWave* Sound = LoadObject<USoundWave>(nullptr, SoundName[0] == TEXT('/') ? *SoundName : *(FString(TEXT("/")) + SoundName));
+	FString SoundPath = NsProviderPathToAssetPath(Filename);
+	USoundWave* Sound = LoadObject<USoundWave>(nullptr, SoundPath[0] == TEXT('/') ? *SoundPath : *(FString(TEXT("/")) + SoundPath));
 
 	if (!Sound)
 		return;
@@ -440,10 +440,12 @@ public:
 		Noesis::GUI::Init(&NoesisErrorHandler, &NoesisLogHandler, &MemoryCallbacks);
 		NsRegisterReflectionAppInteractivity(nullptr, true);
 
-		NoesisResourceProvider = new FNoesisResourceProvider();
-		Noesis::GUI::SetXamlProvider(NoesisResourceProvider);
-		Noesis::GUI::SetTextureProvider(NoesisResourceProvider);
-		Noesis::GUI::SetFontProvider(NoesisResourceProvider);
+		NoesisXamlProvider = new FNoesisXamlProvider();
+		NoesisTextureProvider = new FNoesisTextureProvider();
+		NoesisFontProvider = new FNoesisFontProvider();
+		Noesis::GUI::SetXamlProvider(NoesisXamlProvider);
+		Noesis::GUI::SetTextureProvider(NoesisTextureProvider);
+		Noesis::GUI::SetFontProvider(NoesisFontProvider);
 
 		LastSelectedTextBox.Reset();
 		LastSelectedPasswordBox.Reset();
@@ -479,8 +481,12 @@ public:
 		Noesis::GUI::SetXamlProvider(nullptr);
 		Noesis::GUI::SetTextureProvider(nullptr);
 		Noesis::GUI::SetFontProvider(nullptr);
-		delete NoesisResourceProvider;
-		NoesisResourceProvider = nullptr;
+		delete NoesisXamlProvider;
+		NoesisXamlProvider = nullptr;
+		delete NoesisTextureProvider;
+		NoesisTextureProvider = nullptr;
+		delete NoesisFontProvider;
+		NoesisFontProvider = nullptr;
 
 		NoesisRuntimeModuleInterface = 0;
 		Noesis::GUI::Shutdown();
@@ -488,10 +494,16 @@ public:
 	// End of IModuleInterface interface
 
 	// INoesisRuntimeModuleInterface interface
+	virtual void RegisterFont(class UFont* Font) override
+	{
+		NoesisFontProvider->RegisterFont(Font);
+	}
 	// End of INoesisRuntimeModuleInterface interface
 
 	static INoesisRuntimeModuleInterface* NoesisRuntimeModuleInterface;
-	FNoesisResourceProvider* NoesisResourceProvider;
+	FNoesisXamlProvider* NoesisXamlProvider;
+	FNoesisTextureProvider* NoesisTextureProvider;
+	FNoesisFontProvider* NoesisFontProvider;
 	FDelegateHandle PostGarbageCollectConditionalBeginDestroyDelegateHandle;
 	FDelegateHandle PostEngineInitDelegateHandle;
 };

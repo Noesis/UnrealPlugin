@@ -47,6 +47,10 @@ class NOESISRUNTIME_API UNoesisXaml : public UObject
 	// End of UObject interface
 #endif
 
+	// UObject interface
+	virtual void PostLoad() override;
+	// End of UObject interface
+
 #if WITH_EDITOR
 	void PreloadDependencies();
 

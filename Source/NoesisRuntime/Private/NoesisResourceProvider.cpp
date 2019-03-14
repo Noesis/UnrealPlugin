@@ -18,12 +18,13 @@
 #include "NoesisXaml.h"
 #include "NoesisSupport.h"
 
-UNoesisXaml* FNoesisResourceProvider::GetXaml(FString XamlPath)
+UNoesisXaml* FNoesisXamlProvider::GetXaml(FString XamlProviderPath) const
 {
-	return LoadObject<UNoesisXaml>(nullptr, XamlPath[0] == TEXT('/') ? *XamlPath : *(FString(TEXT("/")) + XamlPath));
+	FString XamlPath = NsProviderPathToAssetPath(XamlProviderPath);
+	return LoadObject<UNoesisXaml>(nullptr, *XamlPath);
 }
 
-Noesis::Ptr<Noesis::Stream> FNoesisResourceProvider::LoadXaml(const char* Path)
+Noesis::Ptr<Noesis::Stream> FNoesisXamlProvider::LoadXaml(const char* Path)
 {
 	UNoesisXaml* Xaml = GetXaml(Path);
 	if (Xaml)
@@ -34,12 +35,13 @@ Noesis::Ptr<Noesis::Stream> FNoesisResourceProvider::LoadXaml(const char* Path)
 	return Noesis::Ptr<Noesis::Stream>();
 };
 
-UTexture2D* FNoesisResourceProvider::GetTexture(FString TexturePath)
+UTexture2D* FNoesisTextureProvider::GetTexture(FString TextureProviderPath) const
 {
-	return LoadObject<UTexture2D>(nullptr, TexturePath[0] == TEXT('/') ? *TexturePath : *(FString(TEXT("/")) + TexturePath));
+	FString TexturePath = NsProviderPathToAssetPath(TextureProviderPath);
+	return LoadObject<UTexture2D>(nullptr, *TexturePath);
 }
 
-Noesis::TextureInfo FNoesisResourceProvider::GetTextureInfo(const char* Path)
+Noesis::TextureInfo FNoesisTextureProvider::GetTextureInfo(const char* Path)
 {
 	UTexture* Texture = GetTexture(Path);
 	if (Texture)
@@ -51,64 +53,59 @@ Noesis::TextureInfo FNoesisResourceProvider::GetTextureInfo(const char* Path)
 	return Noesis::TextureInfo{};
 }
 
-Noesis::Ptr<Noesis::Texture> FNoesisResourceProvider::LoadTexture(const char* Path, Noesis::RenderDevice* RenderDevice)
+Noesis::Ptr<Noesis::Texture> FNoesisTextureProvider::LoadTexture(const char* Path, Noesis::RenderDevice* RenderDevice)
 {
 	return NoesisCreateTexture(GetTexture(Path));
 };
 
-void FNoesisResourceProvider::ScanFolder(const char* InFolder)
+void FNoesisFontProvider::RegisterFont(class UFont* Font)
 {
-	UFont* Font = LoadObject<UFont>(nullptr, InFolder[0] == '/' ? *NsStringToFString(InFolder) : *(FString(TEXT("/")) + NsStringToFString(InFolder)));
+	FString FontPackagePath = FPackageName::GetLongPackagePath(Font->GetPathName());
 	if (Font)
 	{
 		for (auto TypefaceEntry : Font->CompositeFont.DefaultTypeface.Fonts)
 		{
-			ANSICHAR TypefaceName[NAME_SIZE];
-			TypefaceEntry.Name.GetPlainANSIString(TypefaceName);
-			RegisterFont(InFolder, TypefaceName);
+			const FFontData* FontData = &TypefaceEntry.Font;
+			const UFontFace* FontFace = Cast<UFontFace>(FontData->GetFontFaceAsset());
+			FString FontFacePath = FontFace->GetPathName();
+			Noesis::CachedFontProvider::RegisterFont(TCHARToNsString(*FontPackagePath).c_str(), TCHARToNsString(*FontFacePath).c_str());
 		}
 	}
 }
 
-Noesis::Ptr<Noesis::Stream> FNoesisResourceProvider::OpenFont(const char* InFolder, const char* InFilename) const
+void FNoesisFontProvider::ScanFolder(const char* InFolder)
 {
-	UFont* Font = LoadObject<UFont>(nullptr, InFolder[0] == '/' ? *NsStringToFString(InFolder) : *(FString(TEXT("/")) + NsStringToFString(InFolder)));
-	if (Font)
-	{
-		for (auto TypefaceEntry : Font->CompositeFont.DefaultTypeface.Fonts)
-		{
-			ANSICHAR TypefaceName[NAME_SIZE];
-			TypefaceEntry.Name.GetPlainANSIString(TypefaceName);
-			if (FCStringAnsi::Strcmp(TypefaceName, InFilename) == 0)
-			{
-				const FFontData* FontData = &TypefaceEntry.Font;
-				const UFontFace* FontFace = Cast<UFontFace>(FontData->GetFontFaceAsset());
-				class FontArrayMemoryStream : public Noesis::MemoryStream
-				{
-				public:
-					FontArrayMemoryStream(TArray<uint8>&& InFileData)
-						: Noesis::MemoryStream(InFileData.GetData(), (uint32)InFileData.Num()),
-						FileData(MoveTemp(InFileData))
-					{
-					}
+}
 
-				private:
-					TArray<uint8> FileData;
-				};
-				if (FontFace->GetLoadingPolicy() == EFontLoadingPolicy::Inline)
-				{
-					const FFontFaceDataRef FontFaceDataRef = FontFace->FontFaceData;
-					const FFontFaceData& FontFaceData = FontFaceDataRef.Get();
-					const TArray<uint8>& FontFaceDataArray = FontFaceData.GetData();
-					return Noesis::Ptr<Noesis::Stream>(*new FontArrayMemoryStream(CopyTemp(FontFaceDataArray)));
-				}
-				else
-				{
-					TArray<uint8> FileData;
-					FFileHelper::LoadFileToArray(FileData, *FontFace->GetFontFilename());
-					return Noesis::Ptr<Noesis::Stream>(*new FontArrayMemoryStream(MoveTemp(FileData)));
-				}
+Noesis::Ptr<Noesis::Stream> FNoesisFontProvider::OpenFont(const char* InFolder, const char* InFilename) const
+{
+	const UFontFace* FontFace = LoadObject<UFontFace>(nullptr, *NsStringToFString(InFilename));
+	if (FontFace)
+	{
+		class FontArrayMemoryStream : public Noesis::MemoryStream
+		{
+		public:
+			FontArrayMemoryStream(TArray<uint8>&& InFileData)
+				: Noesis::MemoryStream(InFileData.GetData(), (uint32)InFileData.Num()),
+				FileData(MoveTemp(InFileData))
+			{
 			}
+
+		private:
+			TArray<uint8> FileData;
+		};
+		if (FontFace->GetLoadingPolicy() == EFontLoadingPolicy::Inline)
+		{
+			const FFontFaceDataRef FontFaceDataRef = FontFace->FontFaceData;
+			const FFontFaceData& FontFaceData = FontFaceDataRef.Get();
+			const TArray<uint8>& FontFaceDataArray = FontFaceData.GetData();
+			return Noesis::Ptr<Noesis::Stream>(*new FontArrayMemoryStream(CopyTemp(FontFaceDataArray)));
+		}
+		else
+		{
+			TArray<uint8> FileData;
+			FFileHelper::LoadFileToArray(FileData, *FontFace->GetFontFilename());
+			return Noesis::Ptr<Noesis::Stream>(*new FontArrayMemoryStream(MoveTemp(FileData)));
 		}
 	}
 	return Noesis::Ptr<Noesis::Stream>();

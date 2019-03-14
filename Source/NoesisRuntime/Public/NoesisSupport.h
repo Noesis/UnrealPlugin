@@ -8,6 +8,9 @@
 // Core includes
 #include "CoreMinimal.h"
 
+// CoreUObject includes
+#include "Misc/PackageName.h"
+
 // Noesis includes
 #include "NoesisSDK.h"
 
@@ -35,6 +38,20 @@ inline Noesis::Matrix4f FMatrixToNsMatrix(const FMatrix& Matrix)
 {
 	FMatrix TransposedMatrix = Matrix.GetTransposed();
 	return Noesis::Matrix4f((float*)&TransposedMatrix);
+}
+
+inline FString NsProviderPathToAssetPath(const FString& FilePath)
+{
+	FString FullPath = FPaths::GetPath(FilePath);
+	FString Package = FPaths::GetBaseFilename(FilePath);
+	FString Extension = FPaths::GetExtension(FilePath);
+	FString AssetPath = FullPath / Package;
+	if (FPackageName::IsValidLongPackageName(AssetPath))
+	{
+		return AssetPath;
+	}
+
+	return FString("/Game/") + AssetPath;
 }
 
 Noesis::Ptr<Noesis::Texture> NoesisCreateTexture(class UTexture* Texture);

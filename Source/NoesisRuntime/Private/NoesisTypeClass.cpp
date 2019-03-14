@@ -757,7 +757,7 @@ public:
 	{
 		for (uint32 Index = 0; Index != Count(); ++Index)
 		{
-			Noesis::BaseComponent* ItemAtIndex = NativeGet(Index);
+			Noesis::Ptr<Noesis::BaseComponent> ItemAtIndex = NativeGet(Index);
 			if (ItemAtIndex && ItemAtIndex->Equals(Item))
 			{
 				return Index;

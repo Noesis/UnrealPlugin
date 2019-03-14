@@ -60,6 +60,17 @@ void UNoesisXaml::GetAssetRegistryTags(TArray<FAssetRegistryTag>& OutTags) const
 }
 #endif // WITH_EDITORONLY_DATA
 
+void UNoesisXaml::PostLoad()
+{
+	Super::PostLoad();
+
+	INoesisRuntimeModuleInterface& NoesisRuntime = INoesisRuntimeModuleInterface::Get();
+	for (auto Font : Fonts)
+	{
+		NoesisRuntime.RegisterFont(Font);
+	}
+}
+
 #if WITH_EDITOR
 void UNoesisXaml::PreloadDependencies()
 {
