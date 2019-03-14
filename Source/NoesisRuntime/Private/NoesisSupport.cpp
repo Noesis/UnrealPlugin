@@ -31,7 +31,7 @@ void CollectElements(Noesis::FrameworkElement* Element, TArray<Noesis::Framework
 	uint32 ElementCount = Noesis::LogicalTreeHelper::GetChildrenCount(Element);
 	for (uint32 ElementIndex = 0; ElementIndex != ElementCount; ++ElementIndex)
 	{
-		Noesis::FrameworkElement* ChildElement = NsDynamicCast<Noesis::FrameworkElement*>(Noesis::LogicalTreeHelper::GetChild(Element, ElementIndex));
+		Noesis::FrameworkElement* ChildElement = Noesis::DynamicPtrCast<Noesis::FrameworkElement>(Noesis::LogicalTreeHelper::GetChild(Element, ElementIndex));
 		if (ChildElement)
 		{
 			CollectElements(ChildElement, Elements);

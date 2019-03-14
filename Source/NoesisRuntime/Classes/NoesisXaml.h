@@ -31,6 +31,9 @@ class NOESISRUNTIME_API UNoesisXaml : public UObject
 	UPROPERTY()
 	TArray<class UFont*> Fonts;
 
+	UPROPERTY()
+	TArray<class USoundWave*> Sounds;
+
 	Noesis::Ptr<Noesis::BaseComponent> LoadXaml();
 	void LoadComponent(Noesis::BaseComponent* Component);
 
@@ -43,6 +46,10 @@ class NOESISRUNTIME_API UNoesisXaml : public UObject
 	virtual void GetAssetRegistryTags(TArray<FAssetRegistryTag>& OutTags) const override;
 	// End of UObject interface
 #endif
+
+	// UObject interface
+	virtual void PostLoad() override;
+	// End of UObject interface
 
 #if WITH_EDITOR
 	void PreloadDependencies();

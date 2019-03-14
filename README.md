@@ -1,5 +1,7 @@
 # NoesisGUI Unreal Engine 4.21 Plugin
 
+For your convenience, you can download a ready to use version of the plugin directly from [our website](https://www.noesisengine.com/developers/downloads.php). If you do so, you can skip the installation instructions and jump directly to the [Enabling and configuring the plugin](#enabling-and-configuring-the-plugin) section.
+
 ## Introduction
 
 This document will guide you through the process of setting up the NoesisGUI Unreal Engine plugin, and how to get started using NoesisGUI in your Unreal Engine project.
@@ -40,7 +42,7 @@ In order to use NoesisGUI in your UE4 project, you're going to need:
 
 * This Unreal Engine plugin.
 
-* The NoesisGUI SDK version 2.1. You can download it from [our website](https://noesisengine.com).
+* The NoesisGUI SDK version 2.2. You can download it from [our website](https://noesisengine.com).
 
 * Python with some additional modules to run the installation script (tested with Python 2.7 and 3.6).
 
@@ -63,7 +65,7 @@ With versions of Unreal Engine built from the source code in GitHub you can use 
 
 1. Copy the contents of this repository into `[UE4Root]/Engine/Plugins/NoesisGUI` if you want to use it as an Engine plugin, or `[ProjectRoot]/Plugins/NoesisGUI` if you choose to use it as a Project plugin. We'll refer to the directory where you install the plugin as `[NoesisGUIRoot]` from now on. `[UE4Root]` is the directory where you installed the engine from the Epic Games Launcher, or the directory where you cloned the GitHub repository.
 
-2. Download the NoesisGUI SDK version 2.1 from [our developer portal](http://noesisengine.com/forums/) and extract it into `[NoesisGUIRoot]/Source/Noesis/NoesisSDK`.
+2. Download the NoesisGUI SDK version 2.2 from [our developer portal](https://www.noesisengine.com/forums/viewtopic.php?f=14&t=1491) and extract it into `[NoesisGUIRoot]/Source/Noesis/NoesisSDK`.
 
 3. If you haven't installed the required Python modules, or you want to verify they are correctly installed, you can execute `InstallPythonPrerequisites.bat` and `InstallPythonPrerequisites.command` from the Command Prompt on Windows or Terminal on Mac. Navigate to the plugin directory and execute them from there. These will test whether the required modules are installed or not, and will install them if they're not present. You only need to install them once, so you don't need to perform this step every time you update the plugin or Unreal Engine.
 

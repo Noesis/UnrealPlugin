@@ -22,6 +22,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetStringLibrary.h"
 #include "EditorFramework/AssetImportData.h"
+#include "Sound/SoundWave.h"
 
 // UnrealEd includes
 #include "AutomatedAssetImportData.h"

@@ -11,7 +11,7 @@ static void SetApplicationResources()
 	if (ApplicationResources)
 	{
 		Noesis::Ptr<Noesis::BaseComponent> Component = Noesis::GUI::LoadXaml(TCHARToNsString(*ApplicationResources->GetPathName()).c_str());
-		Noesis::ResourceDictionary* Dictionary = NsDynamicCast<Noesis::ResourceDictionary*>(Component.GetPtr());
+		Noesis::ResourceDictionary* Dictionary = Noesis::DynamicCast<Noesis::ResourceDictionary*>(Component.GetPtr());
 		if (Dictionary)
 		{
 			Noesis::GUI::SetApplicationResources(Dictionary);
@@ -59,6 +59,17 @@ void UNoesisXaml::GetAssetRegistryTags(TArray<FAssetRegistryTag>& OutTags) const
 	Super::GetAssetRegistryTags(OutTags);
 }
 #endif // WITH_EDITORONLY_DATA
+
+void UNoesisXaml::PostLoad()
+{
+	Super::PostLoad();
+
+	INoesisRuntimeModuleInterface& NoesisRuntime = INoesisRuntimeModuleInterface::Get();
+	for (auto Font : Fonts)
+	{
+		NoesisRuntime.RegisterFont(Font);
+	}
+}
 
 #if WITH_EDITOR
 void UNoesisXaml::PreloadDependencies()

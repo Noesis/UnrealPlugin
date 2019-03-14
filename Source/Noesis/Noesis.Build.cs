@@ -1,4 +1,4 @@
-﻿////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // NoesisGUI - http://www.noesisengine.com
 // Copyright (c) 2013 Noesis Technologies S.L. All Rights Reserved.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -16,13 +16,17 @@ public class Noesis : ModuleRules
 
 		string NoesisBasePath = ModuleDirectory + "/NoesisSDK/";
 		string NoesisIncludePath = NoesisBasePath + "Include/";
+		string NoesisInteractivityIncludePath = NoesisBasePath + "Src/Packages/App/Interactivity/Include/";
 
 		PublicIncludePaths.Add(ModuleDirectory);
 		PublicIncludePaths.Add(NoesisIncludePath);
+		PublicIncludePaths.Add(NoesisInteractivityIncludePath);
 
 		// Let's try to make sure the right version of the SDK is in the right place.
-		const string RequiredRevision = "(r6972)";
-		const string RequiredVersionName = "2.1.0f1";
+		const string RequiredRevision = "(r7948)";
+		const string RequiredVersionName = "2.2.0";
+
+		PublicDefinitions.Add("NOESIS_VERSION_NAME=\"" + RequiredVersionName + "\"");
 		if (!Directory.Exists(NoesisBasePath))
 		{
 			throw new BuildException("Could not find NoesisGUI SDK in " + NoesisBasePath + ". Minimum required version is " + RequiredVersionName);
@@ -67,21 +71,20 @@ public class Noesis : ModuleRules
 			PublicLibraryPaths.Add(NoesisLibPath);
 			PublicAdditionalLibraries.Add("Noesis.lib");
 
-			string BaseTargetPath = "";
-			if (Target.LinkType == TargetLinkType.Monolithic)
-			{
-				if (Target.ProjectFile != null)
-				{
-					BaseTargetPath = DirectoryReference.FromFile(Target.ProjectFile).ToString();
-				}
-			}
-			else
-			{
-				BaseTargetPath = Target.RelativeEnginePath;
-			}
-
 			string NoesisDllPath = "/NoesisSDK/Bin/windows_x86_64/Noesis.dll";
 			string NoesisDllTargetPath = "/Binaries/Win64/Noesis.dll";
+
+			if (Target.ProjectFile != null)
+			{
+				CopyNoesisDll(ModuleDirectory + NoesisDllPath, DirectoryReference.FromFile(Target.ProjectFile).ToString() + NoesisDllTargetPath);
+			}
+
+			CopyNoesisDll(ModuleDirectory + NoesisDllPath, ModuleDirectory + "/../.." + NoesisDllTargetPath);
+
+			if (System.IO.File.Exists(Target.RelativeEnginePath + NoesisDllTargetPath))
+			{
+				System.IO.File.Delete(Target.RelativeEnginePath + NoesisDllTargetPath);
+			}
 
 			if (Target.LinkType == TargetLinkType.Monolithic)
 			{
@@ -90,25 +93,6 @@ public class Noesis : ModuleRules
 			else
 			{
 				RuntimeDependencies.Add("$(EngineDir)" + NoesisDllTargetPath);
-			}
-
-			if (BaseTargetPath != "")
-			{
-				try
-				{
-					if (!System.IO.Directory.Exists(BaseTargetPath + "/Binaries/Win64"))
-					{
-						System.IO.Directory.CreateDirectory(BaseTargetPath + "/Binaries/Win64");
-					}
-					System.IO.File.Copy(ModuleDirectory + NoesisDllPath, BaseTargetPath + NoesisDllTargetPath, true);
-				}
-				catch (IOException Exception)
-				{
-					if (Exception.HResult != -2147024864) // 0x80070020: The process cannot access the file ... because it is being used by another process.
-					{
-						throw;
-					}
-				}
 			}
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Mac)
@@ -132,6 +116,8 @@ public class Noesis : ModuleRules
 		{
 			string NoesisLibPath = NoesisBasePath + "Bin/android_arm/";
 			PublicLibraryPaths.Add(NoesisLibPath);
+			string NoesisLib64Path = NoesisBasePath + "Bin/android_arm64/";
+			PublicLibraryPaths.Add(NoesisLib64Path);
 			PublicAdditionalLibraries.Add("Noesis");
 
 			string NoesisAplPath = "/Noesis_APL.xml";
@@ -147,6 +133,31 @@ public class Noesis : ModuleRules
 			string NoesisLibPath = NoesisBasePath + "Bin/xbox_one/";
 			PublicLibraryPaths.Add(NoesisLibPath);
 			PublicAdditionalLibraries.Add("Noesis.lib");
+		}
+		else if (Target.Platform == UnrealTargetPlatform.HTML5)
+		{
+			string NoesisLibPath = NoesisBasePath + "Bin/wasm/";
+			PublicAdditionalLibraries.Add(NoesisLibPath + "Noesis.bc");
+		}
+	}
+
+	private void CopyNoesisDll(string Source, string Target)
+	{
+		try
+		{
+			string TargetDirectory = System.IO.Path.GetDirectoryName(Target);
+			if (!System.IO.Directory.Exists(TargetDirectory))
+			{
+				System.IO.Directory.CreateDirectory(TargetDirectory);
+			}
+			System.IO.File.Copy(Source, Target, true);
+		}
+		catch (IOException Exception)
+		{
+			if (Exception.HResult != -2147024864) // 0x80070020: The process cannot access the file ... because it is being used by another process.
+			{
+				throw;
+			}
 		}
 	}
 }

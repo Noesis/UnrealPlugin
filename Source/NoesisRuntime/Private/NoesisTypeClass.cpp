@@ -122,14 +122,14 @@ public:
 		return &Value;
 	}
 
-	bool Equals(Noesis::BaseObject* BaseObject) const override
+	bool Equals(const Noesis::BaseObject* BaseObject) const override
 	{
 		if (this == BaseObject)
 		{
 			return true;
 		}
 
-		NoesisEnumWrapper* EnumWrapper = NsDynamicCast<NoesisEnumWrapper*>(BaseObject);
+		const NoesisEnumWrapper* EnumWrapper = Noesis::DynamicCast<const NoesisEnumWrapper*>(BaseObject);
 		if (EnumWrapper)
 		{
 			return EnumWrapper->Value == Value;
@@ -179,7 +179,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty(void* BasePointer, UProperty* Pro
 template<class T>
 void SetProperty(void* BasePointer, UProperty* Property, Noesis::BaseComponent* Value)
 {
-	Noesis::Boxed<T>* BoxedValue = NsDynamicCast<Noesis::Boxed<T>*>(Value);
+	Noesis::Boxed<T>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<T>*>(Value);
 	if (BoxedValue)
 	{
 		check(Property->IsA<TProperty_Numeric<T> >());
@@ -217,7 +217,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<NoesisEnumWrapper>(void* BasePoin
 template<>
 void SetProperty<NoesisEnumWrapper>(void* BasePointer, UProperty* Property, Noesis::BaseComponent* Value)
 {
-	NoesisEnumWrapper* BoxedValue = NsDynamicCast<NoesisEnumWrapper*>(Value);
+	NoesisEnumWrapper* BoxedValue = Noesis::DynamicCast<NoesisEnumWrapper*>(Value);
 	if (BoxedValue)
 	{
 		if (UEnumProperty* EnumProperty = Cast<UEnumProperty>(Property))
@@ -252,7 +252,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::Color>(void* BasePointer,
 template<>
 void SetProperty<Noesis::Color>(void* BasePointer, UProperty* Property, Noesis::BaseComponent* Value)
 {
-	Noesis::Boxed<Noesis::Color>* BoxedValue = NsDynamicCast<Noesis::Boxed<Noesis::Color>*>(Value);
+	Noesis::Boxed<Noesis::Color>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::Color>*>(Value);
 	if (BoxedValue)
 	{
 		check(Property->IsA<UStructProperty>());
@@ -281,7 +281,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::Point>(void* BasePointer,
 template<>
 void SetProperty<Noesis::Point>(void* BasePointer, UProperty* Property, Noesis::BaseComponent* Value)
 {
-	Noesis::Boxed<Noesis::Point>* BoxedValue = NsDynamicCast<Noesis::Boxed<Noesis::Point>*>(Value);
+	Noesis::Boxed<Noesis::Point>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::Point>*>(Value);
 	if (BoxedValue)
 	{
 		check(Property->IsA<UStructProperty>());
@@ -305,7 +305,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::Rect>(void* BasePointer, 
 template<>
 void SetProperty<Noesis::Rect>(void* BasePointer, UProperty* Property, Noesis::BaseComponent* Value)
 {
-	Noesis::Boxed<Noesis::Rect>* BoxedValue = NsDynamicCast<Noesis::Boxed<Noesis::Rect>*>(Value);
+	Noesis::Boxed<Noesis::Rect>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::Rect>*>(Value);
 	if (BoxedValue)
 	{
 		check(Property->IsA<UStructProperty>());
@@ -329,7 +329,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::Size>(void* BasePointer, 
 template<>
 void SetProperty<Noesis::Size>(void* BasePointer, UProperty* Property, Noesis::BaseComponent* Value)
 {
-	Noesis::Boxed<Noesis::Size>* BoxedValue = NsDynamicCast<Noesis::Boxed<Noesis::Size>*>(Value);
+	Noesis::Boxed<Noesis::Size>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::Size>*>(Value);
 	if (BoxedValue)
 	{
 		check(Property->IsA<UStructProperty>());
@@ -353,7 +353,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::Thickness>(void* BasePoin
 template<>
 void SetProperty<Noesis::Thickness>(void* BasePointer, UProperty* Property, Noesis::BaseComponent* Value)
 {
-	Noesis::Boxed<Noesis::Thickness>* BoxedValue = NsDynamicCast<Noesis::Boxed<Noesis::Thickness>*>(Value);
+	Noesis::Boxed<Noesis::Thickness>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::Thickness>*>(Value);
 	if (BoxedValue)
 	{
 		check(Property->IsA<UStructProperty>());
@@ -377,7 +377,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::CornerRadius>(void* BaseP
 template<>
 void SetProperty<Noesis::CornerRadius>(void* BasePointer, UProperty* Property, Noesis::BaseComponent* Value)
 {
-	Noesis::Boxed<Noesis::CornerRadius>* BoxedValue = NsDynamicCast<Noesis::Boxed<Noesis::CornerRadius>*>(Value);
+	Noesis::Boxed<Noesis::CornerRadius>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::CornerRadius>*>(Value);
 	if (BoxedValue)
 	{
 		check(Property->IsA<UStructProperty>());
@@ -401,7 +401,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::TimeSpan>(void* BasePoint
 template<>
 void SetProperty<Noesis::TimeSpan>(void* BasePointer, UProperty* Property, Noesis::BaseComponent* Value)
 {
-	Noesis::Boxed<Noesis::TimeSpan>* BoxedValue = NsDynamicCast<Noesis::Boxed<Noesis::TimeSpan>*>(Value);
+	Noesis::Boxed<Noesis::TimeSpan>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::TimeSpan>*>(Value);
 	if (BoxedValue)
 	{
 		check(Property->IsA<UStructProperty>());
@@ -425,7 +425,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::Duration>(void* BasePoint
 template<>
 void SetProperty<Noesis::Duration>(void* BasePointer, UProperty* Property, Noesis::BaseComponent* Value)
 {
-	Noesis::Boxed<Noesis::Duration>* BoxedValue = NsDynamicCast<Noesis::Boxed<Noesis::Duration>*>(Value);
+	Noesis::Boxed<Noesis::Duration>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::Duration>*>(Value);
 	if (BoxedValue)
 	{
 		check(Property->IsA<UStructProperty>());
@@ -449,7 +449,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::KeyTime>(void* BasePointe
 template<>
 void SetProperty<Noesis::KeyTime>(void* BasePointer, UProperty* Property, Noesis::BaseComponent* Value)
 {
-	Noesis::Boxed<Noesis::KeyTime>* BoxedValue = NsDynamicCast<Noesis::Boxed<Noesis::KeyTime>*>(Value);
+	Noesis::Boxed<Noesis::KeyTime>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::KeyTime>*>(Value);
 	if (BoxedValue)
 	{
 		check(Property->IsA<UStructProperty>());
@@ -472,7 +472,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<bool>(void* BasePointer, UPropert
 template<>
 void SetProperty<bool>(void* BasePointer, UProperty* Property, Noesis::BaseComponent* Value)
 {
-	Noesis::Boxed<bool>* BoolValue = NsDynamicCast<Noesis::Boxed<bool>*>(Value);
+	Noesis::Boxed<bool>* BoolValue = Noesis::DynamicCast<Noesis::Boxed<bool>*>(Value);
 	if (BoolValue)
 	{
 		check(Property->IsA<UBoolProperty>());
@@ -502,7 +502,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<NsString>(void* BasePointer, UPro
 template<>
 void SetProperty<NsString>(void* BasePointer, UProperty* Property, Noesis::BaseComponent* Value)
 {
-	Noesis::Boxed<NsString>* StrValue = NsDynamicCast<Noesis::Boxed<NsString>*>(Value);
+	Noesis::Boxed<NsString>* StrValue = Noesis::DynamicCast<Noesis::Boxed<NsString>*>(Value);
 	if (StrValue)
 	{
 		if (Property->IsA<UStrProperty>())
@@ -627,63 +627,28 @@ public:
 
 public:
 	// IList interface
-	virtual uint32 Count() const override
+	virtual int32 Count() const override
 	{
-		return (uint32)ComponentArray.Num();
+		return ComponentArray.Num();
 	}
 
-	virtual Noesis::BaseComponent* Get(uint32 Index) const override
+	virtual Noesis::Ptr<Noesis::BaseComponent> GetComponent(uint32 Index) const override
 	{
-		return ComponentArray[Index].GetPtr();
+		return ComponentArray[Index];
 	}
 
-	virtual void Set(uint32 Index, Noesis::BaseComponent* Item) override
-	{
-	}
-
-	virtual void Set(uint32 Index, const char* Item) override
+	virtual void SetComponent(uint32 Index, Noesis::BaseComponent* Item) override
 	{
 	}
 
-	virtual uint32 Add(Noesis::BaseComponent* Item) override
-	{
-		return ~0;
-	}
-
-	virtual uint32 Add(const char* Item) override
-	{
-		check(false);
-		return 0;
-	}
-
-	virtual void Clear() override
-	{
-	}
-
-	virtual bool Contains(Noesis::BaseComponent* Item) const override
-	{
-		return IndexOf(Item) != -1;
-	}
-
-	virtual int IndexOf(Noesis::BaseComponent* Item) const override
+	virtual int32 AddComponent(Noesis::BaseComponent* Item) override
 	{
 		return -1;
 	}
 
-	virtual void Insert(uint32 Index, Noesis::BaseComponent* Item) override
+	virtual int IndexOfComponent(Noesis::BaseComponent* Item) const override
 	{
-	}
-
-	virtual void Insert(uint32 Index, const char* Item) override
-	{
-	}
-
-	virtual void Remove(Noesis::BaseComponent* Item) override
-	{
-	}
-
-	virtual void RemoveAt(uint32 Index) override
-	{
+		return ComponentArray.Find(Noesis::Ptr<Noesis::BaseComponent>(Item));
 	}
 	// End of IList interface
 
@@ -721,7 +686,7 @@ class NoesisArrayWrapperBase : public Noesis::BaseComponent, public Noesis::ILis
 {
 public:
 	NoesisArrayWrapperBase(void* BasePointer, UArrayProperty* ArrayProperty, UProperty* ArrayInnerProperty)
-		: InnerProperty(ArrayInnerProperty), ArrayPointer(ArrayProperty->ContainerPtrToValuePtr<void>(BasePointer)), ArrayHelper(ArrayProperty, ArrayPointer)
+		: InnerProperty(ArrayInnerProperty), ArrayPointer(ArrayProperty->ContainerPtrToValuePtr<void>(BasePointer)), ArrayHelper(ArrayProperty, ArrayPointer), PreviousCount(INDEX_NONE)
 	{
 		check(InnerProperty->GetOffset_ForDebug() == 0);
 		ArrayMap.Add(ArrayPointer, this);
@@ -755,98 +720,50 @@ public:
 protected:
 	virtual Noesis::Ptr<Noesis::BaseComponent> NativeGet(uint32 Index) const = 0;
 	virtual void NativeSet(uint32 Index, Noesis::BaseComponent* Item) = 0;
-	uint32 NativeSize() { return (uint32)ArrayHelper.Num(); }
+	int32 NativeSize() const { return ArrayHelper.Num(); }
 	void NativeInsert(uint32 Index) { ArrayHelper.InsertValues(Index); }
 	void NativeClear() { ArrayHelper.EmptyValues(); }
 	void NativeRemoveAt(uint32 Index) { ArrayHelper.RemoveValues(Index); }
 
 public:
 	// IList interface
-	virtual uint32 Count() const override
+	virtual int32 Count() const override
 	{
-		return (uint32)ComponentArray.Num();
+		return NativeSize();
 	}
 
-	virtual Noesis::BaseComponent* Get(uint32 Index) const override
+	virtual Noesis::Ptr<Noesis::BaseComponent> GetComponent(uint32 Index) const override
 	{
-		return ComponentArray[Index].GetPtr();
+		return NativeGet(Index);
 	}
 
-	virtual void Set(uint32 Index, Noesis::BaseComponent* Item) override
+	virtual void SetComponent(uint32 Index, Noesis::BaseComponent* Item) override
 	{
+		NotifyPreSet(Index);
 		NativeSet(Index, Item);
-		NotifySet(Index);
+		NotifyPostSet(Index);
 	}
 
-	virtual void Set(uint32 Index, const char* Item) override
-	{
-		check(false);
-	}
-
-	virtual uint32 Add(Noesis::BaseComponent* Item) override
+	virtual int32 AddComponent(Noesis::BaseComponent* Item) override
 	{
 		int32 Index = NativeSize();
 		NativeInsert(Index);
 		NativeSet(Index, Item);
-		NotifyInsert(Index);
-		return (uint32)Index;
+		NotifyPostInsert(Index);
+		return Index;
 	}
 
-	virtual uint32 Add(const char* Item) override
-	{
-		check(false);
-		return 0;
-	}
-
-	virtual void Clear() override
-	{
-		NativeClear();
-		NotifyClear();
-	}
-
-	virtual bool Contains(Noesis::BaseComponent* Item) const override
-	{
-		return IndexOf(Item) != -1;
-	}
-
-	virtual int IndexOf(Noesis::BaseComponent* Item) const override
+	virtual int IndexOfComponent(Noesis::BaseComponent* Item) const override
 	{
 		for (uint32 Index = 0; Index != Count(); ++Index)
 		{
-			if (ComponentArray[Index] == Item || (ComponentArray[Index] && ComponentArray[Index]->Equals(Item)))
+			Noesis::Ptr<Noesis::BaseComponent> ItemAtIndex = NativeGet(Index);
+			if (ItemAtIndex && ItemAtIndex->Equals(Item))
 			{
 				return Index;
 			}
 		}
 		return -1;
-	}
-
-	virtual void Insert(uint32 Index, Noesis::BaseComponent* Item) override
-	{
-		NativeInsert(Index);
-		Set(Index, Item);
-		NotifyInsert(Index);
-	}
-
-	virtual void Insert(uint32 Index, const char* Item) override
-	{
-		ArrayHelper.InsertValues(Index);
-		Set(Index, Item);
-	}
-
-	virtual void Remove(Noesis::BaseComponent* Item) override
-	{
-		uint32 IndexOfItem = IndexOf(Item);
-		if (IndexOfItem != -1)
-		{
-			RemoveAt(IndexOfItem);
-		}
-	}
-
-	virtual void RemoveAt(uint32 Index) override
-	{
-		NativeRemoveAt(Index);
-		NotifyRemoveAt(Index);
 	}
 	// End of IList interface
 
@@ -855,92 +772,76 @@ public:
 		return CollectionChangedHandler;
 	}
 
-	void NotifyAdd()
+	void NotifyPostAdd()
 	{
 		uint32 Index = NativeSize() - 1;
-		NotifyInsert(Index);
+		NotifyPostInsert(Index);
 	}
 
-	void NotifyInsert(uint32 Index)
+	void NotifyPostInsert(uint32 Index)
 	{
-		if (Index >= (uint32)ComponentArray.Num())
-		{
-			ComponentArray.SetNum(Index + 1);
-		}
 		Noesis::Ptr<Noesis::BaseComponent> Item = NativeGet(Index);
-		ComponentArray[Index] = Item;
 
 		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs(Noesis::NotifyCollectionChangedAction_Add, -1, Index, nullptr, Item.GetPtr());
 		CollectionChangedHandler(this, CollectionChangedArgs);
 	}
 
-	void NotifySet(uint32 Index)
+	void NotifyPreSet(int32 Index)
 	{
-		if (Index >= (uint32)ComponentArray.Num())
-		{
-			ComponentArray.SetNum(Index + 1);
-		}
-		Noesis::Ptr<Noesis::BaseComponent> OldItem = ComponentArray[Index];
-		Noesis::Ptr<Noesis::BaseComponent> NewItem = NativeGet(Index);
-		ComponentArray[Index] = NewItem;
-
-		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs(Noesis::NotifyCollectionChangedAction_Replace, Index, Index, OldItem.GetPtr(), NewItem.GetPtr());
-		CollectionChangedHandler(this, CollectionChangedArgs);
+		check(ItemToDelete == nullptr);
+		ItemToDelete = NativeGet(Index);
 	}
 
-	void NotifyClear()
+	void NotifyPostSet(int32 Index)
 	{
-		ComponentArray.Empty();
+		check(ItemToDelete != nullptr);
+		Noesis::Ptr<Noesis::BaseComponent> NewItem = NativeGet(Index);
 
+		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs(Noesis::NotifyCollectionChangedAction_Replace, Index, Index, ItemToDelete.GetPtr(), NewItem.GetPtr());
+		CollectionChangedHandler(this, CollectionChangedArgs);
+		ItemToDelete.Reset();
+	}
+
+	void NotifyPostClear()
+	{
+		NotifyPostChanged();
+	}
+
+	void NotifyPreRemoveAt(int32 Index)
+	{
+		check(ItemToDelete == nullptr);
+		ItemToDelete = NativeGet(Index);
+	}
+
+	void NotifyPostRemoveAt(int32 Index)
+	{
+		check(ItemToDelete != nullptr);
+		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs(Noesis::NotifyCollectionChangedAction_Remove, Index, -1, ItemToDelete.GetPtr(), nullptr);
+		CollectionChangedHandler(this, CollectionChangedArgs);
+		ItemToDelete.Reset();
+	}
+
+	void NotifyPostChanged()
+	{
 		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs(Noesis::NotifyCollectionChangedAction_Reset, -1, -1, nullptr, nullptr);
 		CollectionChangedHandler(this, CollectionChangedArgs);
 	}
 
-	void NotifyRemoveAt(uint32 Index)
+	void NotifyPreAppend()
 	{
-		if (Index >= (uint32)ComponentArray.Num())
-		{
-			ComponentArray.SetNum(Index + 1);
-		}
-		Noesis::Ptr<Noesis::BaseComponent> Item = ComponentArray[Index];
-		ComponentArray.RemoveAt(Index);
-
-		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs(Noesis::NotifyCollectionChangedAction_Remove, Index, -1, Item.GetPtr(), nullptr);
-		CollectionChangedHandler(this, CollectionChangedArgs);
+		check(PreviousCount == INDEX_NONE);
+		PreviousCount = NativeSize();
 	}
 
-	void NotifyChanged()
+	void NotifyPostAppend()
 	{
-		uint32 Count = FMath::Min(NativeSize(), (uint32)ComponentArray.Num());
-		for (int32 Index = 0; Index != Count; ++Index)
-		{
-			NotifySet(Index);
-		}
-
-		NotifyResize();
-	}
-
-	void NotifyAppend(uint32 NumItems)
-	{
+		check(PreviousCount != INDEX_NONE);
 		uint32 Count = NativeSize();
-		for (uint32 Index = Count - NumItems; Index != Count; ++Index)
+		for (uint32 Index = PreviousCount; Index != Count; ++Index)
 		{
-			NotifyInsert(Index);
+			NotifyPostInsert(Index);
 		}
-	}
-
-	void NotifyResize()
-	{
-		uint32 Count = NativeSize();
-		while ((uint32)ComponentArray.Num() < Count)
-		{
-			NotifyInsert((uint32)ComponentArray.Num());
-		}
-
-		while ((uint32)ComponentArray.Num() > Count)
-		{
-			NotifyRemoveAt((uint32)ComponentArray.Num() - 1);
-		}
+		PreviousCount = INDEX_NONE;
 	}
 
 	NS_IMPLEMENT_INLINE_REFLECTION(NoesisArrayWrapperBase, Noesis::BaseComponent)
@@ -956,7 +857,8 @@ public:
 	UProperty* InnerProperty;
 	void* ArrayPointer;
 	mutable FScriptArrayHelper ArrayHelper;
-	TArray<Noesis::Ptr<Noesis::BaseComponent> > ComponentArray;
+	Noesis::Ptr<Noesis::BaseComponent> ItemToDelete;
+	int32 PreviousCount;
 };
 
 template<class T>
@@ -967,14 +869,6 @@ public:
 		: NoesisArrayWrapperBase(BasePointer, ArrayProperty, ArrayInnerProperty)
 	{
 		check(InnerProperty->GetOffset_ForDebug() == 0);
-
-		ComponentArray.Empty();
-
-		for (int32 Index = 0; Index != NativeSize(); ++Index)
-		{
-			Noesis::Ptr<Noesis::BaseComponent> Item = NativeGet(Index);
-			ComponentArray.Add(Item);
-		}
 	}
 
 	virtual Noesis::Ptr<Noesis::BaseComponent> NativeGet(uint32 Index) const override
@@ -1040,6 +934,8 @@ public:
 	}
 
 private:
+	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisFunctionWrapper, Noesis::BaseCommand)
+
 	UObject* Object;
 	UFunction* Function;
 	UFunction* CanExecuteFunction;
@@ -1099,9 +995,9 @@ public:
 		return "";
 	}
 
-	bool Equals(Noesis::BaseObject* BaseObject) const override
+	bool Equals(const Noesis::BaseObject* BaseObject) const override
 	{
-		NoesisStructWrapper* Wrapper = NsDynamicCast<NoesisStructWrapper*>(BaseObject);
+		const NoesisStructWrapper* Wrapper = Noesis::DynamicCast<const NoesisStructWrapper*>(BaseObject);
 		return Wrapper && Struct == Wrapper->Struct && Struct->CompareScriptStruct(BasePointer, Wrapper->BasePointer, PPF_None);
 	}
 
@@ -1110,7 +1006,7 @@ public:
 		return 0;
 	}
 
-	static const Noesis::TypeClass* StaticGetClassType(Noesis::T2T<NoesisStructWrapper>* = 0)
+	static const Noesis::TypeClass* StaticGetClassType(Noesis::TypeTag<NoesisStructWrapper>* = 0)
 	{
 		static const Noesis::TypeClass* Type;
 
@@ -1192,9 +1088,9 @@ public:
 		return TCHARToNsString(*Object->GetPathName());
 	}
 
-	bool Equals(Noesis::BaseObject* BaseObject) const override
+	bool Equals(const Noesis::BaseObject* BaseObject) const override
 	{
-		NoesisObjectWrapper* Wrapper = NsDynamicCast<NoesisObjectWrapper*>(BaseObject);
+		const NoesisObjectWrapper* Wrapper = Noesis::DynamicCast<const NoesisObjectWrapper*>(BaseObject);
 		return Wrapper && Object == Wrapper->Object;
 	}
 
@@ -1203,7 +1099,7 @@ public:
 		return Object->GetUniqueID();
 	}
 
-	static const Noesis::TypeClass* StaticGetClassType(Noesis::T2T<NoesisObjectWrapper>* = 0)
+	static const Noesis::TypeClass* StaticGetClassType(Noesis::TypeTag<NoesisObjectWrapper>* = 0)
 	{
 		static const Noesis::TypeClass* Type;
 
@@ -1281,7 +1177,7 @@ public:
 	template<class T>
 	bool SetArrayProperty(const TypePropertyData& Data, Noesis::BaseComponent* Value)
 	{
-		NoesisArrayWrapperBase* ValueWrapper = NsDynamicCast<NoesisArrayWrapperBase*>(Value);
+		NoesisArrayWrapperBase* ValueWrapper = Noesis::DynamicCast<NoesisArrayWrapperBase*>(Value);
 		if (ValueWrapper)
 		{
 			FScriptArrayHelper SourceArrayHelper = ValueWrapper->ArrayHelper;
@@ -1300,7 +1196,7 @@ public:
 		}
 
 		Noesis::Ptr<Noesis::BaseComponent> Wrapper = GetArrayProperty<T>(Data);
-		((NoesisArrayWrapperBase*)Wrapper.GetPtr())->NotifyChanged();
+		((NoesisArrayWrapperBase*)Wrapper.GetPtr())->NotifyPostChanged();
 
 		return false;
 	}
@@ -1447,9 +1343,9 @@ void UStructTypeFiller(Noesis::Type* Type)
 	check(RegisterNameMap.Find(NsStringToFString(ClassName)));
 	UScriptStruct* Class = LoadObject<UScriptStruct>(nullptr, **RegisterNameMap.Find(NsStringToFString(ClassName)));
 
-	const Noesis::TypeClass* ParentType = NoesisStructWrapper::StaticGetClassType();
+	const Noesis::TypeClass* ParentType = NoesisStructWrapper::StaticGetClassType(nullptr);
 
-	NoesisTypeClass* TypeClass = NsDynamicCast<NoesisTypeClass*>(Type);
+	NoesisTypeClass* TypeClass = Noesis::DynamicCast<NoesisTypeClass*>(Type);
 	TypeClass->Class = Class;
 	check(TypeClass);
 
@@ -1699,14 +1595,14 @@ void UClassTypeFiller(Noesis::Type* Type)
 	check(RegisterNameMap.Find(NsStringToFString(ClassName)));
 	UClass* Class = LoadObject<UClass>(nullptr, **RegisterNameMap.Find(NsStringToFString(ClassName)));
 
-	const Noesis::TypeClass* ParentType = NoesisObjectWrapper::StaticGetClassType();
+	const Noesis::TypeClass* ParentType = NoesisObjectWrapper::StaticGetClassType(nullptr);
 	UClass* SuperClass = Class->GetSuperClass();
 	if (SuperClass)
 	{
 		ParentType = NoesisCreateTypeClassForUClass(SuperClass);
 	}
 
-	NoesisTypeClass* TypeClass = NsDynamicCast<NoesisTypeClass*>(Type);
+	NoesisTypeClass* TypeClass = Noesis::DynamicCast<NoesisTypeClass*>(Type);
 	TypeClass->Class = Class;
 	check(TypeClass);
 
@@ -2105,7 +2001,7 @@ Noesis::TypeClass* NoesisCreateTypeClassForUClass(UClass* Class)
 	}
 	if (!TypeClass)
 	{
-		TypeClass = NsDynamicCast<Noesis::TypeClass*>(Noesis::TypeCreate::Create(Noesis::TypeInfo(PersistentClassName), &UClassTypeCreator, &UClassTypeFiller));
+		TypeClass = Noesis::DynamicCast<Noesis::TypeClass*>(Noesis::TypeCreate::Create(Noesis::TypeInfo(PersistentClassName), &UClassTypeCreator, &UClassTypeFiller));
 		ClassMap.Add(Class, MakeTuple(TypeClass, PersistentClassName));
 
 #if WITH_EDITOR
@@ -2131,7 +2027,7 @@ void UEnumTypeFiller(Noesis::Type* Type)
 	UEnum* Enum = LoadObject<UEnum>(nullptr, **RegisterNameMap.Find(NsStringToFString(EnumName)));
 
 
-	Noesis::TypeEnum* TypeEnum = NsDynamicCast<Noesis::TypeEnum*>(Type);
+	Noesis::TypeEnum* TypeEnum = Noesis::DynamicCast<Noesis::TypeEnum*>(Type);
 	check(TypeEnum);
 
 	Noesis::Ptr<Noesis::TypeId> MetaData = *new Noesis::TypeId(EnumName);
@@ -2170,7 +2066,7 @@ Noesis::TypeEnum* NoesisCreateTypeEnumForUEnum(UEnum* Enum)
 	}
 	if (!TypeEnum)
 	{
-		TypeEnum = NsDynamicCast<Noesis::TypeEnum*>(Noesis::TypeCreate::Create(Noesis::TypeInfo(PersistentEnumName), &UEnumTypeCreator, &UEnumTypeFiller));
+		TypeEnum = Noesis::DynamicCast<Noesis::TypeEnum*>(Noesis::TypeCreate::Create(Noesis::TypeInfo(PersistentEnumName), &UEnumTypeCreator, &UEnumTypeFiller));
 
 		NsSymbol EnumConverterId = Noesis::IdOf("Converter", TypeEnum);
 		NsGetKernel()->GetComponentFactory()->RegisterComponent(EnumConverterId, NsSymbol::Null(), &CallbackCreateEnumConverter);
@@ -2236,8 +2132,8 @@ void NoesisDestroyAllTypes()
 
 void AssignStruct(void* BasePointer, UStructProperty* StructProperty, Noesis::BaseComponent* Value)
 {
-	check(Value->GetClassType()->IsDescendantOf(NoesisStructWrapper::StaticGetClassType()));
-	check(NsDynamicCast<const NoesisTypeClass*>(Value->GetClassType()));
+	check(Value->GetClassType()->IsDescendantOf(NoesisStructWrapper::StaticGetClassType(nullptr)));
+	check(Noesis::DynamicCast<const NoesisTypeClass*>(Value->GetClassType()));
 	check(((NoesisTypeClass*)Value->GetClassType())->Class == StructProperty->Struct);
 
 	void* Dest = StructProperty->ContainerPtrToValuePtr<void>(BasePointer);
@@ -2259,7 +2155,7 @@ Noesis::TypeClass* NoesisCreateTypeClassForUStruct(UScriptStruct* Class)
 	}
 	if (!TypeClass)
 	{
-		TypeClass = NsDynamicCast<Noesis::TypeClass*>(Noesis::TypeCreate::Create(Noesis::TypeInfo(PersistentClassName), &UClassTypeCreator, &UStructTypeFiller));
+		TypeClass = Noesis::DynamicCast<Noesis::TypeClass*>(Noesis::TypeCreate::Create(Noesis::TypeInfo(PersistentClassName), &UClassTypeCreator, &UStructTypeFiller));
 		ClassMap.Add(Class, MakeTuple(TypeClass, PersistentClassName));
 	}
 
@@ -2274,9 +2170,8 @@ Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUStruct(UScriptStruct
 	}
 
 	Noesis::TypeClass* TypeClass = NoesisCreateTypeClassForUStruct(Struct);
-	Noesis::MemoryManager* MemoryManager = NsGetKernel()->GetMemoryManager();
 	SIZE_T AllocSize = sizeof(NoesisStructWrapper) + Struct->GetStructureSize();
-	void* Memory = MemoryManager->Alloc(AllocSize);
+	void* Memory = NoesisAlloc(NoesisAllocationCallbackUserData, AllocSize);
 	FMemory::Memzero(Memory, AllocSize);
 	void* Dest = ((NoesisStructWrapper*)Memory) + 1;
 	Struct->CopyScriptStruct(Dest, Src, 1);
@@ -2322,7 +2217,7 @@ NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUOb
 
 NOESISRUNTIME_API UObject* NoesisCreateUObjectForComponent(Noesis::BaseComponent* Component)
 {
-	NoesisObjectWrapper* Wrapper = NsDynamicCast<NoesisObjectWrapper*>(Component);
+	NoesisObjectWrapper* Wrapper = Noesis::DynamicCast<NoesisObjectWrapper*>(Component);
 	if (Wrapper)
 	{
 		return Wrapper->Object;
@@ -2335,8 +2230,8 @@ NOESISRUNTIME_API UObject* NoesisCreateUObjectForComponent(Noesis::BaseComponent
 
 NOESISRUNTIME_API void NoesisCopyUStructFromComponent(UScriptStruct* Struct, Noesis::BaseComponent* Component, void* Dest)
 {
-	check(Component->GetClassType()->IsDescendantOf(NoesisStructWrapper::StaticGetClassType()));
-	check(NsDynamicCast<const NoesisTypeClass*>(Component->GetClassType()));
+	check(Component->GetClassType()->IsDescendantOf(NoesisStructWrapper::StaticGetClassType(nullptr)));
+	check(Noesis::DynamicCast<const NoesisTypeClass*>(Component->GetClassType()));
 	check(((NoesisTypeClass*)Component->GetClassType())->Class == Struct);
 
 	void* Src = ((NoesisStructWrapper*)Component) + 1;
@@ -2375,7 +2270,7 @@ void NoesisNotifyArrayPropertyChanged(UObject* Owner, FName ArrayPropertyName)
 			NoesisArrayWrapperBase* Array = (NoesisArrayWrapperBase*)(ArrayTypeProperty->GetComponent(Wrapper).GetPtr());
 			if (Array)
 			{
-				Array->NotifyChanged();
+				Array->NotifyPostChanged();
 			}
 		}
 #if DO_CHECK // Skip in shipping build
@@ -2387,91 +2282,113 @@ void NoesisNotifyArrayPropertyChanged(UObject* Owner, FName ArrayPropertyName)
 	}
 }
 
-void NoesisNotifyArrayPropertyAdd(void* ArrayPointer)
+void NoesisNotifyArrayPropertyPostAdd(void* ArrayPointer)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyAdd);
 	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
 		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
-		Array->NotifyAdd();
+		Array->NotifyPostAdd();
 	}
 }
 
-void NoesisNotifyArrayPropertyChanged(void* ArrayPointer)
+void NoesisNotifyArrayPropertyPostChanged(void* ArrayPointer)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyChanged);
 	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
 		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
-		Array->NotifyChanged();
+		Array->NotifyPostChanged();
 	}
 }
 
-void NoesisNotifyArrayPropertyAppend(void* ArrayPointer, int32 NumItems)
+void NoesisNotifyArrayPropertyPreAppend(void* ArrayPointer)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyAppend);
 	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
 		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
-		Array->NotifyAppend(NumItems);
+		Array->NotifyPreAppend();
 	}
 }
 
-void NoesisNotifyArrayPropertyInsert(void* ArrayPointer, int32 Index)
+void NoesisNotifyArrayPropertyPostAppend(void* ArrayPointer)
+{
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyAppend);
+	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
+	if (ArrayWrapperPtr)
+	{
+		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
+		Array->NotifyPostAppend();
+	}
+}
+
+void NoesisNotifyArrayPropertyPostInsert(void* ArrayPointer, int32 Index)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyInsert);
 	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
 		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
-		Array->NotifyInsert(Index);
+		Array->NotifyPostInsert(Index);
 	}
 }
 
-void NoesisNotifyArrayPropertyRemove(void* ArrayPointer, int32 Index)
+void NoesisNotifyArrayPropertyPreRemove(void* ArrayPointer, int32 Index)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyRemove);
 	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
 		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
-		Array->NotifyRemoveAt(Index);
+		Array->NotifyPreRemoveAt(Index);
 	}
 }
 
-void NoesisNotifyArrayPropertyClear(void* ArrayPointer)
+void NoesisNotifyArrayPropertyPostRemove(void* ArrayPointer, int32 Index)
+{
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyRemove);
+	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
+	if (ArrayWrapperPtr)
+	{
+		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
+		Array->NotifyPostRemoveAt(Index);
+	}
+}
+
+void NoesisNotifyArrayPropertyPostClear(void* ArrayPointer)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyClear);
 	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
 		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
-		Array->NotifyClear();
+		Array->NotifyPostClear();
 	}
 }
 
-void NoesisNotifyArrayPropertyResize(void* ArrayPointer)
-{
-	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyResize);
-	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
-	if (ArrayWrapperPtr)
-	{
-		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
-		Array->NotifyResize();
-	}
-}
-
-void NoesisNotifyArrayPropertySet(void* ArrayPointer, int32 Index)
+void NoesisNotifyArrayPropertyPreSet(void* ArrayPointer, int32 Index)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertySet);
 	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
 		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
-		Array->NotifySet(Index);
+		Array->NotifyPreSet(Index);
+	}
+}
+
+void NoesisNotifyArrayPropertyPostSet(void* ArrayPointer, int32 Index)
+{
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertySet);
+	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
+	if (ArrayWrapperPtr)
+	{
+		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
+		Array->NotifyPostSet(Index);
 	}
 }
 

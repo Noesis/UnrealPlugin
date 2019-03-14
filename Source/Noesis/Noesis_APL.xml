@@ -5,6 +5,9 @@
 		<isArch arch="armeabi-v7a">
 			<copyFile src="$S(PluginDir)/NoesisSDK/Bin/android_arm/libNoesis.so" dst="$S(BuildDir)/libs/armeabi-v7a/libNoesis.so"/>
 		</isArch>
+		<isArch arch="arm64-v8a">
+			<copyFile src="$S(PluginDir)/NoesisSDK/Bin/android_arm64/libNoesis.so" dst="$S(BuildDir)/libs/arm64-v8a/libNoesis.so"/>
+		</isArch>
 	</resourceCopies>
 	<soLoadLibrary>
 		<loadLibrary name="Noesis" failmsg="Could not load Noesis library"/>

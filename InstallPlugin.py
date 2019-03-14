@@ -170,7 +170,8 @@ if engineInstall:
 		packageCmdLine = ["-Package=" + packagePath]
 		pluginCmdLine = ["-Plugin=" + pluginFile]
 	else:
-		projectFile = os.path.join(scriptPath, "NoesisGUI.uproject")
+		packagePath = tempfile.mkdtemp()
+		projectFile = os.path.join(packagePath, "NoesisGUI.uproject")
 		projectCmdLine = ["-project=" + projectFile]
 		project = { "FileVersion" : 3, "Plugins" : [ { "Name" : "NoesisGUI", "Enabled" : True } ] }
 		json.dump(project, open(projectFile, "w+"))
@@ -291,10 +292,10 @@ for buildPlatform in arguments:
 			buildPlatforms += [buildPlatform]
 
 if hostPlatform == "Win64":
-	noesisDllPath = os.path.join(scriptPath, "Source", "Noesis", "NoesisSDK", "Bin", "windows_x86_64", "Noesis.dll")
 	pluginEngineBinariesPath = os.path.join(pluginEnginePath, "Engine", "Binaries", "Win64")
-	print("Copying " + noesisDllPath + " to " + pluginEngineBinariesPath)
-	shutil.copy2(noesisDllPath, pluginEngineBinariesPath)
+	if os.path.isfile(pluginEngineBinariesPath):
+		print("Deleting " + pluginEngineBinariesPath)
+		os.remove(pluginEngineBinariesPath)
 
 if not installerEngineInstall:
 	if not arguments:
@@ -339,4 +340,4 @@ if engineInstall:
 					os.mkdir(dst)
 		shutil.rmtree(packagePath)
 	else:
-		os.remove(projectFile)
+		shutil.rmtree(packagePath)

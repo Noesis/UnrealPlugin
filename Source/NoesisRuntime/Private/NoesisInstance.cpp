@@ -9,12 +9,14 @@
 #include "Stats/Stats.h"
 #include "Stats/Stats2.h"
 
-
 // Engine includes
 #include "SceneUtils.h"
 
 // RenderCore includes
 #include "RenderingThread.h"
+
+// UtilityShaders includes
+#include "ClearQuad.h"
 
 // ApplicationCore includes
 #include "HAL/PlatformApplicationMisc.h"
@@ -75,35 +77,63 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 {
 	if (Renderer)
 	{
+		FGraphicsPipelineStateInitializer GraphicsPSOInit;
+		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 		FTexture2DRHIRef ColorTarget = *(FTexture2DRHIRef*)InWindowBackBuffer;
-		if (!DepthStencilTarget.IsValid() || DepthStencilTarget->GetSizeX() != ColorTarget->GetSizeX() || DepthStencilTarget->GetSizeY() != ColorTarget->GetSizeY() || DepthStencilTarget->GetNumSamples() != ColorTarget->GetNumSamples())
+		check(GraphicsPSOInit.RenderTargetsEnabled == 1);
+		check(GraphicsPSOInit.RenderTargetFormats[0] == ColorTarget->GetFormat());
+		check(GraphicsPSOInit.RenderTargetFlags[0] == ColorTarget->GetFlags());
+		check(GraphicsPSOInit.NumSamples == ColorTarget->GetNumSamples());
+
+		if (GraphicsPSOInit.DepthStencilTargetFormat == PF_Unknown)
 		{
-			DepthStencilTarget.SafeRelease();
-			uint32 SizeX = ColorTarget->GetSizeX();
-			uint32 SizeY = ColorTarget->GetSizeY();
-			uint8 Format = (uint8)PF_DepthStencil;
-			uint32 NumMips = 1;
-			uint32 NumSamples = ColorTarget->GetNumSamples();
-			uint32 TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
-			FRHIResourceCreateInfo CreateInfo;
-			CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
-			DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, CreateInfo);
+			// There's no stencil attached
+			if (!DepthStencilTarget.IsValid() || DepthStencilTarget->GetSizeX() != ColorTarget->GetSizeX() || DepthStencilTarget->GetSizeY() != ColorTarget->GetSizeY() || DepthStencilTarget->GetNumSamples() != ColorTarget->GetNumSamples())
+			{
+				DepthStencilTarget.SafeRelease();
+				uint32 SizeX = ColorTarget->GetSizeX();
+				uint32 SizeY = ColorTarget->GetSizeY();
+				uint8 Format = (uint8)PF_DepthStencil;
+				uint32 NumMips = 1;
+				uint32 NumSamples = ColorTarget->GetNumSamples();
+				uint32 TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
+				FRHIResourceCreateInfo CreateInfo;
+				CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
+				DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, CreateInfo);
+			}
+			FRHIRenderTargetView ColorView(ColorTarget, 0, -1, ERenderTargetLoadAction::ELoad, ERenderTargetStoreAction::EStore);
+			FRHIDepthRenderTargetView DepthStencilView(DepthStencilTarget, ERenderTargetLoadAction::ENoAction, ERenderTargetStoreAction::ENoAction, ERenderTargetLoadAction::EClear, ERenderTargetStoreAction::ENoAction,
+				FExclusiveDepthStencil::DepthNop_StencilWrite);
+			FRHISetRenderTargetsInfo Info(1, &ColorView, DepthStencilView);
+			// Clear the stencil buffer
+			RHICmdList.SetRenderTargetsAndClear(Info);
+			RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
+			SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
+			SCOPED_DRAW_EVENT(RHICmdList, NoesisDraw);
+			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
+			Renderer->Render(FlipYAxis);
+			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
+			FRHIDepthRenderTargetView RestoreDepthStencilView(nullptr,
+				GraphicsPSOInit.DepthTargetLoadAction, GraphicsPSOInit.DepthTargetStoreAction,
+				GraphicsPSOInit.StencilTargetLoadAction, GraphicsPSOInit.StencilTargetStoreAction,
+				GraphicsPSOInit.DepthStencilAccess);
+
+			RHICmdList.SetRenderTargets(1, &ColorView, &RestoreDepthStencilView, 0, nullptr);
 		}
-		FRHIRenderTargetView ColorView(ColorTarget, 0, -1, ERenderTargetLoadAction::ELoad, ERenderTargetStoreAction::EStore);
-		FRHIDepthRenderTargetView DepthStencilView(DepthStencilTarget, ERenderTargetLoadAction::ENoAction, ERenderTargetStoreAction::ENoAction, ERenderTargetLoadAction::EClear, ERenderTargetStoreAction::ENoAction,
-			FExclusiveDepthStencil::DepthNop_StencilWrite);
-		FRHISetRenderTargetsInfo Info(1, &ColorView, DepthStencilView);
-		// Clear the stencil buffer
-		RHICmdList.SetRenderTargetsAndClear(Info);
-		RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
-		SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
-		SCOPED_DRAW_EVENT(RHICmdList, NoesisDraw);
-		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
-		Renderer->Render(FlipYAxis);
-		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
+		else
+		{
+			// There's already a stencil buffer
+			RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
+			DrawClearQuad(RHICmdList, false, FLinearColor::Black, false, 0.0f, true, 0);
+			SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
+			SCOPED_DRAW_EVENT(RHICmdList, NoesisDraw);
+			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
+			Renderer->Render(FlipYAxis);
+			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
+
+		}
 	}
 }
-
 class NoesisTextBoxTextInputMethodContext : public ITextInputMethodContext
 {
 public:
@@ -164,13 +194,13 @@ public:
 	virtual bool GetTextBounds(const uint32 InBeginIndex, const uint32 InLength, FVector2D& OutPosition, FVector2D& OutSize) override
 	{
 		Noesis::Rect TextRangeBounds = TextBox->GetRangeBounds(InBeginIndex, InBeginIndex + InLength);
-		Noesis::Visual* ContentHost = TextBox->GetContentHost();
+		Noesis::Visual* ContentHost = TextBox->GetTextView();
 
-		if (Noesis::ScrollViewer* ScrollViewer = NsDynamicCast<Noesis::ScrollViewer*>(ContentHost))
+		if (Noesis::ScrollViewer* ScrollViewer = Noesis::DynamicCast<Noesis::ScrollViewer*>(ContentHost))
 		{
 			ContentHost = ScrollViewer;
 		}
-		else if (Noesis::Decorator* Decorator = NsDynamicCast<Noesis::Decorator*>(ContentHost))
+		else if (Noesis::Decorator* Decorator = Noesis::DynamicCast<Noesis::Decorator*>(ContentHost))
 		{
 			ContentHost = Decorator;
 		}
@@ -262,7 +292,7 @@ void UNoesisInstance::InitInstance()
 
 	Noesis::Ptr<Noesis::BaseComponent> DataContext = Noesis::Ptr<Noesis::BaseComponent>(NoesisCreateComponentForUObject(this));
 
-	Xaml.Reset(NsDynamicCast<Noesis::FrameworkElement*>(BaseXaml->LoadXaml().GetPtr()));
+	Xaml.Reset(Noesis::DynamicCast<Noesis::FrameworkElement*>(BaseXaml->LoadXaml().GetPtr()));
 
 	if (Xaml)
 	{
@@ -370,7 +400,20 @@ void UNoesisInstance::Update(float InLeft, float InTop, float InWidth, float InH
 	{
 		XamlView->SetSize(Width, Height);
 		XamlView->SetIsPPAAEnabled(EnablePPAA);
-		XamlView->SetTessellationQuality((Noesis::TessellationQuality)TessellationQuality);
+		Noesis::TessellationMaxPixelError mpe = Noesis::TessellationMaxPixelError::MediumQuality();
+		switch (TessellationQuality)
+		{
+		case ENoesisTessellationQuality::Low:
+			mpe = Noesis::TessellationMaxPixelError::LowQuality();
+			break;
+		case ENoesisTessellationQuality::Medium:
+			mpe = Noesis::TessellationMaxPixelError::MediumQuality();
+			break;
+		case ENoesisTessellationQuality::High:
+			mpe = Noesis::TessellationMaxPixelError::HighQuality();
+			break;
+		}
+		XamlView->SetTessellationMaxPixelError(mpe);
 		XamlView->SetFlags((uint32)RenderFlags);
 		XamlView->Update(GetTimeSeconds() - StartTime);
 	}
@@ -388,7 +431,7 @@ FVector2D UNoesisInstance::GetSize() const
 void UNoesisInstance::OnPreviewGotKeyboardFocus(Noesis::BaseComponent* Component, const Noesis::KeyboardFocusChangedEventArgs& Args)
 {
 	const Noesis::TypeClass* NewFocusClass = Args.newFocus->GetClassType();
-	const Noesis::TypeClass* TextBoxClass = Noesis::TextBox::StaticGetClassType();
+	const Noesis::TypeClass* TextBoxClass = Noesis::TextBox::StaticGetClassType(nullptr);
 	if (!FPlatformApplicationMisc::RequiresVirtualKeyboard())
 	{
 		if (NewFocusClass == TextBoxClass || NewFocusClass->IsDescendantOf(TextBoxClass))
@@ -426,7 +469,7 @@ void UNoesisInstance::OnPreviewGotKeyboardFocus(Noesis::BaseComponent* Component
 void UNoesisInstance::OnPreviewLostKeyboardFocus(Noesis::BaseComponent* Component, const Noesis::KeyboardFocusChangedEventArgs& Args)
 {
 	const Noesis::TypeClass* OldFocusClass = Args.oldFocus->GetClassType();
-	const Noesis::TypeClass* TextBoxClass = Noesis::TextBox::StaticGetClassType();
+	const Noesis::TypeClass* TextBoxClass = Noesis::TextBox::StaticGetClassType(nullptr);
 	if (!FPlatformApplicationMisc::RequiresVirtualKeyboard())
 	{
 		if (OldFocusClass == TextBoxClass || OldFocusClass->IsDescendantOf(TextBoxClass))
@@ -453,16 +496,21 @@ struct NoesisHitTestVisibleTester
 	{
 	}
 
-	void OnElementHit(Noesis::Visual* Visual)
+	Noesis::HitTestFilterBehavior Filter(Noesis::Visual*)
 	{
-		if (!Hit)
+		return Noesis::HitTestFilterBehavior_Continue;
+	}
+
+	Noesis::HitTestResultBehavior Result(const Noesis::HitTestResult& Result)
+	{
+		Noesis::UIElement* Element = Noesis::DynamicCast<Noesis::UIElement*>(Result.visualHit);
+		if (Element && Element->GetIsEnabled())
 		{
-			Noesis::UIElement* Element = NsDynamicCast<Noesis::UIElement*>(Visual);
-			if (Element && Element->GetIsEnabled())
-			{
-				Hit = Element;
-			}
+			Hit = Element;
+			return Noesis::HitTestResultBehavior_Stop;
 		}
+
+		return Noesis::HitTestResultBehavior_Continue;
 	}
 
 	Noesis::UIElement* Hit;
@@ -471,7 +519,7 @@ struct NoesisHitTestVisibleTester
 bool UNoesisInstance::HitTest(FVector2D Position)
 {
 	NoesisHitTestVisibleTester HitTester;
-	Noesis::VisualTreeHelper::HitTest(Noesis::VisualTreeHelper::GetRoot(Xaml.GetPtr()), Noesis::Point(Position.X, Position.Y), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::OnElementHit));
+	Noesis::VisualTreeHelper::HitTest(Noesis::VisualTreeHelper::GetRoot(Xaml.GetPtr()), Noesis::Point(Position.X, Position.Y), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::Filter), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::Result));
 
 	return HitTester.Hit != nullptr;
 }
