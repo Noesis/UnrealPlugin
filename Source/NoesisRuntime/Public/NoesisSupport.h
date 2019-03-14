@@ -7,6 +7,7 @@
 
 // Core includes
 #include "CoreMinimal.h"
+#include "Misc/Paths.h"
 
 // CoreUObject includes
 #include "Misc/PackageName.h"
