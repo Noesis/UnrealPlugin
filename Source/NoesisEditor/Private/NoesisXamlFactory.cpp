@@ -58,7 +58,7 @@ UFont* ImportFontFamily(FString PackagePath, FString FamilyName, FString Directo
 			if (!IsDirectory)
 			{
 				FString Extension = FPaths::GetExtension(FilenameOrDirectory).ToLower();
-				if (Extension == TEXT("ttf") || Extension == TEXT("otf"))
+				if (Extension == TEXT("ttf") || Extension == TEXT("otf") || Extension == TEXT("ttc"))
 				{
 					TArray<uint8> FileData;
 					if (FFileHelper::LoadFileToArray(FileData, FilenameOrDirectory))
@@ -85,7 +85,9 @@ UFont* ImportFontFamily(FString PackagePath, FString FamilyName, FString Directo
 								Error = FT_Open_Face(FTLibrary, &Args, FaceIndex, &SubFace);
 								if (Error == 0)
 								{
-									if (SubFace->family_name && FCStringAnsi::Strcmp(SubFace->family_name, StringCast<ANSICHAR>(*FamilyName).Get()) == 0)
+									FString FaceFamilyName = SubFace->family_name;
+									FaceFamilyName.TrimStartAndEndInline();
+									if (FaceFamilyName == FamilyName)
 									{
 										FString FontFaceName = ObjectTools::SanitizeObjectName(FPaths::GetBaseFilename(FPaths::GetBaseFilename(FilenameOrDirectory)));
 
