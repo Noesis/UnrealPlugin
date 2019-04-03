@@ -2,6 +2,8 @@
 
 For your convenience, you can download a ready to use version of the plugin directly from [our website](https://www.noesisengine.com/developers/downloads.php). If you do so, you can skip the installation instructions and jump directly to the [Enabling and configuring the plugin](#enabling-and-configuring-the-plugin) section.
 
+We recommend you read the NoesisGUI documentation first, which you can find [here](https://noesisengine.com/docs/).
+
 ## Introduction
 
 This document will guide you through the process of setting up the NoesisGUI Unreal Engine plugin, and how to get started using NoesisGUI in your Unreal Engine project.
