@@ -1,8 +1,8 @@
 # NoesisGUI Unreal Engine 4.21 Plugin
 
-For your convenience, you can download a ready to use version of the plugin directly from [our website](https://www.noesisengine.com/developers/downloads.php). If you do so, you can skip the installation instructions and jump directly to the [Enabling and configuring the plugin](#enabling-and-configuring-the-plugin) section.
+> For your convenience, you can download a ready to use version of the plugin directly from [our website](https://www.noesisengine.com/developers/downloads.php). If you do so, you can skip the installation instructions and jump directly to the [Enabling and configuring the plugin](#enabling-and-configuring-the-plugin) section.
 
-We recommend you read the NoesisGUI documentation first, which you can find [here](https://noesisengine.com/docs/).
+> Before using this plugin, you should be familiar with NoesisGUI. Please, refer to our [online documentation](https://noesisengine.com/docs/).
 
 ## Introduction
 
@@ -34,6 +34,10 @@ After you read this document, we have a few samples so you can see some of the c
 
 * [Menu3D](https://github.com/Noesis/Tutorials/tree/master/Samples/Menu3D/UE4): This sample shows how to use `UserControl`s to implement a multi-panel game main menu.
 
+* [TicTacToe](https://github.com/Noesis/Tutorials/tree/master/Samples/TicTacToe/UE4): This sample shows how to use XAML and `Blueprint`s to implement the classic pen and paper game tic-tac-toe.
+
+* [Inventory](https://github.com/Noesis/Tutorials/tree/master/Samples/Inventory/UE4): This sample shows how to implement a drag and drop inventory system UI.
+
 * [ShooterGame](https://github.com/Noesis/UE4-ShooterGame): This sample replaces the UI from Epic's ShooterGame sample with NoesisGUI. Some changes were dome to the source code in order to expose data and functionality, but otherwise the UI is done completely in `Blueprint`.
 
 ## Requirements
@@ -44,7 +48,7 @@ In order to use NoesisGUI in your UE4 project, you're going to need:
 
 * This Unreal Engine plugin.
 
-* The NoesisGUI SDK version 2.2. You can download it from [our website](https://noesisengine.com).
+* The NoesisGUI SDK version 2.2.1. You can download it from [our website](https://noesisengine.com).
 
 * Python with some additional modules to run the installation script (tested with Python 2.7 and 3.6).
 
@@ -67,7 +71,7 @@ With versions of Unreal Engine built from the source code in GitHub you can use 
 
 1. Copy the contents of this repository into `[UE4Root]/Engine/Plugins/NoesisGUI` if you want to use it as an Engine plugin, or `[ProjectRoot]/Plugins/NoesisGUI` if you choose to use it as a Project plugin. We'll refer to the directory where you install the plugin as `[NoesisGUIRoot]` from now on. `[UE4Root]` is the directory where you installed the engine from the Epic Games Launcher, or the directory where you cloned the GitHub repository.
 
-2. Download the NoesisGUI SDK version 2.2 from [our developer portal](https://www.noesisengine.com/forums/viewtopic.php?f=14&t=1491) and extract it into `[NoesisGUIRoot]/Source/Noesis/NoesisSDK`.
+2. Download the NoesisGUI SDK version 2.2.1 from [our developer portal](https://www.noesisengine.com/forums/viewtopic.php?f=14&t=1491) and extract it into `[NoesisGUIRoot]/Source/Noesis/NoesisSDK`.
 
 3. If you haven't installed the required Python modules, or you want to verify they are correctly installed, you can execute `InstallPythonPrerequisites.bat` and `InstallPythonPrerequisites.command` from the Command Prompt on Windows or Terminal on Mac. Navigate to the plugin directory and execute them from there. These will test whether the required modules are installed or not, and will install them if they're not present. You only need to install them once, so you don't need to perform this step every time you update the plugin or Unreal Engine.
 
