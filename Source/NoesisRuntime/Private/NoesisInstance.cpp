@@ -578,39 +578,42 @@ void UNoesisInstance::DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRe
 
 	Noesis::Ptr<Noesis::IRenderer> Renderer(XamlView->GetRenderer());
 
-	ENQUEUE_RENDER_COMMAND(FNoesisXamlThumbnailRendererDrawCommand)
-	(
-		[Renderer, FlipYAxis = FlipYAxis, BackBuffer](FRHICommandListImmediate& RHICmdList)
-		{
-			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
-			Renderer->UpdateRenderTree();
-			if (Renderer->NeedsOffscreen())
+	if (BackBuffer != nullptr)
+	{
+		ENQUEUE_RENDER_COMMAND(FNoesisXamlThumbnailRendererDrawCommand)
+		(
+			[Renderer, FlipYAxis = FlipYAxis, BackBuffer](FRHICommandListImmediate& RHICmdList)
 			{
-				Renderer->RenderOffscreen();
+				FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
+				Renderer->UpdateRenderTree();
+				if (Renderer->NeedsOffscreen())
+				{
+					Renderer->RenderOffscreen();
+				}
+
+				uint32 SizeX = BackBuffer->GetSizeX();
+				uint32 SizeY = BackBuffer->GetSizeY();
+				uint8 Format = (uint8)PF_DepthStencil;
+				uint32 NumMips = BackBuffer->GetNumMips();
+				uint32 NumSamples = BackBuffer->GetNumSamples();
+				uint32 TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
+				FRHIResourceCreateInfo CreateInfo;
+				CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
+				FTexture2DRHIRef ColorTarget = BackBuffer;
+				FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, CreateInfo);
+				FRHIRenderPassInfo RPInfo(ColorTarget, ERenderTargetActions::Load_Store, DepthStencilTarget,
+					MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::Clear_DontStore), FExclusiveDepthStencil::DepthNop_StencilWrite);
+
+				check(RHICmdList.IsOutsideRenderPass());
+				RHICmdList.BeginRenderPass(RPInfo, TEXT("NoesisThumbnail"));
+
+				Renderer->Render(FlipYAxis);
+				FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
+
+				RHICmdList.EndRenderPass();
 			}
-
-			uint32 SizeX = BackBuffer->GetSizeX();
-			uint32 SizeY = BackBuffer->GetSizeY();
-			uint8 Format = (uint8)PF_DepthStencil;
-			uint32 NumMips = BackBuffer->GetNumMips();
-			uint32 NumSamples = BackBuffer->GetNumSamples();
-			uint32 TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
-			FRHIResourceCreateInfo CreateInfo;
-			CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
-			FTexture2DRHIRef ColorTarget = BackBuffer;
-			FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, CreateInfo);
-			FRHIRenderPassInfo RPInfo(ColorTarget, ERenderTargetActions::Load_Store, DepthStencilTarget,
-				MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::Clear_DontStore), FExclusiveDepthStencil::DepthNop_StencilWrite);
-
-			check(RHICmdList.IsOutsideRenderPass());
-			RHICmdList.BeginRenderPass(RPInfo, TEXT("NoesisThumbnail"));
-
-			Renderer->Render(FlipYAxis);
-			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
-
-			RHICmdList.EndRenderPass();
-		}
-	);
+		);
+	}
 }
 #endif // WITH_EDITOR
 
