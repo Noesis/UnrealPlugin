@@ -17,10 +17,10 @@ void FNoesisBlueprintCompiler::PreCompile(UBlueprint* Blueprint)
 {
 }
 
-void FNoesisBlueprintCompiler::Compile(UBlueprint* Blueprint, const FKismetCompilerOptions& CompilerOptions, FCompilerResultsLog& Results, TArray<UObject*>* ObjLoaded)
+void FNoesisBlueprintCompiler::Compile(UBlueprint* Blueprint, const FKismetCompilerOptions& CompilerOptions, FCompilerResultsLog& Results)
 {
 	UNoesisBlueprint* NoesisBlueprint = CastChecked<UNoesisBlueprint>(Blueprint);
-	FNoesisBlueprintCompilerContext Compiler(NoesisBlueprint, Results, CompilerOptions, ObjLoaded);
+	FNoesisBlueprintCompilerContext Compiler(NoesisBlueprint, Results, CompilerOptions);
 	Compiler.Compile();
 	check(Compiler.NewClass);
 }

@@ -8,8 +8,8 @@
 // UnrealEd includes
 #include "Kismet2/KismetReinstanceUtilities.h"
 
-FNoesisBlueprintCompilerContext::FNoesisBlueprintCompilerContext(UNoesisBlueprint* NoesisBlueprint, FCompilerResultsLog& Results, const FKismetCompilerOptions& CompilerOptions, TArray<UObject*>* ObjLoaded)
-	: Super(NoesisBlueprint, Results, CompilerOptions, ObjLoaded)
+FNoesisBlueprintCompilerContext::FNoesisBlueprintCompilerContext(UNoesisBlueprint* NoesisBlueprint, FCompilerResultsLog& Results, const FKismetCompilerOptions& CompilerOptions)
+	: Super(NoesisBlueprint, Results, CompilerOptions)
 {
 }
 

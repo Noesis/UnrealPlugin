@@ -12,7 +12,7 @@ protected:
 	typedef FKismetCompilerContext Super;
 
 public:
-	FNoesisBlueprintCompilerContext(UNoesisBlueprint* SourceSketch, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompilerOptions, TArray<UObject*>* InObjLoaded);
+	FNoesisBlueprintCompilerContext(UNoesisBlueprint* SourceSketch, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompilerOptions);
 	virtual ~FNoesisBlueprintCompilerContext();
 
 	// FKismetCompilerContext interface

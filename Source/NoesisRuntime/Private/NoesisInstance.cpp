@@ -77,61 +77,35 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 {
 	if (Renderer)
 	{
-		FGraphicsPipelineStateInitializer GraphicsPSOInit;
-		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 		FTexture2DRHIRef ColorTarget = *(FTexture2DRHIRef*)InWindowBackBuffer;
-		check(GraphicsPSOInit.RenderTargetsEnabled == 1);
-		check(GraphicsPSOInit.RenderTargetFormats[0] == ColorTarget->GetFormat());
-		check(GraphicsPSOInit.RenderTargetFlags[0] == ColorTarget->GetFlags());
-		check(GraphicsPSOInit.NumSamples == ColorTarget->GetNumSamples());
 
-		if (GraphicsPSOInit.DepthStencilTargetFormat == PF_Unknown)
+		if (!DepthStencilTarget.IsValid() || DepthStencilTarget->GetSizeX() != ColorTarget->GetSizeX() || DepthStencilTarget->GetSizeY() != ColorTarget->GetSizeY() || DepthStencilTarget->GetNumSamples() != ColorTarget->GetNumSamples())
 		{
-			// There's no stencil attached
-			if (!DepthStencilTarget.IsValid() || DepthStencilTarget->GetSizeX() != ColorTarget->GetSizeX() || DepthStencilTarget->GetSizeY() != ColorTarget->GetSizeY() || DepthStencilTarget->GetNumSamples() != ColorTarget->GetNumSamples())
-			{
-				DepthStencilTarget.SafeRelease();
-				uint32 SizeX = ColorTarget->GetSizeX();
-				uint32 SizeY = ColorTarget->GetSizeY();
-				uint8 Format = (uint8)PF_DepthStencil;
-				uint32 NumMips = 1;
-				uint32 NumSamples = ColorTarget->GetNumSamples();
-				uint32 TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
-				FRHIResourceCreateInfo CreateInfo;
-				CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
-				DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, CreateInfo);
-			}
-			FRHIRenderTargetView ColorView(ColorTarget, 0, -1, ERenderTargetLoadAction::ELoad, ERenderTargetStoreAction::EStore);
-			FRHIDepthRenderTargetView DepthStencilView(DepthStencilTarget, ERenderTargetLoadAction::ENoAction, ERenderTargetStoreAction::ENoAction, ERenderTargetLoadAction::EClear, ERenderTargetStoreAction::ENoAction,
-				FExclusiveDepthStencil::DepthNop_StencilWrite);
-			FRHISetRenderTargetsInfo Info(1, &ColorView, DepthStencilView);
-			// Clear the stencil buffer
-			RHICmdList.SetRenderTargetsAndClear(Info);
-			RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
-			SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
-			SCOPED_DRAW_EVENT(RHICmdList, NoesisDraw);
-			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
-			Renderer->Render(FlipYAxis);
-			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
-			FRHIDepthRenderTargetView RestoreDepthStencilView(nullptr,
-				GraphicsPSOInit.DepthTargetLoadAction, GraphicsPSOInit.DepthTargetStoreAction,
-				GraphicsPSOInit.StencilTargetLoadAction, GraphicsPSOInit.StencilTargetStoreAction,
-				GraphicsPSOInit.DepthStencilAccess);
-
-			RHICmdList.SetRenderTargets(1, &ColorView, &RestoreDepthStencilView, 0, nullptr);
+			DepthStencilTarget.SafeRelease();
+			uint32 SizeX = ColorTarget->GetSizeX();
+			uint32 SizeY = ColorTarget->GetSizeY();
+			uint8 Format = (uint8)PF_DepthStencil;
+			uint32 NumMips = 1;
+			uint32 NumSamples = ColorTarget->GetNumSamples();
+			uint32 TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
+			FRHIResourceCreateInfo CreateInfo;
+			CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
+			DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, CreateInfo);
 		}
-		else
-		{
-			// There's already a stencil buffer
-			RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
-			DrawClearQuad(RHICmdList, false, FLinearColor::Black, false, 0.0f, true, 0);
-			SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
-			SCOPED_DRAW_EVENT(RHICmdList, NoesisDraw);
-			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
-			Renderer->Render(FlipYAxis);
-			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
+		// Clear the stencil buffer
+		FRHIRenderPassInfo RPInfo(ColorTarget, ERenderTargetActions::Load_Store, DepthStencilTarget,
+			MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::Clear_DontStore), FExclusiveDepthStencil::DepthNop_StencilWrite);
 
-		}
+		check(RHICmdList.IsOutsideRenderPass());
+		RHICmdList.BeginRenderPass(RPInfo, TEXT("NoesisOnScreen"));
+		RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
+		SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
+		SCOPED_DRAW_EVENT(RHICmdList, NoesisDraw);
+		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
+		Renderer->Render(FlipYAxis);
+		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
+
+		RHICmdList.EndRenderPass();
 	}
 }
 class NoesisTextBoxTextInputMethodContext : public ITextInputMethodContext
@@ -304,19 +278,23 @@ void UNoesisInstance::InitInstance()
 		{
 			Noesis::Ptr<Noesis::IRenderer> Renderer(XamlView->GetRenderer());
 
-			ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(FNoesisInstance_InitRenderer,
-				Noesis::Ptr<Noesis::IRenderer>, Renderer, Renderer,
+			ENQUEUE_RENDER_COMMAND(FNoesisInstance_InitRenderer)
+			(
+				[Renderer](FRHICommandListImmediate& RHICmdList)
 				{
 					FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
 					Renderer->Init(FNoesisRenderDevice::Get());
 					FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
-				});
+				}
+			);
 
 			NoesisSlateElement = MakeShared<FNoesisSlateElement, ESPMode::ThreadSafe>(Renderer);
 
 			StartTime = GetTimeSeconds();
 
 			EventInitInstance();
+
+			Update(0.0f, 0.0f, 256.0f, 256.0f);
 		}
 
 		Xaml->PreviewGotKeyboardFocus() += Noesis::MakeDelegate(this, &UNoesisInstance::OnPreviewGotKeyboardFocus);
@@ -533,11 +511,9 @@ void UNoesisInstance::TermInstance()
 		Xaml.Reset();
 
 		// Pass the slate element to the render thread so that it's deleted after it's shown for the last time
-		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER
+		ENQUEUE_RENDER_COMMAND(SafeDeleteNoesisSlateElement)
 		(
-			SafeDeleteNoesisSlateElement,
-			Noesis::Ptr<Noesis::IRenderer>, Renderer, Renderer,
-			FNoesisSlateElementPtr, NoesisSlateElement, NoesisSlateElement,
+			[Renderer, NoesisSlateElement = NoesisSlateElement](FRHICommandListImmediate& RHICmdList) mutable
 			{
 				Renderer->Shutdown();
 				NoesisSlateElement.Reset();
@@ -584,7 +560,16 @@ void UNoesisInstance::BeginDestroy()
 void UNoesisInstance::SetDesignerFlags(EWidgetDesignFlags::Type NewFlags)
 {
 	// Enable native events in editor
-	Super::SetDesignerFlags((EWidgetDesignFlags::Type)(NewFlags & ~EWidgetDesignFlags::Designing));
+	if (UWorld* LocalWorld = GetWorld())
+	{
+		UGameInstance* GameInstance = LocalWorld->GetGameInstance();
+		if (GameInstance)
+		{
+			Super::SetDesignerFlags((EWidgetDesignFlags::Type)(NewFlags & ~EWidgetDesignFlags::Designing));
+		}
+	}
+
+	Super::SetDesignerFlags(NewFlags);
 }
 
 void UNoesisInstance::DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRef& BackBuffer)
@@ -593,11 +578,9 @@ void UNoesisInstance::DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRe
 
 	Noesis::Ptr<Noesis::IRenderer> Renderer(XamlView->GetRenderer());
 
-	ENQUEUE_UNIQUE_RENDER_COMMAND_THREEPARAMETER(
-		FNoesisXamlThumbnailRendererDrawCommand,
-		Noesis::Ptr<Noesis::IRenderer>, Renderer, Renderer,
-		bool, FlipYAxis, FlipYAxis,
-		const FTexture2DRHIRef&, BackBuffer, BackBuffer,
+	ENQUEUE_RENDER_COMMAND(FNoesisXamlThumbnailRendererDrawCommand)
+	(
+		[Renderer, FlipYAxis = FlipYAxis, BackBuffer](FRHICommandListImmediate& RHICmdList)
 		{
 			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
 			Renderer->UpdateRenderTree();
@@ -614,11 +597,20 @@ void UNoesisInstance::DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRe
 			uint32 TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
 			FRHIResourceCreateInfo CreateInfo;
 			CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
+			FTexture2DRHIRef ColorTarget = BackBuffer;
 			FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, CreateInfo);
-			SetRenderTarget(RHICmdList, BackBuffer, DepthStencilTarget);
+			FRHIRenderPassInfo RPInfo(ColorTarget, ERenderTargetActions::Load_Store, DepthStencilTarget,
+				MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::Clear_DontStore), FExclusiveDepthStencil::DepthNop_StencilWrite);
+
+			check(RHICmdList.IsOutsideRenderPass());
+			RHICmdList.BeginRenderPass(RPInfo, TEXT("NoesisThumbnail"));
+
 			Renderer->Render(FlipYAxis);
 			FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
-		});
+
+			RHICmdList.EndRenderPass();
+		}
+	);
 }
 #endif // WITH_EDITOR
 
@@ -641,8 +633,9 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 	{
 		Noesis::Ptr<Noesis::IRenderer> Renderer(XamlView->GetRenderer());
 
-		ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(FNoesisInstance_DrawOffscreen,
-			Noesis::Ptr<Noesis::IRenderer>, Renderer, Renderer,
+		ENQUEUE_RENDER_COMMAND(FNoesisInstance_DrawOffscreen)
+		(
+			[Renderer](FRHICommandListImmediate& RHICmdList)
 			{
 				SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_DrawOffscreen);
 				SCOPED_DRAW_EVENT(RHICmdList, NoesisDrawOffscreen);
@@ -653,7 +646,8 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 					Renderer->RenderOffscreen();
 				}
 				FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
-			});
+			}
+		);
 
 		const FSlateRect& MyClippingRect = MyCullingRect;
 

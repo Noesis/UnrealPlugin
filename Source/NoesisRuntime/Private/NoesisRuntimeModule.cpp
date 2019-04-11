@@ -12,7 +12,7 @@
 #include "Stats/Stats.h"
 #include "Stats/Stats2.h"
 
-// ShaderCore includes
+// RenderCore includes
 #include "ShaderCore.h"
 
 // ApplicationCore includes

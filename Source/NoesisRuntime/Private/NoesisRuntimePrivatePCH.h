@@ -20,9 +20,6 @@
 #include "Kismet/KismetArrayLibrary.h"
 #include "EditorFramework/AssetImportData.h"
 
-// ShaderCore includes
-#include "ShaderParameterUtils.h"
-
 // CoreUObject includes
 #include "UObject/UObjectGlobals.h"
 
@@ -44,6 +41,7 @@
 
 // RenderCore includes
 #include "RenderingThread.h"
+#include "ShaderParameterUtils.h"
 
 // SlateCore includes
 #include "Widgets/SLeafWidget.h"

@@ -144,7 +144,7 @@ void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Even
 TSharedPtr<FKismetCompilerContext> GetCompilerForNoesisBlueprint(UBlueprint* Blueprint, FCompilerResultsLog& Results, const FKismetCompilerOptions& CompilerOptions)
 {
 	UNoesisBlueprint* NoesisBlueprint = CastChecked<UNoesisBlueprint>(Blueprint);
-	return TSharedPtr<FKismetCompilerContext>(new FNoesisBlueprintCompilerContext(NoesisBlueprint, Results, CompilerOptions, nullptr));
+	return TSharedPtr<FKismetCompilerContext>(new FNoesisBlueprintCompilerContext(NoesisBlueprint, Results, CompilerOptions));
 }
 
 class FNoesisEditorModule : public INoesisEditorModuleInterface
@@ -152,6 +152,11 @@ class FNoesisEditorModule : public INoesisEditorModuleInterface
 public:
 	// IModuleInterface interface
 	virtual void StartupModule() override
+	{
+		FCoreDelegates::OnPostEngineInit.AddRaw(this, &FNoesisEditorModule::OnPostEngineInit);
+	}
+
+	void OnPostEngineInit()
 	{
 		// Register slate style overrides
 		FNoesisStyle::Initialize();
@@ -192,7 +197,7 @@ public:
 
 		NoesisEditorModuleInterface = this;
 
-		AssetImportHandle = FEditorDelegates::OnAssetPostImport.AddStatic(&OnObjectReimported);
+		AssetImportHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetPostImport.AddStatic(&OnObjectReimported);
 
 		ObjectPropertyChangedHandle = FCoreUObjectDelegates::OnObjectPropertyChanged.AddStatic(&OnObjectPropertyChanged);
 	}
@@ -229,11 +234,11 @@ public:
 		if (UObjectInitialized())
 		{
 			UThumbnailManager::Get().UnregisterCustomRenderer(UNoesisXaml::StaticClass());
-		}
 
-		if (AssetImportHandle.IsValid())
-		{
-			FEditorDelegates::OnAssetPostImport.Remove(AssetImportHandle);
+			if (AssetImportHandle.IsValid())
+			{
+				GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetPostImport.Remove(AssetImportHandle);
+			}
 		}
 
 		if (ObjectPropertyChangedHandle.IsValid())

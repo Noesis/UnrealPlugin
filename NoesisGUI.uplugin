@@ -10,7 +10,7 @@
 	"DocsURL": "https://github.com/Noesis/UE4Plugin/blob/master/README.md",
 	"MarketplaceURL": "",
 	"SupportURL": "https://forums.noesisengine.com",
-	"EngineVersion": "4.21.0",
+	"EngineVersion": "4.22.0",
 	"CanContainContent": true,
 	"Installed": true,
 	"Modules": [
