@@ -282,9 +282,7 @@ void UNoesisInstance::InitInstance()
 			(
 				[Renderer](FRHICommandListImmediate& RHICmdList)
 				{
-					FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
 					Renderer->Init(FNoesisRenderDevice::Get());
-					FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
 				}
 			);
 
