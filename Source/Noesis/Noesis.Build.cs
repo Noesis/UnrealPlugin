@@ -109,6 +109,8 @@ public class Noesis : ModuleRules
 			string NoesisLibPath = NoesisBasePath + "Lib/ios/";
 			PublicLibraryPaths.Add(NoesisLibPath);
 			PublicAdditionalLibraries.Add("Noesis");
+
+			PublicFrameworks.Add("CoreText");
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Android)
 		{
