@@ -911,15 +911,47 @@ public:
 	{
 	}
 
+	bool CanExecute(Noesis::BaseComponent* Param) const override
+	{
+		if (!Object->IsPendingKill() && CanExecuteFunction)
+		{
+			if (CanExecuteFunction->NumParms == 1)
+			{
+				int32 ReturnValue = 0;
+				Object->ProcessEvent(CanExecuteFunction, &ReturnValue);
+				UBoolProperty* OutputParam = (UBoolProperty*)(CanExecuteFunction->Children);
+				return OutputParam->GetPropertyValue(OutputParam->ContainerPtrToValuePtr<bool>(&ReturnValue));
+			}
+			else
+			{
+				check(CanExecuteFunction->NumParms == 2);
+				uint8* Params = (uint8*)FMemory_Alloca(CanExecuteFunction->ParmsSize);
+				FMemory::Memzero(Params, CanExecuteFunction->ParmsSize);
+				::SetProperty<T>(Params, (UProperty*)CanExecuteFunction->Children, Param);
+				Object->ProcessEvent(CanExecuteFunction, Params);
+				UBoolProperty* OutputParam = (UBoolProperty*)(CanExecuteFunction->Children->Next);
+				return OutputParam->GetPropertyValue(OutputParam->ContainerPtrToValuePtr<bool>(Params));
+			}
+		}
+
+		return true;
+	}
+
 	void Execute(Noesis::BaseComponent* Param) const override
 	{
 		if (!Object->IsPendingKill())
 		{
-			check(Function->NumParms == 1);
-			uint8* Params = (uint8*)FMemory_Alloca(Function->ParmsSize);
-			FMemory::Memzero(Params, Function->ParmsSize);
-			::SetProperty<T>(Params, (UProperty*)Function->Children, Param);
-			Object->ProcessEvent(Function, Params);
+			if (Function->NumParms == 0)
+			{
+				Object->ProcessEvent(Function, nullptr);
+			}
+			else
+			{
+				uint8* Params = (uint8*)FMemory_Alloca(Function->ParmsSize);
+				FMemory::Memzero(Params, Function->ParmsSize);
+				::SetProperty<T>(Params, (UProperty*)Function->Children, Param);
+				Object->ProcessEvent(Function, Params);
+			}
 		}
 	}
 };
@@ -1841,125 +1873,137 @@ void UClassTypeFiller(Noesis::Type* Type)
 
 		bool HasNoParams = Function->NumParms == 0;
 		bool HasOneParam = Function->NumParms == 1 && !Function->HasAnyFunctionFlags(FUNC_HasOutParms);
+		UField* Param = HasOneParam ? Function->Children : nullptr;
 
 		if (HasNoParams || HasOneParam)
 		{
 			UFunction* CanExecuteFunction = Class->FindFunctionByName(*(FString(TEXT("CanExecute")) + Function->GetName()), EIncludeSuperFlag::ExcludeSuper);
-			if (!CanExecuteFunction || CanExecuteFunction->NumParms != 1 || !CanExecuteFunction->HasAnyFunctionFlags(FUNC_HasOutParms) || !CanExecuteFunction->Children->IsA<UBoolProperty>())
+			if (CanExecuteFunction)
 			{
-				CanExecuteFunction = nullptr;
+				bool CanExecuteHasNoParams = CanExecuteFunction->NumParms == 1 &&
+					CanExecuteFunction->HasAnyFunctionFlags(FUNC_HasOutParms) &&
+					CanExecuteFunction->Children->IsA<UBoolProperty>();
+				bool CanExecuteHasOneParam = CanExecuteFunction->NumParms == 2 &&
+					CanExecuteFunction->HasAnyFunctionFlags(FUNC_HasOutParms) &&
+					(!Param || CanExecuteFunction->Children->GetClass() == Param->GetClass()) &&
+					CanExecuteFunction->Children->Next->IsA<UBoolProperty>();
+				if (!CanExecuteHasNoParams && !CanExecuteHasOneParam)
+				{
+					CanExecuteFunction = nullptr;
+				}
+				else if (CanExecuteHasOneParam)
+				{
+					Param = CanExecuteFunction->Children;
+				}
 			}
 
-			if (HasNoParams)
+			if (!Param)
 			{
 				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandProperty, nullptr, TypePropertyData(Function, CanExecuteFunction));
 				TypeClassBuilder->AddProperty(TypeProperty);
 			}
-			else
+			else if (Param->IsA<UIntProperty>())
 			{
-				if (Function->Children->IsA<UIntProperty>())
+				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<int>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+				TypeClassBuilder->AddProperty(TypeProperty);
+			}
+			else if (Param->IsA<UFloatProperty>())
+			{
+				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<float>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+				TypeClassBuilder->AddProperty(TypeProperty);
+			}
+			else if (Param->IsA<UBoolProperty>())
+			{
+				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<bool>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+				TypeClassBuilder->AddProperty(TypeProperty);
+			}
+			else if (Param->IsA<UStrProperty>())
+			{
+				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<NsString>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+				TypeClassBuilder->AddProperty(TypeProperty);
+			}
+			else if (Param->IsA<UTextProperty>())
+			{
+				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<NsString>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+				TypeClassBuilder->AddProperty(TypeProperty);
+			}
+			else if (UStructProperty* StructOutParam = Cast<UStructProperty>(Param))
+			{
+				if (StructOutParam->Struct->GetFName() == NAME_Color)
 				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<int>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Color>, nullptr, TypePropertyData(Function, CanExecuteFunction));
 					TypeClassBuilder->AddProperty(TypeProperty);
 				}
-				else if (Function->Children->IsA<UFloatProperty>())
+				else if (StructOutParam->Struct->GetFName() == NAME_Vector2D)
 				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<float>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Point>, nullptr, TypePropertyData(Function, CanExecuteFunction));
 					TypeClassBuilder->AddProperty(TypeProperty);
 				}
-				else if (Function->Children->IsA<UBoolProperty>())
+				else if (StructOutParam->Struct->GetName() == TEXT("NoesisRect"))
 				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<bool>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Rect>, nullptr, TypePropertyData(Function, CanExecuteFunction));
 					TypeClassBuilder->AddProperty(TypeProperty);
 				}
-				else if (Function->Children->IsA<UStrProperty>())
+				else if (StructOutParam->Struct->GetName() == TEXT("NoesisSize"))
 				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<NsString>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Size>, nullptr, TypePropertyData(Function, CanExecuteFunction));
 					TypeClassBuilder->AddProperty(TypeProperty);
 				}
-				else if (Function->Children->IsA<UTextProperty>())
+				else if (StructOutParam->Struct->GetName() == TEXT("NoesisThickness"))
 				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<NsString>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Thickness>, nullptr, TypePropertyData(Function, CanExecuteFunction));
 					TypeClassBuilder->AddProperty(TypeProperty);
 				}
-				else if (UStructProperty* StructOutParam = Cast<UStructProperty>(Function->Children))
+				else if (StructOutParam->Struct->GetName() == TEXT("NoesisCornerRadius"))
 				{
-					if (StructOutParam->Struct->GetFName() == NAME_Color)
-					{
-						Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Color>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-						TypeClassBuilder->AddProperty(TypeProperty);
-					}
-					else if (StructOutParam->Struct->GetFName() == NAME_Vector2D)
-					{
-						Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Point>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-						TypeClassBuilder->AddProperty(TypeProperty);
-					}
-					else if (StructOutParam->Struct->GetName() == TEXT("NoesisRect"))
-					{
-						Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Rect>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-						TypeClassBuilder->AddProperty(TypeProperty);
-					}
-					else if (StructOutParam->Struct->GetName() == TEXT("NoesisSize"))
-					{
-						Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Size>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-						TypeClassBuilder->AddProperty(TypeProperty);
-					}
-					else if (StructOutParam->Struct->GetName() == TEXT("NoesisThickness"))
-					{
-						Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Thickness>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-						TypeClassBuilder->AddProperty(TypeProperty);
-					}
-					else if (StructOutParam->Struct->GetName() == TEXT("NoesisCornerRadius"))
-					{
-						Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::CornerRadius>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-						TypeClassBuilder->AddProperty(TypeProperty);
-					}
-					else if (StructOutParam->Struct->GetName() == TEXT("NoesisTimeSpan"))
-					{
-						Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::TimeSpan>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-						TypeClassBuilder->AddProperty(TypeProperty);
-					}
-					else if (StructOutParam->Struct->GetName() == TEXT("NoesisDuration"))
-					{
-						Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Duration>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-						TypeClassBuilder->AddProperty(TypeProperty);
-					}
-					else if (StructOutParam->Struct->GetName() == TEXT("NoesisKeyTime"))
-					{
-						Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::KeyTime>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-						TypeClassBuilder->AddProperty(TypeProperty);
-					}
-					else
-					{
-						Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<NoesisStructWrapper>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-						TypeClassBuilder->AddProperty(TypeProperty);
-					}
+					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::CornerRadius>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+					TypeClassBuilder->AddProperty(TypeProperty);
 				}
-				else if (UObjectProperty* ObjectOutParam = Cast<UObjectProperty>(Function->Children))
+				else if (StructOutParam->Struct->GetName() == TEXT("NoesisTimeSpan"))
 				{
-					if (ObjectOutParam->PropertyClass == UTexture2D::StaticClass() || ObjectOutParam->PropertyClass == UTextureRenderTarget2D::StaticClass())
-					{
-						Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::TextureSource>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-						TypeClassBuilder->AddProperty(TypeProperty);
-					}
-					else
-					{
-						Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<NoesisObjectWrapper>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-						TypeClassBuilder->AddProperty(TypeProperty);
-					}
+					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::TimeSpan>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+					TypeClassBuilder->AddProperty(TypeProperty);
 				}
-				else if (UEnumProperty* EnumOutParam = Cast<UEnumProperty>(Function->Children))
+				else if (StructOutParam->Struct->GetName() == TEXT("NoesisDuration"))
+				{
+					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Duration>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+					TypeClassBuilder->AddProperty(TypeProperty);
+				}
+				else if (StructOutParam->Struct->GetName() == TEXT("NoesisKeyTime"))
+				{
+					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::KeyTime>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+					TypeClassBuilder->AddProperty(TypeProperty);
+				}
+				else
+				{
+					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<NoesisStructWrapper>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+					TypeClassBuilder->AddProperty(TypeProperty);
+				}
+			}
+			else if (UObjectProperty* ObjectOutParam = Cast<UObjectProperty>(Param))
+			{
+				if (ObjectOutParam->PropertyClass == UTexture2D::StaticClass() || ObjectOutParam->PropertyClass == UTextureRenderTarget2D::StaticClass())
+				{
+					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::TextureSource>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+					TypeClassBuilder->AddProperty(TypeProperty);
+				}
+				else
+				{
+					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<NoesisObjectWrapper>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+					TypeClassBuilder->AddProperty(TypeProperty);
+				}
+			}
+			else if (UEnumProperty* EnumOutParam = Cast<UEnumProperty>(Param))
+			{
+				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<NoesisEnumWrapper>, nullptr, TypePropertyData(Function, CanExecuteFunction));
+				TypeClassBuilder->AddProperty(TypeProperty);
+			}
+			else if (UByteProperty* ByteOutParam = Cast<UByteProperty>(Param))
+			{
+				if (ByteOutParam->Enum)
 				{
 					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<NoesisEnumWrapper>, nullptr, TypePropertyData(Function, CanExecuteFunction));
 					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (UByteProperty* ByteOutParam = Cast<UByteProperty>(Function->Children))
-				{
-					if (ByteOutParam->Enum)
-					{
-						Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(NsSymbol(TCHARToNsString(*Function->GetName()).c_str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<NoesisEnumWrapper>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-						TypeClassBuilder->AddProperty(TypeProperty);
-					}
 				}
 			}
 		}
