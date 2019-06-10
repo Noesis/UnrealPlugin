@@ -29,7 +29,7 @@ FNoesisRect::FNoesisRect(const Noesis::Rect& Rect)
 
 Noesis::Rect FNoesisRect::ToNoesis() const
 {
-	return Noesis::Rect(X, Y, Width, Height);
+	return Noesis::Rect(X, Y, X + Width, Y + Height);
 }
 
 FNoesisPoint::FNoesisPoint(const Noesis::Point& Point)
@@ -100,7 +100,7 @@ FNoesisRecti::FNoesisRecti(const Noesis::Recti& Rect)
 
 Noesis::Recti FNoesisRecti::ToNoesis() const
 {
-	return Noesis::Recti(X, Y, Width, Height);
+	return Noesis::Recti(X, Y, X + Width, Y + Height);
 }
 
 FNoesisPointi::FNoesisPointi(const Noesis::Pointi& Point)
