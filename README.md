@@ -234,7 +234,7 @@ The plugin also supports custom Blueprint Enums, Structures and Classes. Bluepri
 
 We also support Arrays of the aforementioned types, which are exposed as a List to the Binding system.
 
-Additionally we support binding of Blueprint functions to NoesisGUI Commands. A function that either takes no parameters, or takes a parameter of a compatible Unreal Engine Type from the table above, and has no output function will be turned into a functor implementing the Noesis::ICommand interface. If you also add a function with the same name but prefixed with CanExecute that takes no parameters and returns a Boolean, it will be used to decide whether the command can be executed.
+Additionally we support binding of Blueprint functions to NoesisGUI Commands. A function that either takes no parameters, or takes a parameter of a compatible Unreal Engine Type from the table above, and has no output function will be turned into a functor implementing the Noesis::ICommand interface. If you also add a function with the same name but prefixed with CanExecute that takes either no parameters, or a parameter of the same type as the matching Command function, and returns a Boolean, it will be used to decide whether the command can be executed.
 
 ![JoinGame Command with CanExecute companion function](https://noesis.github.io/NoesisGUI/UE4Plugin/Command.PNG)
 
