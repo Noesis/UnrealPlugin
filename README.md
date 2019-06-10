@@ -1,3 +1,7 @@
+<a href="https://www.noesisengine.com"><img alt="website" src="https://img.shields.io/badge/site-noesisengine.com-blue.svg"></a>
+<a href="https://www.noesisengine.com/docs/Gui.Core.Index.html"><img alt="documentation" src="https://img.shields.io/badge/doc-index-blue.svg"></a>
+<a href="https://twitter.com/NoesisEngine"><img src="https://img.shields.io/badge/twitter-%40NoesisEngine-55acee.svg?style=flat-square"></a>
+
 # NoesisGUI Unreal Engine 4.22 Plugin
 
 > For your convenience, you can download a ready to use version of the plugin directly from [our website](https://www.noesisengine.com/developers/downloads.php). If you do so, you can skip the installation instructions and jump directly to the [Enabling and configuring the plugin](#enabling-and-configuring-the-plugin) section.
