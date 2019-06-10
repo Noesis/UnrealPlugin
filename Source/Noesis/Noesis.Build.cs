@@ -23,8 +23,8 @@ public class Noesis : ModuleRules
 		PublicIncludePaths.Add(NoesisInteractivityIncludePath);
 
 		// Let's try to make sure the right version of the SDK is in the right place.
-		const string RequiredRevision = "(r8047)";
-		const string RequiredVersionName = "2.2.2";
+		const string RequiredRevision = "(r8141)";
+		const string RequiredVersionName = "2.2.3";
 
 		PublicDefinitions.Add("NOESIS_VERSION_NAME=\"" + RequiredVersionName + "\"");
 		if (!Directory.Exists(NoesisBasePath))
