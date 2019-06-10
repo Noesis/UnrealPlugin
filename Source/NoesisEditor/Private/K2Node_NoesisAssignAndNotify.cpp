@@ -233,8 +233,9 @@ FText UK2Node_NoesisAssignAndNotify::GetNodeTitle(ENodeTitleType::Type TitleType
 FText UK2Node_NoesisAssignAndNotify::GetTooltipText() const
 {
 	FFormatNamedArguments FormatArgs;
-FormatArgs.Add(TEXT("VarName"), FText::FromName(GetVarName()));
-return FText::Format(LOCTEXT("SetVariableTooltip", "Set the value of variable {VarName} with NotifyChanged"), FormatArgs);
+	FormatArgs.Add(TEXT("VarName"), FText::FromName(GetVarName()));
+	FormatArgs.Add(TEXT("ClassName"), FText::FromName(GetVariableSourceClass()->GetFName()));
+	return FText::Format(LOCTEXT("SetVariableTooltip", "Set the value of variable {VarName} with NotifyChanged (class is {ClassName})"), FormatArgs);
 }
 
 void UK2Node_NoesisAssignAndNotify::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
@@ -262,11 +263,26 @@ void UK2Node_NoesisAssignAndNotify::GetMenuActions(FBlueprintActionDatabaseRegis
 bool UK2Node_NoesisAssignAndNotify::IsActionFilteredOut(const FBlueprintActionFilter& Filter)
 {
 	bool FilteredOut = false;
-	for (auto Pin : Filter.Context.Pins)
+	if (Filter.Context.Pins.Num())
 	{
-		if (Pin->Direction == EGPD_Input)
+		for (auto Pin : Filter.Context.Pins)
 		{
-			FilteredOut = true;
+			if (Pin->Direction == EGPD_Input)
+			{
+				FilteredOut = true;
+			}
+		}
+	}
+	else
+	{
+		for (auto Blueprint : Filter.Context.Blueprints)
+		{
+			UClass* BlueprintClass = Blueprint->GeneratedClass;
+			UClass* VariableSourceClass = GetVariableSourceClass();
+			if (BlueprintClass != VariableSourceClass)
+			{
+				FilteredOut = true;
+			}
 		}
 	}
 
