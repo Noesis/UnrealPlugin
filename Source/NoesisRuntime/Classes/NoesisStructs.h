@@ -22,10 +22,10 @@ struct FNoesisSize
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float Width;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float Height;
 
 	FNoesisSize() : Width(0.f), Height(0.f) {}
@@ -40,16 +40,16 @@ struct FNoesisRect
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float X;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float Y;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float Width;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float Height;
 
 	FNoesisRect() : X(0.f), Y(0.f), Width(0.f), Height(0.f) {}
@@ -64,10 +64,10 @@ struct FNoesisPoint
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float X;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float Y;
 
 	FNoesisPoint() : X(0.f), Y(0.f) {}
@@ -82,16 +82,16 @@ struct FNoesisCornerRadius
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float TopLeft;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float TopRight;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float BottomRight;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float BottomLeft;
 
 	FNoesisCornerRadius() : TopLeft(0.f), TopRight(0.f), BottomRight(0.f), BottomLeft(0.f) {}
@@ -106,16 +106,16 @@ struct FNoesisThickness
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float Left;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float Top;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float Right;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float Bottom;
 
 	FNoesisThickness() : Left(0.f), Top(0.f), Right(0.f), Bottom(0.f) {}
@@ -130,16 +130,16 @@ struct FNoesisColor
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float Red;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float Green;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float Blue;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float Alpha;
 
 	FNoesisColor() : Red(0.f), Green(0.f), Blue(0.f), Alpha(0.f) {}
@@ -154,10 +154,10 @@ struct FNoesisSizei
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	int32 Width;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	int32 Height;
 
 	FNoesisSizei() : Width(0), Height(0) {}
@@ -172,16 +172,16 @@ struct FNoesisRecti
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	int32 X;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	int32 Y;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	int32 Width;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	int32 Height;
 
 	FNoesisRecti() : X(0), Y(0), Width(0), Height(0) {}
@@ -196,10 +196,10 @@ struct FNoesisPointi
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	int32 X;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	int32 Y;
 
 	FNoesisPointi() : X(0), Y(0) {}
@@ -214,10 +214,10 @@ struct FNoesisDuration
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	ENoesisDurationType DurationType;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	int32 Milliseconds;
 
 	FNoesisDuration() : DurationType(ENoesisDurationType::Automatic), Milliseconds(0) {}
@@ -280,19 +280,19 @@ struct FNoesisTimeSpan
 {
 	GENERATED_USTRUCT_BODY();
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	int32 Days;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	int32 Hours;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	int32 Minutes;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	int32 Seconds;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	int32 Milliseconds;
 
 	FNoesisTimeSpan() : Days(0), Hours(0), Minutes(0), Seconds(0), Milliseconds(0) {}
@@ -307,16 +307,16 @@ struct FNoesisManipulationDelta
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	FNoesisPoint Expansion;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float Rotation;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float Scale;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	FNoesisPoint Translation;
 
 	FNoesisManipulationDelta() : Expansion(), Rotation(0.f), Scale(0.f), Translation() {}
@@ -331,13 +331,13 @@ struct FNoesisManipulationVelocities
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float AngularVelocity;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	FNoesisPoint ExpansionVelocity;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	FNoesisPoint LinearVelocity;
 
 	FNoesisManipulationVelocities() : AngularVelocity(0.f), ExpansionVelocity(), LinearVelocity() {}
@@ -352,7 +352,7 @@ struct FNoesisInertiaExpansionBehavior
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float DesiredDeceleration;
 
 	FNoesisInertiaExpansionBehavior() : DesiredDeceleration(0.f) {}
@@ -367,7 +367,7 @@ struct FNoesisInertiaRotationBehavior
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float DesiredDeceleration;
 
 	FNoesisInertiaRotationBehavior() : DesiredDeceleration(0) {}
@@ -382,7 +382,7 @@ struct FNoesisInertiaTranslationBehavior
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float DesiredDeceleration;
 
 	FNoesisInertiaTranslationBehavior() : DesiredDeceleration(0) {}
@@ -397,10 +397,10 @@ struct FNoesisGeneratorPosition
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	int32 Index;
 
-	UPROPERTY(BlueprintReadOnly, Category = "NoesisGUI")
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	int32 Offset;
 
 	FNoesisGeneratorPosition() : Index(0), Offset(0) {}
