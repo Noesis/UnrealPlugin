@@ -12,7 +12,11 @@ protected:
 	typedef FKismetCompilerContext Super;
 
 public:
+#if ENGINE_MINOR_VERSION < 22
 	FNoesisBlueprintCompilerContext(UNoesisBlueprint* SourceSketch, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompilerOptions, TArray<UObject*>* InObjLoaded);
+#else
+	FNoesisBlueprintCompilerContext(UNoesisBlueprint* SourceSketch, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompilerOptions);
+#endif
 	virtual ~FNoesisBlueprintCompilerContext();
 
 	// FKismetCompilerContext interface

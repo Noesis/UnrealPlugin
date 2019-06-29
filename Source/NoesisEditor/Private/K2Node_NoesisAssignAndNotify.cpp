@@ -136,14 +136,14 @@ static UBlueprintFieldNodeSpawner* CreateSpawnerFromMemberOrParam(TSubclassOf<UK
 
 	bool bShowFriendlyNames = GetDefault<UEditorStyleSettings>()->bShowFriendlyNames;
 	FText const VarName = bShowFriendlyNames ? FText::FromString(UEditorEngine::GetFriendlyName(VarProperty)) : FText::FromName(VarProperty->GetFName());
-	// @TODO: NodeClass could be modified post Create()
+	// @#todo NodeClass could be modified post Create()
 	MenuSignature.MenuName = FText::Format(LOCTEXT("UK2Node_NoesisAssignAndNotifyTitle", "Set {0} w/ NotifyChanged"), VarName);
 	MenuSignature.Tooltip = GetPropertyTooltip(VarProperty);
 
 	// add at least one character, so that PrimeDefaultUiSpec() doesn't 
 	// attempt to query the template node
 	//
-	// @TODO: maybe UPROPERTY() fields should have keyword metadata like functions
+	// @#todo maybe UPROPERTY() fields should have keyword metadata like functions
 	if (MenuSignature.Keywords.IsEmpty())
 	{
 		// want to set it to something so we won't end up back in this condition

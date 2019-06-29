@@ -68,8 +68,9 @@ public class Noesis : ModuleRules
 			string NoesisLibPath = NoesisBasePath + "Lib/windows_x86_64/";
 			PublicLibraryPaths.Add(NoesisLibPath);
 			PublicAdditionalLibraries.Add("Noesis.lib");
+            PublicFrameworks.Add("CoreText");
 
-			string BaseTargetPath = "";
+            string BaseTargetPath = "";
 			if (Target.LinkType == TargetLinkType.Monolithic)
 			{
 				if (Target.ProjectFile != null)
@@ -122,15 +123,18 @@ public class Noesis : ModuleRules
 			string NoesisDylibPath = "/NoesisSDK/Bin/osx/Noesis.dylib";
 			RuntimeDependencies.Add(ModuleDirectory + NoesisDylibPath);
 		}
-		else if (Target.Platform == UnrealTargetPlatform.IOS)
-		{
-			string NoesisLibPath = NoesisBasePath + "Lib/ios/";
-			PublicLibraryPaths.Add(NoesisLibPath);
-			PublicAdditionalLibraries.Add("Noesis");
+        else if (Target.Platform == UnrealTargetPlatform.IOS)
+        {
+            string NoesisLibPath = NoesisBasePath + "Lib/ios/";
+            PublicLibraryPaths.Add(NoesisLibPath);
+            PublicAdditionalLibraries.Add("Noesis");
 
-			PublicAdditionalShadowFiles.Add(Path.Combine(NoesisLibPath, "libNoesis.a"));
-		}
-		else if (Target.Platform == UnrealTargetPlatform.Android)
+            if (Target.Version.MinorVersion <= 21)
+            {
+                PublicAdditionalShadowFiles.Add(Path.Combine(NoesisLibPath, "libNoesis.a"));
+            }
+        }
+        else if (Target.Platform == UnrealTargetPlatform.Android)
 		{
 			string NoesisLibPath = NoesisBasePath + "Bin/android_arm/";
 			PublicLibraryPaths.Add(NoesisLibPath);

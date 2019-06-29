@@ -39,7 +39,7 @@ class NOESISEDITOR_API UNoesisXamlFactory : public UFactory
 
 protected:
 	void ImportXamls(FString BasePackageName, FString ProjectURIRoot, FString Path, TArray<FXamlDescriptor>& XamlDescriptors);
-	void ImportFonts(FString BasePackageName, FString ProjectURIRoot, FString Path, TArray<FFontDescriptor>& FontDescriptors);
+	UFont* ImportFontFamily(FString Path, FString Family, FString BasePackageName, FString ProjectURIRoot);
 	void ImportImages(FString BasePackageName, FString ProjectURIRoot, FString Path, TArray<FImageDescriptor>& ImageDescriptors);
 
 	UNoesisResourceResolver* GetResourceResolver();

@@ -8,10 +8,17 @@
 // UnrealEd includes
 #include "Kismet2/KismetReinstanceUtilities.h"
 
+#if ENGINE_MINOR_VERSION < 22
 FNoesisBlueprintCompilerContext::FNoesisBlueprintCompilerContext(UNoesisBlueprint* NoesisBlueprint, FCompilerResultsLog& Results, const FKismetCompilerOptions& CompilerOptions, TArray<UObject*>* ObjLoaded)
 	: Super(NoesisBlueprint, Results, CompilerOptions, ObjLoaded)
 {
 }
+#else
+FNoesisBlueprintCompilerContext::FNoesisBlueprintCompilerContext(UNoesisBlueprint* SourceSketch, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompilerOptions)
+	: Super(SourceSketch, InMessageLog, InCompilerOptions)
+{
+}
+#endif
 
 FNoesisBlueprintCompilerContext::~FNoesisBlueprintCompilerContext()
 {

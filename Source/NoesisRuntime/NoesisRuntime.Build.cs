@@ -21,8 +21,7 @@ public class NoesisRuntime : ModuleRules
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				"NoesisRuntime/Private",
-			}
-			);
+			});
 
 		PublicDependencyModuleNames.AddRange(
 			new string[]
@@ -33,22 +32,28 @@ public class NoesisRuntime : ModuleRules
 				"RHI",
 				"RenderCore",
 				"UtilityShaders",
-				"ShaderCore",
 				"SlateCore",
 				"InputCore",
 				"UMG",
 				"ApplicationCore",
 				"Slate",
 				"Projects"
-			}
-			);
+			});
 
-		PrivateDependencyModuleNames.AddRange(
+        if (Target.Version.MinorVersion <= 21)
+        {
+            PublicDependencyModuleNames.AddRange(
+                new string[]
+                {
+                    "ShaderCore",
+                });
+        }
+
+        PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"Noesis",
-			}
-			);
+			});
 
 		if (Target.bBuildEditor == true)
 		{
@@ -56,15 +61,13 @@ public class NoesisRuntime : ModuleRules
 				new string[]
 				{
 					"UnrealEd"
-				}
-				);
+				});
 		}
 
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]
 			{
 				"AssetRegistry"
-			}
-			);
+			});
 	}
 }

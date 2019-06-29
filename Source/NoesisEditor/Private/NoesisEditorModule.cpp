@@ -144,7 +144,11 @@ void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Even
 TSharedPtr<FKismetCompilerContext> GetCompilerForNoesisBlueprint(UBlueprint* Blueprint, FCompilerResultsLog& Results, const FKismetCompilerOptions& CompilerOptions)
 {
 	UNoesisBlueprint* NoesisBlueprint = CastChecked<UNoesisBlueprint>(Blueprint);
+#if ENGINE_MINOR_VERSION < 22
 	return TSharedPtr<FKismetCompilerContext>(new FNoesisBlueprintCompilerContext(NoesisBlueprint, Results, CompilerOptions, nullptr));
+#else
+	return TSharedPtr<FKismetCompilerContext>(new FNoesisBlueprintCompilerContext(NoesisBlueprint, Results, CompilerOptions));
+#endif
 }
 
 class FNoesisEditorModule : public INoesisEditorModuleInterface
@@ -152,6 +156,11 @@ class FNoesisEditorModule : public INoesisEditorModuleInterface
 public:
 	// IModuleInterface interface
 	virtual void StartupModule() override
+	{
+		FCoreDelegates::OnPostEngineInit.AddRaw(this, &FNoesisEditorModule::OnPostEngineInit);
+	}
+
+	void OnPostEngineInit()
 	{
 		// Register slate style overrides
 		FNoesisStyle::Initialize();
@@ -192,7 +201,12 @@ public:
 
 		NoesisEditorModuleInterface = this;
 
+#if ENGINE_MINOR_VERSION < 22
 		AssetImportHandle = FEditorDelegates::OnAssetPostImport.AddStatic(&OnObjectReimported);
+#else
+		auto ImportSubsystem = GEditor->GetEditorSubsystem<UImportSubsystem>();
+		AssetImportHandle = ImportSubsystem->OnAssetPostImport.AddStatic(&OnObjectReimported);
+#endif
 
 		ObjectPropertyChangedHandle = FCoreUObjectDelegates::OnObjectPropertyChanged.AddStatic(&OnObjectPropertyChanged);
 	}
@@ -233,7 +247,12 @@ public:
 
 		if (AssetImportHandle.IsValid())
 		{
+#if ENGINE_MINOR_VERSION < 22
 			FEditorDelegates::OnAssetPostImport.Remove(AssetImportHandle);
+#else
+			//auto ImportSubsystem = GEditor->GetEditorSubsystem<UImportSubsystem>();
+			//ImportSubsystem->OnAssetPostImport.Remove(AssetImportHandle);
+#endif
 		}
 
 		if (ObjectPropertyChangedHandle.IsValid())

@@ -7,6 +7,7 @@
 
 // UnrealEd includes
 #include "Settings/EditorLoadingSavingSettings.h"
+#include "Paths.h"
 
 // NoesisEditor includes
 #include "NoesisEditorModule.h"
@@ -27,27 +28,20 @@ void ExtractPaths(FString FileUri, FString BaseFilePath, FString BasePackage, FS
 {
 	FilePath = FileUri;
 	FString PackUri = TEXT("pack://application:,,,");
-	int32 PackUriIndex = FilePath.Find(PackUri);
+	auto PackUriIndex = FilePath.Find(PackUri);
 	if (PackUriIndex != INDEX_NONE)
-	{
 		FilePath = FilePath.RightChop(PackUriIndex + PackUri.Len());
-	}
 
 	FString ComponentUri = TEXT(";component");
-	int32 ComponentUriIndex = FilePath.Find(ComponentUri);
+	auto ComponentUriIndex = FilePath.Find(ComponentUri);
 	
 	if (ComponentUriIndex != INDEX_NONE)
-	{		FilePath = FilePath.RightChop(ComponentUriIndex + ComponentUri.Len());
-	}
+		FilePath = FilePath.RightChop(ComponentUriIndex + ComponentUri.Len());
 
 	if (FPaths::IsRelative(FilePath))
-	{
 		FilePath = BaseFilePath / FilePath;
-	}
 	else
-	{
 		FilePath = FilePath;
-	}
 
 	FPaths::RemoveDuplicateSlashes(FilePath);
 	FPaths::NormalizeFilename(FilePath);
@@ -66,117 +60,6 @@ void ExtractPaths(FString FileUri, FString BaseFilePath, FString BasePackage, FS
 	FPaths::CollapseRelativeDirectories(FilePath);
 }
 
-TArray<FString> ScanKeyword(FString Text, FString Keyword)
-{
-	TArray<FString> Strings;
-
-	int32 TextLen = Text.Len();
-	int32 KeywordIndex = INDEX_NONE;
-	while ((KeywordIndex = Text.Find(Keyword, ESearchCase::IgnoreCase, ESearchDir::FromStart, KeywordIndex)) != INDEX_NONE)
-	{
-		int32 StartIndex = KeywordIndex;
-		while (StartIndex >= 0 && Text[StartIndex] != TEXT('\"') && Text[StartIndex] != TEXT('\'') && Text[StartIndex] != TEXT('>'))
-		{
-			--StartIndex;
-		}
-
-		int32 EndIndex = KeywordIndex;
-		while (EndIndex < TextLen && Text[EndIndex] != TEXT('\"') && Text[EndIndex] != TEXT('\'') && Text[EndIndex] != TEXT('<'))
-		{
-			++EndIndex;
-		}
-
-		if (StartIndex >= 0 && EndIndex < TextLen)
-		{
-			Strings.Add(Text.Left(EndIndex).RightChop(StartIndex + 1));
-		}
-
-		KeywordIndex = EndIndex + 1;
-	}
-
-	return Strings;
-}
-
-TArray<FXamlDescriptor> ParseForXamls(FString XamlText)
-{
-	TArray<FXamlDescriptor> XamlDescriptors;
-
-	TArray<FString> Strings = ScanKeyword(XamlText, TEXT(".xaml"));
-	for (auto String : Strings)
-	{
-		FXamlDescriptor& XamlDescriptor = *new(XamlDescriptors)FXamlDescriptor;
-		XamlDescriptor.Path = String;
-	}
-
-	return XamlDescriptors;
-}
-
-void UNoesisXamlFactory::ImportXamls(FString BasePackageName, FString ProjectURIRoot, FString Path, TArray<FXamlDescriptor>& XamlDescriptors)
-{
-	auto XamlFact = NewObject<UNoesisXamlFactory>();
-	XamlFact->AddToRoot();
-
-	for (auto& XamlDescriptor : XamlDescriptors)
-	{
-		FString XamlPath;
-		FString FileName;
-		FString PackagePath;
-		FString XamlName;
-		ExtractPaths(XamlDescriptor.Path, Path, BasePackageName, ProjectURIRoot, XamlPath, FileName, PackagePath, XamlName);
-
-		UPackage* XamlPackage = NULL;
-
-		FString XamlObjectPath = PackagePath / XamlName + TEXT(".") + XamlName;
-		XamlObjectPath = GetResourceResolver()->ResolvePath(XamlObjectPath, ENoesisResourceType::NRT_Xaml);
-		UNoesisXaml* ExistingXaml = LoadObject<UNoesisXaml>(NULL, *XamlObjectPath);
-
-		if (!ExistingXaml)
-		{
-			const FString Suffix(TEXT(""));
-
-			XamlPackage = CreatePackage(NULL, *(PackagePath / XamlName));
-		}
-		else
-		{
-			XamlPackage = ExistingXaml->GetOutermost();
-			XamlPackage->FullyLoad();
-			ExistingXaml->DestroyThumbnailRenderData();
-		}
-
-		FString FullFilename = XamlPath / FileName;
-		FPaths::MakeStandardFilename(FullFilename);
-		bool Cancelled = false;
-		UNoesisXaml* Xaml = (UNoesisXaml*)XamlFact->ImportObject(UNoesisXaml::StaticClass(), XamlPackage, *XamlName, RF_Standalone | RF_Public, FullFilename, nullptr, Cancelled);
-
-		if (Xaml != NULL)
-		{
-			// Notify the asset registry
-			FAssetRegistryModule::AssetCreated(Xaml);
-
-			// Set the dirty flag so this package will get saved later
-			XamlPackage->SetDirtyFlag(true);
-		}
-
-		XamlDescriptor.Xaml = Xaml;
-	}
-
-	XamlFact->RemoveFromRoot();
-}
-
-TArray<FFontDescriptor> ParseForFonts(FString XamlText)
-{
-	TArray<FFontDescriptor> FontDescriptors;
-
-	TArray<FString> Strings = ScanKeyword(XamlText, TEXT("#"));
-	for (auto String : Strings)
-	{
-		FFontDescriptor& FontDescriptor = *new(FontDescriptors)FFontDescriptor;
-		FontDescriptor.Family = String;
-	}
-
-	return FontDescriptors;
-}
-
 unsigned long StreamRead(FT_Stream Stream, unsigned long Offset, unsigned char* Buffer, unsigned long Count)
 {
 	FMemory::Memcpy(Buffer, (uint8*)Stream->descriptor.pointer + Offset, Count);
@@ -185,22 +68,10 @@ unsigned long StreamRead(FT_Stream Stream, unsigned long Offset, unsigned char* 
 
 void StreamClose(FT_Stream) {}
 
-void UNoesisXamlFactory::ImportFonts(FString BasePackageName, FString ProjectURIRoot, FString Path, TArray<FFontDescriptor>& FontDescriptors)
+UFont* UNoesisXamlFactory::ImportFontFamily(FString Path, FString Family, FString BasePackageName, FString ProjectURIRoot)
 {
 	FString BaseUri, FamilyName;
 	Family.Split(TEXT("#"), &BaseUri, &FamilyName);
-	TSet<FString> UniqueFontFamilies;
-	for (auto FontDescriptor : FontDescriptors)
-	{
-		UniqueFontFamilies.Add(FontDescriptor.Family);
-	}
-
-	FontDescriptors.Empty();
-
-	for (auto Family : UniqueFontFamilies)
-	{
-		FString BaseUri, FamilyName;
-		Family.Split(TEXT("#"), &BaseUri, &FamilyName);
 
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 
@@ -213,8 +84,10 @@ void UNoesisXamlFactory::ImportFonts(FString BasePackageName, FString ProjectURI
 		FT_Library FTLibrary;
 		UNoesisResourceResolver* ResourceResolver;
 
-		ScanFolderForFonts(FString InFontPackagePath, FString InFamilyName, UNoesisResourceResolver* InResourceResolver)
-				: FontPackagePath(InFontPackagePath), FamilyName(InFamilyName), ResourceResolver(InResourceResolver)
+		ScanFolderForFonts(FString FontPackagePath, FString FamilyName, UNoesisResourceResolver* ResourceResolver)
+			: FontPackagePath(FontPackagePath),
+			FamilyName(FamilyName),
+			ResourceResolver(ResourceResolver)
 		{
 			int32 Error = FT_Init_FreeType(&FTLibrary);
 			checkf(Error == 0, TEXT("Could not init Freetype"));
@@ -328,14 +201,14 @@ void UNoesisXamlFactory::ImportFonts(FString BasePackageName, FString ProjectURI
 	FString FontFileName;
 	FString FontPackagePath;
 	FString FontPackageName;
-	ExtractPaths(BaseUri, Path, BasePackageName, ProjectURIRoot, FontFilePath, FontFileName, FontPackagePath, FontPackageName);
+	ExtractPaths(BaseUri, Path, BasePackageName, Family, FontFilePath, FontFileName, FontPackagePath, FontPackageName);
 
 	ScanFolderForFonts Visitor(FontPackagePath, FamilyName, GetResourceResolver());
 	PlatformFile.IterateDirectory(*FontFilePath, Visitor);
 
 	if (Visitor.Fonts.Num())
 	{
-		UPackage* FontPackage = NULL;
+		UPackage* FontPackage = nullptr;
 
 		FString FontName = GetResourceResolver()->ResolveName(FamilyName, ENoesisResourceType::NRT_Font);
 		FString FontObjectPath = FontPackagePath / FontName + TEXT(".") + FontName;
@@ -345,7 +218,6 @@ void UNoesisXamlFactory::ImportFonts(FString BasePackageName, FString ProjectURI
 		if (!ExistingFont)
 		{
 			const FString Suffix(TEXT(""));
-
 			FontPackage = CreatePackage(NULL, *(FontPackagePath / FontName));
 		}
 		else
@@ -368,100 +240,7 @@ void UNoesisXamlFactory::ImportFonts(FString BasePackageName, FString ProjectURI
 			Font->CompositeFont.DefaultTypeface.Fonts = Visitor.Fonts;
 
 			return Font;
-				FFontDescriptor& FontDescriptor = *new(FontDescriptors)FFontDescriptor;
-				FontDescriptor.Family = Family;
-				FontDescriptor.Font = Font;
-			}
 		}
-	}
-}
-
-TArray<FImageDescriptor> ParseForImages(FString XamlText)
-{
-	TArray<FImageDescriptor> ImageDescriptors;
-
-	TArray<FString> Strings;
-	auto TextureFact = NewObject<UTextureFactory>();
-	for (auto Format : TextureFact->Formats)
-	{
-		int32 Index;
-		Format.FindChar(TEXT(';'), Index);
-		Strings += ScanKeyword(XamlText, FString(TEXT(".")) + Format.Left(Index));
-	}
-
-	for (auto String : Strings)
-	{
-		FImageDescriptor& ImageDescriptor = *new(ImageDescriptors)FImageDescriptor;
-		ImageDescriptor.Path = String;
-	}
-
-	return ImageDescriptors;
-}
-
-void UNoesisXamlFactory::ImportImages(FString BasePackageName, FString ProjectURIRoot, FString Path, TArray<FImageDescriptor>& ImageDescriptors)
-{
-	auto TextureFact = NewObject<UTextureFactory>();
-	TextureFact->AddToRoot();
-
-	TSet<FString> UniqueImagePaths;
-	for (auto ImageDescriptor : ImageDescriptors)
-	{
-		UniqueImagePaths.Add(ImageDescriptor.Path);
-	}
-
-	ImageDescriptors.Empty();
-
-	for (auto ImagePath : UniqueImagePaths)
-	{
-		FString TexturePath;
-		FString FileName;
-		FString PackagePath;
-		FString TextureName;
-		ExtractPaths(ImagePath, Path, BasePackageName, ProjectURIRoot, TexturePath, FileName, PackagePath, TextureName);
-
-		TextureName = "T_" + TextureName;
-
-		UPackage* TexturePackage = NULL;
-
-		FString TextureObjectPath = PackagePath / TextureName + TEXT(".") + TextureName;
-		TextureObjectPath = GetResourceResolver()->ResolvePath(TextureObjectPath, ENoesisResourceType::NRT_Texture);
-		UTexture2D* ExistingTexture = LoadObject<UTexture2D>(NULL, *TextureObjectPath);
-
-		if (!ExistingTexture)
-		{
-			const FString Suffix(TEXT(""));
-
-			TexturePackage = CreatePackage(NULL, *(PackagePath / TextureName));
-		}
-		else
-		{
-			TexturePackage = ExistingTexture->GetOutermost();
-			TexturePackage->FullyLoad();
-		}
-
-		TextureFact->SuppressImportOverwriteDialog();
-
-		FString FullFilename = TexturePath / FileName;
-		bool Cancelled = false;
-		UTexture2D* Texture = (UTexture2D*)TextureFact->ImportObject(UTexture2D::StaticClass(), TexturePackage, *TextureName, RF_Standalone | RF_Public, FullFilename, nullptr, Cancelled);
-
-		if (Texture != NULL)
-		{
-			Texture->LODGroup = TEXTUREGROUP_UI;
-			Texture->SRGB = false;
-			void FixPremultipliedPNGTexture(UTexture2D*);
-			FixPremultipliedPNGTexture(Texture);
-
-			// Notify the asset registry
-			FAssetRegistryModule::AssetCreated(Texture);
-
-			// Set the dirty flag so this package will get saved later
-			TexturePackage->SetDirtyFlag(true);
-		}
-
-		FImageDescriptor& ImageDescriptor = *new(ImageDescriptors)FImageDescriptor;
-		ImageDescriptor.Path = ImagePath;
-		ImageDescriptor.Texture = Texture;
 	}
 
 	return nullptr;
@@ -469,9 +248,9 @@ void UNoesisXamlFactory::ImportImages(FString BasePackageName, FString ProjectUR
 
 UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject* Context, const TCHAR* Type, const uint8*& Buffer, const uint8* BufferEnd, FFeedbackContext* Warn)
 {
-	FString FullFilename = GetCurrentFilename();
-	FString Filename = FullFilename;
-	FString Directory = FPaths::GetPath(Filename);
+	auto FullFilename = GetCurrentFilename();
+	auto Filename = FullFilename;
+	auto Directory = FPaths::GetPath(Filename);
 	Filename = FPaths::GetCleanFilename(Filename);
 	FString ProjectURIRoot;
 	FString BasePackageName;
@@ -491,61 +270,18 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 			}
 		}
 	}
+
 	if (ProjectURIRoot.IsEmpty())
 	{
 		ProjectURIRoot = FPaths::ProjectContentDir();
 		BasePackageName = TEXT("/Game/");
 	}
+
 	FPaths::MakePathRelativeTo(Directory, *ProjectURIRoot);
 
-	FString XamlText = NsStringToFString((const char*)Buffer);
-
-	TArray<FString> Comments;
-	FRegexPattern CommentPattern(TEXT("<!--.*-->"));
-	FRegexMatcher CommentMatcher(CommentPattern, XamlText);
-
-	while (CommentMatcher.FindNext())
-	{
-		Comments.Add(XamlText.Left(CommentMatcher.GetMatchEnding()).RightChop(CommentMatcher.GetMatchBeginning()));
-	}
-
-	for (auto Comment : Comments)
-	{
-		XamlText = XamlText.Replace(*Comment, TEXT(""));
-	}
-
-	TArray<FXamlDescriptor> XamlDescriptors = ParseForXamls(XamlText);
-	ImportXamls(BasePackageName, ProjectURIRoot, Directory, XamlDescriptors);
-	for (auto XamlDescriptor : XamlDescriptors)
-	{
-		if (!XamlDescriptor.Xaml)
-		{
-			UE_LOG(LogNoesisEditor, Log, TEXT("Error importing XAML file %s: Referenced XAML file %s not found."), *GetCurrentFilename(), *XamlDescriptor.Path);
-		}
-	}
-
-	TArray<FFontDescriptor> FontDescriptors = ParseForFonts(XamlText);
-	ImportFonts(BasePackageName, ProjectURIRoot, Directory, FontDescriptors);
-	for (auto FontDescriptor : FontDescriptors)
-	{
-		if (!FontDescriptor.Font)
-		{
-			UE_LOG(LogNoesisEditor, Log, TEXT("Error importing XAML file %s: Referenced font family %s not found."), *GetCurrentFilename(), *FontDescriptor.Family);
-		}
-	}
-
-	TArray<FImageDescriptor> ImageDescriptors = ParseForImages(XamlText);
-	ImportImages(BasePackageName, ProjectURIRoot, Directory, ImageDescriptors);
-	for (auto ImageDescriptor : ImageDescriptors)
-	{
-		if (!ImageDescriptor.Texture)
-		{
-			UE_LOG(LogNoesisEditor, Log, TEXT("Error importing XAML file %s: Referenced image file %s not found."), *GetCurrentFilename(), *ImageDescriptor.Path);
-		}
-	}
+	auto XamlText = NsStringToFString((const char*)Buffer);
 
 	UNoesisXaml* NoesisXaml = nullptr;
-
 	{
 		FString XamlPath;
 		FString FileName;
@@ -553,7 +289,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 		FString XamlName;
 		ExtractPaths(Filename, Directory, BasePackageName, ProjectURIRoot, XamlPath, FileName, PackagePath, XamlName);
 
-		UPackage* XamlPackage = NULL;
+		UPackage* XamlPackage = nullptr;
 
 		FString XamlObjectPath = PackagePath / XamlName + TEXT(".") + XamlName;
 		XamlObjectPath = GetResourceResolver()->ResolvePath(XamlObjectPath, ENoesisResourceType::NRT_Xaml);
@@ -630,17 +366,6 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 					Texture->SRGB = false;
 					void FixPremultipliedPNGTexture(UTexture2D*);
 					FixPremultipliedPNGTexture(Texture);
-	for (auto FontDescriptor : FontDescriptors)
-	{
-		if (FontDescriptor.Font)
-		{
-			FString FontPath = FontDescriptor.Font->GetPathName();
-			FString Uri, Family;
-			ensure(FontDescriptor.Family.Split(TEXT("#"), &Uri, &Family));
-			XamlText = XamlText.Replace(*FontDescriptor.Family, *(FontPath / TEXT("#") + Family));
-			NoesisXaml->Fonts.Add(FontDescriptor.Font);
-		}
-	}
 
 					FString ImagePath = Texture->GetPathName();
 					XamlText = XamlText.Replace(*NsStringToFString(Dependency.c_str()), *ImagePath);

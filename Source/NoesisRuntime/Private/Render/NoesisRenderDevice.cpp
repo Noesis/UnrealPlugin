@@ -350,10 +350,11 @@ void FNoesisRenderDevice::SetRenderTarget(Noesis::RenderTarget* Surface)
 	check(RHICmdList);
 	check(Surface);
 	FNoesisRenderTarget* RenderTarget = (FNoesisRenderTarget*)Surface;
-	FRHIRenderTargetView ColorTarget(RenderTarget->ColorTarget, ERenderTargetLoadAction::EClear);
-	FRHIDepthRenderTargetView DepthStencilTarget(RenderTarget->DepthStencilTarget, ERenderTargetLoadAction::ENoAction, ERenderTargetStoreAction::ENoAction, ERenderTargetLoadAction::EClear, ERenderTargetStoreAction::ENoAction);
-	FRHISetRenderTargetsInfo RenderTargetsInfo(1, &ColorTarget, DepthStencilTarget);
-	RHICmdList->SetRenderTargetsAndClear(RenderTargetsInfo);
+
+	FRHIRenderPassInfo RenderPassInfo(RenderTarget->ColorTarget, ERenderTargetActions::Clear_DontStore, RenderTarget->DepthStencilTarget, MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::Clear_DontStore), FExclusiveDepthStencil::DepthNop_StencilWrite);
+	check(RHICmdList->IsOutsideRenderPass());
+
+	RHICmdList->BeginRenderPass(RenderPassInfo, TEXT("NoesisOffScreen"));
 	RHICmdList->SetViewport(0, 0, 0.0f, RenderTarget->ColorTarget->GetSizeX(), RenderTarget->ColorTarget->GetSizeY(), 1.0f);
 	CurrentRenderTarget = RenderTarget;
 }
@@ -402,6 +403,9 @@ void FNoesisRenderDevice::ResolveRenderTarget(Noesis::RenderTarget* Surface, con
 		ResolveParams.DestRect.Y2 = ResolveMaxY;
 		RHICmdList->CopyToResolveTarget(CurrentRenderTarget->ColorTarget, CurrentRenderTarget->Texture->ShaderResourceTexture, ResolveParams);
 	}
+
+	check(RHICmdList->IsInsideRenderPass());
+	RHICmdList->EndRenderPass();
 }
 
 void FNoesisRenderDevice::EndRender()
@@ -619,5 +623,6 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 	RHICmdList->SetStencilRef(Batch.stencilRef);
 	RHICmdList->SetStreamSource(0, DynamicVertexBuffer, Batch.vertexOffset);
 
-	RHICmdList->DrawIndexedPrimitive(DynamicIndexBuffer, PT_TriangleList, 0, 0, VertexBufferSize, Batch.startIndex, Batch.numIndices / 3, 1);
+	//RHICmdList->DrawIndexedPrimitive(DynamicIndexBuffer, PT_TriangleList, 0, 0, VertexBufferSize, Batch.startIndex, Batch.numIndices / 3, 1);
+	RHICmdList->DrawIndexedPrimitive(DynamicIndexBuffer, 0, 0, VertexBufferSize, Batch.startIndex, Batch.numIndices / 3, 1);
 }
