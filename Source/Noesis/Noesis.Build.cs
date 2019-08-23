@@ -23,8 +23,7 @@ public class Noesis : ModuleRules
 		PublicIncludePaths.Add(NoesisInteractivityIncludePath);
 
 		// Let's try to make sure the right version of the SDK is in the right place.
-		const string RequiredRevision = "(r8141)";
-		const string RequiredVersionName = "2.2.3";
+		const string RequiredVersionName = "2.2.4";
 
 		PublicDefinitions.Add("NOESIS_VERSION_NAME=\"" + RequiredVersionName + "\"");
 		if (!Directory.Exists(NoesisBasePath))
@@ -57,10 +56,13 @@ public class Noesis : ModuleRules
 			throw new BuildException("Could not find NoesisGUI SDK version.txt in " + NoesisBasePath + "version.txt. Minimum required version is " + RequiredVersionName);
 		}
 
-		string[] SplitVersion = NoesisSdkVersionInfo.Split(' ');
-		if (String.Compare(SplitVersion[SplitVersion.Length - 1], RequiredRevision) < 0)
+		string[] LineSplit = NoesisSdkVersionInfo.Split('\n');
+		string[] SplitVersion = LineSplit[1].Split(' ');
+		Version InstalledVersion = new Version(SplitVersion[0]);
+		Version RequiredVersion = new Version(RequiredVersionName);
+		if (InstalledVersion != RequiredVersion)
 		{
-			throw new BuildException("Wrong version of the NoesisGUI SDK installed in " + NoesisBasePath + ". Minimum required version is " + RequiredVersionName);
+			throw new BuildException("Wrong version of the NoesisGUI SDK installed in " + NoesisBasePath + ". Required version is " + RequiredVersionName);
 		}
 
 		PublicSystemIncludePaths.Add(NoesisIncludePath);

@@ -35,6 +35,8 @@ NS_END_COLD_REGION
 NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/EventTriggerBase.cpp"
 NS_END_COLD_REGION
+#include "NoesisSDK/Src/Packages/App/Interactivity/Src/GamepadTrigger.cpp"
+NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/GoToStateAction.cpp"
 NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/Interaction.cpp"
