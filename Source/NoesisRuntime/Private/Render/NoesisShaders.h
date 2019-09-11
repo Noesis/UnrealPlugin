@@ -124,7 +124,7 @@ public:
 
 	void SetParameters(FRHICommandList& RHICmdList, const FMatrix& ProjectionMtxValue)
 	{
-		const FVertexShaderRHIParamRef ShaderRHI = GetVertexShader();
+		FRHIVertexShader* ShaderRHI = GetVertexShader();
 
 		SetShaderValue(RHICmdList, ShaderRHI, ProjectionMtx, ProjectionMtxValue);
 	}
@@ -214,7 +214,7 @@ public:
 
 	void SetParameters(FRHICommandList& RHICmdList, const FVector4* RgbaValue, const FVector4 (*RadialGradValue)[2], const float* OpacityValue)
 	{
-		const FPixelShaderRHIParamRef ShaderRHI = GetPixelShader();
+		FRHIPixelShader* ShaderRHI = GetPixelShader();
 
 		if (RgbaValue)
 		{
@@ -235,30 +235,30 @@ public:
 		}
 	}
 
-	void SetPatternTexture(FRHICommandList& RHICmdList, FTextureRHIParamRef PatternTextureResource, FSamplerStateRHIParamRef PatternSamplerResource)
+	void SetPatternTexture(FRHICommandList& RHICmdList, FRHITexture* PatternTextureResource, FRHISamplerState* PatternSamplerResource)
 	{
-		const FPixelShaderRHIParamRef ShaderRHI = GetPixelShader();
+		FRHIPixelShader* ShaderRHI = GetPixelShader();
 
 		SetTextureParameter(RHICmdList, ShaderRHI, PatternTexture, PatternSampler, PatternSamplerResource, PatternTextureResource);
 	}
 
-	void SetRampsTexture(FRHICommandList& RHICmdList, FTextureRHIParamRef RampsTextureResource, FSamplerStateRHIParamRef RampsSamplerResource)
+	void SetRampsTexture(FRHICommandList& RHICmdList, FRHITexture* RampsTextureResource, FRHISamplerState* RampsSamplerResource)
 	{
-		const FPixelShaderRHIParamRef ShaderRHI = GetPixelShader();
+		FRHIPixelShader* ShaderRHI = GetPixelShader();
 
 		SetTextureParameter(RHICmdList, ShaderRHI, RampsTexture, RampsSampler, RampsSamplerResource, RampsTextureResource);
 	}
 
-	void SetImageTexture(FRHICommandList& RHICmdList, FTextureRHIParamRef ImageTextureResource, FSamplerStateRHIParamRef ImageSamplerResource)
+	void SetImageTexture(FRHICommandList& RHICmdList, FRHITexture* ImageTextureResource, FRHISamplerState* ImageSamplerResource)
 	{
-		const FPixelShaderRHIParamRef ShaderRHI = GetPixelShader();
+		FRHIPixelShader* ShaderRHI = GetPixelShader();
 
 		SetTextureParameter(RHICmdList, ShaderRHI, ImageTexture, ImageSampler, ImageSamplerResource, ImageTextureResource);
 	}
 
-	void SetGlyphsTexture(FRHICommandList& RHICmdList, FTextureRHIParamRef GlyphsTextureResource, FSamplerStateRHIParamRef GlyphsSamplerResource)
+	void SetGlyphsTexture(FRHICommandList& RHICmdList, FRHITexture* GlyphsTextureResource, FRHISamplerState* GlyphsSamplerResource)
 	{
-		const FPixelShaderRHIParamRef ShaderRHI = GetPixelShader();
+		FRHIPixelShader* ShaderRHI = GetPixelShader();
 
 		SetTextureParameter(RHICmdList, ShaderRHI, GlyphsTexture, GlyphsSampler, GlyphsSamplerResource, GlyphsTextureResource);
 	}

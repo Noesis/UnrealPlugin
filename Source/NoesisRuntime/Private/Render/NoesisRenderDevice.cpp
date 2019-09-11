@@ -434,7 +434,7 @@ void FNoesisRenderDevice::UnmapIndices()
 	RHIUnlockIndexBuffer(DynamicIndexBuffer);
 }
 
-static FSamplerStateRHIParamRef GetSamplerState(uint32 SamplerCode)
+static FRHISamplerState* GetSamplerState(uint32 SamplerCode)
 {
 	switch (SamplerCode & 63)
 	{
@@ -542,8 +542,8 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 
 	GraphicsPSOInit.RasterizerState = Batch.renderState.f.wireframe ? TStaticRasterizerState<FM_Wireframe, CM_None>::GetRHI() : TStaticRasterizerState<FM_Solid, CM_None>::GetRHI();
 
-	FTextureRHIParamRef PatternTexture = 0;
-	FSamplerStateRHIParamRef PatternSamplerState = 0;
+	FRHITexture* PatternTexture = 0;
+	FRHISamplerState* PatternSamplerState = 0;
 	if (Batch.pattern)
 	{
 		FNoesisTexture* Texture = (FNoesisTexture*)(Batch.pattern);
@@ -551,8 +551,8 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 		PatternSamplerState = GetSamplerState((uint32)*(uint8*)&Batch.patternSampler);
 	}
 
-	FTextureRHIParamRef RampsTexture = 0;
-	FSamplerStateRHIParamRef RampsSamplerState = 0;
+	FRHITexture* RampsTexture = 0;
+	FRHISamplerState* RampsSamplerState = 0;
 	if (Batch.ramps)
 	{
 		FNoesisTexture* Texture = (FNoesisTexture*)(Batch.ramps);
@@ -560,8 +560,8 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 		RampsSamplerState = GetSamplerState((uint32)*(uint8*)&Batch.rampsSampler);
 	}
 
-	FTextureRHIParamRef ImageTexture = 0;
-	FSamplerStateRHIParamRef ImageSamplerState = 0;
+	FRHITexture* ImageTexture = 0;
+	FRHISamplerState* ImageSamplerState = 0;
 	if (Batch.image)
 	{
 		FNoesisTexture* Texture = (FNoesisTexture*)(Batch.image);
@@ -569,8 +569,8 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 		ImageSamplerState = GetSamplerState((uint32)*(uint8*)&Batch.imageSampler);
 	}
 
-	FTextureRHIParamRef GlyphsTexture = 0;
-	FSamplerStateRHIParamRef GlyphsSamplerState = 0;
+	FRHITexture* GlyphsTexture = 0;
+	FRHISamplerState* GlyphsSamplerState = 0;
 	if (Batch.glyphs)
 	{
 		FNoesisTexture* Texture = (FNoesisTexture*)(Batch.glyphs);
