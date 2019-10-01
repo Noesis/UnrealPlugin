@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "2.2.4",
+	"VersionName": "2.2.5",
 	"FriendlyName": "NoesisGUI",
 	"Description": "Lightweight cross-platform C++ game user interface library",
 	"Category": "UI",
