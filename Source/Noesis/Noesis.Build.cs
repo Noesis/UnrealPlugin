@@ -22,56 +22,32 @@ public class Noesis : ModuleRules
 		PublicIncludePaths.Add(NoesisIncludePath);
 		PublicIncludePaths.Add(NoesisInteractivityIncludePath);
 
-		// Let's try to make sure the right version of the SDK is in the right place.
-		const string RequiredVersionName = "2.2.5";
-
-		PublicDefinitions.Add("NOESIS_VERSION_NAME=\"" + RequiredVersionName + "\"");
 		if (!Directory.Exists(NoesisBasePath))
 		{
-			throw new BuildException("Could not find NoesisGUI SDK in " + NoesisBasePath + ". Minimum required version is " + RequiredVersionName);
+			throw new BuildException("Could not find NoesisGUI SDK in " + NoesisBasePath + ".");
 		}
 
 		if (!Directory.Exists(NoesisBasePath + "Bin"))
 		{
-			throw new BuildException("Could not find NoesisGUI SDK Bin directory in " + NoesisBasePath + "Bin. Minimum required version is " + RequiredVersionName);
+			throw new BuildException("Could not find NoesisGUI SDK Bin directory in " + NoesisBasePath + "Bin.");
 		}
 
 		if (!Directory.Exists(NoesisBasePath + "Include"))
 		{
-			throw new BuildException("Could not find NoesisGUI SDK Include directory in " + NoesisBasePath + "Include. Minimum required version is " + RequiredVersionName);
+			throw new BuildException("Could not find NoesisGUI SDK Include directory in " + NoesisBasePath + "Include.");
 		}
 
 		if (!Directory.Exists(NoesisBasePath + "Lib"))
 		{
-			throw new BuildException("Could not find NoesisGUI SDK Lib directory in " + NoesisBasePath + "Lib. Minimum required version is " + RequiredVersionName);
-		}
-
-		string NoesisSdkVersionInfo;
-		try
-		{
-			NoesisSdkVersionInfo = File.ReadAllText(NoesisBasePath + "version.txt");
-		}
-		catch (Exception)
-		{
-			throw new BuildException("Could not find NoesisGUI SDK version.txt in " + NoesisBasePath + "version.txt. Minimum required version is " + RequiredVersionName);
-		}
-
-		string[] LineSplit = NoesisSdkVersionInfo.Split('\n');
-		string[] SplitVersion = LineSplit[1].Split(' ');
-		Version InstalledVersion = new Version(SplitVersion[0]);
-		Version RequiredVersion = new Version(RequiredVersionName);
-		if (InstalledVersion != RequiredVersion)
-		{
-			throw new BuildException("Wrong version of the NoesisGUI SDK installed in " + NoesisBasePath + ". Required version is " + RequiredVersionName);
+			throw new BuildException("Could not find NoesisGUI SDK Lib directory in " + NoesisBasePath + "Lib.");
 		}
 
 		PublicSystemIncludePaths.Add(NoesisIncludePath);
 
+		UnrealTargetPlatform Platform;
 		if (Target.Platform == UnrealTargetPlatform.Win64)
 		{
-			string NoesisLibPath = NoesisBasePath + "Lib/windows_x86_64/";
-			PublicLibraryPaths.Add(NoesisLibPath);
-			PublicAdditionalLibraries.Add("Noesis.lib");
+			PublicAdditionalLibraries.Add(NoesisBasePath + "Lib/windows_x86_64/Noesis.lib");
 
 			string NoesisDllPath = "/NoesisSDK/Bin/windows_x86_64/Noesis.dll";
 			string NoesisDllTargetPath = "/Binaries/Win64/Noesis.dll";
@@ -99,47 +75,36 @@ public class Noesis : ModuleRules
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Mac)
 		{
-			string NoesisLibPath = NoesisBasePath + "Bin/osx/";
-			PublicLibraryPaths.Add(NoesisLibPath);
-			PublicAdditionalLibraries.Add(NoesisLibPath + "Noesis.dylib");
+			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/osx/Noesis.dylib");
 
 			string NoesisDylibPath = "/NoesisSDK/Bin/osx/Noesis.dylib";
 			RuntimeDependencies.Add(ModuleDirectory + NoesisDylibPath);
 		}
 		else if (Target.Platform == UnrealTargetPlatform.IOS)
 		{
-			string NoesisLibPath = NoesisBasePath + "Lib/ios/";
-			PublicLibraryPaths.Add(NoesisLibPath);
-			PublicAdditionalLibraries.Add("Noesis");
+			PublicAdditionalLibraries.Add(NoesisBasePath + "Lib/ios/libNoesis.a");
 
 			PublicFrameworks.Add("CoreText");
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Android)
 		{
-			string NoesisLibPath = NoesisBasePath + "Bin/android_arm/";
-			PublicLibraryPaths.Add(NoesisLibPath);
-			string NoesisLib64Path = NoesisBasePath + "Bin/android_arm64/";
-			PublicLibraryPaths.Add(NoesisLib64Path);
-			PublicAdditionalLibraries.Add("Noesis");
+			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/android_arm/libNoesis.so");
+			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/android_arm64/libNoesis.so");
 
 			string NoesisAplPath = "/Noesis_APL.xml";
 			AdditionalPropertiesForReceipt.Add("AndroidPlugin", ModuleDirectory + NoesisAplPath);
 		}
 		else if (Target.Platform == UnrealTargetPlatform.PS4)
 		{
-			string NoesisLibPath = NoesisBasePath + "Lib/ps4/";
-			PublicAdditionalLibraries.Add(NoesisLibPath + "Noesis.a");
+			PublicAdditionalLibraries.Add(NoesisBasePath + "Lib/ps4/Noesis.a");
 		}
 		else if (Target.Platform == UnrealTargetPlatform.XboxOne)
 		{
-			string NoesisLibPath = NoesisBasePath + "Bin/xbox_one/";
-			PublicLibraryPaths.Add(NoesisLibPath);
-			PublicAdditionalLibraries.Add("Noesis.lib");
+			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/xbox_one/Noesis.lib");
 		}
-		else if (Target.Platform == UnrealTargetPlatform.HTML5)
+		else if (UnrealTargetPlatform.TryParse("HTML5", out Platform) && Target.Platform == Platform)
 		{
-			string NoesisLibPath = NoesisBasePath + "Bin/wasm/";
-			PublicAdditionalLibraries.Add(NoesisLibPath + "Noesis.bc");
+			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/wasm/Noesis.bc");
 		}
 	}
 

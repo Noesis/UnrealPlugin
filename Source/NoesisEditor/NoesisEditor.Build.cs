@@ -46,6 +46,8 @@ public class NoesisEditor : ModuleRules
 				"Noesis",
 				"NoesisRuntime",
 				"FreeType2",
+				"zlib",
+				"UElibPNG",
 				"RHI",
 				"RenderCore",
 				"Projects",

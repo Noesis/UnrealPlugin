@@ -11,6 +11,9 @@
 // CoreUObject includes
 #include "Blueprint/UserWidget.h"
 
+// UMG includes
+#include "Components/Widget.h"
+
 // Noesis includes
 #include "NoesisSDK.h"
 
@@ -99,7 +102,7 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 
 #if WITH_EDITOR
 	// UWidget interface
-	virtual void SetDesignerFlags(EWidgetDesignFlags::Type NewFlags) override;
+	virtual void SetDesignerFlags(EWidgetDesignFlags NewFlags) override;
 	// End of UWidget interface
 
 	void DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRef& BackBuffer);

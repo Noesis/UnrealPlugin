@@ -43,7 +43,7 @@ struct Out
 float4x4 projectionMtx;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void main(in In i, out Out o, out float4 out_position: SV_POSITION)
+void NoesisVS(in In i, out Out o, out float4 out_position: SV_POSITION)
 {
     out_position = mul(i.position, projectionMtx);
 

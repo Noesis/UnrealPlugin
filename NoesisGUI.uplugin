@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "2.2.5",
+	"VersionName": "GitHub",
 	"FriendlyName": "NoesisGUI",
 	"Description": "Lightweight cross-platform C++ game user interface library",
 	"Category": "UI",
@@ -10,7 +10,7 @@
 	"DocsURL": "https://github.com/Noesis/UE4Plugin/blob/master/README.md",
 	"MarketplaceURL": "",
 	"SupportURL": "https://forums.noesisengine.com",
-	"EngineVersion": "4.23.0",
+	"EngineVersion": "4.24.0",
 	"CanContainContent": true,
 	"Installed": true,
 	"Modules": [

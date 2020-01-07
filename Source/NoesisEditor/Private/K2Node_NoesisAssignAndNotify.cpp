@@ -170,7 +170,7 @@ static UBlueprintFieldNodeSpawner* CreateSpawnerFromMemberOrParam(TSubclassOf<UK
 			const bool bIsFunctionVariable = Property->GetOuter()->IsA(UFunction::StaticClass());
 
 			UK2Node_NoesisAssignAndNotify* VarNode = CastChecked<UK2Node_NoesisAssignAndNotify>(NewNode);
-			VarNode->SetFromProperty(Property, bOwnerClassIsSelfContext && !bIsFunctionVariable);
+			VarNode->SetFromProperty(Property, bOwnerClassIsSelfContext && !bIsFunctionVariable, OwnerClass);
 		}
 	};
 	NodeSpawner->SetNodeFieldDelegate = UBlueprintFieldNodeSpawner::FSetNodeFieldDelegate::CreateStatic(MemberVarSetupLambda);

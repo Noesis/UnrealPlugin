@@ -555,7 +555,7 @@ void UNoesisInstance::BeginDestroy()
 }
 
 #if WITH_EDITOR
-void UNoesisInstance::SetDesignerFlags(EWidgetDesignFlags::Type NewFlags)
+void UNoesisInstance::SetDesignerFlags(EWidgetDesignFlags NewFlags)
 {
 	// Enable native events in editor
 	if (UWorld* LocalWorld = GetWorld())
@@ -563,7 +563,7 @@ void UNoesisInstance::SetDesignerFlags(EWidgetDesignFlags::Type NewFlags)
 		UGameInstance* GameInstance = LocalWorld->GetGameInstance();
 		if (GameInstance)
 		{
-			Super::SetDesignerFlags((EWidgetDesignFlags::Type)(NewFlags & ~EWidgetDesignFlags::Designing));
+			Super::SetDesignerFlags((EWidgetDesignFlags)(NewFlags & ~EWidgetDesignFlags::Designing));
 		}
 	}
 
