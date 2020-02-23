@@ -73,6 +73,31 @@ void FNoesisFontProvider::RegisterFont(class UFont* Font)
 	}
 }
 
+Noesis::FontSource FNoesisFontProvider::MatchFont(const char* BaseUri, const char* FamilyName, Noesis::FontWeight Weight,
+	Noesis::FontStretch Stretch, Noesis::FontStyle Style)
+{
+	FString AssetPath = NsStringToFString(BaseUri);
+	if (!FPackageName::IsValidLongPackageName(AssetPath / "_Font"))
+	{
+		NsString AbsoluteBaseUri = NsString("/Game/") + BaseUri;
+		return Noesis::CachedFontProvider::MatchFont(AbsoluteBaseUri.c_str(), FamilyName, Weight, Stretch, Style);
+	}
+
+	return Noesis::CachedFontProvider::MatchFont(BaseUri, FamilyName, Weight, Stretch, Style);
+}
+
+bool FNoesisFontProvider::FamilyExists(const char* BaseUri, const char* FamilyName)
+{
+	FString AssetPath = NsStringToFString(BaseUri);
+	if (!FPackageName::IsValidLongPackageName(AssetPath / "_Font"))
+	{
+		NsString AbsoluteBaseUri = NsString("/Game/") + BaseUri;
+		return Noesis::CachedFontProvider::FamilyExists(AbsoluteBaseUri.c_str(), FamilyName);
+	}
+
+	return Noesis::CachedFontProvider::FamilyExists(BaseUri, FamilyName);
+}
+
 void FNoesisFontProvider::ScanFolder(const char* InFolder)
 {
 }

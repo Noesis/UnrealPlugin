@@ -39,6 +39,12 @@ public:
 
 private:
 
+	// FontProvider interface
+	virtual Noesis::FontSource MatchFont(const char* BaseUri, const char* FamilyName, Noesis::FontWeight Weight,
+		Noesis::FontStretch Stretch, Noesis::FontStyle Style) override;
+	virtual bool FamilyExists(const char* BaseUri, const char* FamilyName) override;
+	// End of FontProvider interface
+
 	// CachedFontProvider interface
 	virtual void ScanFolder(const char* Folder) override;
 	virtual Noesis::Ptr<Noesis::Stream> OpenFont(const char* Folder, const char* Filename) const override;
