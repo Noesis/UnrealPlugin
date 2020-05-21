@@ -3,7 +3,7 @@
 // Copyright (c) 2013 Noesis Technologies S.L. All Rights Reserved.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define NS_APP_INTERACTIVITY_EXPORTS
+#define NS_APP_INTERACTIVITY_API NS_DLL_EXPORT
 #if PLATFORM_WINDOWS || PLATFORM_XBOXONE
 #pragma warning(push)
 #pragma warning(disable:4426)
@@ -16,6 +16,10 @@ NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/BehaviorCollection.cpp"
 NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/ChangePropertyAction.cpp"
+NS_END_COLD_REGION
+#include "NoesisSDK/Src/Packages/App/Interactivity/Src/CollectionFilterBehavior.cpp"
+NS_END_COLD_REGION
+#include "NoesisSDK/Src/Packages/App/Interactivity/Src/CollectionSortBehavior.cpp"
 NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/ComparisonCondition.cpp"
 NS_END_COLD_REGION
@@ -34,6 +38,8 @@ NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/EventTrigger.Interactivity.cpp"
 NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/EventTriggerBase.cpp"
+NS_END_COLD_REGION
+#include "NoesisSDK/Src/Packages/App/Interactivity/Src/FilterPredicate.cpp"
 NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/GamepadTrigger.cpp"
 NS_END_COLD_REGION
@@ -61,11 +67,17 @@ NS_END_COLD_REGION
 NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/SetFocusAction.cpp"
 NS_END_COLD_REGION
+#include "NoesisSDK/Src/Packages/App/Interactivity/Src/SortComparer.cpp"
+NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/StoryboardAction.cpp"
 NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/StoryboardCompletedTrigger.cpp"
 NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/StoryboardTrigger.cpp"
+NS_END_COLD_REGION
+#include "NoesisSDK/Src/Packages/App/Interactivity/Src/StringFilterPredicate.cpp"
+NS_END_COLD_REGION
+#include "NoesisSDK/Src/Packages/App/Interactivity/Src/StringSortComparer.cpp"
 NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/StyleInteraction.cpp"
 NS_END_COLD_REGION

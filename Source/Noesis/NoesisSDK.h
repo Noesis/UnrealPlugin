@@ -11,7 +11,7 @@
 #endif
 #endif
 
-#include "Noesis_pch.h"
+#include "NoesisPCH.h"
 
 #ifdef PLATFORM_WINDOWS
 #if PLATFORM_WINDOWS

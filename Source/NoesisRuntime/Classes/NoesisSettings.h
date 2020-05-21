@@ -8,6 +8,9 @@
 // Core includes
 #include "CoreMinimal.h"
 
+// NoesisRuntime includes
+#include "NoesisEnums.h"
+
 // Noesis includes
 #include "NoesisSDK.h"
 
@@ -45,37 +48,61 @@ class NOESISRUNTIME_API UNoesisSettings : public UObject
 {
 	GENERATED_UCLASS_BODY()
 
+	/** Fill with the Name value your were given when purchasing your Noesis license */
+	UPROPERTY(EditAnywhere, Config, Category = "License", meta = (ConfigRestartRequired = true))
+	FString LicenseName;
+
+	/** Fill with the Key value your were given when purchasing your Noesis license */
+	UPROPERTY(EditAnywhere, Config, Category = "License", meta = (ConfigRestartRequired = true))
+	FString LicenseKey;
+
 	/** Sets a collection of application-scope resources, such as styles and brushes. Provides a simple way to support a consistent theme across your application */
-	UPROPERTY(EditAnywhere, Config, Category = "Noesis Settings", meta = (AllowedClasses = "NoesisXaml"))
+	UPROPERTY(EditAnywhere, Config, Category = "XAML", meta = (AllowedClasses = "NoesisXaml"))
 	FSoftObjectPath ApplicationResources;
 
+	/** Default value for FontFamily when it is not specified in a control or text element */
+	UPROPERTY(EditAnywhere, Config, Category = "XAML", meta = (AllowedClasses = "Font"))
+	TArray<FSoftObjectPath> DefaultFonts;
+
+	/** Default value for FontSize when it is not specified in a control or text element */
+	UPROPERTY(EditAnywhere, Config, Category = "XAML", meta = (ClampMin = 0, UIMin = 0))
+	float DefaultFontSize;
+
+	/** Default value for FontWeight when it is not specified in a control or text element */
+	UPROPERTY(EditAnywhere, Config, Category = "XAML")
+	ENoesisFontWeight DefaultFontWeight;
+
+	/** Default value for FontStretch when it is not specified in a control or text element */
+	UPROPERTY(EditAnywhere, Config, Category = "XAML")
+	ENoesisFontStretch DefaultFontStretch;
+
+	/** Default value for FontStyle when it is not specified in a control or text element */
+	UPROPERTY(EditAnywhere, Config, Category = "XAML")
+	ENoesisFontStyle DefaultFontStyle;
+
 	/** Dimensions of texture used to cache glyphs. */
-	UPROPERTY(EditAnywhere, Config, Category = "Text Rendering", meta = (ConfigRestartRequired = true))
+	UPROPERTY(EditAnywhere, Config, Category = "Rendering", meta = (ConfigRestartRequired = true))
 	ENoesisGlyphCacheDimensions GlyphTextureSize;
 
-	/** Glyphs with size above this are rendered using triangles. */
-	UPROPERTY(EditAnywhere, Config, Category = "Text Rendering", meta = (ConfigRestartRequired = true, ClampMin = 32, ClampMax = 256, UIMin = 32, UIMax = 256))
-	int32 GlyphMeshThreshold;
-
-	/** Width of offscreen textures (0 = automatic). */
-	UPROPERTY(EditAnywhere, Config, Category = "Offscreen", meta = (ConfigRestartRequired = true, ClampMin = 0, UIMin = 0))
-	int32 OffscreenTextureWidth;
-
-	/** Height of offscreen textures (0 = automatic). */
-	UPROPERTY(EditAnywhere, Config, Category = "Offscreen", meta = (ConfigRestartRequired = true, ClampMin = 0, UIMin = 0))
-	int32 OffscreenTextureHeight;
-
 	/** Multisampling of offscreen textures. */
-	UPROPERTY(EditAnywhere, Config, Category = "Offscreen", meta = (ConfigRestartRequired = true))
+	UPROPERTY(EditAnywhere, Config, Category = "Rendering", DisplayName="Offscreen Sample Count", meta = (ConfigRestartRequired = true))
 	ENoesisOffscreenSampleCount OffscreenTextureSampleCount;
 
 	/** Number of offscreen textures created at startup. */
-	UPROPERTY(EditAnywhere, Config, Category = "Offscreen", meta = (ConfigRestartRequired = true, ClampMin = 0, UIMin = 0))
+	UPROPERTY(EditAnywhere, Config, Category = "Rendering", meta = (ConfigRestartRequired = true, ClampMin = 0, UIMin = 0))
 	int32 OffscreenInitSurfaces;
 
 	/** Maximum number of offscreen textures (0 = unlimited). */
-	UPROPERTY(EditAnywhere, Config, Category = "Offscreen", meta = (ConfigRestartRequired = true, ClampMin = 0, UIMin = 0))
+	UPROPERTY(EditAnywhere, Config, Category = "Rendering", meta = (ConfigRestartRequired = true, ClampMin = 0, UIMin = 0))
 	int32 OffscreenMaxSurfaces;
+
+	/** Width of offscreen textures (0 = automatic). */
+	UPROPERTY(EditAnywhere, Config, Category = "Rendering", meta = (ConfigRestartRequired = true, ClampMin = 0, UIMin = 0))
+	int32 OffscreenTextureWidth;
+
+	/** Height of offscreen textures (0 = automatic). */
+	UPROPERTY(EditAnywhere, Config, Category = "Rendering", meta = (ConfigRestartRequired = true, ClampMin = 0, UIMin = 0))
+	int32 OffscreenTextureHeight;
 
 	/** Maximum number of offscreen textures (0 = unlimited). */
 	UPROPERTY(EditAnywhere, Config, Category = "Editor Settings")

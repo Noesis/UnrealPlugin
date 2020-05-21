@@ -27,19 +27,9 @@ public class Noesis : ModuleRules
 			throw new BuildException("Could not find NoesisGUI SDK in " + NoesisBasePath + ".");
 		}
 
-		if (!Directory.Exists(NoesisBasePath + "Bin"))
-		{
-			throw new BuildException("Could not find NoesisGUI SDK Bin directory in " + NoesisBasePath + "Bin.");
-		}
-
 		if (!Directory.Exists(NoesisBasePath + "Include"))
 		{
 			throw new BuildException("Could not find NoesisGUI SDK Include directory in " + NoesisBasePath + "Include.");
-		}
-
-		if (!Directory.Exists(NoesisBasePath + "Lib"))
-		{
-			throw new BuildException("Could not find NoesisGUI SDK Lib directory in " + NoesisBasePath + "Lib.");
 		}
 
 		PublicSystemIncludePaths.Add(NoesisIncludePath);
@@ -54,9 +44,11 @@ public class Noesis : ModuleRules
 
 			if (Target.ProjectFile != null)
 			{
+				System.Console.WriteLine("Copying Noesis.dll to {0}", DirectoryReference.FromFile(Target.ProjectFile).ToString() + NoesisDllTargetPath);
 				CopyNoesisDll(ModuleDirectory + NoesisDllPath, DirectoryReference.FromFile(Target.ProjectFile).ToString() + NoesisDllTargetPath);
 			}
 
+			System.Console.WriteLine("Copying Noesis.dll to {0}", System.IO.Path.GetFullPath(ModuleDirectory + "/../.." + NoesisDllTargetPath));
 			CopyNoesisDll(ModuleDirectory + NoesisDllPath, ModuleDirectory + "/../.." + NoesisDllTargetPath);
 
 			if (System.IO.File.Exists(Target.RelativeEnginePath + NoesisDllTargetPath))
@@ -75,9 +67,9 @@ public class Noesis : ModuleRules
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Mac)
 		{
-			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/osx/Noesis.dylib");
+			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/macos/Noesis.dylib");
 
-			string NoesisDylibPath = "/NoesisSDK/Bin/osx/Noesis.dylib";
+			string NoesisDylibPath = "/NoesisSDK/Bin/macos/Noesis.dylib";
 			RuntimeDependencies.Add(ModuleDirectory + NoesisDylibPath);
 		}
 		else if (Target.Platform == UnrealTargetPlatform.IOS)
@@ -90,6 +82,8 @@ public class Noesis : ModuleRules
 		{
 			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/android_arm/libNoesis.so");
 			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/android_arm64/libNoesis.so");
+			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/android_x86/libNoesis.so");
+			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/android_x86_64/libNoesis.so");
 
 			string NoesisAplPath = "/Noesis_APL.xml";
 			AdditionalPropertiesForReceipt.Add("AndroidPlugin", ModuleDirectory + NoesisAplPath);

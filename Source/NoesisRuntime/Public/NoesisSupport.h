@@ -25,20 +25,32 @@ inline FName NsStringToFName(const char* String)
 	return FName(UTF8_TO_TCHAR(String));
 }
 
-inline NsString TCHARToNsString(const TCHAR* String)
+inline Noesis::String TCHARToNsString(const TCHAR* String)
 {
-	return NsString(TCHAR_TO_UTF8(String));
+	return Noesis::String(TCHAR_TO_UTF8(String));
 }
 
-inline FMatrix NsMatrixToFMatrix(const Noesis::Matrix4f& Matrix)
+inline FMatrix NsMatrixToFMatrix(const Noesis::Matrix4& Matrix)
 {
 	return FMatrix(FPlane(Matrix[0][0], Matrix[1][0], Matrix[2][0], Matrix[3][0]), FPlane(Matrix[0][1], Matrix[1][1], Matrix[2][1], Matrix[3][1]), FPlane(Matrix[0][2], Matrix[1][2], Matrix[2][2], Matrix[3][2]), FPlane(Matrix[0][3], Matrix[1][3], Matrix[2][3], Matrix[3][3]));
 }
 
-inline Noesis::Matrix4f FMatrixToNsMatrix(const FMatrix& Matrix)
+inline Noesis::Matrix4 FMatrixToNsMatrix(const FMatrix& Matrix)
 {
 	FMatrix TransposedMatrix = Matrix.GetTransposed();
-	return Noesis::Matrix4f((float*)&TransposedMatrix);
+	return Noesis::Matrix4((float*)&TransposedMatrix);
+}
+
+inline FString SanitizeAssetPath(const FString& AssetPath)
+{
+	FString Result = AssetPath;
+	const TCHAR* InvalidChar = INVALID_LONGPACKAGE_CHARACTERS;
+;	while (*InvalidChar)
+	{
+		Result.ReplaceCharInline(*InvalidChar, TCHAR('_'), ESearchCase::CaseSensitive);
+		++InvalidChar;
+	}
+	return Result;
 }
 
 inline FString NsProviderPathToAssetPath(const FString& FilePath)
@@ -46,7 +58,7 @@ inline FString NsProviderPathToAssetPath(const FString& FilePath)
 	FString FullPath = FPaths::GetPath(FilePath);
 	FString Package = FPaths::GetBaseFilename(FilePath);
 	FString Extension = FPaths::GetExtension(FilePath);
-	FString AssetPath = FullPath / Package;
+	FString AssetPath = FullPath / SanitizeAssetPath(Package);
 	if (FPackageName::IsValidLongPackageName(AssetPath))
 	{
 		return AssetPath;
@@ -54,6 +66,18 @@ inline FString NsProviderPathToAssetPath(const FString& FilePath)
 
 	return FString("/Game/") + AssetPath;
 }
+
+/// Wrappers to avoid some argument dependent lookup ambiguity errors that arrise when
+/// using our types with Unreal containers
+template<class T>
+struct FNoesisWrapper
+{
+	T Wrapped;
+
+	FNoesisWrapper(const T& In) {
+		Wrapped = In;
+	}
+};
 
 Noesis::Ptr<Noesis::Texture> NoesisCreateTexture(class UTexture* Texture);
 

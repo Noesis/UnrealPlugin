@@ -68,19 +68,19 @@ void FNoesisFontProvider::RegisterFont(class UFont* Font)
 			const FFontData* FontData = &TypefaceEntry.Font;
 			const UFontFace* FontFace = Cast<UFontFace>(FontData->GetFontFaceAsset());
 			FString FontFacePath = FontFace->GetPathName();
-			Noesis::CachedFontProvider::RegisterFont(TCHARToNsString(*FontPackagePath).c_str(), TCHARToNsString(*FontFacePath).c_str());
+			Noesis::CachedFontProvider::RegisterFont(TCHARToNsString(*FontPackagePath).Str(), TCHARToNsString(*FontFacePath).Str());
 		}
 	}
 }
 
-Noesis::FontSource FNoesisFontProvider::MatchFont(const char* BaseUri, const char* FamilyName, Noesis::FontWeight Weight,
-	Noesis::FontStretch Stretch, Noesis::FontStyle Style)
+Noesis::FontSource FNoesisFontProvider::MatchFont(const char* BaseUri, const char* FamilyName, Noesis::FontWeight& Weight,
+	Noesis::FontStretch& Stretch, Noesis::FontStyle& Style)
 {
 	FString AssetPath = NsStringToFString(BaseUri);
 	if (!FPackageName::IsValidLongPackageName(AssetPath / "_Font"))
 	{
-		NsString AbsoluteBaseUri = NsString("/Game/") + BaseUri;
-		return Noesis::CachedFontProvider::MatchFont(AbsoluteBaseUri.c_str(), FamilyName, Weight, Stretch, Style);
+		Noesis::String AbsoluteBaseUri = Noesis::String("/Game/") + BaseUri;
+		return Noesis::CachedFontProvider::MatchFont(AbsoluteBaseUri.Str(), FamilyName, Weight, Stretch, Style);
 	}
 
 	return Noesis::CachedFontProvider::MatchFont(BaseUri, FamilyName, Weight, Stretch, Style);
@@ -91,8 +91,8 @@ bool FNoesisFontProvider::FamilyExists(const char* BaseUri, const char* FamilyNa
 	FString AssetPath = NsStringToFString(BaseUri);
 	if (!FPackageName::IsValidLongPackageName(AssetPath / "_Font"))
 	{
-		NsString AbsoluteBaseUri = NsString("/Game/") + BaseUri;
-		return Noesis::CachedFontProvider::FamilyExists(AbsoluteBaseUri.c_str(), FamilyName);
+		Noesis::String AbsoluteBaseUri = Noesis::String("/Game/") + BaseUri;
+		return Noesis::CachedFontProvider::FamilyExists(AbsoluteBaseUri.Str(), FamilyName);
 	}
 
 	return Noesis::CachedFontProvider::FamilyExists(BaseUri, FamilyName);

@@ -217,8 +217,12 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 	}
 	if (ProjectURIRoot.IsEmpty())
 	{
-		ProjectURIRoot = FPaths::ProjectContentDir();
-		ProjectAssetPathRoot = TEXT("/Game/");
+		FString Root;
+		FString Path;
+		FString Name;
+		FPackageName::SplitLongPackageName(Parent->GetPathName(), Root, Path, Name, false);
+		ProjectAssetPathRoot = Root;
+		FPackageName::ConvertRootPathToContentPath(Root, ProjectURIRoot);
 	}
 
 	UNoesisXaml* NoesisXaml = NewObject<UNoesisXaml>(Parent, Class, Name, Flags);
@@ -229,8 +233,8 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 	NoesisXaml->Fonts.Empty();*/
 
 	FString XamlText = NsStringToFString((const char*)Buffer);
-	NsString Text = TCHARToNsString(*XamlText);
-	Noesis::MemoryStream XamlStream(Text.c_str(), Text.length());
+	Noesis::String Text = TCHARToNsString(*XamlText);
+	Noesis::MemoryStream XamlStream(Text.Str(), Text.Size());
 	auto DependencyCallback = [](void* UserData, const char* URI, Noesis::XamlDependencyType Type)
 	{
 		TArray<FString>& Dependencies = *(TArray<FString>*)UserData;
@@ -242,7 +246,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 	};
 	TArray<FString> Dependencies;
 	FString XamlPackagePath = FPackageName::GetLongPackagePath(NoesisXaml->GetPathName());
-	Noesis::GUI::GetXamlDependencies(&XamlStream, TCHARToNsString(*XamlPackagePath).c_str(), &Dependencies, DependencyCallback);
+	Noesis::GUI::GetXamlDependencies(&XamlStream, TCHARToNsString(*XamlPackagePath).Str(), &Dependencies, DependencyCallback);
 
 	INoesisRuntimeModuleInterface& NoesisRuntime = INoesisRuntimeModuleInterface::Get();
 	FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
@@ -260,7 +264,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 			FString Path = FPaths::GetPath(PackagePath);
 			FString Filename = FPaths::GetBaseFilename(PackagePath);
 			FString Extension = FPaths::GetExtension(PackagePath);
-			FString AssetPath = Path / Filename;
+			FString AssetPath = Path / ObjectTools::SanitizeInvalidChars(Filename, INVALID_LONGPACKAGE_CHARACTERS);
 			FString FilePath = PackagePath.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
 			if (!FPackageName::IsValidLongPackageName(AssetPath / "_Font"))
 			{
@@ -287,7 +291,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 			FString Path = FPaths::GetPath(Dependency);
 			FString Filename = FPaths::GetBaseFilename(Dependency);
 			FString Extension = FPaths::GetExtension(Dependency);
-			FString AssetPath = Path / Filename;
+			FString AssetPath = Path / ObjectTools::SanitizeInvalidChars(Filename, INVALID_LONGPACKAGE_CHARACTERS);
 			FString FilePath = Dependency.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
 			if (!FPackageName::IsValidLongPackageName(AssetPath))
 			{
@@ -329,7 +333,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 		}
 	}
 
-	NoesisXaml->XamlText.Insert((uint8*)Text.c_str(), Text.length(), 0);
+	NoesisXaml->XamlText.Insert((uint8*)Text.Str(), Text.Size(), 0);
 
 	NoesisXaml->LoadXaml();
 

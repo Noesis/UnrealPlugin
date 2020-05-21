@@ -2,22 +2,26 @@
 
 struct In
 {
-    half4 position: ATTRIBUTE0;
+    float2 position: ATTRIBUTE0;
 
 #if HAS_COLOR
     half4 color: ATTRIBUTE1;
 #endif
 
 #if HAS_UV0
-    half2 uv0: ATTRIBUTE2;
+    float2 uv0: ATTRIBUTE2;
 #endif
 
 #if HAS_UV1
-    half2 uv1: ATTRIBUTE3;
+    float2 uv1: ATTRIBUTE3;
+#endif
+
+#if HAS_UV2
+    float4 uv2: ATTRIBUTE4;
 #endif
 
 #if HAS_COVERAGE
-    half coverage: ATTRIBUTE4;
+    half coverage: ATTRIBUTE5;
 #endif
 };
 
@@ -28,24 +32,33 @@ struct Out
 #endif
 
 #if HAS_UV0
-    half2 uv0: TEXCOORD0;
+    float2 uv0: TEXCOORD0;
 #endif
 
 #if HAS_UV1
-    half2 uv1: TEXCOORD1;
+    float2 uv1: TEXCOORD1;
+#endif
+
+#if HAS_UV2
+    float4 uv2: TEXCOORD2;
 #endif
 
 #if HAS_COVERAGE
-    half coverage: TEXCOORD2;
+    half coverage: TEXCOORD3;
+#endif
+
+#if GEN_ST1
+    float2 st1: TEXCOORD4;
 #endif
 };
 
 float4x4 projectionMtx;
+float2 textureSize;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NoesisVS(in In i, out Out o, out float4 out_position: SV_POSITION)
 {
-    out_position = mul(i.position, projectionMtx);
+    out_position = mul(float4(i.position, 0, 1), projectionMtx);
 
 #if HAS_COLOR
     o.color FCOLOR_COMPONENT_SWIZZLE = i.color.bgra;
@@ -59,7 +72,15 @@ void NoesisVS(in In i, out Out o, out float4 out_position: SV_POSITION)
     o.uv1 = i.uv1;
 #endif
 
+#if HAS_UV2
+    o.uv2 = i.uv2;
+#endif
+
 #if HAS_COVERAGE
     o.coverage = i.coverage;
+#endif
+
+#if GEN_ST1
+    o.st1 = i.uv1 * textureSize.xy;
 #endif
 }

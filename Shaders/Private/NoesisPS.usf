@@ -4,62 +4,448 @@
     #error EFFECT not defined
 #endif
 
-#ifndef PAINT
-    #error PAINT not defined
-#endif
+// These have to match Noesis::Shader::Enum
+#define RGBA                              0
+#define MASK                              1
 
-// These have to match the enums in NoesisGuiShaders.h
-#define EFFECT_RGBA                0
-#define EFFECT_MASK                1
-#define EFFECT_PATH                2
-#define EFFECT_PATH_AA             3
-#define EFFECT_IMAGE_PAINT_OPACITY 4
-#define EFFECT_TEXT                5
+#define PATH_SOLID                        2
+#define PATH_LINEAR                       3
+#define PATH_RADIAL                       4
+#define PATH_PATTERN                      5
 
-#define PAINT_SOLID                0
-#define PAINT_LINEAR               1
-#define PAINT_RADIAL               2
-#define PAINT_PATTERN              3
-#define PAINT_NONE                 4
+#define PATH_AA_SOLID                     6
+#define PATH_AA_LINEAR                    7
+#define PATH_AA_RADIAL                    8
+#define PATH_AA_PATTERN                   9
 
-#if EFFECT == EFFECT_RGBA
-#elif EFFECT == EFFECT_MASK
-#elif EFFECT == EFFECT_PATH
-#elif EFFECT == EFFECT_PATH_AA
-    #define HAS_COVERAGE 1
-#elif EFFECT == EFFECT_IMAGE_PAINT_OPACITY
-    #define HAS_UV1 1
-#elif EFFECT == EFFECT_TEXT
-    #define HAS_UV1 1
-#else
-    #error Unknown Effect
-#endif
+#define SDF_SOLID                        10
+#define SDF_LINEAR                       11
+#define SDF_RADIAL                       12
+#define SDF_PATTERN                      13
 
-#if PAINT == PAINT_SOLID
+#define SDF_LCD_SOLID                    14
+#define SDF_LCD_LINEAR                   15
+#define SDF_LCD_RADIAL                   16
+#define SDF_LCD_PATTERN                  17
+
+#define IMAGE_OPACITY_SOLID              18
+#define IMAGE_OPACITY_LINEAR             19
+#define IMAGE_OPACITY_RADIAL             20
+#define IMAGE_OPACITY_PATTERN            21
+
+#define IMAGE_SHADOW_35V                 22
+#define IMAGE_SHADOW_63V                 23
+#define IMAGE_SHADOW_127V                24
+
+#define IMAGE_SHADOW_35H_SOLID           25
+#define IMAGE_SHADOW_35H_LINEAR          26
+#define IMAGE_SHADOW_35H_RADIAL          27
+#define IMAGE_SHADOW_35H_PATTERN         28
+
+#define IMAGE_SHADOW_63H_SOLID           29
+#define IMAGE_SHADOW_63H_LINEAR          30
+#define IMAGE_SHADOW_63H_RADIAL          31
+#define IMAGE_SHADOW_63H_PATTERN         32
+
+#define IMAGE_SHADOW_127H_SOLID          33
+#define IMAGE_SHADOW_127H_LINEAR         34
+#define IMAGE_SHADOW_127H_RADIAL         35
+#define IMAGE_SHADOW_127H_PATTERN        36
+
+#define IMAGE_BLUR_35V                   37
+#define IMAGE_BLUR_63V                   38
+#define IMAGE_BLUR_127V                  39
+
+#define IMAGE_BLUR_35H_SOLID             40
+#define IMAGE_BLUR_35H_LINEAR            41
+#define IMAGE_BLUR_35H_RADIAL            42
+#define IMAGE_BLUR_35H_PATTERN           43
+
+#define IMAGE_BLUR_63H_SOLID             44
+#define IMAGE_BLUR_63H_LINEAR            45
+#define IMAGE_BLUR_63H_RADIAL            46
+#define IMAGE_BLUR_63H_PATTERN           47
+
+#define IMAGE_BLUR_127H_SOLID            48
+#define IMAGE_BLUR_127H_LINEAR           49
+#define IMAGE_BLUR_127H_RADIAL           50
+#define IMAGE_BLUR_127H_PATTERN          51
+
+
+#if EFFECT == RGBA
+    #define EFFECT_RGBA 1
+
+#elif EFFECT == MASK
+
+#elif EFFECT == PATH_SOLID
+    #define EFFECT_PATH 1
+    #define PAINT_SOLID 1
     #define HAS_COLOR 1
-#elif PAINT == PAINT_LINEAR
+
+#elif EFFECT == PATH_LINEAR
+    #define EFFECT_PATH 1
+    #define PAINT_LINEAR 1
     #define HAS_UV0 1
-#elif PAINT == PAINT_RADIAL
+
+#elif EFFECT == PATH_RADIAL
+    #define EFFECT_PATH 1
+    #define PAINT_RADIAL 1
     #define HAS_UV0 1
-#elif PAINT == PAINT_PATTERN
+
+#elif EFFECT == PATH_PATTERN
+    #define EFFECT_PATH 1
+    #define PAINT_PATTERN 1
     #define HAS_UV0 1
-#elif PAINT == PAINT_NONE
+
+#elif EFFECT == PATH_AA_SOLID
+    #define EFFECT_PATH_AA 1
+    #define PAINT_SOLID 1
+    #define HAS_COLOR 1
+    #define HAS_COVERAGE 1
+
+#elif EFFECT == PATH_AA_LINEAR
+    #define EFFECT_PATH_AA 1
+    #define PAINT_LINEAR 1
+    #define HAS_UV0 1
+    #define HAS_COVERAGE 1
+
+#elif EFFECT == PATH_AA_RADIAL
+    #define EFFECT_PATH_AA 1
+    #define PAINT_RADIAL 1
+    #define HAS_UV0 1
+    #define HAS_COVERAGE 1
+
+#elif EFFECT == PATH_AA_PATTERN
+    #define EFFECT_PATH_AA 1
+    #define PAINT_PATTERN 1
+    #define HAS_UV0 1
+    #define HAS_COVERAGE 1
+
+#elif EFFECT == SDF_SOLID
+    #define EFFECT_SDF 1
+    #define PAINT_SOLID 1
+    #define HAS_COLOR 1
+    #define HAS_UV1 1
+    #define HAS_ST1 1
+
+#elif EFFECT == SDF_LINEAR
+    #define EFFECT_SDF 1
+    #define PAINT_LINEAR 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_ST1 1
+
+#elif EFFECT == SDF_RADIAL
+    #define EFFECT_SDF 1
+    #define PAINT_RADIAL 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_ST1 1
+
+#elif EFFECT == SDF_PATTERN
+    #define EFFECT_SDF 1
+    #define PAINT_PATTERN 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_ST1 1
+
+#elif EFFECT == SDF_LCD_SOLID
+    #define EFFECT_SDF_LCD 1
+    #define PAINT_SOLID 1
+    #define HAS_COLOR 1
+    #define HAS_UV1 1
+    #define HAS_ST1 1
+
+#elif EFFECT == SDF_LCD_LINEAR
+    #define EFFECT_SDF_LCD 1
+    #define PAINT_LINEAR 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_ST1 1
+
+#elif EFFECT == SDF_LCD_RADIAL
+    #define EFFECT_SDF_LCD 1
+    #define PAINT_RADIAL 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_ST1 1
+
+#elif EFFECT == SDF_LCD_PATTERN
+    #define EFFECT_SDF_LCD 1
+    #define PAINT_PATTERN 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_ST1 1
+
+#elif EFFECT == IMAGE_OPACITY_SOLID
+    #define EFFECT_IMAGE_OPACITY 1
+    #define PAINT_SOLID 1
+    #define HAS_COLOR 1
+    #define HAS_UV1 1
+
+#elif EFFECT == IMAGE_OPACITY_LINEAR
+    #define EFFECT_IMAGE_OPACITY 1
+    #define PAINT_LINEAR 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+
+#elif EFFECT == IMAGE_OPACITY_RADIAL
+    #define EFFECT_IMAGE_OPACITY 1
+    #define PAINT_RADIAL 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+
+#elif EFFECT == IMAGE_OPACITY_PATTERN
+    #define EFFECT_IMAGE_OPACITY 1
+    #define PAINT_PATTERN 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+
+#elif EFFECT == IMAGE_SHADOW_35V
+    #define EFFECT_IMAGE_SHADOW_V 1
+    #define GAUSSIAN_35_TAP 1
+    #define HAS_COLOR 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_SHADOW_63V
+    #define EFFECT_IMAGE_SHADOW_V 1
+    #define GAUSSIAN_63_TAP 1
+    #define HAS_COLOR 1
+    #define HAS_UV1 1
+    #define HAS_UV2 1
+
+#elif EFFECT == IMAGE_SHADOW_127V
+    #define EFFECT_IMAGE_SHADOW_V 1
+    #define GAUSSIAN_127_TAP 1
+    #define HAS_COLOR 1
+    #define HAS_UV1 1
+    #define HAS_UV2 1
+
+#elif EFFECT == IMAGE_SHADOW_35H_SOLID
+    #define EFFECT_IMAGE_SHADOW_H 1
+    #define GAUSSIAN_35_TAP 1
+    #define PAINT_SOLID 1
+    #define HAS_COLOR 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_SHADOW_35H_LINEAR
+    #define EFFECT_IMAGE_SHADOW_H 1
+    #define GAUSSIAN_35_TAP 1
+    #define PAINT_LINEAR 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_SHADOW_35H_RADIAL
+    #define EFFECT_IMAGE_SHADOW_H 1
+    #define GAUSSIAN_35_TAP 1
+    #define PAINT_RADIAL 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_SHADOW_35H_PATTERN
+    #define EFFECT_IMAGE_SHADOW_H 1
+    #define GAUSSIAN_35_TAP 1
+    #define PAINT_PATTERN 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_SHADOW_63H_SOLID
+    #define EFFECT_IMAGE_SHADOW_H 1
+    #define GAUSSIAN_63_TAP 1
+    #define PAINT_SOLID 1
+    #define HAS_COLOR 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_SHADOW_63H_LINEAR
+    #define EFFECT_IMAGE_SHADOW_H 1
+    #define GAUSSIAN_63_TAP 1
+    #define PAINT_LINEAR 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_SHADOW_63H_RADIAL
+    #define EFFECT_IMAGE_SHADOW_H 1
+    #define GAUSSIAN_63_TAP 1
+    #define PAINT_RADIAL 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_SHADOW_63H_PATTERN
+    #define EFFECT_IMAGE_SHADOW_H 1
+    #define GAUSSIAN_63_TAP 1
+    #define PAINT_PATTERN 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_SHADOW_127H_SOLID
+    #define EFFECT_IMAGE_SHADOW_H 1
+    #define GAUSSIAN_127_TAP 1
+    #define PAINT_SOLID 1
+    #define HAS_COLOR 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_SHADOW_127H_LINEAR
+    #define EFFECT_IMAGE_SHADOW_H 1
+    #define GAUSSIAN_127_TAP 1
+    #define PAINT_LINEAR 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_SHADOW_127H_RADIAL
+    #define EFFECT_IMAGE_SHADOW_H 1
+    #define GAUSSIAN_127_TAP 1
+    #define PAINT_RADIAL 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_SHADOW_127H_PATTERN
+    #define EFFECT_IMAGE_SHADOW_H 1
+    #define GAUSSIAN_127_TAP 1
+    #define PAINT_PATTERN 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_BLUR_35V
+    #define EFFECT_IMAGE_BLUR_V 1
+    #define GAUSSIAN_35_TAP 1
+    #define HAS_COLOR 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_BLUR_63V
+    #define EFFECT_IMAGE_BLUR_V 1
+    #define GAUSSIAN_63_TAP 1
+    #define HAS_COLOR 1
+    #define HAS_UV1 1
+    #define HAS_UV2 1
+
+#elif EFFECT == IMAGE_BLUR_127V
+    #define EFFECT_IMAGE_BLUR_V 1
+    #define GAUSSIAN_127_TAP 1
+    #define HAS_COLOR 1
+    #define HAS_UV1 1
+    #define HAS_UV2 1
+
+#elif EFFECT == IMAGE_BLUR_35H_SOLID
+    #define EFFECT_IMAGE_BLUR_H 1
+    #define GAUSSIAN_35_TAP 1
+    #define PAINT_SOLID 1
+    #define HAS_COLOR 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_BLUR_35H_LINEAR
+    #define EFFECT_IMAGE_BLUR_H 1
+    #define GAUSSIAN_35_TAP 1
+    #define PAINT_LINEAR 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_BLUR_35H_RADIAL
+    #define EFFECT_IMAGE_BLUR_H 1
+    #define GAUSSIAN_35_TAP 1
+    #define PAINT_RADIAL 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_BLUR_35H_PATTERN
+    #define EFFECT_IMAGE_BLUR_H 1
+    #define GAUSSIAN_35_TAP 1
+    #define PAINT_PATTERN 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_BLUR_63H_SOLID
+    #define EFFECT_IMAGE_BLUR_H 1
+    #define GAUSSIAN_63_TAP 1
+    #define PAINT_SOLID 1
+    #define HAS_COLOR 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_BLUR_63H_LINEAR
+    #define EFFECT_IMAGE_BLUR_H 1
+    #define GAUSSIAN_63_TAP 1
+    #define PAINT_LINEAR 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_BLUR_63H_RADIAL
+    #define EFFECT_IMAGE_BLUR_H 1
+    #define GAUSSIAN_63_TAP 1
+    #define PAINT_RADIAL 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_BLUR_63H_PATTERN
+    #define EFFECT_IMAGE_BLUR_H 1
+    #define GAUSSIAN_63_TAP 1
+    #define PAINT_PATTERN 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_BLUR_127H_SOLID
+    #define EFFECT_IMAGE_BLUR_H 1
+    #define GAUSSIAN_127_TAP 1
+    #define PAINT_SOLID 1
+    #define HAS_COLOR 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_BLUR_127H_LINEAR
+    #define EFFECT_IMAGE_BLUR_H 1
+    #define GAUSSIAN_127_TAP 1
+    #define PAINT_LINEAR 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_BLUR_127H_RADIAL
+    #define EFFECT_IMAGE_BLUR_H 1
+    #define GAUSSIAN_127_TAP 1
+    #define PAINT_RADIAL 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
+#elif EFFECT == IMAGE_BLUR_127H_PATTERN
+    #define EFFECT_IMAGE_BLUR_H 1
+    #define GAUSSIAN_127_TAP 1
+    #define PAINT_PATTERN 1
+    #define HAS_UV0 1
+    #define HAS_UV1 1
+    #define HAS_UV2 2
+
 #else
-    #error Unknown Paint mode
+    #error EFFECT not defined
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#if EFFECT == EFFECT_RGBA
-    float4 rgba;
-#endif
-
-#if PAINT == PAINT_RADIAL
-    float4 radialGrad[2];
-#endif
-
-#if (PAINT == PAINT_LINEAR) || (PAINT == PAINT_RADIAL) || (PAINT == PAINT_PATTERN)
-    float opacity;
-#endif
+#define SDF_SCALE 7.96875
+#define SDF_BIAS 0.50196078431
+#define SDF_AA_FACTOR 0.65
+#define SDF_BASE_MIN 0.125
+#define SDF_BASE_MAX 0.25
+#define SDF_BASE_DEV -0.65
 
 Texture2D patternTex;
 SamplerState patternSampler;
@@ -73,6 +459,25 @@ SamplerState imageSampler;
 Texture2D glyphsTex;
 SamplerState glyphsSampler;
 
+Texture2D shadowTex;
+SamplerState shadowSampler;
+
+#if EFFECT_RGBA
+    float4 rgba;
+#endif
+
+#if PAINT_RADIAL
+    float4 radialGrad[2];
+#endif
+
+#if PAINT_LINEAR || PAINT_RADIAL || PAINT_PATTERN
+    float opacity;
+#endif
+
+float4 textureSize;
+
+float4 effectsParams[8];
+
 struct In
 {
 #if HAS_COLOR
@@ -80,64 +485,250 @@ struct In
 #endif
 
 #if HAS_UV0
-    half2 uv0: TEXCOORD0;
+    float2 uv0: TEXCOORD0;
 #endif
 
 #if HAS_UV1
-    half2 uv1: TEXCOORD1;
+    float2 uv1: TEXCOORD1;
+#endif
+
+#if HAS_UV2
+    float4 uv2: TEXCOORD2;
+#endif
+
+#if HAS_ST1
+    float2 st1: TEXCOORD3;
 #endif
 
 #if HAS_COVERAGE
-    half coverage: TEXCOORD2;
+    half coverage: TEXCOORD4;
 #endif
 };
 
+struct Out
+{
+    half4 color: SV_Target0;
+
+#if EFFECT_SDF_LCD
+    half4 alpha: SV_Target1;
+#endif
+};
+
+#if GAUSSIAN_35_TAP
+    #define GAUSSIAN_NUM_SAMPLES 9
+    static const half weights[GAUSSIAN_NUM_SAMPLES] =
+    {
+        0.10855, 0.13135, 0.10406, 0.07216, 0.04380, 0.02328, 0.01083, 0.00441, 0.00157
+    };
+    static const half offsets[GAUSSIAN_NUM_SAMPLES] =
+    {
+        0.66293, 2.47904, 4.46232, 6.44568, 8.42917, 10.41281, 12.39664, 14.38070, 16.36501
+    };
+#endif
+
+#if GAUSSIAN_63_TAP
+    #define GAUSSIAN_NUM_SAMPLES 16
+    static const half weights[GAUSSIAN_NUM_SAMPLES] =
+    {
+        0.05991, 0.07758, 0.07232, 0.06476, 0.05571, 0.04604, 0.03655, 0.02788, 0.02042, 0.01438,
+        0.00972, 0.00631, 0.00394, 0.00236, 0.00136, 0.00075
+    };
+    static const half offsets[GAUSSIAN_NUM_SAMPLES] =
+    {
+        0.66555, 2.49371, 4.48868, 6.48366, 8.47864, 10.47362, 12.46860, 14.46360, 16.45860, 18.45361,
+        20.44863, 22.44365, 24.43869, 26.43375, 28.42881, 30.42389
+    };
+#endif
+
+#if GAUSSIAN_127_TAP
+    #define GAUSSIAN_NUM_SAMPLES 32
+    static const half weights[GAUSSIAN_NUM_SAMPLES] =
+    {
+        0.02954, 0.03910, 0.03844, 0.03743, 0.03609, 0.03446, 0.03259, 0.03052, 0.02830, 0.02600,
+        0.02365, 0.02130, 0.01900, 0.01679, 0.01469, 0.01272, 0.01092, 0.00928, 0.00781, 0.00651,
+        0.00537, 0.00439, 0.00355, 0.00285, 0.00226, 0.00178, 0.00138, 0.00107, 0.00081, 0.00062,
+        0.00046, 0.00034
+    };
+    static const half offsets[GAUSSIAN_NUM_SAMPLES] =
+    {
+        0.66640, 2.49848, 4.49726, 6.49605, 8.49483, 10.49362, 12.49240, 14.49119, 16.48997, 18.48876,
+        20.48754, 22.48633, 24.48511, 26.48390, 28.48268, 30.48147, 32.48026, 34.47904, 36.47783, 38.47662,
+        40.47540, 42.47419, 44.47298, 46.47176, 48.47055, 50.46934, 52.46813, 54.46692, 56.46571, 58.46450,
+        60.46329, 62.46208
+    };
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-half4 NoesisPS(in In i): SV_Target0
+Out NoesisPS(in In i)
 {
     /////////////////////////////////////////////////////
     // Fetch paint color and opacity
     /////////////////////////////////////////////////////
-    #if PAINT == PAINT_SOLID
+    #if PAINT_SOLID
         half4 paint = i.color;
         half opacity_ = 1.0f;
 
-    #elif PAINT == PAINT_LINEAR
-        half4 paint = Texture2DSampleLevel(rampsTex, rampsSampler, i.uv0, 0);
+    #elif PAINT_LINEAR
+        half4 paint = Texture2DSample(rampsTex, rampsSampler, i.uv0);
         half opacity_ = opacity;
 
-    #elif PAINT == PAINT_RADIAL
+    #elif PAINT_RADIAL
         half dd = radialGrad[1].y * i.uv0.x - radialGrad[1].z * i.uv0.y;
         half u = radialGrad[0].x * i.uv0.x + radialGrad[0].y * i.uv0.y + radialGrad[0].z * 
             sqrt(radialGrad[0].w * i.uv0.x * i.uv0.x + radialGrad[1].x * i.uv0.y * i.uv0.y - dd * dd);
-        half4 paint = Texture2DSampleLevel(rampsTex, rampsSampler, half2(u, radialGrad[1].w), 0);
+        half4 paint = Texture2DSample(rampsTex, rampsSampler, half2(u, radialGrad[1].w));
         half opacity_ = opacity;
 
-    #elif PAINT == PAINT_PATTERN
-        half4 paint = Texture2DSampleLevel(patternTex, patternSampler, i.uv0, 0);
+    #elif PAINT_PATTERN
+        half4 paint = Texture2DSample(patternTex, patternSampler, i.uv0);
         half opacity_ = opacity;
     #endif
+
+    Out o;
 
     /////////////////////////////////////////////////////
     // Apply selected effect
     /////////////////////////////////////////////////////
-    #if EFFECT == EFFECT_RGBA
-        return rgba;
+    #if EFFECT_RGBA
+        o.color = rgba;
 
-    #elif EFFECT == EFFECT_MASK
-        return half4(1.0f, 1.0f, 1.0f, 1.0f);
+    #elif EFFECT_MASK
+        o.color = half4(1.0f, 1.0f, 1.0f, 1.0f);
 
-    #elif EFFECT == EFFECT_PATH
-        return opacity_ * paint;
+    #elif EFFECT_PATH
+        o.color = opacity_ * paint;
 
-    #elif EFFECT == EFFECT_PATH_AA
-        return (opacity_ * i.coverage) * paint;
+    #elif EFFECT_PATH_AA
+        o.color = (opacity_ * i.coverage) * paint;
 
-    #elif EFFECT == EFFECT_IMAGE_PAINT_OPACITY
-        return Texture2DSampleLevel(imageTex, imageSampler, i.uv1, 0) * (opacity_ * paint.a);
+    #elif EFFECT_IMAGE_OPACITY
+        o.color = Texture2DSample(imageTex, imageSampler, i.uv1) * (opacity_ * paint.a);
 
-    #elif EFFECT == EFFECT_TEXT
-        return (Texture2DSampleLevel(glyphsTex, glyphsSampler, i.uv1, 0).r * opacity_) * paint;
+    #elif EFFECT_IMAGE_SHADOW_V
+        #define BLUR_SIZE effectsParams[0].x
+
+        half alpha = 0;
+        half2 dir = half2(0, BLUR_SIZE * textureSize.w);
+
+        for (int x = 0; x < GAUSSIAN_NUM_SAMPLES; x++)
+        {
+            half2 uvOffset = offsets[x] * dir;
+            alpha += weights[x] *
+            (
+                Texture2DSample(imageTex, imageSampler, clamp(i.uv1 + uvOffset, i.uv2.xy, i.uv2.zw)).a + 
+                Texture2DSample(imageTex, imageSampler, clamp(i.uv1 - uvOffset, i.uv2.xy, i.uv2.zw)).a
+            );
+        }
+
+        o.color = half4(0, 0, 0, alpha);
+
+    #elif EFFECT_IMAGE_SHADOW_H
+        #define SHADOW_COLOR effectsParams[0]
+        #define BLUR_SIZE effectsParams[1].x
+        #define SHADOW_OFFSETX effectsParams[1].y
+        #define SHADOW_OFFSETY effectsParams[1].z
+
+        half alpha = 0;
+        half2 dir = half2(BLUR_SIZE * textureSize.z, 0);
+        half2 offset = half2(SHADOW_OFFSETX * textureSize.z, SHADOW_OFFSETY * textureSize.w);
+
+        for (int x = 0; x < GAUSSIAN_NUM_SAMPLES; x++)
+        {
+            half2 uvOffset = offsets[x] * dir;
+            alpha += weights[x] *
+            (
+                Texture2DSample(shadowTex, shadowSampler, clamp(i.uv1 - offset + uvOffset, i.uv2.xy, i.uv2.zw)).a +
+                Texture2DSample(shadowTex, shadowSampler, clamp(i.uv1 - offset - uvOffset, i.uv2.xy, i.uv2.zw)).a
+            );
+        }
+
+        half4 img = Texture2DSample(imageTex, imageSampler, clamp(i.uv1, i.uv2.xy, i.uv2.zw));
+        o.color = (img + (1.0f - img.a) * (SHADOW_COLOR * alpha)) * (opacity_ * paint.a);
+
+    #elif EFFECT_IMAGE_BLUR_V
+        #define BLUR_SIZE effectsParams[0].x
+
+        half4 color = half4(0, 0, 0, 0);
+        half2 dir = half2(0, BLUR_SIZE * textureSize.w);
+
+        for (int x = 0; x < GAUSSIAN_NUM_SAMPLES; x++)
+        {
+            half2 uvOffset = offsets[x] * dir;
+            color += weights[x] *
+            (
+                Texture2DSample(imageTex, imageSampler, clamp(i.uv1 + uvOffset, i.uv2.xy, i.uv2.zw)) + 
+                Texture2DSample(imageTex, imageSampler, clamp(i.uv1 - uvOffset, i.uv2.xy, i.uv2.zw))
+            );
+        }
+
+        o.color = color;
+
+    #elif EFFECT_IMAGE_BLUR_H
+        #define BLUR_SIZE effectsParams[0].x
+
+        half4 color = half4(0, 0, 0, 0);
+        half2 dir = half2(BLUR_SIZE * textureSize.z, 0);
+
+        for (int x = 0; x < GAUSSIAN_NUM_SAMPLES; x++)
+        {
+            half2 uvOffset = offsets[x] * dir;
+            color += weights[x] *
+            (
+                Texture2DSample(imageTex, imageSampler, clamp(i.uv1 + uvOffset, i.uv2.xy, i.uv2.zw)) +
+                Texture2DSample(imageTex, imageSampler, clamp(i.uv1 - uvOffset, i.uv2.xy, i.uv2.zw))
+            );
+        }
+
+        o.color = color * (opacity_ * paint.a);
+
+    #elif EFFECT_SDF
+        half4 color = Texture2DSample(glyphsTex, glyphsSampler, i.uv1);
+        half distance = SDF_SCALE * (color.r - SDF_BIAS);
+
+        #if 1
+            half2 grad = ddx(i.st1);
+        #else
+            // For non-uniform scale or perspective this is the correct code. It is much more complex than the isotropic
+            // case and probably not worth it
+            // http://www.essentialmath.com/GDC2015/VanVerth_Jim_DrawingAntialiasedEllipse.pdf
+            // https://www.essentialmath.com/blog/?p=151
+            half2 Jdx = ddx(i.st1);
+            half2 Jdy = ddy(i.st1);
+            half2 distGrad = half2(ddx(distance), ddy(distance));
+            half distGradLen2 = dot(distGrad, distGrad);
+            distGrad = distGradLen2 < 0.0001 ? half2(0.7071, 0.7071) : distGrad * half(rsqrt(distGradLen2));
+            half2 grad = half2(distGrad.x * Jdx.x + distGrad.y * Jdy.x, distGrad.x * Jdx.y + distGrad.y * Jdy.y);
+        #endif
+
+        half gradLen = (half)length(grad);
+        half scale = 1.0 / gradLen;
+        half base = SDF_BASE_DEV * (1.0f - (clamp(scale, SDF_BASE_MIN, SDF_BASE_MAX) - SDF_BASE_MIN) / (SDF_BASE_MAX - SDF_BASE_MIN));
+        half range = SDF_AA_FACTOR * gradLen;
+        half alpha = smoothstep(base - range, base + range, distance);
+
+        o.color = (alpha * opacity_) * paint;
+
+    #elif EFFECT_SDF_LCD
+        half4 green = Texture2DSample(glyphsTex, glyphsSampler, i.uv1);
+        half3 distance = SDF_SCALE * (green.r - SDF_BIAS);
+
+        half2 Jdx = ddx(i.st1);
+        half2 Jdy = ddy(i.st1);
+        half2 distGrad = half2(ddx(distance.r), ddy(distance.r));
+        half distGradLen2 = dot(distGrad, distGrad);
+        distGrad = distGradLen2 < 0.0001 ? half2(0.7071, 0.7071) : distGrad * half(rsqrt(distGradLen2));
+        half2 grad = half2(distGrad.x * Jdx.x + distGrad.y * Jdy.x, distGrad.x * Jdx.y + distGrad.y * Jdy.y);
+
+        half gradLen = (half)length(grad);
+        half scale = 1.0 / gradLen;
+        half base = SDF_BASE_DEV * (1.0 - (clamp(scale, SDF_BASE_MIN, SDF_BASE_MAX) - SDF_BASE_MIN) / (SDF_BASE_MAX - SDF_BASE_MIN));
+        half range = SDF_AA_FACTOR * gradLen;
+        half3 alpha = smoothstep(base - range, base + range, distance);
+
+        o.color = half4(opacity_ * paint.rgb * alpha.rgb, alpha.g);
+        o.alpha = half4((opacity_ * paint.a) * alpha.rgb, alpha.g);
 
     #endif
+
+    return o;
 }

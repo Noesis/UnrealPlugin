@@ -39,14 +39,13 @@
 // Noesis includes
 #include "NoesisSDK.h"
 
-extern "C" void NsRegisterReflectionAppInteractivity(Noesis::ComponentFactory*, bool);
+extern "C" void NsRegisterReflectionAppInteractivity();
 
 static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* Desc, bool Fatal)
 {
 	if (Fatal)
 	{
-		UE_LOG(LogNoesis, Error, TEXT("%s"), *NsStringToFString(Desc));
-		FPlatformMisc::RequestExit(true);
+		LowLevelFatalErrorHandler(Filename, Line, TEXT("%s"), *NsStringToFString(Desc));
 	}
 	UE_LOG(LogNoesis, Warning, TEXT("%s"), *NsStringToFString(Desc));
 }
@@ -148,6 +147,10 @@ void OnAssetRenamed(const FAssetData&, const FString&)
 
 void OnPostEngineInit()
 {
+	FString LicenseName = GetDefault<UNoesisSettings>()->LicenseName;
+	FString LicenseKey = GetDefault<UNoesisSettings>()->LicenseKey;
+	Noesis::GUI::SetLicense(TCHAR_TO_UTF8(*LicenseName), TCHAR_TO_UTF8(*LicenseKey));
+
 #if WITH_EDITOR
 	if (GEditor)
 	{
@@ -210,7 +213,7 @@ public:
 			FString CurrentText = InitialText;
 			FString NewString = InNewText.ToString();
 			FString NewText = CurrentText.Left(BeginIndex) + NewString + CurrentText.RightChop(BeginIndex + Length);
-			TextBox->SetText(TCHARToNsString(*NewText).c_str());
+			TextBox->SetText(TCHARToNsString(*NewText).Str());
 			int32 NewLength = NewString.Len();
 			TextBox->SetSelectionStart(BeginIndex);
 			TextBox->SetSelectionLength(NewLength);
@@ -221,7 +224,7 @@ public:
 			FString CurrentText = InitialText;
 			FString NewString = InNewText.ToString();
 			FString NewText = CurrentText.Left(BeginIndex) + NewString + CurrentText.RightChop(BeginIndex + Length);
-			TextBox->SetText(TCHARToNsString(*NewText).c_str());
+			TextBox->SetText(TCHARToNsString(*NewText).Str());
 			int32 NewLength = NewString.Len();
 			TextBox->SetSelectionStart(BeginIndex);
 			TextBox->SetSelectionLength(NewLength);
@@ -284,7 +287,7 @@ public:
 	virtual void SetTextFromVirtualKeyboard(const FText& InNewText, ETextEntryType TextEntryType) override
 	{
 		FString NewString = InNewText.ToString();
-		PasswordBox->SetPassword(TCHARToNsString(*NewString).c_str());
+		PasswordBox->SetPassword(TCHARToNsString(*NewString).Str());
 
 		if (LastSelectedPasswordBox != PasswordBox)
 		{
@@ -437,9 +440,12 @@ public:
 	// IModuleInterface interface
 	virtual void StartupModule() override
 	{
+		Noesis::GUI::SetErrorHandler(&NoesisErrorHandler);
+		Noesis::GUI::SetLogHandler(&NoesisLogHandler);
 		Noesis::MemoryCallbacks MemoryCallbacks{ NoesisAllocationCallbackUserData, &NoesisAlloc, &NoesisRealloc, &NoesisDealloc, &NoesisAllocSize };
-		Noesis::GUI::Init(&NoesisErrorHandler, &NoesisLogHandler, &MemoryCallbacks);
-		NsRegisterReflectionAppInteractivity(nullptr, true);
+		Noesis::GUI::SetMemoryCallbacks(MemoryCallbacks);
+		Noesis::GUI::Init("", "");
+		NsRegisterReflectionAppInteractivity();
 
 		NoesisXamlProvider = new FNoesisXamlProvider();
 		NoesisTextureProvider = new FNoesisTextureProvider();
@@ -452,7 +458,7 @@ public:
 		LastSelectedPasswordBox.Reset();
 		Noesis::GUI::SetSoftwareKeyboardCallback(nullptr, &NoesisSoftwareKeyboardCallback);
 
-		Noesis::GUI::SetPlaySoundCallback(nullptr, &NoesisPlaySoundCallback);
+		Noesis::GUI::SetPlayAudioCallback(nullptr, &NoesisPlaySoundCallback);
 
 		NoesisRuntimeModuleInterface = this;
 
@@ -460,7 +466,7 @@ public:
 
 		PostEngineInitDelegateHandle = FCoreDelegates::OnPostEngineInit.AddStatic(OnPostEngineInit);
 
-		NsGetKernel()->GetReflectionRegistry()->SetFallbackHandler(&NoesisReflectionRegistryCallback);
+		Noesis::Reflection::SetFallbackHandler(&NoesisReflectionRegistryCallback);
 
 		FString PluginShaderDir = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("NoesisGUI"))->GetBaseDir(), TEXT("Shaders"));
 		AddShaderSourceDirectoryMapping(TEXT("/Plugin/NoesisGUI"), PluginShaderDir);
@@ -468,7 +474,7 @@ public:
 
 	virtual void ShutdownModule() override
 	{
-		NsGetKernel()->GetReflectionRegistry()->SetFallbackHandler(nullptr);
+		Noesis::Reflection::SetFallbackHandler(nullptr);
 
 		FCoreDelegates::OnPostEngineInit.Remove(PostEngineInitDelegateHandle);
 

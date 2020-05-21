@@ -10,27 +10,7 @@
 #include "GlobalShader.h"
 #include "ShaderParameterUtils.h"
 
-// These have to match the defines in Noesis.usf
-enum NoesisShaderEffect
-{
-	EFFECT_RGBA = 0,
-	EFFECT_MASK = 1,
-	EFFECT_PATH = 2,
-	EFFECT_PATH_AA = 3,
-	EFFECT_IMAGE_PAINT_OPACITY = 4,
-	EFFECT_TEXT = 5
-};
-
-enum NoesisShaderPaint
-{
-	PAINT_SOLID = 0,
-	PAINT_LINEAR = 1,
-	PAINT_RADIAL = 2,
-	PAINT_PATTERN = 3,
-	PAINT_NONE = 4,
-};
-
-template<bool HasColor, bool HasUv0, bool HasUv1, bool HasCoverage>
+template<bool HasColor, bool HasUv0, bool HasUv1, bool HasUv2, bool HasCoverage>
 class FNoesisVertexDeclaration : public FRenderResource
 {
 public:
@@ -42,7 +22,7 @@ public:
 	typedef FVector2D FNoesisVertexUv;
 	typedef float FNoesisVertexCoverage;
 
-	static const uint16 Stride = sizeof(FNoesisVertexPosition) + (HasColor ? sizeof(FNoesisVertexColor) : 0) + (HasUv0 ? sizeof(FNoesisVertexUv) : 0) + (HasUv1 ? sizeof(FNoesisVertexUv) : 0) + (HasCoverage ? sizeof(FNoesisVertexCoverage) : 0);
+	static const uint16 Stride = sizeof(FNoesisVertexPosition) + (HasColor ? sizeof(FNoesisVertexColor) : 0) + (HasUv0 ? sizeof(FNoesisVertexUv) : 0) + (HasUv1 ? sizeof(FNoesisVertexUv) : 0) + (HasUv2 ? sizeof(FNoesisVertexUv) : 0) + (HasCoverage ? sizeof(FNoesisVertexCoverage) : 0);
 
 	virtual ~FNoesisVertexDeclaration()
 	{
@@ -69,9 +49,14 @@ public:
 			Elements.Add(FVertexElement(0, Offset, VET_Float2, 3, Stride));
 			Offset += sizeof(FNoesisVertexUv);
 		}
+		if (HasUv2)
+		{
+			Elements.Add(FVertexElement(0, Offset, VET_UShort4N, 4, Stride));
+			Offset += sizeof(FNoesisVertexUv);
+		}
 		if (HasCoverage)
 		{
-			Elements.Add(FVertexElement(0, Offset, VET_Float1, 4, Stride));
+			Elements.Add(FVertexElement(0, Offset, VET_Float1, 5, Stride));
 			Offset += sizeof(FNoesisVertexCoverage);
 		}
 		check(Offset == Stride);
@@ -84,13 +69,15 @@ public:
 	}
 };
 
-typedef FNoesisVertexDeclaration<false, false, false, false> FNoesisPosVertexDeclaration;
-typedef FNoesisVertexDeclaration<true, false, false, false> FNoesisPosColorVertexDeclaration;
-typedef FNoesisVertexDeclaration<false, true, false, false> FNoesisPosTex0VertexDeclaration;
-typedef FNoesisVertexDeclaration<true, false, false, true> FNoesisPosColorCoverageVertexDeclaration;
-typedef FNoesisVertexDeclaration<false, true, false, true> FNoesisPosTex0CoverageVertexDeclaration;
-typedef FNoesisVertexDeclaration<true, false, true, false> FNoesisPosColorTex1VertexDeclaration;
-typedef FNoesisVertexDeclaration<false, true, true, false> FNoesisPosTex0Tex1VertexDeclaration;
+typedef FNoesisVertexDeclaration<false, false, false, false, false> FNoesisPosVertexDeclaration;
+typedef FNoesisVertexDeclaration<true, false, false, false, false> FNoesisPosColorVertexDeclaration;
+typedef FNoesisVertexDeclaration<false, true, false, false, false> FNoesisPosTex0VertexDeclaration;
+typedef FNoesisVertexDeclaration<true, false, false, false, true> FNoesisPosColorCoverageVertexDeclaration;
+typedef FNoesisVertexDeclaration<false, true, false, false, true> FNoesisPosTex0CoverageVertexDeclaration;
+typedef FNoesisVertexDeclaration<true, false, true, false, false> FNoesisPosColorTex1VertexDeclaration;
+typedef FNoesisVertexDeclaration<false, true, true, false, false> FNoesisPosTex0Tex1VertexDeclaration;
+typedef FNoesisVertexDeclaration<true, false, true, true, false> FNoesisPosColorTex1Tex2VertexDeclaration;
+typedef FNoesisVertexDeclaration<false, true, true, true, false> FNoesisPosTex0Tex1Tex2VertexDeclaration;
 
 extern TGlobalResource<FNoesisPosVertexDeclaration> GNoesisPosVertexDeclaration;
 extern TGlobalResource<FNoesisPosColorVertexDeclaration> GNoesisPosColorVertexDeclaration;
@@ -99,6 +86,8 @@ extern TGlobalResource<FNoesisPosColorCoverageVertexDeclaration> GNoesisPosColor
 extern TGlobalResource<FNoesisPosTex0CoverageVertexDeclaration> GNoesisPosTex0CoverageVertexDeclaration;
 extern TGlobalResource<FNoesisPosColorTex1VertexDeclaration> GNoesisPosColorTex1VertexDeclaration;
 extern TGlobalResource<FNoesisPosTex0Tex1VertexDeclaration> GNoesisPosTex0Tex1VertexDeclaration;
+extern TGlobalResource<FNoesisPosColorTex1Tex2VertexDeclaration> GNoesisPosColorTex1Tex2VertexDeclaration;
+extern TGlobalResource<FNoesisPosTex0Tex1Tex2VertexDeclaration> GNoesisPosTex0Tex1Tex2VertexDeclaration;
 
 class FNoesisVSBase : public FGlobalShader
 {
@@ -107,6 +96,7 @@ public:
 		: FGlobalShader(Initializer)
 	{
 		ProjectionMtx.Bind(Initializer.ParameterMap, TEXT("projectionMtx"));
+		TextureSize.Bind(Initializer.ParameterMap, TEXT("textureSize"));
 	}
 
 	FNoesisVSBase()
@@ -119,20 +109,29 @@ public:
 	{
 		bool bShaderHasOutdatedParameters = FGlobalShader::Serialize(Ar);
 		Ar << ProjectionMtx;
+		Ar << TextureSize;
 		return bShaderHasOutdatedParameters || true;
 	}
 
-	void SetParameters(FRHICommandList& RHICmdList, const FMatrix& ProjectionMtxValue)
+	void SetParameters(FRHICommandList& RHICmdList, const FMatrix& ProjectionMtxValue, const float (*TextureSizeValue)[2])
 	{
 		FRHIVertexShader* ShaderRHI = GetVertexShader();
 
+		check(ProjectionMtx.IsBound());
 		SetShaderValue(RHICmdList, ShaderRHI, ProjectionMtx, ProjectionMtxValue);
+
+		if (TextureSizeValue)
+		{
+			check(TextureSize.IsBound());
+			SetShaderValue(RHICmdList, ShaderRHI, TextureSize, *TextureSizeValue);
+		}
 	}
 
 	FShaderParameter ProjectionMtx;
+	FShaderParameter TextureSize;
 };
 
-template<bool HasColor, bool HasUv0, bool HasUv1, bool HasCoverage>
+template<bool HasColor, bool HasUv0, bool HasUv1, bool HasUv2, bool HasCoverage, bool GenSt1>
 class FNoesisVS : public FNoesisVSBase
 {
 	DECLARE_SHADER_TYPE(FNoesisVS, Global);
@@ -157,18 +156,24 @@ class FNoesisVS : public FNoesisVSBase
 		OutEnvironment.SetDefine(TEXT("HAS_COLOR"), HasColor);
 		OutEnvironment.SetDefine(TEXT("HAS_UV0"), HasUv0);
 		OutEnvironment.SetDefine(TEXT("HAS_UV1"), HasUv1);
+		OutEnvironment.SetDefine(TEXT("HAS_UV2"), HasUv2);
 		OutEnvironment.SetDefine(TEXT("HAS_COVERAGE"), HasCoverage);
+		OutEnvironment.SetDefine(TEXT("GEN_ST1"), GenSt1);
 	}
 };
 
 // The commas in the template parameter list break the IMPLEMENT_SHADER_TYPE macro, so we need typedefs.
-typedef FNoesisVS<false, false, false, false> FNoesisPosVS;
-typedef FNoesisVS<true, false, false, false> FNoesisPosColorVS;
-typedef FNoesisVS<false, true, false, false> FNoesisPosTex0VS;
-typedef FNoesisVS<true, false, false, true> FNoesisPosColorCoverageVS;
-typedef FNoesisVS<false, true, false, true> FNoesisPosTex0CoverageVS;
-typedef FNoesisVS<true, false, true, false> FNoesisPosColorTex1VS;
-typedef FNoesisVS<false, true, true, false> FNoesisPosTex0Tex1VS;
+typedef FNoesisVS<false, false, false, false, false, false> FNoesisPosVS;
+typedef FNoesisVS<true, false, false, false, false, false> FNoesisPosColorVS;
+typedef FNoesisVS<false, true, false, false, false, false> FNoesisPosTex0VS;
+typedef FNoesisVS<true, false, false, false, true, false> FNoesisPosColorCoverageVS;
+typedef FNoesisVS<false, true, false, false, true, false> FNoesisPosTex0CoverageVS;
+typedef FNoesisVS<true, false, true, false, false, false> FNoesisPosColorTex1VS;
+typedef FNoesisVS<false, true, true, false, false, false> FNoesisPosTex0Tex1VS;
+typedef FNoesisVS<true, false, true, false, false, true> FNoesisPosColorTex1SDFVS;
+typedef FNoesisVS<false, true, true, false, false, true> FNoesisPosTex0Tex1SDFVS;
+typedef FNoesisVS<true, false, true, true, false, false> FNoesisPosColorTex1Tex2VS;
+typedef FNoesisVS<false, true, true, true, false, false> FNoesisPosTex0Tex1Tex2VS;
 
 class FNoesisPSBase : public FGlobalShader
 {
@@ -179,6 +184,8 @@ public:
 		Rgba.Bind(Initializer.ParameterMap, TEXT("rgba"));
 		RadialGrad.Bind(Initializer.ParameterMap, TEXT("radialGrad"));
 		Opacity.Bind(Initializer.ParameterMap, TEXT("opacity"));
+		TextureSize.Bind(Initializer.ParameterMap, TEXT("textureSize"));
+		EffectsParams.Bind(Initializer.ParameterMap, TEXT("effectsParams"));
 		PatternTexture.Bind(Initializer.ParameterMap, TEXT("patternTex"));
 		PatternSampler.Bind(Initializer.ParameterMap, TEXT("patternSampler"));
 		RampsTexture.Bind(Initializer.ParameterMap, TEXT("rampsTex"));
@@ -187,6 +194,8 @@ public:
 		ImageSampler.Bind(Initializer.ParameterMap, TEXT("imageSampler"));
 		GlyphsTexture.Bind(Initializer.ParameterMap, TEXT("glyphsTex"));
 		GlyphsSampler.Bind(Initializer.ParameterMap, TEXT("glyphsSampler"));
+		ShadowTexture.Bind(Initializer.ParameterMap, TEXT("shadowTex"));
+		ShadowSampler.Bind(Initializer.ParameterMap, TEXT("shadowSampler"));
 	}
 
 	FNoesisPSBase()
@@ -201,6 +210,8 @@ public:
 		Ar << Rgba;
 		Ar << RadialGrad;
 		Ar << Opacity;
+		Ar << TextureSize;
+		Ar << EffectsParams;
 		Ar << PatternTexture;
 		Ar << PatternSampler;
 		Ar << RampsTexture;
@@ -209,6 +220,8 @@ public:
 		Ar << ImageSampler;
 		Ar << GlyphsTexture;
 		Ar << GlyphsSampler;
+		Ar << ShadowTexture;
+		Ar << ShadowSampler;
 		return bShaderHasOutdatedParameters || true;
 	}
 
@@ -232,6 +245,25 @@ public:
 		{
 			check(Opacity.IsBound());
 			SetShaderValue(RHICmdList, ShaderRHI, Opacity, *OpacityValue);
+		}
+	}
+
+	void SetEffectsParameters(FRHICommandList& RHICmdList, const float(*TextureSizeValue)[4], const float* EffectsParamsValue, uint32 EffectsParamsCount)
+	{
+		FRHIPixelShader* ShaderRHI = GetPixelShader();
+
+		if (EffectsParamsCount)
+		{
+			check(TextureSize.IsBound());
+			SetShaderValue(RHICmdList, ShaderRHI, TextureSize, *TextureSizeValue);
+
+			check(EffectsParams.IsBound());
+			SetShaderValueArray(RHICmdList, ShaderRHI, EffectsParams, EffectsParamsValue, EffectsParamsCount);
+		}
+		else
+		{
+			check(!TextureSize.IsBound());
+			check(!EffectsParams.IsBound());
 		}
 	}
 
@@ -263,9 +295,18 @@ public:
 		SetTextureParameter(RHICmdList, ShaderRHI, GlyphsTexture, GlyphsSampler, GlyphsSamplerResource, GlyphsTextureResource);
 	}
 
+	void SetShadowTexture(FRHICommandList& RHICmdList, FRHITexture* ShadowTextureResource, FRHISamplerState* ShadowSamplerResource)
+	{
+		FRHIPixelShader* ShaderRHI = GetPixelShader();
+
+		SetTextureParameter(RHICmdList, ShaderRHI, ShadowTexture, ShadowSampler, ShadowSamplerResource, ShadowTextureResource);
+	}
+
 	FShaderParameter Rgba;
 	FShaderParameter RadialGrad;
 	FShaderParameter Opacity;
+	FShaderParameter TextureSize;
+	FShaderParameter EffectsParams;
 	FShaderResourceParameter PatternTexture;
 	FShaderResourceParameter PatternSampler;
 	FShaderResourceParameter RampsTexture;
@@ -274,9 +315,11 @@ public:
 	FShaderResourceParameter ImageSampler;
 	FShaderResourceParameter GlyphsTexture;
 	FShaderResourceParameter GlyphsSampler;
+	FShaderResourceParameter ShadowTexture;
+	FShaderResourceParameter ShadowSampler;
 };
 
-template<NoesisShaderEffect Effect, NoesisShaderPaint Paint>
+template<Noesis::Shader::Enum Effect>
 class FNoesisPS : public FNoesisPSBase
 {
 	DECLARE_SHADER_TYPE(FNoesisPS, Global);
@@ -299,30 +342,72 @@ class FNoesisPS : public FNoesisPSBase
 	{
 		FGlobalShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 		OutEnvironment.SetDefine(TEXT("EFFECT"), Effect);
-		OutEnvironment.SetDefine(TEXT("PAINT"), Paint);
 	}
 };
 
 // The commas in the template parameter list break the IMPLEMENT_SHADER_TYPE macro, so we need typedefs.
-typedef FNoesisPS<EFFECT_RGBA, PAINT_NONE> FNoesisRgbaPS;
-typedef FNoesisPS<EFFECT_MASK, PAINT_NONE> FNoesisMaskPS;
+typedef FNoesisPS<Noesis::Shader::RGBA> FNoesisRgbaPS;
+typedef FNoesisPS<Noesis::Shader::Mask> FNoesisMaskPS;
 
-typedef FNoesisPS<EFFECT_PATH, PAINT_SOLID> FNoesisPathSolidPS;
-typedef FNoesisPS<EFFECT_PATH, PAINT_LINEAR> FNoesisPathLinearPS;
-typedef FNoesisPS<EFFECT_PATH, PAINT_RADIAL> FNoesisPathRadialPS;
-typedef FNoesisPS<EFFECT_PATH, PAINT_PATTERN> FNoesisPathPatternPS;
+typedef FNoesisPS<Noesis::Shader::Path_Solid> FNoesisPathSolidPS;
+typedef FNoesisPS<Noesis::Shader::Path_Linear> FNoesisPathLinearPS;
+typedef FNoesisPS<Noesis::Shader::Path_Radial> FNoesisPathRadialPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern> FNoesisPathPatternPS;
 
-typedef FNoesisPS<EFFECT_PATH_AA, PAINT_SOLID> FNoesisPathAaSolidPS;
-typedef FNoesisPS<EFFECT_PATH_AA, PAINT_LINEAR> FNoesisPathAaLinearPS;
-typedef FNoesisPS<EFFECT_PATH_AA, PAINT_RADIAL> FNoesisPathAaRadialPS;
-typedef FNoesisPS<EFFECT_PATH_AA, PAINT_PATTERN> FNoesisPathAaPatternPS;
+typedef FNoesisPS<Noesis::Shader::PathAA_Solid> FNoesisPathAaSolidPS;
+typedef FNoesisPS<Noesis::Shader::PathAA_Linear> FNoesisPathAaLinearPS;
+typedef FNoesisPS<Noesis::Shader::PathAA_Radial> FNoesisPathAaRadialPS;
+typedef FNoesisPS<Noesis::Shader::PathAA_Pattern> FNoesisPathAaPatternPS;
 
-typedef FNoesisPS<EFFECT_IMAGE_PAINT_OPACITY, PAINT_SOLID> FNoesisImagePaintOpacitySolidPS;
-typedef FNoesisPS<EFFECT_IMAGE_PAINT_OPACITY, PAINT_LINEAR> FNoesisImagePaintOpacityLinearPS;
-typedef FNoesisPS<EFFECT_IMAGE_PAINT_OPACITY, PAINT_RADIAL> FNoesisImagePaintOpacityRadialPS;
-typedef FNoesisPS<EFFECT_IMAGE_PAINT_OPACITY, PAINT_PATTERN> FNoesisImagePaintOpacityPatternPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Solid> FNoesisSDFSolidPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Linear> FNoesisSDFLinearPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Radial> FNoesisSDFRadialPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern> FNoesisSDFPatternPS;
 
-typedef FNoesisPS<EFFECT_TEXT, PAINT_SOLID> FNoesisTextSolidPS;
-typedef FNoesisPS<EFFECT_TEXT, PAINT_LINEAR> FNoesisTextLinearPS;
-typedef FNoesisPS<EFFECT_TEXT, PAINT_RADIAL> FNoesisTextRadialPS;
-typedef FNoesisPS<EFFECT_TEXT, PAINT_PATTERN> FNoesisTextPatternPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Solid> FNoesisSDFLCDSolidPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Linear> FNoesisSDFLCDLinearPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Radial> FNoesisSDFLCDRadialPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern> FNoesisSDFLCDPatternPS;
+
+typedef FNoesisPS<Noesis::Shader::Image_Opacity_Solid> FNoesisImageOpacitySolidPS;
+typedef FNoesisPS<Noesis::Shader::Image_Opacity_Linear> FNoesisImageOpacityLinearPS;
+typedef FNoesisPS<Noesis::Shader::Image_Opacity_Radial> FNoesisImageOpacityRadialPS;
+typedef FNoesisPS<Noesis::Shader::Image_Opacity_Pattern> FNoesisImageOpacityPatternPS;
+
+typedef FNoesisPS<Noesis::Shader::Image_Shadow35V> FNoesisImageShadow35VPS;
+typedef FNoesisPS<Noesis::Shader::Image_Shadow63V> FNoesisImageShadow63VPS;
+typedef FNoesisPS<Noesis::Shader::Image_Shadow127V> FNoesisImageShadow127VPS;
+
+typedef FNoesisPS<Noesis::Shader::Image_Shadow35H_Solid> FNoesisImageShadow35HSolidPS;
+typedef FNoesisPS<Noesis::Shader::Image_Shadow35H_Linear> FNoesisImageShadow35HLinearPS;
+typedef FNoesisPS<Noesis::Shader::Image_Shadow35H_Radial> FNoesisImageShadow35HRadialPS;
+typedef FNoesisPS<Noesis::Shader::Image_Shadow35H_Pattern> FNoesisImageShadow35HPatternPS;
+
+typedef FNoesisPS<Noesis::Shader::Image_Shadow63H_Solid> FNoesisImageShadow63HSolidPS;
+typedef FNoesisPS<Noesis::Shader::Image_Shadow63H_Linear> FNoesisImageShadow63HLinearPS;
+typedef FNoesisPS<Noesis::Shader::Image_Shadow63H_Radial> FNoesisImageShadow63HRadialPS;
+typedef FNoesisPS<Noesis::Shader::Image_Shadow63H_Pattern> FNoesisImageShadow63HPatternPS;
+
+typedef FNoesisPS<Noesis::Shader::Image_Shadow127H_Solid> FNoesisImageShadow127HSolidPS;
+typedef FNoesisPS<Noesis::Shader::Image_Shadow127H_Linear> FNoesisImageShadow127HLinearPS;
+typedef FNoesisPS<Noesis::Shader::Image_Shadow127H_Radial> FNoesisImageShadow127HRadialPS;
+typedef FNoesisPS<Noesis::Shader::Image_Shadow127H_Pattern> FNoesisImageShadow127HPatternPS;
+
+typedef FNoesisPS<Noesis::Shader::Image_Blur35V> FNoesisImageBlur35VPS;
+typedef FNoesisPS<Noesis::Shader::Image_Blur63V> FNoesisImageBlur63VPS;
+typedef FNoesisPS<Noesis::Shader::Image_Blur127V> FNoesisImageBlur127VPS;
+
+typedef FNoesisPS<Noesis::Shader::Image_Blur35H_Solid> FNoesisImageBlur35HSolidPS;
+typedef FNoesisPS<Noesis::Shader::Image_Blur35H_Linear> FNoesisImageBlur35HLinearPS;
+typedef FNoesisPS<Noesis::Shader::Image_Blur35H_Radial> FNoesisImageBlur35HRadialPS;
+typedef FNoesisPS<Noesis::Shader::Image_Blur35H_Pattern> FNoesisImageBlur35HPatternPS;
+
+typedef FNoesisPS<Noesis::Shader::Image_Blur63H_Solid> FNoesisImageBlur63HSolidPS;
+typedef FNoesisPS<Noesis::Shader::Image_Blur63H_Linear> FNoesisImageBlur63HLinearPS;
+typedef FNoesisPS<Noesis::Shader::Image_Blur63H_Radial> FNoesisImageBlur63HRadialPS;
+typedef FNoesisPS<Noesis::Shader::Image_Blur63H_Pattern> FNoesisImageBlur63HPatternPS;
+
+typedef FNoesisPS<Noesis::Shader::Image_Blur127H_Solid> FNoesisImageBlur127HSolidPS;
+typedef FNoesisPS<Noesis::Shader::Image_Blur127H_Linear> FNoesisImageBlur127HLinearPS;
+typedef FNoesisPS<Noesis::Shader::Image_Blur127H_Radial> FNoesisImageBlur127HRadialPS;
+typedef FNoesisPS<Noesis::Shader::Image_Blur127H_Pattern> FNoesisImageBlur127HPatternPS;

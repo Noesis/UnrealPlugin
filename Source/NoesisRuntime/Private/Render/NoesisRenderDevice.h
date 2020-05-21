@@ -26,11 +26,10 @@ class FNoesisRenderDevice : public Noesis::RenderDevice
 	virtual ~FNoesisRenderDevice();
 
 public:
-	static const int32 NUM_SHADERS = 84;
 	static uint32 RHICmdListTlsSlot;
-	FVertexDeclarationRHIRef VertexDeclarations[NUM_SHADERS];
-	class FNoesisVSBase* VertexShaders[NUM_SHADERS];
-	class FNoesisPSBase* PixelShaders[NUM_SHADERS];
+	FVertexDeclarationRHIRef VertexDeclarations[Noesis::Shader::Count];
+	class FNoesisVSBase* VertexShaders[Noesis::Shader::Count];
+	class FNoesisPSBase* PixelShaders[Noesis::Shader::Count];
 
 	class FNoesisRenderTarget* CurrentRenderTarget;
 
@@ -46,7 +45,7 @@ public:
 	virtual const Noesis::DeviceCaps& GetCaps() const override;
 	virtual Noesis::Ptr<Noesis::RenderTarget> CreateRenderTarget(const char* Label, uint32 Width, uint32 Height, uint32 SampleCount) override;
 	virtual Noesis::Ptr<Noesis::RenderTarget> CloneRenderTarget(const char* Label, Noesis::RenderTarget* SharedRenderTarget) override;
-	virtual Noesis::Ptr<Noesis::Texture> CreateTexture(const char* Label, uint32 Width, uint32 Height, uint32 NumLevels, Noesis::TextureFormat::Enum TextureFormat) override;
+	virtual Noesis::Ptr<Noesis::Texture> CreateTexture(const char* Label, uint32 Width, uint32 Height, uint32 NumLevels, Noesis::TextureFormat::Enum TextureFormat, const void** Data) override;
 	virtual void UpdateTexture(Noesis::Texture* Texture, uint32 Level, uint32 X, uint32 Y, uint32 Width, uint32 Height, const void* Data) override;
 	virtual void BeginRender(bool Offscreen) override;
 	virtual void SetRenderTarget(Noesis::RenderTarget* Surface) override;

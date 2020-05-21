@@ -36,6 +36,7 @@ class NOESISRUNTIME_API UNoesisXaml : public UObject
 
 	Noesis::Ptr<Noesis::BaseComponent> LoadXaml();
 	void LoadComponent(Noesis::BaseComponent* Component);
+	uint32 GetContentHash() const;
 
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Instanced, Category=ImportSettings)

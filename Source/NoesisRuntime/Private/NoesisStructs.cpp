@@ -135,37 +135,37 @@ Noesis::Duration FNoesisDuration::ToNoesis() const
 
 FNoesisRepeatBehavior::FNoesisRepeatBehavior(const Noesis::RepeatBehavior& RepeatBehavior)
 {
-	TextForm = NsStringToFString(RepeatBehavior.ToString().c_str());
+	TextForm = NsStringToFString(RepeatBehavior.ToString().Str());
 }
 
 Noesis::RepeatBehavior FNoesisRepeatBehavior::ToNoesis()
 {
 	Noesis::RepeatBehavior RepeatBehavior;
-	Noesis::RepeatBehavior::TryParse(TCHARToNsString(*TextForm).c_str(), RepeatBehavior);
+	Noesis::RepeatBehavior::TryParse(TCHARToNsString(*TextForm).Str(), RepeatBehavior);
 	return RepeatBehavior;
 }
 
 FNoesisGridLength::FNoesisGridLength(const Noesis::GridLength& GridLength)
 {
-	TextForm = NsStringToFString(GridLength.ToString().c_str());
+	TextForm = NsStringToFString(GridLength.ToString().Str());
 }
 
 Noesis::GridLength FNoesisGridLength::ToNoesis()
 {
 	Noesis::GridLength GridLength;
-	Noesis::GridLength::TryParse(TCHARToNsString(*TextForm).c_str(), GridLength);
+	Noesis::GridLength::TryParse(TCHARToNsString(*TextForm).Str(), GridLength);
 	return GridLength;
 }
 
 FNoesisKeyTime::FNoesisKeyTime(const Noesis::KeyTime& KeyTime)
 {
-	TextForm = NsStringToFString(KeyTime.ToString().c_str());
+	TextForm = NsStringToFString(KeyTime.ToString().Str());
 }
 
 Noesis::KeyTime FNoesisKeyTime::ToNoesis() const
 {
 	Noesis::KeyTime KeyTime;
-	Noesis::KeyTime::TryParse(TCHARToNsString(*TextForm).c_str(), KeyTime);
+	Noesis::KeyTime::TryParse(TCHARToNsString(*TextForm).Str(), KeyTime);
 	return KeyTime;
 }
 
@@ -255,5 +255,5 @@ FNoesisGeneratorPosition::FNoesisGeneratorPosition(const Noesis::GeneratorPositi
 
 Noesis::GeneratorPosition FNoesisGeneratorPosition::ToNoesis() const
 {
-	return Noesis::GeneratorPosition(Index, Offset);
+	return { Index, Offset };
 }

@@ -14,7 +14,7 @@ if not os.path.isfile(pluginFile):
 	print("This script must be run from the NoesisGUI plugin directory. Exiting...")
 	exit(1)
 
-if not os.path.isfile(os.path.join(scriptPath, "Source", "Noesis", "NoesisSDK", "Include", "Noesis_pch.h")):
+if not os.path.isfile(os.path.join(scriptPath, "Source", "Noesis", "NoesisSDK", "Include", "NoesisPCH.h")):
 	print("You must install the NoesisGUI native SDK in Source/Noesis/NoesisSDK. Exiting...")
 	exit(1)
 
@@ -218,8 +218,17 @@ if hostPlatform == "Win64":
 		for platform in platforms:
 			for configuration in configurations:
 				print("Building " + target + " " + configuration + " " + platform)
-				buildCmdLine = [ubtFile, target, platform, configuration, "-iwyu", "-nocreatestub", "-NoHotReload"] + modulesCmdLine + projectCmdLine + additionalCmdLine
+				buildCmdLine = [ubtFile, target, platform, configuration, "-WaitMutex", "-FromMsBuild"] + modulesCmdLine + projectCmdLine + additionalCmdLine
 				process = subprocess.Popen(buildCmdLine)
+				while process.poll() is None:
+					stdout, stderr = process.communicate()
+					if stdout is not None:
+						print(stdout)
+				metadataFile = os.path.join(os.path.dirname(projectFile), "Intermediate", "Build", platform, target, configuration, "Metadata.dat");
+				inputCmdLine = ["-Input=" + metadataFile]
+				writeMetadataCmdLine = [ubtFile, "-Mode=WriteMetadata", "-Version=1"] + inputCmdLine
+				print(writeMetadataCmdLine)
+				process = subprocess.Popen(writeMetadataCmdLine)
 				while process.poll() is None:
 					stdout, stderr = process.communicate()
 					if stdout is not None:
@@ -263,8 +272,17 @@ if hostPlatform == "Mac":
 		for platform in platforms:
 			for configuration in configurations:
 				print("Building " + target + " " + configuration + " " + platform)
-				buildCmdLine = [monoFile, ubtFile, target, platform, configuration, "-iwyu", "-nocreatestub", "-NoHotReload"] + modulesCmdLine + projectCmdLine + additionalCmdLine
+				buildCmdLine = [monoFile, ubtFile, target, platform, configuration, "-WaitMutex", "-FromMsBuild"] + modulesCmdLine + projectCmdLine + additionalCmdLine
 				process = subprocess.Popen(buildCmdLine)
+				while process.poll() is None:
+					stdout, stderr = process.communicate()
+					if stdout is not None:
+						print(stdout)
+				metadataFile = os.path.join(os.path.dirname(projectFile), "Intermediate", "Build", platform, target, configuration, "Metadata.dat");
+				inputCmdLine = ["-Input=" + metadataFile]
+				writeMetadataCmdLine = [monoFile, ubtFile, "-Mode=WriteMetadata", "-Version=1"] + inputCmdLine
+				print(writeMetadataCmdLine)
+				process = subprocess.Popen(writeMetadataCmdLine)
 				while process.poll() is None:
 					stdout, stderr = process.communicate()
 					if stdout is not None:

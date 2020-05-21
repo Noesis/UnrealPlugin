@@ -80,77 +80,214 @@ FNoesisRenderDevice::FNoesisRenderDevice()
 	FMemory::Memzero(VertexShaders);
 	FMemory::Memzero(PixelShaders);
 
-	VertexDeclarations[0] = GNoesisPosVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[0] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosVS>();
-	PixelShaders[0] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisRgbaPS>();
+	VertexDeclarations[Noesis::Shader::RGBA] = GNoesisPosVertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::RGBA] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosVS>();
+	PixelShaders[Noesis::Shader::RGBA] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisRgbaPS>();
 
-	VertexDeclarations[16] = GNoesisPosVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[16] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosVS>();
-	PixelShaders[16] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisMaskPS>();
+	VertexDeclarations[Noesis::Shader::Mask] = GNoesisPosVertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Mask] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosVS>();
+	PixelShaders[Noesis::Shader::Mask] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisMaskPS>();
 
-	VertexDeclarations[32] = GNoesisPosColorVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[32] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorVS>();
-	PixelShaders[32] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisPathSolidPS>();
+	VertexDeclarations[Noesis::Shader::Path_Solid] = GNoesisPosColorVertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Path_Solid] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorVS>();
+	PixelShaders[Noesis::Shader::Path_Solid] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisPathSolidPS>();
 
-	VertexDeclarations[33] = GNoesisPosTex0VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[33] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0VS>();
-	PixelShaders[33] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisPathLinearPS>();
+	VertexDeclarations[Noesis::Shader::Path_Linear] = GNoesisPosTex0VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Path_Linear] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0VS>();
+	PixelShaders[Noesis::Shader::Path_Linear] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisPathLinearPS>();
 
-	VertexDeclarations[34] = GNoesisPosTex0VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[34] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0VS>();
-	PixelShaders[34] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisPathRadialPS>();
+	VertexDeclarations[Noesis::Shader::Path_Radial] = GNoesisPosTex0VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Path_Radial] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0VS>();
+	PixelShaders[Noesis::Shader::Path_Radial] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisPathRadialPS>();
 
-	VertexDeclarations[35] = GNoesisPosTex0VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[35] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0VS>();
-	PixelShaders[35] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisPathPatternPS>();
+	VertexDeclarations[Noesis::Shader::Path_Pattern] = GNoesisPosTex0VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Path_Pattern] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0VS>();
+	PixelShaders[Noesis::Shader::Path_Pattern] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisPathPatternPS>();
 
-	VertexDeclarations[48] = GNoesisPosColorCoverageVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[48] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorCoverageVS>();
-	PixelShaders[48] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisPathAaSolidPS>();
+	VertexDeclarations[Noesis::Shader::PathAA_Solid] = GNoesisPosColorCoverageVertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::PathAA_Solid] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorCoverageVS>();
+	PixelShaders[Noesis::Shader::PathAA_Solid] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisPathAaSolidPS>();
 
-	VertexDeclarations[49] = GNoesisPosTex0CoverageVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[49] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0CoverageVS>();
-	PixelShaders[49] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisPathAaLinearPS>();
+	VertexDeclarations[Noesis::Shader::PathAA_Linear] = GNoesisPosTex0CoverageVertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::PathAA_Linear] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0CoverageVS>();
+	PixelShaders[Noesis::Shader::PathAA_Linear] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisPathAaLinearPS>();
 
-	VertexDeclarations[50] = GNoesisPosTex0CoverageVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[50] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0CoverageVS>();
-	PixelShaders[50] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisPathAaRadialPS>();
+	VertexDeclarations[Noesis::Shader::PathAA_Radial] = GNoesisPosTex0CoverageVertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::PathAA_Radial] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0CoverageVS>();
+	PixelShaders[Noesis::Shader::PathAA_Radial] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisPathAaRadialPS>();
 
-	VertexDeclarations[51] = GNoesisPosTex0CoverageVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[51] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0CoverageVS>();
-	PixelShaders[51] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisPathAaPatternPS>();
+	VertexDeclarations[Noesis::Shader::PathAA_Pattern] = GNoesisPosTex0CoverageVertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::PathAA_Pattern] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0CoverageVS>();
+	PixelShaders[Noesis::Shader::PathAA_Pattern] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisPathAaPatternPS>();
 
-	VertexDeclarations[64] = GNoesisPosColorTex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[64] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1VS>();
-	PixelShaders[64] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImagePaintOpacitySolidPS>();
+	VertexDeclarations[Noesis::Shader::SDF_Solid] = GNoesisPosColorTex1VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::SDF_Solid] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1SDFVS>();
+	PixelShaders[Noesis::Shader::SDF_Solid] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisSDFSolidPS>();
 
-	VertexDeclarations[65] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[65] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0Tex1VS>();
-	PixelShaders[65] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImagePaintOpacityLinearPS>();
+	VertexDeclarations[Noesis::Shader::SDF_Linear] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::SDF_Linear] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0Tex1SDFVS>();
+	PixelShaders[Noesis::Shader::SDF_Linear] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisSDFLinearPS>();
 
-	VertexDeclarations[66] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[66] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0Tex1VS>();
-	PixelShaders[66] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImagePaintOpacityRadialPS>();
+	VertexDeclarations[Noesis::Shader::SDF_Radial] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::SDF_Radial] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0Tex1SDFVS>();
+	PixelShaders[Noesis::Shader::SDF_Radial] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisSDFRadialPS>();
 
-	VertexDeclarations[67] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[67] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0Tex1VS>();
-	PixelShaders[67] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImagePaintOpacityPatternPS>();
+	VertexDeclarations[Noesis::Shader::SDF_Pattern] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::SDF_Pattern] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0Tex1SDFVS>();
+	PixelShaders[Noesis::Shader::SDF_Pattern] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisSDFPatternPS>();
 
-	VertexDeclarations[80] = GNoesisPosColorTex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[80] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1VS>();
-	PixelShaders[80] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisTextSolidPS>();
+	VertexDeclarations[Noesis::Shader::SDF_LCD_Solid] = GNoesisPosColorTex1VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::SDF_LCD_Solid] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1SDFVS>();
+	PixelShaders[Noesis::Shader::SDF_LCD_Solid] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisSDFLCDSolidPS>();
 
-	VertexDeclarations[81] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[81] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0Tex1VS>();
-	PixelShaders[81] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisTextLinearPS>();
+	VertexDeclarations[Noesis::Shader::SDF_LCD_Linear] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::SDF_LCD_Linear] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0Tex1SDFVS>();
+	PixelShaders[Noesis::Shader::SDF_LCD_Linear] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisSDFLCDLinearPS>();
 
-	VertexDeclarations[82] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[82] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0Tex1VS>();
-	PixelShaders[82] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisTextRadialPS>();
+	VertexDeclarations[Noesis::Shader::SDF_LCD_Radial] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::SDF_LCD_Radial] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0Tex1SDFVS>();
+	PixelShaders[Noesis::Shader::SDF_LCD_Radial] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisSDFLCDRadialPS>();
 
-	VertexDeclarations[83] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[83] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0Tex1VS>();
-	PixelShaders[83] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisTextPatternPS>();
+	VertexDeclarations[Noesis::Shader::SDF_LCD_Pattern] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::SDF_LCD_Pattern] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0Tex1SDFVS>();
+	PixelShaders[Noesis::Shader::SDF_LCD_Pattern] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisSDFLCDPatternPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Opacity_Solid] = GNoesisPosColorTex1VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Opacity_Solid] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1VS>();
+	PixelShaders[Noesis::Shader::Image_Opacity_Solid] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageOpacitySolidPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Opacity_Linear] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Opacity_Linear] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0Tex1VS>();
+	PixelShaders[Noesis::Shader::Image_Opacity_Linear] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageOpacityLinearPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Opacity_Radial] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Opacity_Radial] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0Tex1VS>();
+	PixelShaders[Noesis::Shader::Image_Opacity_Radial] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageOpacityRadialPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Opacity_Pattern] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Opacity_Pattern] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosTex0Tex1VS>();
+	PixelShaders[Noesis::Shader::Image_Opacity_Pattern] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageOpacityPatternPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Shadow35V] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Shadow35V] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Shadow35V] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageShadow35VPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Shadow63V] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Shadow63V] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Shadow63V] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageShadow63VPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Shadow127V] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Shadow127V] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Shadow127V] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageShadow127VPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Shadow35H_Solid] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Shadow35H_Solid] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Shadow35H_Solid] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageShadow35HSolidPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Shadow35H_Linear] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Shadow35H_Linear] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Shadow35H_Linear] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageShadow35HLinearPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Shadow35H_Radial] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Shadow35H_Radial] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Shadow35H_Radial] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageShadow35HRadialPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Shadow35H_Pattern] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Shadow35H_Pattern] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Shadow35H_Pattern] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageShadow35HPatternPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Shadow63H_Solid] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Shadow63H_Solid] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Shadow63H_Solid] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageShadow63HSolidPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Shadow63H_Linear] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Shadow63H_Linear] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Shadow63H_Linear] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageShadow63HLinearPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Shadow63H_Radial] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Shadow63H_Radial] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Shadow63H_Radial] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageShadow63HRadialPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Shadow63H_Pattern] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Shadow63H_Pattern] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Shadow63H_Pattern] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageShadow63HPatternPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Shadow127H_Solid] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Shadow127H_Solid] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Shadow127H_Solid] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageShadow127HSolidPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Shadow127H_Linear] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Shadow127H_Linear] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Shadow127H_Linear] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageShadow127HLinearPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Shadow127H_Radial] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Shadow127H_Radial] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Shadow127H_Radial] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageShadow127HRadialPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Shadow127H_Pattern] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Shadow127H_Pattern] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Shadow127H_Pattern] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageShadow127HPatternPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Blur35V] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Blur35V] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Blur35V] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageBlur35VPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Blur63V] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Blur63V] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Blur63V] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageBlur63VPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Blur127V] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Blur127V] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Blur127V] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageBlur127VPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Blur35H_Solid] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Blur35H_Solid] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Blur35H_Solid] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageBlur35HSolidPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Blur35H_Linear] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Blur35H_Linear] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Blur35H_Linear] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageBlur35HLinearPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Blur35H_Radial] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Blur35H_Radial] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Blur35H_Radial] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageBlur35HRadialPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Blur35H_Pattern] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Blur35H_Pattern] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Blur35H_Pattern] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageBlur35HPatternPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Blur63H_Solid] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Blur63H_Solid] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Blur63H_Solid] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageBlur63HSolidPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Blur63H_Linear] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Blur63H_Linear] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Blur63H_Linear] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageBlur63HLinearPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Blur63H_Radial] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Blur63H_Radial] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Blur63H_Radial] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageBlur63HRadialPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Blur63H_Pattern] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Blur63H_Pattern] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Blur63H_Pattern] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageBlur63HPatternPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Blur127H_Solid] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Blur127H_Solid] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Blur127H_Solid] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageBlur127HSolidPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Blur127H_Linear] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Blur127H_Linear] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Blur127H_Linear] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageBlur127HLinearPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Blur127H_Radial] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Blur127H_Radial] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Blur127H_Radial] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageBlur127HRadialPS>();
+
+	VertexDeclarations[Noesis::Shader::Image_Blur127H_Pattern] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
+	VertexShaders[Noesis::Shader::Image_Blur127H_Pattern] = (FNoesisVSBase*)ShaderMap->GetShader<FNoesisPosColorTex1Tex2VS>();
+	PixelShaders[Noesis::Shader::Image_Blur127H_Pattern] = (FNoesisPSBase*)ShaderMap->GetShader<FNoesisImageBlur127HPatternPS>();
+
 }
 
 FNoesisRenderDevice::~FNoesisRenderDevice()
@@ -173,7 +310,6 @@ FNoesisRenderDevice* FNoesisRenderDevice::Get()
 		NoesisRenderDevice->SetOffscreenMaxNumSurfaces((uint32)FMath::Max(0, GetDefault<UNoesisSettings>()->OffscreenMaxSurfaces));
 		NoesisRenderDevice->SetGlyphCacheWidth(GlyphCacheWidth[(uint8)GetDefault<UNoesisSettings>()->GlyphTextureSize]);
 		NoesisRenderDevice->SetGlyphCacheHeight(GlyphCacheHeight[(uint8)GetDefault<UNoesisSettings>()->GlyphTextureSize]);
-		NoesisRenderDevice->SetGlyphCacheMeshThreshold((uint32)FMath::Max(0, GetDefault<UNoesisSettings>()->GlyphMeshThreshold));
 		RHICmdListTlsSlot = FPlatformTLS::AllocTlsSlot();
 	}
 	return NoesisRenderDevice;
@@ -240,7 +376,7 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 
 const Noesis::DeviceCaps& FNoesisRenderDevice::GetCaps() const
 {
-	static Noesis::DeviceCaps Caps = { 0.f, VertexBufferSize, IndexBufferSize, false };
+	static Noesis::DeviceCaps Caps = { 0.f, false, false };
 	return Caps;
 }
 
@@ -300,7 +436,7 @@ Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CloneRenderTarget(const c
 	return Noesis::Ptr<Noesis::RenderTarget>(*RenderTarget);
 }
 
-Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(const char* Label, uint32 Width, uint32 Height, uint32 NumLevels, Noesis::TextureFormat::Enum TextureFormat)
+Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(const char* Label, uint32 Width, uint32 Height, uint32 NumLevels, Noesis::TextureFormat::Enum TextureFormat, const void** Data)
 {
 	uint32 SizeX = (uint32)Width;
 	uint32 SizeY = (uint32)Height;
@@ -318,6 +454,16 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(const char* Labe
 
 	FName TextureName = FName(Label);
 	ShaderResourceTexture->SetName(TextureName);
+
+	if (Data != nullptr)
+	{
+		for (uint32 Level = 0; Level < NumMips; ++Level)
+		{
+			UpdateTexture(Texture, Level, 0, 0, Width, Height, Data[Level]);
+			Width >>= 1;
+			Height >>= 1;
+		}
+	}
 
 	return Noesis::Ptr<Noesis::Texture>(*Texture);
 }
@@ -578,6 +724,15 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 		GlyphsSamplerState = GetSamplerState((uint32)*(uint8*)&Batch.glyphsSampler);
 	}
 
+	FRHITexture* ShadowTexture = 0;
+	FRHISamplerState* ShadowSamplerState = 0;
+	if (Batch.shadow)
+	{
+		FNoesisTexture* Texture = (FNoesisTexture*)(Batch.shadow);
+		ShadowTexture = Texture->ShaderResourceTexture;
+		ShadowSamplerState = GetSamplerState((uint32)*(uint8*)&Batch.shadowSampler);
+	}
+
 	const auto FeatureLevel = GMaxRHIFeatureLevel;
 
 	uint32 ShaderCode = (uint32)Batch.shader.v;
@@ -592,16 +747,31 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 
 	SetGraphicsPipelineState(*RHICmdList, GraphicsPSOInit);
 
+	float TextureSize[4];
+	if (Batch.glyphs || Batch.image)
+	{
+		FNoesisTexture* Texture = (FNoesisTexture*)(Batch.glyphs ? Batch.glyphs : Batch.image);
+		uint32 Width = Texture->GetWidth();
+		uint32 Height = Texture->GetHeight();
+		TextureSize[0] = (float)Width;
+		TextureSize[1] = (float)Height;
+		TextureSize[2] = 1.0f / Width;
+		TextureSize[3] = 1.0f / Height;
+	}
+	bool GenSt1 = ShaderCode >= Noesis::Shader::SDF_Solid && ShaderCode <= Noesis::Shader::SDF_LCD_Pattern;
+
 	FMatrix ProjectionMtxValue(FPlane((*Batch.projMtx)[0], (*Batch.projMtx)[4], (*Batch.projMtx)[8], (*Batch.projMtx)[12]),
 		FPlane((*Batch.projMtx)[1], (*Batch.projMtx)[5], (*Batch.projMtx)[9], (*Batch.projMtx)[13]),
 		FPlane((*Batch.projMtx)[2], (*Batch.projMtx)[6], (*Batch.projMtx)[10], (*Batch.projMtx)[14]),
 		FPlane((*Batch.projMtx)[3], (*Batch.projMtx)[7], (*Batch.projMtx)[11], (*Batch.projMtx)[15]));
-	VertexShader->SetParameters(*RHICmdList, ProjectionMtxValue);
+	VertexShader->SetParameters(*RHICmdList, ProjectionMtxValue, GenSt1 ? (float(*)[2])&TextureSize : nullptr);
 
 	const FVector4* RgbaValue = (const FVector4*)Batch.rgba;
 	const FVector4 (*RadialGradValue)[2] = (const FVector4(*)[2])Batch.radialGrad;
 	const float* OpacityValue = Batch.opacity;
 	PixelShader->SetParameters(*RHICmdList, RgbaValue, RadialGradValue, OpacityValue);
+
+	PixelShader->SetEffectsParameters(*RHICmdList, &TextureSize, Batch.effectParams, Batch.effectParamsSize);
 
 	if (PatternTexture)
 	{
@@ -618,6 +788,10 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 	if (GlyphsTexture)
 	{
 		PixelShader->SetGlyphsTexture(*RHICmdList, GlyphsTexture, GlyphsSamplerState);
+	}
+	if (ShadowTexture)
+	{
+		PixelShader->SetShadowTexture(*RHICmdList, ShadowTexture, ShadowSamplerState);
 	}
 
 	RHICmdList->SetStencilRef(Batch.stencilRef);

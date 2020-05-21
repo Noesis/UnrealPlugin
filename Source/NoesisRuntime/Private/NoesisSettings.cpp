@@ -10,5 +10,10 @@ UNoesisSettings::UNoesisSettings(const FObjectInitializer& ObjectInitializer)
 {
 	OffscreenTextureSampleCount = ENoesisOffscreenSampleCount::One;
 	GlyphTextureSize = ENoesisGlyphCacheDimensions::x1024;
-	GlyphMeshThreshold = 96;
+	ApplicationResources = FSoftObjectPath("/NoesisGUI/Theme/NoesisTheme_DarkBlue.NoesisTheme_DarkBlue");
+	DefaultFonts.Add(FSoftObjectPath("/NoesisGUI/Theme/Fonts/PT_Root_UI_Font.PT_Root_UI_Font"));
+	DefaultFontSize = 15.f;
+	DefaultFontWeight = ENoesisFontWeight::Normal;
+	DefaultFontStretch = ENoesisFontStretch::Normal;
+	DefaultFontStyle = ENoesisFontStyle::Normal;
 }

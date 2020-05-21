@@ -5,20 +5,6 @@
 
 #include "NoesisXaml.h"
 
-static void SetApplicationResources()
-{
-	UNoesisXaml* ApplicationResources = Cast<UNoesisXaml>(GetDefault<UNoesisSettings>()->ApplicationResources.TryLoad());
-	if (ApplicationResources)
-	{
-		Noesis::Ptr<Noesis::BaseComponent> Component = Noesis::GUI::LoadXaml(TCHARToNsString(*ApplicationResources->GetPathName()).c_str());
-		Noesis::ResourceDictionary* Dictionary = Noesis::DynamicCast<Noesis::ResourceDictionary*>(Component.GetPtr());
-		if (Dictionary)
-		{
-			Noesis::GUI::SetApplicationResources(Dictionary);
-		}
-	}
-}
-
 UNoesisXaml::UNoesisXaml(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -28,14 +14,17 @@ Noesis::Ptr<Noesis::BaseComponent> UNoesisXaml::LoadXaml()
 {
 	if (HasAnyFlags(RF_ClassDefaultObject))
 		return nullptr;
-	SetApplicationResources();
-	return Noesis::GUI::LoadXaml(TCHARToNsString(*GetPathName()).c_str());
+	return Noesis::GUI::LoadXaml(TCHARToNsString(*GetPathName()).Str());
 }
 
 void UNoesisXaml::LoadComponent(Noesis::BaseComponent* Component)
 {
-	SetApplicationResources();
-	Noesis::GUI::LoadComponent(Component, TCHARToNsString(*GetPathName()).c_str());
+	Noesis::GUI::LoadComponent(Component, TCHARToNsString(*GetPathName()).Str());
+}
+
+uint32 UNoesisXaml::GetContentHash() const
+{
+	return Noesis::HashBytes(XamlText.GetData(), XamlText.Num());
 }
 
 #if WITH_EDITORONLY_DATA

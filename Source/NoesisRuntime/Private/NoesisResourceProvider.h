@@ -40,8 +40,8 @@ public:
 private:
 
 	// FontProvider interface
-	virtual Noesis::FontSource MatchFont(const char* BaseUri, const char* FamilyName, Noesis::FontWeight Weight,
-		Noesis::FontStretch Stretch, Noesis::FontStyle Style) override;
+	virtual Noesis::FontSource MatchFont(const char* BaseUri, const char* FamilyName, Noesis::FontWeight& Weight,
+		Noesis::FontStretch& Stretch, Noesis::FontStyle& Style) override;
 	virtual bool FamilyExists(const char* BaseUri, const char* FamilyName) override;
 	// End of FontProvider interface
 

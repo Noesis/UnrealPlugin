@@ -49,6 +49,49 @@ DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnTouchMoved"), STAT_NoesisInstan
 DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnTouchEnded"), STAT_NoesisInstance_OnTouchEnded, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnMouseButtonDoubleClick"), STAT_NoesisInstance_OnMouseButtonDoubleClick, STATGROUP_Noesis);
 
+static uint32 ApplicationResourcesHash;
+static void SetApplicationResources()
+{
+	UNoesisXaml* ApplicationResources = Cast<UNoesisXaml>(GetDefault<UNoesisSettings>()->ApplicationResources.TryLoad());
+	if (ApplicationResources)
+	{
+		uint32 Hash = ApplicationResources->GetContentHash();
+		if (ApplicationResourcesHash != Hash)
+		{
+			ApplicationResourcesHash = Hash;
+			Noesis::Ptr<Noesis::BaseComponent> Component = ApplicationResources->LoadXaml();
+			Noesis::ResourceDictionary* Dictionary = Noesis::DynamicCast<Noesis::ResourceDictionary*>(Component.GetPtr());
+			Noesis::GUI::SetApplicationResources(Dictionary);
+		}
+	}
+	else
+	{
+		if (ApplicationResourcesHash != 0)
+		{
+			ApplicationResourcesHash = 0;
+			Noesis::GUI::SetApplicationResources(nullptr);
+		}
+	}
+
+	TArray<Noesis::String> FamilyNamesStr;
+	TArray<const ANSICHAR*> FamilyNames;
+	for (auto& FontFallback : GetDefault<UNoesisSettings>()->DefaultFonts)
+	{
+		UFont* Font = Cast<UFont>(FontFallback.TryLoad());
+		if (ApplicationResources)
+		{
+			FamilyNamesStr.Add(TCHARToNsString(*Font->GetPathName()));
+			FamilyNames.Add(FamilyNamesStr.Last().Str());
+		}
+	}
+	Noesis::GUI::SetFontFallbacks(FamilyNames.GetData(), FamilyNames.Num());
+	float Size = GetDefault<UNoesisSettings>()->DefaultFontSize;
+	ENoesisFontWeight Weight = GetDefault<UNoesisSettings>()->DefaultFontWeight;
+	ENoesisFontStretch Stretch = GetDefault<UNoesisSettings>()->DefaultFontStretch;
+	ENoesisFontStyle Style = GetDefault<UNoesisSettings>()->DefaultFontStyle;
+	Noesis::GUI::SetFontDefaultProperties(Size, (Noesis::FontWeight)Weight, (Noesis::FontStretch)Stretch, (Noesis::FontStyle)Style);
+}
+
 class FNoesisSlateElement : public ICustomSlateElement
 {
 public:
@@ -156,7 +199,7 @@ public:
 	{
 		FString CurrentText = NsStringToFString(TextBox->GetText());
 		FString NewText = CurrentText.Left(InBeginIndex) + InString + CurrentText.RightChop(InBeginIndex + InLength);
-		TextBox->SetText(TCHARToNsString(*NewText).c_str());
+		TextBox->SetText(TCHARToNsString(*NewText).Str());
 		UpdateCompositionRange(InBeginIndex, InString.Len());
 	}
 
@@ -266,6 +309,7 @@ void UNoesisInstance::InitInstance()
 
 	Noesis::Ptr<Noesis::BaseComponent> DataContext = Noesis::Ptr<Noesis::BaseComponent>(NoesisCreateComponentForUObject(this));
 
+	SetApplicationResources();
 	Xaml.Reset(Noesis::DynamicCast<Noesis::FrameworkElement*>(BaseXaml->LoadXaml().GetPtr()));
 
 	if (Xaml)
@@ -312,14 +356,13 @@ void UNoesisInstance::SetDataContext(UObject* InDataContext)
 
 UObject* UNoesisInstance::FindName(FString Name)
 {
-	Noesis::BaseComponent* Component = Xaml->FindName(TCHARToNsString(*Name).c_str());
+	Noesis::BaseComponent* Component = Xaml->FindName(TCHARToNsString(*Name).Str());
 	return NoesisCreateUObjectForComponent(Component);
 }
 
 UObject* UNoesisInstance::FindResource(FString Name)
 {
-	Noesis::Ptr<Noesis::ResourceKeyString> Key = Noesis::ResourceKeyString::Create(TCHARToNsString(*Name).c_str());
-	Noesis::BaseComponent* Resource = Xaml->FindResource(Key.GetPtr());
+	Noesis::BaseComponent* Resource = Xaml->FindResource(TCHARToNsString(*Name).Str());
 	return NoesisCreateUObjectForComponent(Resource);
 }
 
@@ -375,7 +418,6 @@ void UNoesisInstance::Update(float InLeft, float InTop, float InWidth, float InH
 	if (Xaml && XamlView)
 	{
 		XamlView->SetSize(Width, Height);
-		XamlView->SetIsPPAAEnabled(EnablePPAA);
 		Noesis::TessellationMaxPixelError mpe = Noesis::TessellationMaxPixelError::MediumQuality();
 		switch (TessellationQuality)
 		{
@@ -390,7 +432,7 @@ void UNoesisInstance::Update(float InLeft, float InTop, float InWidth, float InH
 			break;
 		}
 		XamlView->SetTessellationMaxPixelError(mpe);
-		XamlView->SetFlags((uint32)RenderFlags);
+		XamlView->SetFlags((uint32)RenderFlags | (EnablePPAA ? Noesis::RenderFlags_PPAA : 0));
 		XamlView->Update(GetTimeSeconds() - StartTime);
 	}
 }
@@ -584,10 +626,7 @@ void UNoesisInstance::DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRe
 			{
 				FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
 				Renderer->UpdateRenderTree();
-				if (Renderer->NeedsOffscreen())
-				{
-					Renderer->RenderOffscreen();
-				}
+				Renderer->RenderOffscreen();
 
 				uint32 SizeX = BackBuffer->GetSizeX();
 				uint32 SizeY = BackBuffer->GetSizeY();
@@ -642,10 +681,7 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 				SCOPED_DRAW_EVENT(RHICmdList, NoesisDrawOffscreen);
 				FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
 				Renderer->UpdateRenderTree();
-				if (Renderer->NeedsOffscreen())
-				{
-					Renderer->RenderOffscreen();
-				}
+				Renderer->RenderOffscreen();
 				FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
 			}
 		);
