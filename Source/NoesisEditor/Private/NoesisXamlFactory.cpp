@@ -217,12 +217,12 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 	}
 	if (ProjectURIRoot.IsEmpty())
 	{
-		FString Root;
-		FString Path;
-		FString Name;
-		FPackageName::SplitLongPackageName(Parent->GetPathName(), Root, Path, Name, false);
-		ProjectAssetPathRoot = Root;
-		FPackageName::ConvertRootPathToContentPath(Root, ProjectURIRoot);
+		FString PackageRoot;
+		FString PackagePath;
+		FString PackageName;
+		FPackageName::SplitLongPackageName(Parent->GetPathName(), PackageRoot, PackagePath, PackageName, false);
+		ProjectAssetPathRoot = PackageRoot;
+		FPackageName::TryConvertLongPackageNameToFilename(PackageRoot, ProjectURIRoot);
 	}
 
 	UNoesisXaml* NoesisXaml = NewObject<UNoesisXaml>(Parent, Class, Name, Flags);
