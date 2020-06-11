@@ -1005,6 +1005,7 @@ public:
 		Noesis::BaseComponent(), TypeClass(InTypeClass), Struct(InStruct)
 	{
 		StructData.Empty(InStruct->GetStructureSize());
+		Struct->InitializeStruct(GetStructPtr());
 	}
 
 	virtual const Noesis::TypeClass* GetClassType() const override
