@@ -496,12 +496,12 @@ struct In
     float4 uv2: TEXCOORD2;
 #endif
 
-#if HAS_ST1
-    float2 st1: TEXCOORD3;
+#if HAS_COVERAGE
+    half coverage: TEXCOORD3;
 #endif
 
-#if HAS_COVERAGE
-    half coverage: TEXCOORD4;
+#if HAS_ST1
+    float2 st1: TEXCOORD4;
 #endif
 };
 
