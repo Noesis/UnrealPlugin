@@ -2,7 +2,7 @@
 <a href="https://www.noesisengine.com/docs/Gui.Core.Index.html"><img alt="documentation" src="https://img.shields.io/badge/doc-index-blue.svg"></a>
 <a href="https://twitter.com/NoesisEngine"><img src="https://img.shields.io/badge/twitter-%40NoesisEngine-55acee.svg?style=flat-square"></a>
 
-# NoesisGUI Unreal Engine 4.24 Plugin
+# NoesisGUI Unreal Engine 4.25 Plugin
 
 > For your convenience, you can download a ready to use version of the plugin directly from [our website](https://www.noesisengine.com/developers/downloads.php). If you do so, you can skip the installation instructions and jump directly to the [Enabling and configuring the plugin](#enabling-and-configuring-the-plugin) section.
 
@@ -90,7 +90,6 @@ If all the steps so far have been successful, your Unreal Engine install should 
 ```
 [NoesisGUIRoot]
 +-- Binaries
-+-- Content
 +-- Intermediate
 +-- Resources
 +-- Shaders

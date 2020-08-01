@@ -5,19 +5,15 @@
 
 #pragma once
 
-class FNoesisStyle
+class SBlueprintModeSeparator : public SBorder
 {
 public:
-	static void Initialize();
+	SLATE_BEGIN_ARGS(SBlueprintModeSeparator) {}
+	SLATE_END_ARGS()
 
-	static void Shutdown();
+	void Construct(const FArguments& InArg);
 
-	static TSharedPtr< class ISlateStyle > Get();
-
-	static FName GetStyleSetName();
-private:
-	static FString InResources(const FString& RelativePath, const ANSICHAR* Extension);
-
-private:
-	static TSharedPtr< class FSlateStyleSet > StyleSet;
+	// SWidget interface
+	virtual FVector2D ComputeDesiredSize(float) const override;
+	// End of SWidget interface
 };

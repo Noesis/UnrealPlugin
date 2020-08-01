@@ -5,19 +5,12 @@
 
 #pragma once
 
-class FNoesisStyle
+class FNoesisBlueprintApplicationMode : public FBlueprintEditorApplicationMode
 {
 public:
-	static void Initialize();
+	FNoesisBlueprintApplicationMode(TSharedPtr<class FNoesisBlueprintEditor> InNoesisBlueprintEditor, FName InModeName);
 
-	static void Shutdown();
+	TWeakPtr<class FNoesisBlueprintEditor> NoesisBlueprintEditor;
 
-	static TSharedPtr< class ISlateStyle > Get();
-
-	static FName GetStyleSetName();
-private:
-	static FString InResources(const FString& RelativePath, const ANSICHAR* Extension);
-
-private:
-	static TSharedPtr< class FSlateStyleSet > StyleSet;
+	FWorkflowAllowedTabSet TabFactories;
 };

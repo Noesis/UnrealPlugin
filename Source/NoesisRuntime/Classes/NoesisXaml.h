@@ -32,6 +32,9 @@ class NOESISRUNTIME_API UNoesisXaml : public UObject
 	TArray<class UFont*> Fonts;
 
 	UPROPERTY()
+	TArray<class UFontFace*> FontFaces;
+
+	UPROPERTY()
 	TArray<class USoundWave*> Sounds;
 
 	Noesis::Ptr<Noesis::BaseComponent> LoadXaml();
@@ -48,13 +51,9 @@ class NOESISRUNTIME_API UNoesisXaml : public UObject
 	// End of UObject interface
 #endif
 
-	// UObject interface
-	virtual void PostLoad() override;
-	// End of UObject interface
+	void RegisterDependencies();
 
 #if WITH_EDITOR
-	void PreloadDependencies();
-
 	bool CanRenderThumbnail();
 	void RenderThumbnail(FIntRect, const FTexture2DRHIRef&);
 	void DestroyThumbnailRenderData();

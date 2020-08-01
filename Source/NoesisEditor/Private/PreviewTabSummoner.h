@@ -5,19 +5,16 @@
 
 #pragma once
 
-class FNoesisStyle
+struct FPreviewTabSummoner : public FWorkflowTabFactory
 {
 public:
-	static void Initialize();
+	static const FName TabID;
 
-	static void Shutdown();
+public:
+	FPreviewTabSummoner(TSharedPtr<class FNoesisBlueprintEditor> InBlueprintEditor);
 
-	static TSharedPtr< class ISlateStyle > Get();
+	virtual TSharedRef<SWidget> CreateTabBody(const FWorkflowTabSpawnInfo& Info) const override;
 
-	static FName GetStyleSetName();
-private:
-	static FString InResources(const FString& RelativePath, const ANSICHAR* Extension);
-
-private:
-	static TSharedPtr< class FSlateStyleSet > StyleSet;
+protected:
+	TWeakPtr<class FNoesisBlueprintEditor> BlueprintEditor;
 };

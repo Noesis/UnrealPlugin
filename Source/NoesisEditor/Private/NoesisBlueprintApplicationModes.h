@@ -5,19 +5,13 @@
 
 #pragma once
 
-class FNoesisStyle
+struct FNoesisBlueprintApplicationModes
 {
-public:
-	static void Initialize();
+	static const FName PreviewMode;
+	static const FName GraphMode;
 
-	static void Shutdown();
-
-	static TSharedPtr< class ISlateStyle > Get();
-
-	static FName GetStyleSetName();
-private:
-	static FString InResources(const FString& RelativePath, const ANSICHAR* Extension);
+	static FText GetLocalizedMode(const FName InMode);
 
 private:
-	static TSharedPtr< class FSlateStyleSet > StyleSet;
+	FNoesisBlueprintApplicationModes() {}
 };

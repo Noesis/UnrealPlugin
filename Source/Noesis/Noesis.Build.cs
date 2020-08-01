@@ -65,6 +65,10 @@ public class Noesis : ModuleRules
 				RuntimeDependencies.Add("$(EngineDir)" + NoesisDllTargetPath);
 			}
 		}
+		else if (Target.Platform == UnrealTargetPlatform.Linux)
+		{
+			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/linunx_x86_64/libNoesis.so");
+		}
 		else if (Target.Platform == UnrealTargetPlatform.Mac)
 		{
 			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/macos/Noesis.dylib");

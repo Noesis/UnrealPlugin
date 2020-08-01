@@ -16,13 +16,13 @@ bool UNoesisXamlThumbnailRenderer::CanVisualizeAsset(UObject* Object)
 	return NoesisXaml && NoesisXaml->CanRenderThumbnail();
 }
 
-void UNoesisXamlThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint32 Width, uint32 Height, FRenderTarget* RenderTarget, FCanvas* Canvas)
+void UNoesisXamlThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint32 Width, uint32 Height, FRenderTarget* Viewport, FCanvas* Canvas, bool bAdditionalViewFamily)
 {
 	UNoesisXaml* NoesisXaml = Cast<UNoesisXaml>(Object);
 	if (!NoesisXaml)
 		return;
 
 	FIntRect ViewportRect(X, Y, X + Width, Y + Height);
-	const FTexture2DRHIRef& BackBuffer = RenderTarget->GetRenderTargetTexture();
+	const FTexture2DRHIRef& BackBuffer = Viewport->GetRenderTargetTexture();
 	NoesisXaml->RenderThumbnail(ViewportRect, BackBuffer);
 }

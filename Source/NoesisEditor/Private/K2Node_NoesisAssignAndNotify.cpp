@@ -16,7 +16,7 @@ static FText GetBaseTooltip(FName VarName)
 
 }
 
-static bool PropertyHasLocalRepNotify(UProperty const* VariableProperty)
+static bool PropertyHasLocalRepNotify(FProperty const* VariableProperty)
 {
 	if (VariableProperty != nullptr)
 	{
@@ -44,7 +44,7 @@ static bool PropertyHasLocalRepNotify(UProperty const* VariableProperty)
 	return false;
 }
 
-static FText GetPropertyTooltip(UProperty const* VariableProperty)
+static FText GetPropertyTooltip(FProperty const* VariableProperty)
 {
 	FText TextFormat;
 	FFormatNamedArguments Args;
@@ -116,7 +116,7 @@ static FText GetPropertyTooltip(UProperty const* VariableProperty)
 	}
 }
 
-static UBlueprintFieldNodeSpawner* CreateSpawnerFromMemberOrParam(TSubclassOf<UK2Node> Class, UProperty const* VarProperty)
+static UBlueprintFieldNodeSpawner* CreateSpawnerFromMemberOrParam(TSubclassOf<UK2Node> Class, FProperty const* VarProperty)
 {
 	check(VarProperty != nullptr);
 
@@ -158,16 +158,16 @@ static UBlueprintFieldNodeSpawner* CreateSpawnerFromMemberOrParam(TSubclassOf<UK
 	// Post-Spawn Setup
 	//--------------------------------------
 
-	auto MemberVarSetupLambda = [](UEdGraphNode* NewNode, UField const* InField)
+	auto MemberVarSetupLambda = [](UEdGraphNode* NewNode, FFieldVariant InField)
 	{
-		if (UProperty const* Property = Cast<UProperty>(InField))
+		if (FProperty const* Property = CastField<FProperty>(InField.ToField()))
 		{
 			UBlueprint* Blueprint = FBlueprintEditorUtils::FindBlueprintForNodeChecked(NewNode);
 			UClass* OwnerClass = Property->GetOwnerClass();
 
 			// We need to use a generated class instead of a skeleton class for IsChildOf, so if the OwnerClass has a Blueprint, grab the GeneratedClass
 			const bool bOwnerClassIsSelfContext = (Blueprint->SkeletonGeneratedClass->GetAuthoritativeClass() == OwnerClass) || Blueprint->SkeletonGeneratedClass->IsChildOf(OwnerClass);
-			const bool bIsFunctionVariable = Property->GetOuter()->IsA(UFunction::StaticClass());
+			const bool bIsFunctionVariable = Property->GetOwner<UFunction>() != nullptr;
 
 			UK2Node_NoesisAssignAndNotify* VarNode = CastChecked<UK2Node_NoesisAssignAndNotify>(NewNode);
 			VarNode->SetFromProperty(Property, bOwnerClassIsSelfContext && !bIsFunctionVariable, OwnerClass);
@@ -241,17 +241,17 @@ FText UK2Node_NoesisAssignAndNotify::GetTooltipText() const
 void UK2Node_NoesisAssignAndNotify::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
 	const UBlueprint* Blueprint = Cast<UBlueprint>(ActionRegistrar.GetActionKeyFilter());
-	if (Blueprint)
+	if (Blueprint && ActionRegistrar.IsOpenForRegistration(Blueprint))
 	{
-		for (TFieldIterator<UProperty> PropertyIt(Blueprint->SkeletonGeneratedClass, EFieldIteratorFlags::ExcludeSuper); PropertyIt; ++PropertyIt)
+		for (TFieldIterator<FProperty> PropertyIt(Blueprint->SkeletonGeneratedClass, EFieldIteratorFlags::ExcludeSuper); PropertyIt; ++PropertyIt)
 		{
-			UProperty* Property = *PropertyIt;
+			FProperty* Property = *PropertyIt;
 
 			bool const bIsAccessible = Property->HasAllPropertyFlags(CPF_BlueprintVisible);
 			bool const bIsReadOnly = Property->HasAllPropertyFlags(CPF_BlueprintReadOnly);
 			bool IsPropertyBlueprintVisible = !Property->HasAnyPropertyFlags(CPF_Parm) && bIsAccessible && !bIsReadOnly;
 
-			if (IsPropertyBlueprintVisible && ActionRegistrar.IsOpenForRegistration(Property))
+			if (IsPropertyBlueprintVisible)
 			{
 				UBlueprintNodeSpawner* SetterSpawner = CreateSpawnerFromMemberOrParam(UK2Node_NoesisAssignAndNotify::StaticClass(), Property);
 				ActionRegistrar.AddBlueprintAction(Blueprint, SetterSpawner);
@@ -295,7 +295,7 @@ void UK2Node_NoesisAssignAndNotify::ExpandNode(class FKismetCompilerContext& Com
 
 	if (CompilerContext.bIsFullCompile)
 	{
-		UProperty* VariableProperty = GetPropertyForVariable();
+		FProperty* VariableProperty = GetPropertyForVariable();
 
 		if (VariableProperty)
 		{
@@ -320,7 +320,7 @@ void UK2Node_NoesisAssignAndNotify::ExpandNode(class FKismetCompilerContext& Com
 
 			// Notify node
 			UK2Node_CallFunction* NotifyNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-			if (VariableProperty->IsA<UArrayProperty>())
+			if (VariableProperty->IsA<FArrayProperty>())
 			{
 				NotifyNode->FunctionReference.SetExternalMember(TEXT("NotifyArrayChanged"), UNoesisFunctionLibrary::StaticClass());
 			}
@@ -343,7 +343,7 @@ void UK2Node_NoesisAssignAndNotify::ExpandNode(class FKismetCompilerContext& Com
 			UEdGraphPin* CompareNodeFirstInputPin = nullptr;
 			UEdGraphPin* CompareNodeSecondInputPin = nullptr;
 			UEdGraphPin* CompareNodeReturnValuePin = nullptr;
-			if (VariableProperty->IsA<UIntProperty>())
+			if (VariableProperty->IsA<FIntProperty>())
 			{
 				CompareNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 				CompareNode->FunctionReference.SetExternalMember(TEXT("NotEqual_IntInt"), UKismetMathLibrary::StaticClass());
@@ -356,7 +356,7 @@ void UK2Node_NoesisAssignAndNotify::ExpandNode(class FKismetCompilerContext& Com
 				CompareNodeSecondInputPin = CompareNode->FindPin(TEXT("B"));
 				CompareNodeReturnValuePin = CompareNode->FindPin(TEXT("ReturnValue"));
 			}
-			else if (VariableProperty->IsA<UFloatProperty>())
+			else if (VariableProperty->IsA<FFloatProperty>())
 			{
 				CompareNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 				CompareNode->FunctionReference.SetExternalMember(TEXT("NotEqual_FloatFloat"), UKismetMathLibrary::StaticClass());
@@ -369,7 +369,7 @@ void UK2Node_NoesisAssignAndNotify::ExpandNode(class FKismetCompilerContext& Com
 				CompareNodeSecondInputPin = CompareNode->FindPin(TEXT("B"));
 				CompareNodeReturnValuePin = CompareNode->FindPin(TEXT("ReturnValue"));
 			}
-			else if (VariableProperty->IsA<UBoolProperty>())
+			else if (VariableProperty->IsA<FBoolProperty>())
 			{
 				CompareNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 				CompareNode->FunctionReference.SetExternalMember(TEXT("NotEqual_BoolBool"), UKismetMathLibrary::StaticClass());
@@ -382,7 +382,7 @@ void UK2Node_NoesisAssignAndNotify::ExpandNode(class FKismetCompilerContext& Com
 				CompareNodeSecondInputPin = CompareNode->FindPin(TEXT("B"));
 				CompareNodeReturnValuePin = CompareNode->FindPin(TEXT("ReturnValue"));
 			}
-			else if (VariableProperty->IsA<UStrProperty>())
+			else if (VariableProperty->IsA<FStrProperty>())
 			{
 				CompareNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 				CompareNode->FunctionReference.SetExternalMember(TEXT("NotEqual_StrStr"), UKismetStringLibrary::StaticClass());
@@ -395,7 +395,20 @@ void UK2Node_NoesisAssignAndNotify::ExpandNode(class FKismetCompilerContext& Com
 				CompareNodeSecondInputPin = CompareNode->FindPin(TEXT("B"));
 				CompareNodeReturnValuePin = CompareNode->FindPin(TEXT("ReturnValue"));
 			}
-			else if (VariableProperty->IsA<UObjectProperty>())
+			else if (VariableProperty->IsA<FTextProperty>())
+			{
+				CompareNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+				CompareNode->FunctionReference.SetExternalMember(TEXT("NotEqual_TextText"), UKismetTextLibrary::StaticClass());
+				CompareNode->AllocateDefaultPins();
+				CompareNodeExecPin = CompareNode->GetExecPin();
+				CompareNodeThenPin = CompareNode->FindPin(K2Schema->PN_Then);
+				UEdGraphPin* CompareNodeSelfPin = K2Schema->FindSelfPin(*CompareNode, EGPD_Input);
+				CompareNodeSelfPin->DefaultObject = UKismetStringLibrary::StaticClass()->GetDefaultObject();
+				CompareNodeFirstInputPin = CompareNode->FindPin(TEXT("A"));
+				CompareNodeSecondInputPin = CompareNode->FindPin(TEXT("B"));
+				CompareNodeReturnValuePin = CompareNode->FindPin(TEXT("ReturnValue"));
+			}
+			else if (VariableProperty->IsA<FObjectProperty>())
 			{
 				CompareNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 				CompareNode->FunctionReference.SetExternalMember(TEXT("NotEqual_ObjectObject"), UKismetMathLibrary::StaticClass());
@@ -408,7 +421,7 @@ void UK2Node_NoesisAssignAndNotify::ExpandNode(class FKismetCompilerContext& Com
 				CompareNodeSecondInputPin = CompareNode->FindPin(TEXT("B"));
 				CompareNodeReturnValuePin = CompareNode->FindPin(TEXT("ReturnValue"));
 			}
-			else if (UStructProperty* StructProperty = Cast<UStructProperty>(VariableProperty))
+			else if (FStructProperty* StructProperty = CastField<FStructProperty>(VariableProperty))
 			{
 				CompareNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 				CompareNode->FunctionReference.SetExternalMember(TEXT("NoesisStruct_NotEqual"), UNoesisFunctionLibrary::StaticClass());
@@ -424,7 +437,7 @@ void UK2Node_NoesisAssignAndNotify::ExpandNode(class FKismetCompilerContext& Com
 				CompareNodeFirstInputPin->PinType = VariableSetPin->PinType;
 				CompareNodeSecondInputPin->PinType = VariableSetPin->PinType;
 			}
-			else if (UByteProperty* ByteProperty = Cast<UByteProperty>(VariableProperty))
+			else if (FByteProperty* ByteProperty = CastField<FByteProperty>(VariableProperty))
 			{
 				CompareNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
 				CompareNode->FunctionReference.SetExternalMember(TEXT("NotEqual_ByteByte"), UKismetMathLibrary::StaticClass());
@@ -443,7 +456,7 @@ void UK2Node_NoesisAssignAndNotify::ExpandNode(class FKismetCompilerContext& Com
 					CompareNodeSecondInputPin->PinType = VariableSetPin->PinType;
 				}
 			}
-			else if (UArrayProperty* ArrayProperty = Cast<UArrayProperty>(VariableProperty))
+			else if (FArrayProperty* ArrayProperty = CastField<FArrayProperty>(VariableProperty))
 			{
 
 			}

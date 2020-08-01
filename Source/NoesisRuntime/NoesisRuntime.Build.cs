@@ -37,7 +37,10 @@ public class NoesisRuntime : ModuleRules
 				"UMG",
 				"ApplicationCore",
 				"Slate",
-				"Projects"
+				"Projects",
+				"FreeType2",
+				"zlib",
+				"UElibPNG"
 			}
 			);
 

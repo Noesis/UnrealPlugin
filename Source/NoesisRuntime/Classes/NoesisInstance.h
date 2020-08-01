@@ -43,7 +43,7 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	float Top;
 	float Width;
 	float Height;
-	float StartTime;
+	float CurrentTime;
 	bool FlipYAxis;
 
 	typedef TSharedPtr<class FNoesisSlateElement, ESPMode::ThreadSafe> FNoesisSlateElementPtr;
@@ -65,6 +65,9 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	void InitInstance();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "NoesisGUI")
+	void XamlLoaded();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "NoesisGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use XamlLoaded instead."))
 	void EventInitInstance();
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGUI")
@@ -115,6 +118,7 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	virtual FReply NativeOnKeyChar(const FGeometry& MyGeometry, const FCharacterEvent& CharacterEvent) override;
 	virtual FReply NativeOnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& KeyEvent) override;
 	virtual FReply NativeOnKeyUp(const FGeometry& MyGeometry, const FKeyEvent& KeyEvent) override;
+	virtual FReply NativeOnAnalogValueChanged(const FGeometry& MyGeometry, const FAnalogInputEvent& InAnalogEvent) override;
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply NativeOnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply NativeOnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;

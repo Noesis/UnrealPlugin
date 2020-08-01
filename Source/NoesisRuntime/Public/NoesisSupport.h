@@ -58,13 +58,8 @@ inline FString NsProviderPathToAssetPath(const FString& FilePath)
 	FString FullPath = FPaths::GetPath(FilePath);
 	FString Package = FPaths::GetBaseFilename(FilePath);
 	FString Extension = FPaths::GetExtension(FilePath);
-	FString AssetPath = FullPath / SanitizeAssetPath(Package);
-	if (FPackageName::IsValidLongPackageName(AssetPath))
-	{
-		return AssetPath;
-	}
-
-	return FString("/Game/") + AssetPath;
+	FString AssetPath = Package.IsEmpty() ? FullPath : FullPath / SanitizeAssetPath(Package);
+	return AssetPath;
 }
 
 /// Wrappers to avoid some argument dependent lookup ambiguity errors that arrise when

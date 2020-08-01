@@ -68,7 +68,10 @@ EReimportResult::Type UNoesisXamlReimportFactory::Reimport(UObject* Obj)
 	}
 	else
 	{
-		Result = EReimportResult::Failed;
+		// If the NoesisXaml factory returns null on a reimport, it means the XAML wasn't reimported directly or
+		// its contents haven't changed.
+		// We return Cancelled instead of Failed so that we don't get a pop up on the editor.
+		Result = EReimportResult::Cancelled;
 	}
 
 	return Result;

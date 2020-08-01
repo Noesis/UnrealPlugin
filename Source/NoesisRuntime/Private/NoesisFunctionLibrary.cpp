@@ -48,19 +48,23 @@ void UNoesisFunctionLibrary::TrySetDataContext(UObject* Element, UObject* DataCo
 	}
 }
 
-UObject*UNoesisFunctionLibrary::LoadXaml(class UNoesisXaml* Xaml)
+UObject* UNoesisFunctionLibrary::LoadXaml(class UNoesisXaml* Xaml)
 {
-	return NoesisCreateUObjectForComponent(Xaml->LoadXaml().GetPtr());
+	if (Xaml != nullptr)
+	{
+		return NoesisCreateUObjectForComponent(Xaml->LoadXaml().GetPtr());
+	}
+	return nullptr;
 }
 
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisStruct_NotEqual)
 {
-	Stack.StepCompiledIn<UStructProperty>(NULL);
-	UStructProperty* AProperty = CastChecked<UStructProperty>(Stack.MostRecentProperty);
+	Stack.StepCompiledIn<FStructProperty>(NULL);
+	FStructProperty* AProperty = CastField<FStructProperty>(Stack.MostRecentProperty);
 	void* AAddress = Stack.MostRecentPropertyAddress;
 
-	Stack.StepCompiledIn<UStructProperty>(NULL);
-	UStructProperty* BProperty = CastChecked<UStructProperty>(Stack.MostRecentProperty);
+	Stack.StepCompiledIn<FStructProperty>(NULL);
+	FStructProperty* BProperty = CastField<FStructProperty>(Stack.MostRecentProperty);
 	void* BAddress = Stack.MostRecentPropertyAddress;
 
 	check(AProperty->Struct == BProperty->Struct);
@@ -74,9 +78,9 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisStruct_NotEqual)
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Add)
 {
 	Stack.MostRecentProperty = nullptr;
-	Stack.StepCompiledIn<UArrayProperty>(NULL);
+	Stack.StepCompiledIn<FArrayProperty>(NULL);
 	void* ArrayAddr = Stack.MostRecentPropertyAddress;
-	UArrayProperty* ArrayProperty = Cast<UArrayProperty>(Stack.MostRecentProperty);
+	FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Stack.MostRecentProperty);
 	if (!ArrayProperty)
 	{
 		Stack.bArrayContextFailed = true;
@@ -84,13 +88,13 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Add)
 	}
 
 	// Since NewItem isn't really an int, step the stack manually
-	const UProperty* InnerProp = ArrayProperty->Inner;
+	const FProperty* InnerProp = ArrayProperty->Inner;
 	const int32 PropertySize = InnerProp->ElementSize * InnerProp->ArrayDim;
 	void* StorageSpace = FMemory_Alloca(PropertySize);
 	InnerProp->InitializeValue(StorageSpace);
 
 	Stack.MostRecentPropertyAddress = NULL;
-	Stack.StepCompiledIn<UProperty>(StorageSpace);
+	Stack.StepCompiledIn<FProperty>(StorageSpace);
 	void* NewItemPtr = (Stack.MostRecentPropertyAddress != NULL && Stack.MostRecentProperty->GetClass() == InnerProp->GetClass()) ? Stack.MostRecentPropertyAddress : StorageSpace;
 
 	P_FINISH;
@@ -104,9 +108,9 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Add)
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_AddUnique)
 {
 	Stack.MostRecentProperty = nullptr;
-	Stack.StepCompiledIn<UArrayProperty>(NULL);
+	Stack.StepCompiledIn<FArrayProperty>(NULL);
 	void* ArrayAddr = Stack.MostRecentPropertyAddress;
-	UArrayProperty* ArrayProperty = Cast<UArrayProperty>(Stack.MostRecentProperty);
+	FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Stack.MostRecentProperty);
 	if (!ArrayProperty)
 	{
 		Stack.bArrayContextFailed = true;
@@ -114,13 +118,13 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_AddUnique)
 	}
 
 	// Since NewItem isn't really an int, step the stack manually
-	const UProperty* InnerProp = ArrayProperty->Inner;
+	const FProperty* InnerProp = ArrayProperty->Inner;
 	const int32 PropertySize = InnerProp->ElementSize * InnerProp->ArrayDim;
 	void* StorageSpace = FMemory_Alloca(PropertySize);
 	InnerProp->InitializeValue(StorageSpace);
 
 	Stack.MostRecentPropertyAddress = NULL;
-	Stack.StepCompiledIn<UProperty>(StorageSpace);
+	Stack.StepCompiledIn<FProperty>(StorageSpace);
 	void* NewItemPtr = (Stack.MostRecentPropertyAddress != NULL && Stack.MostRecentProperty->GetClass() == InnerProp->GetClass()) ? Stack.MostRecentPropertyAddress : StorageSpace;
 
 	P_FINISH;
@@ -139,9 +143,9 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_AddUnique)
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Shuffle)
 {
 	Stack.MostRecentProperty = nullptr;
-	Stack.StepCompiledIn<UArrayProperty>(NULL);
+	Stack.StepCompiledIn<FArrayProperty>(NULL);
 	void* ArrayAddr = Stack.MostRecentPropertyAddress;
-	UArrayProperty* ArrayProperty = Cast<UArrayProperty>(Stack.MostRecentProperty);
+	FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Stack.MostRecentProperty);
 	if (!ArrayProperty)
 	{
 		Stack.bArrayContextFailed = true;
@@ -159,9 +163,9 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Append)
 {
 	// Retrieve the target array
 	Stack.MostRecentProperty = nullptr;
-	Stack.StepCompiledIn<UArrayProperty>(NULL);
+	Stack.StepCompiledIn<FArrayProperty>(NULL);
 	void* TargetArrayAddr = Stack.MostRecentPropertyAddress;
-	UArrayProperty* TargetArrayProperty = Cast<UArrayProperty>(Stack.MostRecentProperty);
+	FArrayProperty* TargetArrayProperty = CastField<FArrayProperty>(Stack.MostRecentProperty);
 	if (!TargetArrayProperty)
 	{
 		Stack.bArrayContextFailed = true;
@@ -169,9 +173,9 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Append)
 	}
 	// Retrieve the source array
 	Stack.MostRecentProperty = nullptr;
-	Stack.StepCompiledIn<UArrayProperty>(NULL);
+	Stack.StepCompiledIn<FArrayProperty>(NULL);
 	void* SourceArrayAddr = Stack.MostRecentPropertyAddress;
-	UArrayProperty* SourceArrayProperty = Cast<UArrayProperty>(Stack.MostRecentProperty);
+	FArrayProperty* SourceArrayProperty = CastField<FArrayProperty>(Stack.MostRecentProperty);
 	if (!SourceArrayProperty)
 	{
 		Stack.bArrayContextFailed = true;
@@ -189,9 +193,9 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Append)
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Insert)
 {
 	Stack.MostRecentProperty = nullptr;
-	Stack.StepCompiledIn<UArrayProperty>(NULL);
+	Stack.StepCompiledIn<FArrayProperty>(NULL);
 	void* ArrayAddr = Stack.MostRecentPropertyAddress;
-	UArrayProperty* ArrayProperty = Cast<UArrayProperty>(Stack.MostRecentProperty);
+	FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Stack.MostRecentProperty);
 	if (!ArrayProperty)
 	{
 		Stack.bArrayContextFailed = true;
@@ -199,16 +203,16 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Insert)
 	}
 
 	// Since NewItem isn't really an int, step the stack manually
-	const UProperty* InnerProp = ArrayProperty->Inner;
+	const FProperty* InnerProp = ArrayProperty->Inner;
 	const int32 PropertySize = InnerProp->ElementSize * InnerProp->ArrayDim;
 	void* StorageSpace = FMemory_Alloca(PropertySize);
 	InnerProp->InitializeValue(StorageSpace);
 
 	Stack.MostRecentPropertyAddress = NULL;
-	Stack.StepCompiledIn<UProperty>(StorageSpace);
+	Stack.StepCompiledIn<FProperty>(StorageSpace);
 	void* NewItemPtr = (Stack.MostRecentPropertyAddress != NULL && Stack.MostRecentProperty->GetClass() == InnerProp->GetClass()) ? Stack.MostRecentPropertyAddress : StorageSpace;
 
-	P_GET_PROPERTY(UIntProperty, Index);
+	P_GET_PROPERTY(FIntProperty, Index);
 	P_FINISH;
 	P_NATIVE_BEGIN;
 	UKismetArrayLibrary::GenericArray_Insert(ArrayAddr, ArrayProperty, NewItemPtr, Index);
@@ -225,16 +229,16 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Insert)
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Remove)
 {
 	Stack.MostRecentProperty = nullptr;
-	Stack.StepCompiledIn<UArrayProperty>(NULL);
+	Stack.StepCompiledIn<FArrayProperty>(NULL);
 	void* ArrayAddr = Stack.MostRecentPropertyAddress;
-	UArrayProperty* ArrayProperty = Cast<UArrayProperty>(Stack.MostRecentProperty);
+	FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Stack.MostRecentProperty);
 	if (!ArrayProperty)
 	{
 		Stack.bArrayContextFailed = true;
 		return;
 	}
 
-	P_GET_PROPERTY(UIntProperty, Index);
+	P_GET_PROPERTY(FIntProperty, Index);
 	P_FINISH;
 	P_NATIVE_BEGIN;
 	NoesisNotifyArrayPropertyPreRemove(ArrayAddr, Index);
@@ -246,27 +250,27 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Remove)
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_RemoveItem)
 {
 	Stack.MostRecentProperty = nullptr;
-	Stack.StepCompiledIn<UArrayProperty>(NULL);
+	Stack.StepCompiledIn<FArrayProperty>(NULL);
 	void* ArrayAddr = Stack.MostRecentPropertyAddress;
-	UArrayProperty* ArrayProperty = Cast<UArrayProperty>(Stack.MostRecentProperty);
+	FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Stack.MostRecentProperty);
 	if (!ArrayProperty)
 	{
 		Stack.bArrayContextFailed = true;
 		return;
 	}
 	// Since Item isn't really an int, step the stack manually
-	const UProperty* InnerProp = ArrayProperty->Inner;
+	const FProperty* InnerProp = ArrayProperty->Inner;
 	const int32 PropertySize = InnerProp->ElementSize * InnerProp->ArrayDim;
 	void* StorageSpace = FMemory_Alloca(PropertySize);
 	InnerProp->InitializeValue(StorageSpace);
 
 	Stack.MostRecentPropertyAddress = NULL;
-	Stack.StepCompiledIn<UProperty>(StorageSpace);
+	Stack.StepCompiledIn<FProperty>(StorageSpace);
 	void* ItemPtr = StorageSpace;
 
 	P_FINISH;
 	// Bools need to be processed internally by the property so that C++ bool value is properly set.
-	const UBoolProperty* BoolProperty = Cast<const UBoolProperty>(InnerProp);
+	const FBoolProperty* BoolProperty = CastField<const FBoolProperty>(InnerProp);
 	if (BoolProperty)
 	{
 		ensure((BoolProperty->ElementSize * BoolProperty->ArrayDim) == sizeof(uint8));
@@ -295,9 +299,9 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_RemoveItem)
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Clear)
 {
 	Stack.MostRecentProperty = nullptr;
-	Stack.StepCompiledIn<UArrayProperty>(NULL);
+	Stack.StepCompiledIn<FArrayProperty>(NULL);
 	void* ArrayAddr = Stack.MostRecentPropertyAddress;
-	UArrayProperty* ArrayProperty = Cast<UArrayProperty>(Stack.MostRecentProperty);
+	FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Stack.MostRecentProperty);
 	if (!ArrayProperty)
 	{
 		Stack.bArrayContextFailed = true;
@@ -313,20 +317,20 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Clear)
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Resize)
 {
 	Stack.MostRecentProperty = nullptr;
-	Stack.StepCompiledIn<UArrayProperty>(NULL);
+	Stack.StepCompiledIn<FArrayProperty>(NULL);
 	void* ArrayAddr = Stack.MostRecentPropertyAddress;
-	UArrayProperty* ArrayProperty = Cast<UArrayProperty>(Stack.MostRecentProperty);
+	FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Stack.MostRecentProperty);
 	if (!ArrayProperty)
 	{
 		Stack.bArrayContextFailed = true;
 		return;
 	}
 
-	P_GET_PROPERTY(UIntProperty, Size);
+	P_GET_PROPERTY(FIntProperty, Size);
 
 	P_FINISH;
 	P_NATIVE_BEGIN;
-	const UProperty* InnerProp = ArrayProperty->Inner;
+	const FProperty* InnerProp = ArrayProperty->Inner;
 	FScriptArrayHelper ArrayHelper = FScriptArrayHelper::CreateHelperFormInnerProperty(InnerProp, ArrayAddr);
 	int32 ArrayNum = ArrayHelper.Num();
 	for (int32 Index = ArrayNum; Index-- > Size;)
@@ -347,24 +351,24 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Resize)
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Set)
 {
 	Stack.MostRecentProperty = nullptr;
-	Stack.StepCompiledIn<UArrayProperty>(NULL);
+	Stack.StepCompiledIn<FArrayProperty>(NULL);
 	void* ArrayAddr = Stack.MostRecentPropertyAddress;
-	UArrayProperty* ArrayProperty = Cast<UArrayProperty>(Stack.MostRecentProperty);
+	FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Stack.MostRecentProperty);
 	if (!ArrayProperty)
 	{
 		Stack.bArrayContextFailed = true;
 		return;
 	}
-	P_GET_PROPERTY(UIntProperty, Index);
+	P_GET_PROPERTY(FIntProperty, Index);
 
 	// Since NewItem isn't really an int, step the stack manually
-	const UProperty* InnerProp = ArrayProperty->Inner;
+	const FProperty* InnerProp = ArrayProperty->Inner;
 	const int32 PropertySize = InnerProp->ElementSize * InnerProp->ArrayDim;
 	void* StorageSpace = FMemory_Alloca(PropertySize);
 	InnerProp->InitializeValue(StorageSpace);
 
 	Stack.MostRecentPropertyAddress = NULL;
-	Stack.StepCompiledIn<UProperty>(StorageSpace);
+	Stack.StepCompiledIn<FProperty>(StorageSpace);
 	void* NewItemPtr = (Stack.MostRecentPropertyAddress != NULL && Stack.MostRecentProperty->GetClass() == InnerProp->GetClass()) ? Stack.MostRecentPropertyAddress : StorageSpace;
 
 	P_GET_UBOOL(bSizeToFit);

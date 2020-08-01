@@ -9,6 +9,9 @@
 #include "RHI.h"
 #include "RHIResources.h"
 
+// NoesisRuntime includes
+#include "NoesisShaders.h"
+
 // Noesis includes
 #include "NoesisSDK.h"
 
@@ -28,8 +31,8 @@ class FNoesisRenderDevice : public Noesis::RenderDevice
 public:
 	static uint32 RHICmdListTlsSlot;
 	FVertexDeclarationRHIRef VertexDeclarations[Noesis::Shader::Count];
-	class FNoesisVSBase* VertexShaders[Noesis::Shader::Count];
-	class FNoesisPSBase* PixelShaders[Noesis::Shader::Count];
+	TShaderRef<FNoesisVSBase> VertexShaders[Noesis::Shader::Count];
+	TShaderRef<FNoesisPSBase> PixelShaders[Noesis::Shader::Count];
 
 	class FNoesisRenderTarget* CurrentRenderTarget;
 

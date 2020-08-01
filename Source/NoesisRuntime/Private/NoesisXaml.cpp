@@ -14,17 +14,34 @@ Noesis::Ptr<Noesis::BaseComponent> UNoesisXaml::LoadXaml()
 {
 	if (HasAnyFlags(RF_ClassDefaultObject))
 		return nullptr;
-	return Noesis::GUI::LoadXaml(TCHARToNsString(*GetPathName()).Str());
+	UObject* Package = GetOutermost();
+	FString PackageRoot;
+	FString PackagePath;
+	FString PackageName;
+	FPackageName::SplitLongPackageName(Package->GetPathName(), PackageRoot, PackagePath, PackageName, false);
+	return Noesis::GUI::LoadXaml(TCHARToNsString(*(PackagePath + PackageName + TEXT(".xaml"))).Str());
 }
 
 void UNoesisXaml::LoadComponent(Noesis::BaseComponent* Component)
 {
-	Noesis::GUI::LoadComponent(Component, TCHARToNsString(*GetPathName()).Str());
+	UObject* Package = GetOutermost();
+	FString PackageRoot;
+	FString PackagePath;
+	FString PackageName;
+	FPackageName::SplitLongPackageName(Package->GetPathName(), PackageRoot, PackagePath, PackageName, false);
+	Noesis::GUI::LoadComponent(Component, TCHARToNsString(*(PackagePath + PackageName + TEXT(".xaml"))).Str());
 }
 
 uint32 UNoesisXaml::GetContentHash() const
 {
-	return Noesis::HashBytes(XamlText.GetData(), XamlText.Num());
+	uint32 Hash = Noesis::HashBytes(XamlText.GetData(), XamlText.Num());
+
+	for (auto Xaml : Xamls)
+	{
+		Hash ^= Xaml->GetContentHash();
+	}
+
+	return Hash;
 }
 
 #if WITH_EDITORONLY_DATA
@@ -49,55 +66,26 @@ void UNoesisXaml::GetAssetRegistryTags(TArray<FAssetRegistryTag>& OutTags) const
 }
 #endif // WITH_EDITORONLY_DATA
 
-void UNoesisXaml::PostLoad()
+void UNoesisXaml::RegisterDependencies()
 {
-	Super::PostLoad();
-
 	INoesisRuntimeModuleInterface& NoesisRuntime = INoesisRuntimeModuleInterface::Get();
 	for (auto Font : Fonts)
 	{
-		NoesisRuntime.RegisterFont(Font);
+		for (auto TypefaceEntry : Font->CompositeFont.DefaultTypeface.Fonts)
+		{
+			const FFontData* FontData = &TypefaceEntry.Font;
+			const UFontFace* FontFace = Cast<UFontFace>(FontData->GetFontFaceAsset());
+			NoesisRuntime.RegisterFont(FontFace);
+		}
+	}
+
+	for (auto FontFace : FontFaces)
+	{
+		NoesisRuntime.RegisterFont(FontFace);
 	}
 }
 
 #if WITH_EDITOR
-void UNoesisXaml::PreloadDependencies()
-{
-	{
-		auto Linker = GetLinker();
-		if (Linker)
-		{
-			Linker->Preload(this);
-		}
-	}
-
-	for (auto Xaml : Xamls)
-	{
-		if (Xaml != this)
-		{
-			Xaml->PreloadDependencies();
-		}
-	}
-
-	for (auto Texture : Textures)
-	{
-		auto Linker = Texture->GetLinker();
-		if (Linker)
-		{
-			Linker->Preload(Texture);
-		}
-	}
-
-	for (auto Font : Fonts)
-	{
-		auto Linker = Font->GetLinker();
-		if (Linker)
-		{
-			Linker->Preload(Font);
-		}
-	}
-}
-
 bool UNoesisXaml::CanRenderThumbnail()
 {
 	if (!ThumbnailRenderInstance)

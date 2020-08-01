@@ -61,7 +61,7 @@ class NOESISRUNTIME_API UNoesisSettings : public UObject
 	FSoftObjectPath ApplicationResources;
 
 	/** Default value for FontFamily when it is not specified in a control or text element */
-	UPROPERTY(EditAnywhere, Config, Category = "XAML", meta = (AllowedClasses = "Font"))
+	UPROPERTY(EditAnywhere, Config, Category = "XAML", meta = (AllowedClasses = "FontFace"))
 	TArray<FSoftObjectPath> DefaultFonts;
 
 	/** Default value for FontSize when it is not specified in a control or text element */
@@ -111,4 +111,17 @@ class NOESISRUNTIME_API UNoesisSettings : public UObject
 	/** Restores the color of UI PNG texture texels with an alpha value of zero. */
 	UPROPERTY(EditAnywhere, Config, Category = "Editor Settings", DisplayName = "Fix for premultiplied alpha UI textures")
 	bool RestoreUITexturePNGPremultipliedAlpha;
+
+	/** Premultiplies the color channels of UI textures with the value of the alpha channel. */
+	UPROPERTY(EditAnywhere, Config, Category = "Editor Settings")
+	bool PremultiplyAlpha;
+
+	void SetLicense() const;
+	void SetApplicationResources() const;
+	void SetFontFallbacks() const;
+	void SetFontDefaultProperties() const;
+
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 };

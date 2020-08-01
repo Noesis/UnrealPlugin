@@ -35,7 +35,7 @@ class FNoesisTextureProvider : public Noesis::TextureProvider
 class FNoesisFontProvider : public Noesis::CachedFontProvider
 {
 public:
-	void RegisterFont(class UFont* Font);
+	void RegisterFont(const class UFontFace* Font);
 
 private:
 

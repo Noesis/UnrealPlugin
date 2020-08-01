@@ -50,27 +50,26 @@ static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* De
 	UE_LOG(LogNoesis, Warning, TEXT("%s"), *NsStringToFString(Desc));
 }
 
-DECLARE_DWORD_COUNTER_STAT(TEXT("NoesisMemory"), STAT_NoesisMemory, STATGROUP_Noesis);
+DECLARE_MEMORY_STAT(TEXT("NoesisMemory"), STAT_NoesisMemory, STATGROUP_Noesis);
 void* NoesisAllocationCallbackUserData = nullptr;
 void* NoesisAlloc(void* UserData, size_t Size)
 {
 	void* Result = FMemory::Malloc(Size);
-	INC_DWORD_STAT_BY(STAT_NoesisMemory, FMemory::GetAllocSize(Result));
+	SET_MEMORY_STAT(STAT_NoesisMemory, Noesis::GetAllocatedMemory());
 	return Result;
 }
 
 void* NoesisRealloc(void* UserData, void* Ptr, size_t Size)
 {
-	DEC_DWORD_STAT_BY(STAT_NoesisMemory, FMemory::GetAllocSize(Ptr));
 	void* Result = FMemory::Realloc(Ptr, Size);
-	INC_DWORD_STAT_BY(STAT_NoesisMemory, FMemory::GetAllocSize(Result));
+	SET_MEMORY_STAT(STAT_NoesisMemory, Noesis::GetAllocatedMemory());
 	return Result;
 }
 
 void NoesisDealloc(void* UserData, void* Ptr)
 {
-	DEC_DWORD_STAT_BY(STAT_NoesisMemory, FMemory::GetAllocSize(Ptr));
 	FMemory::Free(Ptr);
+	SET_MEMORY_STAT(STAT_NoesisMemory, Noesis::GetAllocatedMemory());
 }
 
 size_t NoesisAllocSize(void* UserData, void* Ptr)
@@ -83,25 +82,29 @@ static void NoesisLogHandler(const char* File, uint32_t Line, uint32_t Level, co
 	if (UObjectInitialized())
 	{
 		ENoesisLoggingSettings LogVerbosity = GetDefault<UNoesisSettings>()->LogVerbosity;
-		if (LogVerbosity == ENoesisLoggingSettings::Bindings || (LogVerbosity == ENoesisLoggingSettings::Normal && FCStringAnsi::Strcmp(Channel, "Bindings") != 0))
+		if (Level == NS_LOG_LEVEL_ERROR || (int)LogVerbosity > 0)
 		{
-			switch (Level)
+			if (FCStringAnsi::Strcmp(Channel, "") == 0 || (
+				FCStringAnsi::Strcmp(Channel, "Binding") == 0 && (int)LogVerbosity > 1))
 			{
-			case 0:
-				UE_LOG(LogNoesis, VeryVerbose, TEXT("%s"), *NsStringToFString(Message));
-				break;
-			case 1:
-				UE_LOG(LogNoesis, Verbose, TEXT("%s"), *NsStringToFString(Message));
-				break;
-			case 2:
-				UE_LOG(LogNoesis, Log, TEXT("%s"), *NsStringToFString(Message));
-				break;
-			case 3:
-				UE_LOG(LogNoesis, Warning, TEXT("%s"), *NsStringToFString(Message));
-				break;
-			case 4:
-				UE_LOG(LogNoesis, Error, TEXT("%s"), *NsStringToFString(Message));
-				break;
+				switch (Level)
+				{
+					case 0:
+						UE_LOG(LogNoesis, VeryVerbose, TEXT("%s"), *NsStringToFString(Message));
+						break;
+					case 1:
+						UE_LOG(LogNoesis, Verbose, TEXT("%s"), *NsStringToFString(Message));
+						break;
+					case 2:
+						UE_LOG(LogNoesis, Log, TEXT("%s"), *NsStringToFString(Message));
+						break;
+					case 3:
+						UE_LOG(LogNoesis, Warning, TEXT("%s"), *NsStringToFString(Message));
+						break;
+					case 4:
+						UE_LOG(LogNoesis, Error, TEXT("%s"), *NsStringToFString(Message));
+						break;
+				}
 			}
 		}
 	}
@@ -117,7 +120,7 @@ public:
 	}
 	virtual void PostChange(const UUserDefinedEnum* Changed, FEnumEditorUtils::EEnumEditorChangeInfo ChangedType) override
 	{
-		NoesisDestroyAllTypes();
+		NoesisDestroyTypeClassForEnum(Changed);
 	}
 };
 
@@ -130,7 +133,7 @@ public:
 	}
 	virtual void PostChange(const UUserDefinedStruct* Changed, FStructureEditorUtils::EStructureEditorChangeInfo ChangedType) override
 	{
-		NoesisDestroyAllTypes();
+		NoesisDestroyTypeClassForStruct(Changed);
 	}
 };
 
@@ -139,17 +142,19 @@ void OnBlueprintPreCompile(UBlueprint* Blueprint)
 	NoesisDestroyTypeClassForBlueprint(Blueprint);
 }
 
-void OnAssetRenamed(const FAssetData&, const FString&)
+void OnAssetRenamed(const FAssetData&, const FString& OldPath)
 {
-	NoesisDestroyAllTypes();
+	NoesisDestroyTypeClass(OldPath);
 }
 #endif
 
 void OnPostEngineInit()
 {
-	FString LicenseName = GetDefault<UNoesisSettings>()->LicenseName;
-	FString LicenseKey = GetDefault<UNoesisSettings>()->LicenseKey;
-	Noesis::GUI::SetLicense(TCHAR_TO_UTF8(*LicenseName), TCHAR_TO_UTF8(*LicenseKey));
+	const UNoesisSettings* Settings = GetDefault<UNoesisSettings>();
+	Settings->SetLicense();
+	Settings->SetApplicationResources();
+	Settings->SetFontFallbacks();
+	Settings->SetFontDefaultProperties();
 
 #if WITH_EDITOR
 	if (GEditor)
@@ -167,8 +172,6 @@ void OnPostEngineInit()
 	// Workaround: Standalone mode doesn't load the editor modules, so blueprints that use the set and notify don't work correctly.
 	FModuleManager::Get().LoadModule("NoesisEditor");
 #endif
-
-	NoesisRegisterTypes();
 }
 
 void ShowTextBoxVirtualKeyboard(Noesis::TextBox*);
@@ -412,14 +415,18 @@ void NoesisPlaySoundCallback(void* UserData, const char* Filename, float Volume)
 #endif
 
 	FString SoundPath = NsProviderPathToAssetPath(Filename);
-	USoundWave* Sound = LoadObject<USoundWave>(nullptr, SoundPath[0] == TEXT('/') ? *SoundPath : *(FString(TEXT("/")) + SoundPath));
+	USoundWave* Sound = LoadObject<USoundWave>(nullptr, *(FString(TEXT("/Game/")) + SoundPath), nullptr, LOAD_NoWarn);
+	if (Sound == nullptr)
+	{
+		Sound = LoadObject<USoundWave>(nullptr, *(FString(TEXT("/NoesisGUI/")) + SoundPath), nullptr, LOAD_NoWarn);
+	}
 
 	if (!Sound)
 		return;
 
 	if (GEngine)
 	{
-		FAudioDevice* const AudioDevice = GEngine->GetActiveAudioDevice();
+		FAudioDeviceHandle AudioDevice = GEngine->GetActiveAudioDevice();
 		if (AudioDevice)
 		{
 			FActiveSound NewActiveSound;
@@ -501,9 +508,9 @@ public:
 	// End of IModuleInterface interface
 
 	// INoesisRuntimeModuleInterface interface
-	virtual void RegisterFont(class UFont* Font) override
+	virtual void RegisterFont(const class UFontFace* FontFace) override
 	{
-		NoesisFontProvider->RegisterFont(Font);
+		NoesisFontProvider->RegisterFont(FontFace);
 	}
 	// End of INoesisRuntimeModuleInterface interface
 

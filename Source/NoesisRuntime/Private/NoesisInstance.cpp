@@ -40,6 +40,7 @@ DECLARE_CYCLE_STAT(TEXT("NoesisInstance::Draw_RenderThread"), STAT_NoesisInstanc
 DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnKeyChar"), STAT_NoesisInstance_OnKeyChar, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnKeyDown"), STAT_NoesisInstance_OnKeyDown, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnKeyUp"), STAT_NoesisInstance_OnKeyUp, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnAnalogValueChanged"), STAT_NoesisInstance_OnAnalogValueChanged, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnMouseButtonDown"), STAT_NoesisInstance_OnMouseButtonDown, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnMouseButtonUp"), STAT_NoesisInstance_OnMouseButtonUp, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnMouseMove"), STAT_NoesisInstance_OnMouseMove, STATGROUP_Noesis);
@@ -48,49 +49,6 @@ DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnTouchStarted"), STAT_NoesisInst
 DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnTouchMoved"), STAT_NoesisInstance_OnTouchMoved, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnTouchEnded"), STAT_NoesisInstance_OnTouchEnded, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnMouseButtonDoubleClick"), STAT_NoesisInstance_OnMouseButtonDoubleClick, STATGROUP_Noesis);
-
-static uint32 ApplicationResourcesHash;
-static void SetApplicationResources()
-{
-	UNoesisXaml* ApplicationResources = Cast<UNoesisXaml>(GetDefault<UNoesisSettings>()->ApplicationResources.TryLoad());
-	if (ApplicationResources)
-	{
-		uint32 Hash = ApplicationResources->GetContentHash();
-		if (ApplicationResourcesHash != Hash)
-		{
-			ApplicationResourcesHash = Hash;
-			Noesis::Ptr<Noesis::BaseComponent> Component = ApplicationResources->LoadXaml();
-			Noesis::ResourceDictionary* Dictionary = Noesis::DynamicCast<Noesis::ResourceDictionary*>(Component.GetPtr());
-			Noesis::GUI::SetApplicationResources(Dictionary);
-		}
-	}
-	else
-	{
-		if (ApplicationResourcesHash != 0)
-		{
-			ApplicationResourcesHash = 0;
-			Noesis::GUI::SetApplicationResources(nullptr);
-		}
-	}
-
-	TArray<Noesis::String> FamilyNamesStr;
-	TArray<const ANSICHAR*> FamilyNames;
-	for (auto& FontFallback : GetDefault<UNoesisSettings>()->DefaultFonts)
-	{
-		UFont* Font = Cast<UFont>(FontFallback.TryLoad());
-		if (ApplicationResources)
-		{
-			FamilyNamesStr.Add(TCHARToNsString(*Font->GetPathName()));
-			FamilyNames.Add(FamilyNamesStr.Last().Str());
-		}
-	}
-	Noesis::GUI::SetFontFallbacks(FamilyNames.GetData(), FamilyNames.Num());
-	float Size = GetDefault<UNoesisSettings>()->DefaultFontSize;
-	ENoesisFontWeight Weight = GetDefault<UNoesisSettings>()->DefaultFontWeight;
-	ENoesisFontStretch Stretch = GetDefault<UNoesisSettings>()->DefaultFontStretch;
-	ENoesisFontStyle Style = GetDefault<UNoesisSettings>()->DefaultFontStyle;
-	Noesis::GUI::SetFontDefaultProperties(Size, (Noesis::FontWeight)Weight, (Noesis::FontStretch)Stretch, (Noesis::FontStyle)Style);
-}
 
 class FNoesisSlateElement : public ICustomSlateElement
 {
@@ -141,7 +99,7 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 
 		check(RHICmdList.IsOutsideRenderPass());
 		RHICmdList.BeginRenderPass(RPInfo, TEXT("NoesisOnScreen"));
-		RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
+		RHICmdList.SetViewport((int32)Left, (int32)Top, 0.0f, (int32)Right, (int32)Bottom, 1.0f);
 		SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
 		SCOPED_DRAW_EVENT(RHICmdList, NoesisDraw);
 		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
@@ -309,12 +267,13 @@ void UNoesisInstance::InitInstance()
 
 	Noesis::Ptr<Noesis::BaseComponent> DataContext = Noesis::Ptr<Noesis::BaseComponent>(NoesisCreateComponentForUObject(this));
 
-	SetApplicationResources();
 	Xaml.Reset(Noesis::DynamicCast<Noesis::FrameworkElement*>(BaseXaml->LoadXaml().GetPtr()));
 
 	if (Xaml)
 	{
 		Xaml->SetDataContext(DataContext.GetPtr());
+
+		XamlLoaded();
 
 		XamlView = Noesis::GUI::CreateView(Xaml.GetPtr());
 
@@ -332,10 +291,7 @@ void UNoesisInstance::InitInstance()
 
 			NoesisSlateElement = MakeShared<FNoesisSlateElement, ESPMode::ThreadSafe>(Renderer);
 
-			StartTime = GetTimeSeconds();
-
-			EventInitInstance();
-
+			CurrentTime = 0.0f;
 			Update(0.0f, 0.0f, 256.0f, 256.0f);
 		}
 
@@ -433,7 +389,7 @@ void UNoesisInstance::Update(float InLeft, float InTop, float InWidth, float InH
 		}
 		XamlView->SetTessellationMaxPixelError(mpe);
 		XamlView->SetFlags((uint32)RenderFlags | (EnablePPAA ? Noesis::RenderFlags_PPAA : 0));
-		XamlView->Update(GetTimeSeconds() - StartTime);
+		XamlView->Update(CurrentTime);
 	}
 }
 
@@ -662,6 +618,7 @@ void UNoesisInstance::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 
 	FVector2D AbsolutePosition = MyGeometry.GetAbsolutePosition();
 	FVector2D AbsoluteSize = MyGeometry.GetAbsoluteSize();
+	CurrentTime += InDeltaTime;
 	Update(AbsolutePosition.X, AbsolutePosition.Y, AbsoluteSize.X, AbsoluteSize.Y);
 }
 
@@ -714,446 +671,130 @@ FReply UNoesisInstance::NativeOnKeyChar(const FGeometry& MyGeometry, const FChar
 	return Super::NativeOnKeyChar(MyGeometry, CharacterEvent);
 }
 
-Noesis::Key KeyToNoesisKey(FKey Key)
+static TMap<FKey, Noesis::Key> InitKeyMap()
 {
-	Noesis::Key NoesisKey = Noesis::Key_None;
-	if (Key == EKeys::BackSpace)
-	{
-		NoesisKey = Noesis::Key_Back;
-	}
-	else if (Key == EKeys::Tab)
-	{
-		NoesisKey = Noesis::Key_Tab;
-	}
-	else if (Key == EKeys::Enter)
-	{
-		NoesisKey = Noesis::Key_Enter;
-	}
-	else if (Key == EKeys::Pause)
-	{
-		NoesisKey = Noesis::Key_Pause;
-	}
-	else if (Key == EKeys::CapsLock)
-	{
-		NoesisKey = Noesis::Key_CapsLock;
-	}
-	else if (Key == EKeys::Escape)
-	{
-		NoesisKey = Noesis::Key_Escape;
-	}
-	else if (Key == EKeys::SpaceBar)
-	{
-		NoesisKey = Noesis::Key_Space;
-	}
-	else if (Key == EKeys::PageUp)
-	{
-		NoesisKey = Noesis::Key_PageUp;
-	}
-	else if (Key == EKeys::PageDown)
-	{
-		NoesisKey = Noesis::Key_PageDown;
-	}
-	else if (Key == EKeys::End)
-	{
-		NoesisKey = Noesis::Key_End;
-	}
-	else if (Key == EKeys::Home)
-	{
-		NoesisKey = Noesis::Key_Home;
-	}
-	else if (Key == EKeys::Left)
-	{
-		NoesisKey = Noesis::Key_Left;
-	}
-	else if (Key == EKeys::Up)
-	{
-		NoesisKey = Noesis::Key_Up;
-	}
-	else if (Key == EKeys::Right)
-	{
-		NoesisKey = Noesis::Key_Right;
-	}
-	else if (Key == EKeys::Down)
-	{
-		NoesisKey = Noesis::Key_Down;
-	}
-	else if (Key == EKeys::Insert)
-	{
-		NoesisKey = Noesis::Key_Insert;
-	}
-	else if (Key == EKeys::Delete)
-	{
-		NoesisKey = Noesis::Key_Delete;
-	}
-	else if (Key == EKeys::Zero)
-	{
-		NoesisKey = Noesis::Key_D0;
-	}
-	else if (Key == EKeys::One)
-	{
-		NoesisKey = Noesis::Key_D1;
-	}
-	else if (Key == EKeys::Two)
-	{
-		NoesisKey = Noesis::Key_D2;
-	}
-	else if (Key == EKeys::Three)
-	{
-		NoesisKey = Noesis::Key_D3;
-	}
-	else if (Key == EKeys::Four)
-	{
-		NoesisKey = Noesis::Key_D4;
-	}
-	else if (Key == EKeys::Five)
-	{
-		NoesisKey = Noesis::Key_D5;
-	}
-	else if (Key == EKeys::Six)
-	{
-		NoesisKey = Noesis::Key_D6;
-	}
-	else if (Key == EKeys::Seven)
-	{
-		NoesisKey = Noesis::Key_D7;
-	}
-	else if (Key == EKeys::Eight)
-	{
-		NoesisKey = Noesis::Key_D8;
-	}
-	else if (Key == EKeys::Nine)
-	{
-		NoesisKey = Noesis::Key_D9;
-	}
-	else if (Key == EKeys::A)
-	{
-		NoesisKey = Noesis::Key_A;
-	}
-	else if (Key == EKeys::B)
-	{
-		NoesisKey = Noesis::Key_B;
-	}
-	else if (Key == EKeys::C)
-	{
-		NoesisKey = Noesis::Key_C;
-	}
-	else if (Key == EKeys::D)
-	{
-		NoesisKey = Noesis::Key_D;
-	}
-	else if (Key == EKeys::E)
-	{
-		NoesisKey = Noesis::Key_E;
-	}
-	else if (Key == EKeys::F)
-	{
-		NoesisKey = Noesis::Key_F;
-	}
-	else if (Key == EKeys::G)
-	{
-		NoesisKey = Noesis::Key_G;
-	}
-	else if (Key == EKeys::H)
-	{
-		NoesisKey = Noesis::Key_H;
-	}
-	else if (Key == EKeys::I)
-	{
-		NoesisKey = Noesis::Key_I;
-	}
-	else if (Key == EKeys::J)
-	{
-		NoesisKey = Noesis::Key_J;
-	}
-	else if (Key == EKeys::K)
-	{
-		NoesisKey = Noesis::Key_K;
-	}
-	else if (Key == EKeys::L)
-	{
-		NoesisKey = Noesis::Key_L;
-	}
-	else if (Key == EKeys::M)
-	{
-		NoesisKey = Noesis::Key_M;
-	}
-	else if (Key == EKeys::N)
-	{
-		NoesisKey = Noesis::Key_N;
-	}
-	else if (Key == EKeys::O)
-	{
-		NoesisKey = Noesis::Key_O;
-	}
-	else if (Key == EKeys::P)
-	{
-		NoesisKey = Noesis::Key_P;
-	}
-	else if (Key == EKeys::Q)
-	{
-		NoesisKey = Noesis::Key_Q;
-	}
-	else if (Key == EKeys::R)
-	{
-		NoesisKey = Noesis::Key_R;
-	}
-	else if (Key == EKeys::S)
-	{
-		NoesisKey = Noesis::Key_S;
-	}
-	else if (Key == EKeys::T)
-	{
-		NoesisKey = Noesis::Key_T;
-	}
-	else if (Key == EKeys::U)
-	{
-		NoesisKey = Noesis::Key_U;
-	}
-	else if (Key == EKeys::V)
-	{
-		NoesisKey = Noesis::Key_V;
-	}
-	else if (Key == EKeys::W)
-	{
-		NoesisKey = Noesis::Key_W;
-	}
-	else if (Key == EKeys::X)
-	{
-		NoesisKey = Noesis::Key_X;
-	}
-	else if (Key == EKeys::Y)
-	{
-		NoesisKey = Noesis::Key_Y;
-	}
-	else if (Key == EKeys::Z)
-	{
-		NoesisKey = Noesis::Key_Z;
-	}
-	else if (Key == EKeys::NumPadZero)
-	{
-		NoesisKey = Noesis::Key_NumPad0;
-	}
-	else if (Key == EKeys::NumPadOne)
-	{
-		NoesisKey = Noesis::Key_NumPad1;
-	}
-	else if (Key == EKeys::NumPadTwo)
-	{
-		NoesisKey = Noesis::Key_NumPad2;
-	}
-	else if (Key == EKeys::NumPadThree)
-	{
-		NoesisKey = Noesis::Key_NumPad3;
-	}
-	else if (Key == EKeys::NumPadFour)
-	{
-		NoesisKey = Noesis::Key_NumPad4;
-	}
-	else if (Key == EKeys::NumPadFive)
-	{
-		NoesisKey = Noesis::Key_NumPad5;
-	}
-	else if (Key == EKeys::NumPadSix)
-	{
-		NoesisKey = Noesis::Key_NumPad6;
-	}
-	else if (Key == EKeys::NumPadSeven)
-	{
-		NoesisKey = Noesis::Key_NumPad7;
-	}
-	else if (Key == EKeys::NumPadEight)
-	{
-		NoesisKey = Noesis::Key_NumPad8;
-	}
-	else if (Key == EKeys::NumPadNine)
-	{
-		NoesisKey = Noesis::Key_NumPad9;
-	}
-	else if (Key == EKeys::Multiply)
-	{
-		NoesisKey = Noesis::Key_Multiply;
-	}
-	else if (Key == EKeys::Add)
-	{
-		NoesisKey = Noesis::Key_Add;
-	}
-	else if (Key == EKeys::Subtract)
-	{
-		NoesisKey = Noesis::Key_Subtract;
-	}
-	else if (Key == EKeys::Decimal)
-	{
-		NoesisKey = Noesis::Key_Decimal;
-	}
-	else if (Key == EKeys::Divide)
-	{
-		NoesisKey = Noesis::Key_Divide;
-	}
-	else if (Key == EKeys::F1)
-	{
-		NoesisKey = Noesis::Key_F1;
-	}
-	else if (Key == EKeys::F2)
-	{
-		NoesisKey = Noesis::Key_F2;
-	}
-	else if (Key == EKeys::F3)
-	{
-		NoesisKey = Noesis::Key_F3;
-	}
-	else if (Key == EKeys::F4)
-	{
-		NoesisKey = Noesis::Key_F4;
-	}
-	else if (Key == EKeys::F5)
-	{
-		NoesisKey = Noesis::Key_F5;
-	}
-	else if (Key == EKeys::F6)
-	{
-		NoesisKey = Noesis::Key_F6;
-	}
-	else if (Key == EKeys::F7)
-	{
-		NoesisKey = Noesis::Key_F7;
-	}
-	else if (Key == EKeys::F8)
-	{
-		NoesisKey = Noesis::Key_F8;
-	}
-	else if (Key == EKeys::F9)
-	{
-		NoesisKey = Noesis::Key_F9;
-	}
-	else if (Key == EKeys::F10)
-	{
-		NoesisKey = Noesis::Key_F10;
-	}
-	else if (Key == EKeys::F11)
-	{
-		NoesisKey = Noesis::Key_F11;
-	}
-	else if (Key == EKeys::F12)
-	{
-		NoesisKey = Noesis::Key_F12;
-	}
-	else if (Key == EKeys::NumLock)
-	{
-		NoesisKey = Noesis::Key_NumLock;
-	}
-	else if (Key == EKeys::ScrollLock)
-	{
-		NoesisKey = Noesis::Key_Scroll;
-	}
-	else if (Key == EKeys::LeftShift)
-	{
-		NoesisKey = Noesis::Key_LeftShift;
-	}
-	else if (Key == EKeys::RightShift)
-	{
-		NoesisKey = Noesis::Key_RightShift;
-	}
-	else if (Key == EKeys::LeftControl)
-	{
-		NoesisKey = Noesis::Key_LeftCtrl;
-	}
-	else if (Key == EKeys::RightControl)
-	{
-		NoesisKey = Noesis::Key_RightCtrl;
-	}
-	else if (Key == EKeys::LeftAlt)
-	{
-		NoesisKey = Noesis::Key_LeftAlt;
-	}
-	else if (Key == EKeys::RightAlt)
-	{
-		NoesisKey = Noesis::Key_RightAlt;
-	}
-	else if (Key == EKeys::LeftCommand)
-	{
-		NoesisKey = Noesis::Key_LWin;
-	}
-	else if (Key == EKeys::RightCommand)
-	{
-		NoesisKey = Noesis::Key_RWin;
-	}
-	else if (Key == EKeys::Semicolon)
-	{
-		NoesisKey = Noesis::Key_OemSemicolon;
-	}
-	else if (Key == EKeys::Comma)
-	{
-		NoesisKey = Noesis::Key_OemComma;
-	}
-	else if (Key == EKeys::Period)
-	{
-		NoesisKey = Noesis::Key_OemPeriod;
-	}
-	else if (Key == EKeys::Tilde)
-	{
-		NoesisKey = Noesis::Key_OemTilde;
-	}
-	else if (Key == EKeys::LeftBracket)
-	{
-		NoesisKey = Noesis::Key_OemOpenBrackets;
-	}
-	else if (Key == EKeys::Backslash)
-	{
-		NoesisKey = Noesis::Key_OemBackslash;
-	}
-	else if (Key == EKeys::RightBracket)
-	{
-		NoesisKey = Noesis::Key_OemCloseBrackets;
-	}
-	else if (Key == EKeys::Gamepad_DPad_Up)
-	{
-		NoesisKey = Noesis::Key_GamepadUp;
-	}
-	else if (Key == EKeys::Gamepad_DPad_Down)
-	{
-		NoesisKey = Noesis::Key_GamepadDown;
-	}
-	else if (Key == EKeys::Gamepad_DPad_Left)
-	{
-		NoesisKey = Noesis::Key_GamepadLeft;
-	}
-	else if (Key == EKeys::Gamepad_DPad_Right)
-	{
-		NoesisKey = Noesis::Key_GamepadRight;
-	}
-	else if (Key == EKeys::Gamepad_FaceButton_Bottom)
-	{
-		NoesisKey = Noesis::Key_GamepadAccept;
-	}
-	else if (Key == EKeys::Gamepad_FaceButton_Right)
-	{
-		NoesisKey = Noesis::Key_GamepadCancel;
-	}
-	else if (Key == EKeys::Gamepad_LeftShoulder)
-	{
-		NoesisKey = Noesis::Key_GamepadPageLeft;
-	}
-	else if (Key == EKeys::Gamepad_RightShoulder)
-	{
-		NoesisKey = Noesis::Key_GamepadPageRight;
-	}
-	else if (Key == EKeys::Gamepad_LeftTrigger)
-	{
-		NoesisKey = Noesis::Key_GamepadPageUp;
-	}
-	else if (Key == EKeys::Gamepad_RightTrigger)
-	{
-		NoesisKey = Noesis::Key_GamepadPageDown;
-	}
-	else if (Key == EKeys::Gamepad_Special_Left)
-	{
-		NoesisKey = Noesis::Key_GamepadView;
-	}
-	else if (Key == EKeys::Gamepad_Special_Right)
-	{
-		NoesisKey = Noesis::Key_GamepadMenu;
-	}
+	TMap<FKey, Noesis::Key> KeyMap;
+	KeyMap.Add(EKeys::BackSpace, Noesis::Key_Back);
+	KeyMap.Add(EKeys::Tab, Noesis::Key_Tab);
+	KeyMap.Add(EKeys::Enter, Noesis::Key_Enter);
+	KeyMap.Add(EKeys::Pause, Noesis::Key_Pause);
+	KeyMap.Add(EKeys::CapsLock, Noesis::Key_CapsLock);
+	KeyMap.Add(EKeys::Escape, Noesis::Key_Escape);
+	KeyMap.Add(EKeys::SpaceBar, Noesis::Key_Space);
+	KeyMap.Add(EKeys::PageUp, Noesis::Key_PageUp);
+	KeyMap.Add(EKeys::PageDown, Noesis::Key_PageDown);
+	KeyMap.Add(EKeys::End, Noesis::Key_End);
+	KeyMap.Add(EKeys::Home, Noesis::Key_Home);
+	KeyMap.Add(EKeys::Left, Noesis::Key_Left);
+	KeyMap.Add(EKeys::Up, Noesis::Key_Up);
+	KeyMap.Add(EKeys::Right, Noesis::Key_Right);
+	KeyMap.Add(EKeys::Down, Noesis::Key_Down);
+	KeyMap.Add(EKeys::Insert, Noesis::Key_Insert);
+	KeyMap.Add(EKeys::Delete, Noesis::Key_Delete);
+	KeyMap.Add(EKeys::Zero, Noesis::Key_D0);
+	KeyMap.Add(EKeys::One, Noesis::Key_D1);
+	KeyMap.Add(EKeys::Two, Noesis::Key_D2);
+	KeyMap.Add(EKeys::Three, Noesis::Key_D3);
+	KeyMap.Add(EKeys::Four, Noesis::Key_D4);
+	KeyMap.Add(EKeys::Five, Noesis::Key_D5);
+	KeyMap.Add(EKeys::Six, Noesis::Key_D6);
+	KeyMap.Add(EKeys::Seven, Noesis::Key_D7);
+	KeyMap.Add(EKeys::Eight, Noesis::Key_D8);
+	KeyMap.Add(EKeys::Nine, Noesis::Key_D9);
+	KeyMap.Add(EKeys::A, Noesis::Key_A);
+	KeyMap.Add(EKeys::B, Noesis::Key_B);
+	KeyMap.Add(EKeys::C, Noesis::Key_C);
+	KeyMap.Add(EKeys::D, Noesis::Key_D);
+	KeyMap.Add(EKeys::E, Noesis::Key_E);
+	KeyMap.Add(EKeys::F, Noesis::Key_F);
+	KeyMap.Add(EKeys::G, Noesis::Key_G);
+	KeyMap.Add(EKeys::H, Noesis::Key_H);
+	KeyMap.Add(EKeys::I, Noesis::Key_I);
+	KeyMap.Add(EKeys::J, Noesis::Key_J);
+	KeyMap.Add(EKeys::K, Noesis::Key_K);
+	KeyMap.Add(EKeys::L, Noesis::Key_L);
+	KeyMap.Add(EKeys::M, Noesis::Key_M);
+	KeyMap.Add(EKeys::N, Noesis::Key_N);
+	KeyMap.Add(EKeys::O, Noesis::Key_O);
+	KeyMap.Add(EKeys::P, Noesis::Key_P);
+	KeyMap.Add(EKeys::Q, Noesis::Key_Q);
+	KeyMap.Add(EKeys::R, Noesis::Key_R);
+	KeyMap.Add(EKeys::S, Noesis::Key_S);
+	KeyMap.Add(EKeys::T, Noesis::Key_T);
+	KeyMap.Add(EKeys::U, Noesis::Key_U);
+	KeyMap.Add(EKeys::V, Noesis::Key_V);
+	KeyMap.Add(EKeys::W, Noesis::Key_W);
+	KeyMap.Add(EKeys::X, Noesis::Key_X);
+	KeyMap.Add(EKeys::Y, Noesis::Key_Y);
+	KeyMap.Add(EKeys::Z, Noesis::Key_Z);
+	KeyMap.Add(EKeys::NumPadZero, Noesis::Key_NumPad0);
+	KeyMap.Add(EKeys::NumPadOne, Noesis::Key_NumPad1);
+	KeyMap.Add(EKeys::NumPadTwo, Noesis::Key_NumPad2);
+	KeyMap.Add(EKeys::NumPadThree, Noesis::Key_NumPad3);
+	KeyMap.Add(EKeys::NumPadFour, Noesis::Key_NumPad4);
+	KeyMap.Add(EKeys::NumPadFive, Noesis::Key_NumPad5);
+	KeyMap.Add(EKeys::NumPadSix, Noesis::Key_NumPad6);
+	KeyMap.Add(EKeys::NumPadSeven, Noesis::Key_NumPad7);
+	KeyMap.Add(EKeys::NumPadEight, Noesis::Key_NumPad8);
+	KeyMap.Add(EKeys::NumPadNine, Noesis::Key_NumPad9);
+	KeyMap.Add(EKeys::Multiply, Noesis::Key_Multiply);
+	KeyMap.Add(EKeys::Add, Noesis::Key_Add);
+	KeyMap.Add(EKeys::Subtract, Noesis::Key_Subtract);
+	KeyMap.Add(EKeys::Decimal, Noesis::Key_Decimal);
+	KeyMap.Add(EKeys::Divide, Noesis::Key_Divide);
+	KeyMap.Add(EKeys::F1, Noesis::Key_F1);
+	KeyMap.Add(EKeys::F2, Noesis::Key_F2);
+	KeyMap.Add(EKeys::F3, Noesis::Key_F3);
+	KeyMap.Add(EKeys::F4, Noesis::Key_F4);
+	KeyMap.Add(EKeys::F5, Noesis::Key_F5);
+	KeyMap.Add(EKeys::F6, Noesis::Key_F6);
+	KeyMap.Add(EKeys::F7, Noesis::Key_F7);
+	KeyMap.Add(EKeys::F8, Noesis::Key_F8);
+	KeyMap.Add(EKeys::F9, Noesis::Key_F9);
+	KeyMap.Add(EKeys::F10, Noesis::Key_F10);
+	KeyMap.Add(EKeys::F11, Noesis::Key_F11);
+	KeyMap.Add(EKeys::F12, Noesis::Key_F12);
+	KeyMap.Add(EKeys::NumLock, Noesis::Key_NumLock);
+	KeyMap.Add(EKeys::ScrollLock, Noesis::Key_Scroll);
+	KeyMap.Add(EKeys::LeftShift, Noesis::Key_LeftShift);
+	KeyMap.Add(EKeys::RightShift, Noesis::Key_RightShift);
+	KeyMap.Add(EKeys::LeftControl, Noesis::Key_LeftCtrl);
+	KeyMap.Add(EKeys::RightControl, Noesis::Key_RightCtrl);
+	KeyMap.Add(EKeys::LeftAlt, Noesis::Key_LeftAlt);
+	KeyMap.Add(EKeys::RightAlt, Noesis::Key_RightAlt);
+	KeyMap.Add(EKeys::LeftCommand, Noesis::Key_LWin);
+	KeyMap.Add(EKeys::RightCommand, Noesis::Key_RWin);
+	KeyMap.Add(EKeys::Semicolon, Noesis::Key_OemSemicolon);
+	KeyMap.Add(EKeys::Comma, Noesis::Key_OemComma);
+	KeyMap.Add(EKeys::Period, Noesis::Key_OemPeriod);
+	KeyMap.Add(EKeys::Tilde, Noesis::Key_OemTilde);
+	KeyMap.Add(EKeys::LeftBracket, Noesis::Key_OemOpenBrackets);
+	KeyMap.Add(EKeys::Backslash, Noesis::Key_OemBackslash);
+	KeyMap.Add(EKeys::RightBracket, Noesis::Key_OemCloseBrackets);
+	KeyMap.Add(EKeys::Gamepad_DPad_Up, Noesis::Key_GamepadUp);
+	KeyMap.Add(EKeys::Gamepad_LeftStick_Up, Noesis::Key_GamepadUp);
+	KeyMap.Add(EKeys::Gamepad_DPad_Down, Noesis::Key_GamepadDown);
+	KeyMap.Add(EKeys::Gamepad_LeftStick_Down, Noesis::Key_GamepadDown);
+	KeyMap.Add(EKeys::Gamepad_DPad_Left, Noesis::Key_GamepadLeft);
+	KeyMap.Add(EKeys::Gamepad_LeftStick_Left, Noesis::Key_GamepadLeft);
+	KeyMap.Add(EKeys::Gamepad_DPad_Right, Noesis::Key_GamepadRight);
+	KeyMap.Add(EKeys::Gamepad_LeftStick_Right, Noesis::Key_GamepadRight);
+	KeyMap.Add(EKeys::Gamepad_FaceButton_Bottom, Noesis::Key_GamepadAccept);
+	KeyMap.Add(EKeys::Gamepad_FaceButton_Right, Noesis::Key_GamepadCancel);
+	KeyMap.Add(EKeys::Gamepad_LeftShoulder, Noesis::Key_GamepadPageLeft);
+	KeyMap.Add(EKeys::Gamepad_RightShoulder, Noesis::Key_GamepadPageRight);
+	KeyMap.Add(EKeys::Gamepad_LeftTrigger, Noesis::Key_GamepadPageUp);
+	KeyMap.Add(EKeys::Gamepad_RightTrigger, Noesis::Key_GamepadPageDown);
+	KeyMap.Add(EKeys::Gamepad_Special_Left, Noesis::Key_GamepadView);
+	KeyMap.Add(EKeys::Gamepad_Special_Right, Noesis::Key_GamepadMenu);
+	return KeyMap;
+}
 
+Noesis::Key* KeyToNoesisKey(FKey Key)
+{
+	static TMap<FKey, Noesis::Key> KeyMap = InitKeyMap();
+	Noesis::Key* NoesisKey = nullptr;
+	NoesisKey = KeyMap.Find(Key);
 	return NoesisKey;
 }
 
@@ -1163,8 +804,11 @@ FReply UNoesisInstance::NativeOnKeyDown(const FGeometry& MyGeometry, const FKeyE
 	if (XamlView)
 	{
 		FKey Key = KeyEvent.GetKey();
-
-		XamlView->KeyDown(KeyToNoesisKey(Key));
+		Noesis::Key* NoesisKey = KeyToNoesisKey(Key);
+		if (NoesisKey != nullptr)
+		{
+			XamlView->KeyDown(*NoesisKey);
+		}
 	}
 
 	return Super::NativeOnKeyDown(MyGeometry, KeyEvent);
@@ -1176,11 +820,35 @@ FReply UNoesisInstance::NativeOnKeyUp(const FGeometry& MyGeometry, const FKeyEve
 	if (XamlView)
 	{
 		FKey Key = KeyEvent.GetKey();
-
-		XamlView->KeyUp(KeyToNoesisKey(Key));
+		Noesis::Key* NoesisKey = KeyToNoesisKey(Key);
+		if (NoesisKey != nullptr)
+		{
+			XamlView->KeyUp(*NoesisKey);
+		}
 	}
 
 	return Super::NativeOnKeyUp(MyGeometry, KeyEvent);
+}
+
+FReply UNoesisInstance::NativeOnAnalogValueChanged(const FGeometry& MyGeometry, const FAnalogInputEvent& InAnalogEvent)
+{
+	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_OnAnalogValueChanged);
+	if (XamlView)
+	{
+		if (FMath::Abs(InAnalogEvent.GetAnalogValue()) > 0.25f)
+		{
+			if (InAnalogEvent.GetKey() == EKeys::Gamepad_RightX)
+			{
+				XamlView->HScroll(InAnalogEvent.GetAnalogValue());
+			}
+			else if (InAnalogEvent.GetKey() == EKeys::Gamepad_RightY)
+			{
+				XamlView->Scroll(InAnalogEvent.GetAnalogValue());
+			}
+		}
+	}
+
+	return Super::NativeOnAnalogValueChanged(MyGeometry, InAnalogEvent);
 }
 
 FReply UNoesisInstance::NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)

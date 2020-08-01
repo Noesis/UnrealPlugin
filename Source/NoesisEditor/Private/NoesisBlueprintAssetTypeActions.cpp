@@ -5,6 +5,9 @@
 
 #include "NoesisBlueprintAssetTypeActions.h"
 
+// NoesisEditor includes
+#include "NoesisBlueprintEditor.h"
+
 #define LOCTEXT_NAMESPACE "NoesisEditorModule"
 
 FNoesisBlueprintAssetTypeActions::FNoesisBlueprintAssetTypeActions(EAssetTypeCategories::Type InCategories)
@@ -36,8 +39,11 @@ void FNoesisBlueprintAssetTypeActions::OpenAssetEditor(const TArray<UObject*>& I
 		auto Blueprint = Cast<UBlueprint>(*ObjIt);
 		if (Blueprint && Blueprint->SkeletonGeneratedClass && Blueprint->GeneratedClass)
 		{
-			FBlueprintEditorModule& BlueprintEditorModule = FModuleManager::LoadModuleChecked<FBlueprintEditorModule>("Kismet");
-			TSharedRef< IBlueprintEditor > NewKismetEditor = BlueprintEditorModule.CreateBlueprintEditor(Mode, EditWithinLevelEditor, Blueprint, false);
+			TSharedRef<FNoesisBlueprintEditor> NewBlueprintEditor(new FNoesisBlueprintEditor());
+
+			TArray<UBlueprint*> Blueprints;
+			Blueprints.Add(Blueprint);
+			NewBlueprintEditor->InitNoesisBlueprintEditor(Mode, EditWithinLevelEditor, Blueprints, false);
 		}
 		else
 		{

@@ -52,6 +52,11 @@ public class NoesisEditor : ModuleRules
 				"RenderCore",
 				"Projects",
 				"Slate",
+				"ToolMenus",
+				"UMG",
+				"LevelEditor",
+				"WorkspaceMenuStructure",
+				"InputCore"
 			}
 			);
 

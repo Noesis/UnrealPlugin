@@ -10,7 +10,6 @@
 
 // NoesisEditor includes
 #include "NoesisEditorModule.h"
-#include "NoesisEditorUserSettings.h"
 
 UNoesisXamlFactory::UNoesisXamlFactory(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -29,7 +28,7 @@ unsigned long StreamRead(FT_Stream Stream, unsigned long Offset, unsigned char* 
 
 void StreamClose(FT_Stream) {}
 
-UFont* ImportFontFamily(FString PackagePath, FString FamilyName, FString Directory)
+TArray<UFontFace*> ImportFontFamily(FString PackagePath, FString FamilyName, FString Directory)
 {
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 
@@ -38,7 +37,7 @@ UFont* ImportFontFamily(FString PackagePath, FString FamilyName, FString Directo
 	public:
 		FString FontPackagePath;
 		FString FamilyName;
-		TArray<FTypefaceEntry> Fonts;
+		TArray<UFontFace*> Fonts;
 		FT_Library FTLibrary;
 
 		ScanFolderForFonts(FString InFontPackagePath, FString InFamilyName)
@@ -96,17 +95,13 @@ UFont* ImportFontFamily(FString PackagePath, FString FamilyName, FString Directo
 										FString FontFaceObjectPath = FontPackagePath / FontFaceName + TEXT(".") + FontFaceName;
 										UFontFace* ExistingFontFace = LoadObject<UFontFace>(NULL, *FontFaceObjectPath);
 
-										if (!ExistingFontFace)
+										if (ExistingFontFace)
 										{
-											const FString Suffix(TEXT(""));
-
-											FontFacePackage = CreatePackage(NULL, *(FontPackagePath / FontFaceName));
+											Fonts.AddUnique(ExistingFontFace);
+											FT_Done_Face(SubFace);
+											continue;
 										}
-										else
-										{
-											FontFacePackage = ExistingFontFace->GetOutermost();
-											FontFacePackage->FullyLoad();
-										}
+										FontFacePackage = CreatePackage(NULL, *(FontPackagePath / FontFaceName));
 
 										auto FontFaceFactory = NewObject<UFontFileImportFactory>();
 										FontFaceFactory->AddToRoot();
@@ -119,8 +114,6 @@ UFont* ImportFontFamily(FString PackagePath, FString FamilyName, FString Directo
 
 										if (FontFace != NULL)
 										{
-											FontFace->LoadingPolicy = EFontLoadingPolicy::Inline;
-
 											// Notify the asset registry
 											FAssetRegistryModule::AssetCreated(FontFace);
 
@@ -131,10 +124,7 @@ UFont* ImportFontFamily(FString PackagePath, FString FamilyName, FString Directo
 										FontFaceFactory->RemoveFromRoot();
 
 										// Add a default typeface referencing the newly created font face
-										FTypefaceEntry& DefaultTypefaceEntry = Fonts[Fonts.AddDefaulted()];
-										DefaultTypefaceEntry.Name = SubFace->style_name;
-										DefaultTypefaceEntry.Font = FFontData(FontFace);
-
+										Fonts.AddUnique(FontFace);
 									}
 
 									FT_Done_Face(SubFace);
@@ -153,191 +143,264 @@ UFont* ImportFontFamily(FString PackagePath, FString FamilyName, FString Directo
 
 	ScanFolderForFonts Visitor(PackagePath, FamilyName);
 	PlatformFile.IterateDirectory(*Directory, Visitor);
-
-	if (Visitor.Fonts.Num())
-	{
-		UPackage* FontPackage = NULL;
-
-		FString FontName = ObjectTools::SanitizeObjectName(FamilyName + TEXT("_Font"));
-		FString FontObjectPath = PackagePath / FontName + TEXT(".") + FontName;
-		UFont* ExistingFont = LoadObject<UFont>(NULL, *FontObjectPath);
-
-		if (!ExistingFont)
-		{
-			const FString Suffix(TEXT(""));
-
-			FontPackage = CreatePackage(NULL, *(PackagePath / FontName));
-		}
-		else
-		{
-			FontPackage = ExistingFont->GetOutermost();
-			FontPackage->FullyLoad();
-		}
-
-		UFontFactory* FontFactory = NewObject<UFontFactory>();
-		FontFactory->bEditAfterNew = false;
-
-		UFont* Font = Cast<UFont>(FontFactory->FactoryCreateNew(UFont::StaticClass(), FontPackage, *FontName, RF_Standalone | RF_Public, nullptr, nullptr));
-		if (Font)
-		{
-			Font->FontCacheType = EFontCacheType::Runtime;
-
-			FAssetRegistryModule::AssetCreated(Font);
-			FontPackage->MarkPackageDirty();
-
-			Font->CompositeFont.DefaultTypeface.Fonts = Visitor.Fonts;
-
-			return Font;
-		}
-	}
-
-	return nullptr;
+	return Visitor.Fonts;
 }
 
 UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject* Context, const TCHAR* Type, const uint8*& Buffer, const uint8* BufferEnd, FFeedbackContext* Warn)
 {
+	// This needs to go first, before we invoke other factories, since it's stored in a static.
 	FString FullFilePath = GetCurrentFilename();
-	FString ProjectURIRoot;
-	FString ProjectAssetPathRoot;
-	for (const auto& Setting : GetDefault<UEditorLoadingSavingSettings>()->AutoReimportDirectorySettings)
+
+	// This function is invoked for first time imports as well as for reimports.
+	// Reimports can be caused by a change in content, via auto-reimport, or manually by the user.
+	// When the XAML is first imported, or when the content has changed, we need to reparse it for dependencies.
+	// We want to do that for reimports, even if the content hasn't changed, to fix dependencies that were broken when first imported.
+	// We also want to make sure the ApplicationResources are up to date, so we don't get false errors during the LoadXaml at the end.
+	// But we don't want to reparse all the dependent XAMLs. So we use this static variable that ensures that:
+	// The first level XAML that is imported gets it's dependecies checked, even if it's a reimport and the contents haven't changed.
+	// The first level XAML also makes sure the ApplicationResources are up to date.
+	// The rest of the dependent XAMLs are traversed recursively, but only updated if the contents have changed.
+	// We use this static variable to achieve that. We store it in a local variable to use inside the function and restore it at the end.
+	// It's going to be false only for the first level XAML, false for all the rest.
+	// Note: This still means that if multiple XAMLs are reimported the ApplicationResources will be checked for all of them,
+	// but not for their dependencies, which is still a win.
+	static bool StaticRecursive = false;
+	bool Recursive = StaticRecursive;
+	StaticRecursive = true;
+
+	if (!Recursive)
 	{
-		FString RelativeFilename = FullFilePath;
-		FString SourceDirectory = Setting.SourceDirectory + TEXT("/");
-		if (FPaths::MakePathRelativeTo(RelativeFilename, *SourceDirectory))
+		UNoesisXaml* ApplicationResources = Cast<UNoesisXaml>(GetDefault<UNoesisSettings>()->ApplicationResources.TryLoad());
+		if (ApplicationResources)
 		{
-			FPaths::CollapseRelativeDirectories(RelativeFilename);
-			FPaths::NormalizeFilename(RelativeFilename);
-			if (!RelativeFilename.StartsWith(TEXT("..")))
-			{
-				ProjectURIRoot = SourceDirectory;
-				ProjectAssetPathRoot = Setting.MountPoint + TEXT("/");
-				break;
-			}
+			FReimportManager::Instance()->Reimport(ApplicationResources);
 		}
 	}
-	if (ProjectURIRoot.IsEmpty())
-	{
-		FString PackageRoot;
-		FString PackagePath;
-		FString PackageName;
-		FPackageName::SplitLongPackageName(Parent->GetPathName(), PackageRoot, PackagePath, PackageName, false);
-		ProjectAssetPathRoot = PackageRoot;
-		FPackageName::TryConvertLongPackageNameToFilename(PackageRoot, ProjectURIRoot);
-	}
 
-	UNoesisXaml* NoesisXaml = NewObject<UNoesisXaml>(Parent, Class, Name, Flags);
-	/*NoesisXaml->DestroyThumbnailRenderData();
-	NoesisXaml->XamlText.Empty();
-	NoesisXaml->Xamls.Empty();
-	NoesisXaml->Textures.Empty();
-	NoesisXaml->Fonts.Empty();*/
+	UNoesisXaml* ExistingXaml = LoadObject<UNoesisXaml>(Parent, *Name.ToString());
+	bool HasChanged = (ExistingXaml == nullptr) || (ExistingXaml->AssetImportData->GetSourceData().SourceFiles[0].FileHash != FileHash);
 
-	FString XamlText = NsStringToFString((const char*)Buffer);
-	Noesis::String Text = TCHARToNsString(*XamlText);
-	Noesis::MemoryStream XamlStream(Text.Str(), Text.Size());
-	auto DependencyCallback = [](void* UserData, const char* URI, Noesis::XamlDependencyType Type)
+	UNoesisXaml* NoesisXaml = nullptr;
+	if (!Recursive || HasChanged)
 	{
-		TArray<FString>& Dependencies = *(TArray<FString>*)UserData;
-		FString Dependency = NsStringToFString(URI);
-		if (Type == Noesis::XamlDependencyType_Filename || Type == Noesis::XamlDependencyType_Font)
+		FString ProjectURIRoot;
+		FString ProjectAssetPathRoot;
+		for (const auto& Setting : GetDefault<UEditorLoadingSavingSettings>()->AutoReimportDirectorySettings)
 		{
-			Dependencies.AddUnique(Dependency);
-		}
-	};
-	TArray<FString> Dependencies;
-	FString XamlPackagePath = FPackageName::GetLongPackagePath(NoesisXaml->GetPathName());
-	Noesis::GUI::GetXamlDependencies(&XamlStream, TCHARToNsString(*XamlPackagePath).Str(), &Dependencies, DependencyCallback);
-
-	INoesisRuntimeModuleInterface& NoesisRuntime = INoesisRuntimeModuleInterface::Get();
-	FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
-	UAutomatedAssetImportData* AutomatedAssetImportData = NewObject<UAutomatedAssetImportData>();
-	AutomatedAssetImportData->bReplaceExisting = true;
-	for (auto& Dependency : Dependencies)
-	{
-		int32 HashPos = INDEX_NONE;
-		Dependency.FindChar(TEXT('#'), HashPos);
-		if (HashPos != INDEX_NONE)
-		{
-			FString PackagePath, FamilyName;
-			Dependency.Split(TEXT("#"), &PackagePath, &FamilyName);
-
-			FString Path = FPaths::GetPath(PackagePath);
-			FString Filename = FPaths::GetBaseFilename(PackagePath);
-			FString Extension = FPaths::GetExtension(PackagePath);
-			FString AssetPath = Path / ObjectTools::SanitizeInvalidChars(Filename, INVALID_LONGPACKAGE_CHARACTERS);
-			FString FilePath = PackagePath.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
-			if (!FPackageName::IsValidLongPackageName(AssetPath / "_Font"))
+			FString RelativeFilename = FullFilePath;
+			FString SourceDirectory = Setting.SourceDirectory + TEXT("/");
+			if (Setting.SourceDirectory.Len() != 0 && FPaths::MakePathRelativeTo(RelativeFilename, *SourceDirectory))
 			{
-				AssetPath = FString("/Game/") + AssetPath;
-				PackagePath = FString("/Game/") + PackagePath;
-				FilePath = PackagePath.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
-				Path = FString("/Game/") + Path;
+				FPaths::CollapseRelativeDirectories(RelativeFilename);
+				FPaths::NormalizeFilename(RelativeFilename);
+				if (!RelativeFilename.StartsWith(TEXT("..")))
+				{
+					ProjectURIRoot = SourceDirectory;
+					ProjectAssetPathRoot = Setting.MountPoint + TEXT("/");
+					break;
+				}
 			}
+		}
+		if (ProjectURIRoot.IsEmpty())
+		{
+			FString PackageRoot;
+			FString PackagePath;
+			FString PackageName;
+			FPackageName::SplitLongPackageName(Parent->GetPathName(), PackageRoot, PackagePath, PackageName, false);
+			ProjectAssetPathRoot = PackageRoot + PackagePath;
+			ProjectURIRoot = FPaths::GetPath(FullFilePath) + TEXT("/");
+		}
 
-			UFont* Font = ImportFontFamily(PackagePath, FamilyName, FilePath);
+		NoesisXaml = NewObject<UNoesisXaml>(Parent, Class, Name, Flags);
 
-			if (Font)
+		FString XamlText = NsStringToFString((const char*)Buffer);
+		Noesis::String Text = TCHARToNsString(*XamlText);
+		Noesis::MemoryStream XamlStream(Text.Str(), Text.Size());
+
+		INoesisRuntimeModuleInterface& NoesisRuntime = INoesisRuntimeModuleInterface::Get();
+		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
+		FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
+		UAutomatedAssetImportData* AutomatedAssetImportData = NewObject<UAutomatedAssetImportData>();
+		AutomatedAssetImportData->bReplaceExisting = true;
+		IFileManager& FileManager = IFileManager::Get();
+		auto DependencyCallback = [&](void* UserData, const char* URI, Noesis::XamlDependencyType Type)
+		{
+			FString Dependency = NsStringToFString(URI);
+			if (Type == Noesis::XamlDependencyType_Font)
 			{
-				NoesisXaml->Fonts.Add(Font);
-				NoesisRuntime.RegisterFont(Font);
+				int32 HashPos = INDEX_NONE;
+				Dependency.FindChar(TEXT('#'), HashPos);
+				check(HashPos != INDEX_NONE);
+				FString PackagePath, FamilyName;
+				Dependency.Split(TEXT("#"), &PackagePath, &FamilyName);
+
+				FString Path = FPaths::GetPath(PackagePath);
+				FString Filename = FPaths::GetBaseFilename(PackagePath);
+				FString Extension = FPaths::GetExtension(PackagePath);
+				FString AssetPath = Path / ObjectTools::SanitizeInvalidChars(Filename, INVALID_LONGPACKAGE_CHARACTERS);
+				FString FilePath = PackagePath.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
+				if (!FPackageName::IsValidLongPackageName(AssetPath / "_Font"))
+				{
+					AssetPath = FString("/Game/") + AssetPath;
+					PackagePath = FString("/Game/") + PackagePath;
+					FilePath = PackagePath.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
+					Path = FString("/Game/") + Path;
+				}
+
+				TArray<UFontFace*> FontFaces = ImportFontFamily(PackagePath, FamilyName, FilePath);
+
+				if (FontFaces.Num())
+				{
+					NoesisXaml->FontFaces.Append(FontFaces);
+					for (auto FontFace : FontFaces)
+					{
+						NoesisRuntime.RegisterFont(FontFace);
+					}
+				}
+				else
+				{
+					UE_LOG(LogNoesisEditor, Error, TEXT("Failed to import font family %s from %s"), *FamilyName, *FilePath);
+				}
 			}
 			else
 			{
-				UE_LOG(LogNoesisEditor, Error, TEXT("Failed to import font family %s from %s"), *FamilyName, *FilePath);
+				bool IsUserControl = Type == Noesis::XamlDependencyType_UserControl;
+				if (IsUserControl)
+				{
+					FString PackagePath = FPaths::GetPath(Parent->GetPathName());
+					Dependency = PackagePath / Dependency + TEXT(".xaml");
+				}
+
+				FString Path = FPaths::GetPath(Dependency);
+				FString Filename = FPaths::GetBaseFilename(Dependency);
+				FString Extension = FPaths::GetExtension(Dependency);
+				FString AssetPath = Path / ObjectTools::SanitizeInvalidChars(Filename, INVALID_LONGPACKAGE_CHARACTERS);
+				FString FilePath = Dependency.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
+				if (!FPackageName::IsValidLongPackageName(AssetPath))
+				{
+					AssetPath = FString("/Game/") + AssetPath;
+					Dependency = FString("/Game/") + Dependency;
+					FilePath = Dependency.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
+					Path = FString("/Game/") + Path;
+				}
+				TArray<FAssetData> FoundAssets;
+				AssetRegistryModule.Get().GetAssetsByPackageName(*AssetPath, FoundAssets);
+				if (FoundAssets.Num() > 0 && FoundAssets[0].GetClass() != UNoesisXaml::StaticClass())
+				{
+					for (auto FoundAsset : FoundAssets)
+					{
+						UObject* Asset = FoundAsset.GetAsset();
+						if (UTexture2D* Texture = Cast<UTexture2D>(Asset))
+						{
+							NoesisXaml->Textures.Add(Texture);
+						}
+						else if (UNoesisXaml* Xaml = Cast<UNoesisXaml>(Asset))
+						{
+							NoesisXaml->Xamls.Add(Xaml);
+						}
+						else if (USoundWave* Sound = Cast<USoundWave>(Asset))
+						{
+							NoesisXaml->Sounds.Add(Sound);
+						}
+					}
+					return;
+				}
+				TArray<UObject*> Assets;
+				if (FoundAssets.Num() == 0)
+				{
+					if (!IsUserControl || FileManager.FileExists(*FilePath))
+					{
+						AutomatedAssetImportData->Filenames.Empty(1);
+						AutomatedAssetImportData->Filenames.Add(FilePath);
+						AutomatedAssetImportData->DestinationPath = Path;
+						Assets = AssetToolsModule.Get().ImportAssetsAutomated(AutomatedAssetImportData);
+					}
+				}
+				else
+				{
+					for (auto FoundAsset : FoundAssets)
+					{
+						UNoesisXaml* Asset = Cast<UNoesisXaml>(FoundAsset.GetAsset());
+						if (Asset != nullptr)
+						{
+							FReimportManager::Instance()->Reimport(Asset);
+						}
+						Assets.Add(Asset);
+					}
+				}
+
+				if (!IsUserControl && Assets.Num() == 0)
+				{
+					UE_LOG(LogNoesisEditor, Error, TEXT("Failed to import %s"), *FilePath);
+				}
+
+				for (auto Asset : Assets)
+				{
+					if (UTexture2D* Texture = Cast<UTexture2D>(Asset))
+					{
+						NoesisXaml->Textures.Add(Texture);
+					}
+					else if (UNoesisXaml* Xaml = Cast<UNoesisXaml>(Asset))
+					{
+						NoesisXaml->Xamls.Add(Xaml);
+					}
+					else if (USoundWave* Sound = Cast<USoundWave>(Asset))
+					{
+						NoesisXaml->Sounds.Add(Sound);
+					}
+				}
 			}
-		}
-		else
+		};
+		auto DependencyCallbackAdaptor = [](void* UserData, const char* URI, Noesis::XamlDependencyType Type)
 		{
-			FString Path = FPaths::GetPath(Dependency);
-			FString Filename = FPaths::GetBaseFilename(Dependency);
-			FString Extension = FPaths::GetExtension(Dependency);
-			FString AssetPath = Path / ObjectTools::SanitizeInvalidChars(Filename, INVALID_LONGPACKAGE_CHARACTERS);
-			FString FilePath = Dependency.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
-			if (!FPackageName::IsValidLongPackageName(AssetPath))
-			{
-				AssetPath = FString("/Game/") + AssetPath;
-				Dependency = FString("/Game/") + Dependency;
-				FilePath = Dependency.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
-				Path = FString("/Game/") + Path;
-			}
-			AutomatedAssetImportData->Filenames.Empty(1);
-			AutomatedAssetImportData->Filenames.Add(FilePath);
-			AutomatedAssetImportData->DestinationPath = Path;
-			TArray<UObject*> Assets = AssetToolsModule.Get().ImportAssetsAutomated(AutomatedAssetImportData);
+			auto Callback = (decltype(DependencyCallback)*)UserData;
+			return (*Callback)(nullptr, URI, Type);
+		};
+		FString XamlPackagePath = FPackageName::GetLongPackagePath(NoesisXaml->GetPathName());
+		Noesis::GUI::GetXamlDependencies(&XamlStream, TCHARToNsString(*XamlPackagePath).Str(), &DependencyCallback, DependencyCallbackAdaptor);
 
-			if (Assets.Num() == 0)
-			{
-				UE_LOG(LogNoesisEditor, Error, TEXT("Failed to import %s"), *FilePath);
-			}
+		NoesisXaml->XamlText.Insert((uint8*)Text.Str(), Text.Size(), 0);
 
-			for (auto Asset : Assets)
-			{
-				if (UTexture2D* Texture = Cast<UTexture2D>(Asset))
-				{
-					Texture->LODGroup = TEXTUREGROUP_UI;
-					Texture->SRGB = false;
-					void FixPremultipliedPNGTexture(UTexture2D*);
-					FixPremultipliedPNGTexture(Texture);
+		NoesisXaml->AssetImportData->Update(FullFilePath);
+	}
+	else
+	{
+		NoesisXaml = ExistingXaml;
 
-					NoesisXaml->Textures.Add(Texture);
-				}
-				else if (UNoesisXaml* Xaml = Cast<UNoesisXaml>(Asset))
-				{
-					NoesisXaml->Xamls.Add(Xaml);
-				}
-				else if (USoundWave* Sound = Cast<USoundWave>(Asset))
-				{
-					NoesisXaml->Sounds.Add(Sound);
-				}
+		for (auto Xaml : NoesisXaml->Xamls)
+		{
+			if (Xaml != nullptr)
+			{
+				FReimportManager::Instance()->Reimport(Xaml);
 			}
 		}
 	}
 
-	NoesisXaml->XamlText.Insert((uint8*)Text.Str(), Text.Size(), 0);
+	// Make sure textures have alpha premultiplied if the user needs them, or are cleaned if they already are
+	for (auto Texture : NoesisXaml->Textures)
+	{
+		if (Texture->LODGroup != TEXTUREGROUP_UI ||
+			Texture->SRGB)
+		{
+			Texture->LODGroup = TEXTUREGROUP_UI;
+			Texture->SRGB = false;
 
-	NoesisXaml->LoadXaml();
+			// We notify the change in one of the two properties, so that the callback in NoesisEditorModule
+			// triggers a reimport and premultiplies the alpha, if needed.
+			FPropertyChangedEvent ChangeEvent(UTexture::StaticClass()->FindPropertyByName("LODGroup"));
+			FCoreUObjectDelegates::OnObjectPropertyChanged.Broadcast(Texture, ChangeEvent);
+		}
+	}
 
-	NoesisXaml->AssetImportData->Update(FullFilePath);
+	if (!Recursive)
+	{
+		// Show parsing errors in the console
+		NoesisXaml->LoadXaml();
+	}
 
-	return NoesisXaml;
+	StaticRecursive = Recursive;
+
+	// If this is not the first level XAML and nothing has changed we return null here so that the
+	// dependent XAMLs are not marked dirty.
+	return (!Recursive || HasChanged) ? NoesisXaml : nullptr;
 }

@@ -71,7 +71,10 @@ Noesis::Thickness FNoesisThickness::ToNoesis() const
 
 FNoesisColor::FNoesisColor(const Noesis::Color& Color)
 {
-	Color.ToLinearRGB(Red, Green, Blue, Alpha);
+	Red = Color.r;
+	Green = Color.g;
+	Blue = Color.b;
+	Alpha = Color.a;
 }
 
 Noesis::Color FNoesisColor::ToNoesis() const

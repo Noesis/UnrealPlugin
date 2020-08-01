@@ -25,7 +25,6 @@
 #include "NoesisBlueprintCompilerContext.h"
 #include "NoesisXamlThumbnailRenderer.h"
 #include "NoesisStyle.h"
-#include "NoesisEditorUserSettings.h"
 
 // KismetCompiler includes
 #include "KismetCompiler.h"
@@ -34,16 +33,6 @@
 
 void FixPremultipliedPNGTexture(UTexture2D* Texture)
 {
-	if (!GetDefault<UNoesisSettings>()->RestoreUITexturePNGPremultipliedAlpha)
-	{
-		return;
-	}
-
-	if (Texture->LODGroup != TEXTUREGROUP_UI)
-	{
-		return;
-	}
-
 	UAssetImportData* TextureImportData = Texture->AssetImportData;
 	if (!TextureImportData->GetFirstFilename().ToLower().EndsWith(".png"))
 	{
@@ -105,7 +94,60 @@ void FixPremultipliedPNGTexture(UTexture2D* Texture)
 	}
 }
 
-void OnObjectReimported(UFactory* ImportFactory, UObject* InObject)
+void PremultiplyAlpha(UTexture2D* Texture)
+{
+	FTextureSource& TextureSource = Texture->Source;
+	const ETextureSourceFormat SourceFormat = TextureSource.GetFormat();
+	int32 TextureWidth = TextureSource.GetSizeX();
+	int32 TextureHeight = TextureSource.GetSizeY();
+
+	switch (SourceFormat)
+	{
+	case TSF_BGRA8:
+	{
+		uint8* SourceData = TextureSource.LockMip(0);
+		for (int32 Y = 0; Y < TextureHeight; ++Y)
+		{
+			for (int32 X = 0; X < TextureWidth; ++X)
+			{
+				uint8* PixelData = SourceData + (Y * TextureWidth + X) * 4;
+				uint32 Alpha = (uint32)PixelData[3];
+				PixelData[0] = (uint8)(((uint32)PixelData[0] * Alpha) / 255);
+				PixelData[1] = (uint8)(((uint32)PixelData[1] * Alpha) / 255);
+				PixelData[2] = (uint8)(((uint32)PixelData[2] * Alpha) / 255);
+			}
+		}
+		TextureSource.UnlockMip(0);
+		Texture->PostEditChange();
+		break;
+	}
+
+	case TSF_RGBA16:
+	{
+		uint16* SourceData = (uint16*)TextureSource.LockMip(0);
+		for (int32 Y = 0; Y < TextureHeight; ++Y)
+		{
+			for (int32 X = 0; X < TextureWidth; ++X)
+			{
+				uint16* PixelData = SourceData + (Y * TextureWidth + X) * 4;
+				uint32 Alpha = (uint32)PixelData[3];
+				PixelData[0] = (uint8)(((uint32)PixelData[0] * Alpha) / 255);
+				PixelData[1] = (uint8)(((uint32)PixelData[1] * Alpha) / 255);
+				PixelData[2] = (uint8)(((uint32)PixelData[2] * Alpha) / 255);
+			}
+		}
+		TextureSource.UnlockMip(0);
+		Texture->PostEditChange();
+		break;
+	}
+
+	default:
+		UE_LOG(LogNoesisEditor, Warning, TEXT("Texture %s format invalid"), *Texture->GetPathName());
+		break;
+	}
+}
+
+void OnObjectImported(UFactory* ImportFactory, UObject* InObject)
 {
 	for (TObjectIterator<UNoesisXaml> It; It; ++It)
 	{
@@ -116,7 +158,18 @@ void OnObjectReimported(UFactory* ImportFactory, UObject* InObject)
 	if (InObject->IsA<UTexture2D>())
 	{
 		UTexture2D* Texture = (UTexture2D*)InObject;
-		FixPremultipliedPNGTexture(Texture);
+		if (Texture->LODGroup == TEXTUREGROUP_UI &&
+			!Texture->SRGB)
+		{
+			if (GetDefault<UNoesisSettings>()->PremultiplyAlpha)
+			{
+				PremultiplyAlpha(Texture);
+			}
+			if (GetDefault<UNoesisSettings>()->RestoreUITexturePNGPremultipliedAlpha)
+			{
+				FixPremultipliedPNGTexture(Texture);
+			}
+		}
 	}
 }
 
@@ -135,7 +188,28 @@ void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Even
 		if (Object->IsA<UTexture2D>())
 		{
 			UTexture2D* Texture = (UTexture2D*)Object;
-			FixPremultipliedPNGTexture(Texture);
+			if (Texture->LODGroup == TEXTUREGROUP_UI &&
+				!Texture->SRGB)
+			{
+				// Avoid reimporting the texture unless one of these properties has changed
+				if (Event.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UTexture, SRGB) ||
+					Event.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UTexture, LODGroup))
+				{
+					if (GetDefault<UNoesisSettings>()->PremultiplyAlpha)
+					{
+						// We need to reimport the texture here in case the Texture's Source has already been premultiplied
+						FReimportManager::Instance()->Reimport(Texture);
+
+						// Important!!!
+						// PremultiplyAlpha will be called from the ObjectImported callback
+					}
+				}
+
+				if (GetDefault<UNoesisSettings>()->RestoreUITexturePNGPremultipliedAlpha)
+				{
+					FixPremultipliedPNGTexture(Texture);
+				}
+			}
 		}
 		ReentryGuard = 0;
 	}
@@ -184,12 +258,6 @@ public:
 				LOCTEXT("NoesisSettingsName", "NoesisGUI"),
 				LOCTEXT("NoesisSettingsDescroption", "Configure the NoesisGUI plugin."),
 				GetMutableDefault<UNoesisSettings>());
-
-			SettingsModule->RegisterSettings("Editor", "Plugins", "NoesisGUI",
-				LOCTEXT("NoesisEditorUserSettingsName", "NoesisGUI Editor"),
-				LOCTEXT("NoesisEditorUserSettingsDescription", "Configure the NoesisGUI editor."),
-				GetMutableDefault<UNoesisEditorUserSettings>()
-			);
 		}
 
 		// Register thumbnail renderers
@@ -197,9 +265,21 @@ public:
 
 		NoesisEditorModuleInterface = this;
 
-		AssetImportHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetPostImport.AddStatic(&OnObjectReimported);
+		AssetImportHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetPostImport.AddStatic(&OnObjectImported);
 
 		ObjectPropertyChangedHandle = FCoreUObjectDelegates::OnObjectPropertyChanged.AddStatic(&OnObjectPropertyChanged);
+
+		// Register level editor menu
+		FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
+
+		TSharedPtr<FExtender> MenuExtender = MakeShareable(new FExtender());
+		MenuExtender->AddMenuBarExtension(
+			"Edit",
+			EExtensionHook::After,
+			NULL,
+			FMenuBarExtensionDelegate::CreateStatic(&FNoesisEditorModule::AddNoesisMenu)
+		);
+		LevelEditorModule.GetMenuExtensibilityManager()->AddExtender(MenuExtender);
 	}
 
 	virtual void ShutdownModule() override
@@ -247,6 +327,191 @@ public:
 		}
 	}
 	// End of IModuleInterface interface
+
+	static void AddNoesisMenu(FMenuBarBuilder& MenuBarBuilder)
+	{
+		MenuBarBuilder.AddPullDownMenu(
+			LOCTEXT("NoesisMenu", "NoesisGUI"),
+			FText::GetEmpty(),
+			FNewMenuDelegate::CreateStatic(&FNoesisEditorModule::FillNoesisMenu),
+			"Noesis");
+	}
+
+	static void FillNoesisMenu(FMenuBuilder& MenuBuilder)
+	{
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("NoesisSettings", "Settings"),
+			FText::GetEmpty(),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&FNoesisEditorModule::OpenSettingsDialog))
+		);
+		MenuBuilder.BeginSection("NoesisLinks", LOCTEXT("NoesisLinks", "External links"));
+		{
+			MenuBuilder.AddMenuEntry(
+				LOCTEXT("NoesisDocumentation", "Documentation"),
+				FText::GetEmpty(),
+				FSlateIcon(),
+				FUIAction(FExecuteAction::CreateStatic(&FNoesisEditorModule::OpenDocumentation))
+			);
+			MenuBuilder.AddMenuEntry(
+				LOCTEXT("NoesisForums", "Forums"),
+				FText::GetEmpty(),
+				FSlateIcon(),
+				FUIAction(FExecuteAction::CreateStatic(&FNoesisEditorModule::OpenForums))
+			);
+			MenuBuilder.AddMenuEntry(
+				LOCTEXT("NoesisChangeLog", "Release Notes"),
+				FText::GetEmpty(),
+				FSlateIcon(),
+				FUIAction(FExecuteAction::CreateStatic(&FNoesisEditorModule::OpenChangeLog))
+			);
+			MenuBuilder.AddMenuEntry(
+				LOCTEXT("NoesisBugTracker", "Report a bug"),
+				FText::GetEmpty(),
+				FSlateIcon(),
+				FUIAction(FExecuteAction::CreateStatic(&FNoesisEditorModule::OpenBugTracker))
+			);
+		}
+		MenuBuilder.EndSection();
+		MenuBuilder.AddMenuSeparator();
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("NoesisAbout", "About NoesisGUI"),
+			FText::GetEmpty(),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&FNoesisEditorModule::OpenAbout))
+		);
+	}
+
+	static void OpenSettingsDialog()
+	{
+		if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
+		{
+			SettingsModule->ShowViewer("Project", "Plugins", "NoesisGUI");
+		}
+	}
+
+	static void OpenDocumentation()
+	{
+		FPlatformProcess::LaunchURL(TEXT("https://noesisengine.com/docs/Gui.Core.Index.html"), nullptr, nullptr);
+	}
+
+	static void OpenForums()
+	{
+		FPlatformProcess::LaunchURL(TEXT("https://noesisengine.com/forums/"), nullptr, nullptr);
+	}
+
+	static void OpenChangeLog()
+	{
+		FPlatformProcess::LaunchURL(TEXT("https://noesisengine.com/docs/Gui.Core.Changelog.html"), nullptr, nullptr);
+	}
+
+	static void OpenBugTracker()
+	{
+		FPlatformProcess::LaunchURL(TEXT("https://noesisengine.com/bugs/my_view_page.php"), nullptr, nullptr);
+	}
+
+	class SNoesisAboutScreen : public SCompoundWidget
+	{
+	public:
+		SLATE_BEGIN_ARGS(SNoesisAboutScreen)
+		{}
+		SLATE_END_ARGS()
+
+		void Construct(const FArguments& InArgs)
+		{
+			FText Version = FText::Format(LOCTEXT("VersionLabel", "Version: {0}"), FText::FromString(Noesis::GetBuildVersion()));
+
+			ChildSlot
+			[
+				SNew(SVerticalBox)
+				+ SVerticalBox::Slot()
+				.AutoHeight()
+				.Padding(FMargin(0.0f, 0.0f, 0.0f, 0.0f))
+				.VAlign(VAlign_Top)
+				[
+					SNew(SImage)
+					.Image(FNoesisStyle::Get()->GetBrush("NoesisEditor.About"))
+					.ColorAndOpacity(FSlateColor::UseForeground())
+				]
+				+ SVerticalBox::Slot()
+				.AutoHeight()
+				.Padding(FMargin(0.0f, 20.0f, 0.0f, 0.0f))
+				[
+					SNew(STextBlock)
+					.ColorAndOpacity(FLinearColor(1.0f, 1.0f, 1.0f))
+					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 11))
+					.Justification(ETextJustify::Center)
+					.Text(Version)
+				]
+				+ SVerticalBox::Slot()
+				.AutoHeight()
+				.Padding(FMargin(50.0f, 20.0f, 50.0f, 0.0f))
+				[
+					SNew(SButton)
+					.HAlign(HAlign_Center)
+					.Text(LOCTEXT("NoesisChangeLog", "Release Notes"))
+					.ButtonColorAndOpacity(FLinearColor(0.6f, 0.6f, 0.6f))
+					.OnClicked(this, &SNoesisAboutScreen::OnReleaseNotesClicked)
+				]
+				+ SVerticalBox::Slot()
+				.AutoHeight()
+				.Padding(FMargin(50.0f, 5.0f, 50.0f, 0.0f))
+				[
+					SNew(SButton)
+					.HAlign(HAlign_Center)
+					.Text(FText::FromString("Noesis Technologies"))
+					.ButtonColorAndOpacity(FLinearColor(0.6f, 0.6f, 0.6f))
+					.OnClicked(this, &SNoesisAboutScreen::OnNoesisTechnologiesClicked)
+				]
+				+ SVerticalBox::Slot()
+				.AutoHeight()
+				.Padding(FMargin(0.0f, 30.0f, 0.0f, 0.0f))
+				[
+					SNew(STextBlock)
+					.ColorAndOpacity(FLinearColor(1.0f, 1.0f, 1.0f))
+					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
+					.Justification(ETextJustify::Center)
+					.Text(LOCTEXT("NoesisCopyright2", "(c) 2013 Noesis Technologies S.L. All Rights Reserved."))
+				]
+			];
+		}
+
+	private:
+
+		FReply OnReleaseNotesClicked()
+		{
+			FPlatformProcess::LaunchURL(TEXT("https://noesisengine.com/docs/Gui.Core.Changelog.html"), nullptr, nullptr);
+			return FReply::Handled();
+		}
+
+		FReply OnNoesisTechnologiesClicked()
+		{
+			FPlatformProcess::LaunchURL(TEXT("https://noesisengine.com"), nullptr, nullptr);
+			return FReply::Handled();
+		}
+	};
+
+	static void OpenAbout()
+	{
+		TSharedRef<SWindow> AboutWindow = SNew(SWindow)
+			.Title(LOCTEXT("NoesisAbout", "About NoesisGUI"))
+			.SizingRule(ESizingRule::Autosized)
+			.AutoCenter(EAutoCenter::PreferredWorkArea)
+			.SupportsMinimize(false);
+
+		TSharedRef<SWidget> Content = SNew(SNoesisAboutScreen);
+
+		AboutWindow->SetContent(Content);
+		TSharedPtr<SWindow> RootWindow = FGlobalTabmanager::Get()->GetRootWindow();
+		if (RootWindow.IsValid())
+		{
+			FSlateApplication::Get().AddWindowAsNativeChild(AboutWindow, RootWindow.ToSharedRef());
+		}
+		else
+		{
+			FSlateApplication::Get().AddWindow(AboutWindow);
+		}
+	}
 
 	static INoesisEditorModuleInterface* NoesisEditorModuleInterface;
 

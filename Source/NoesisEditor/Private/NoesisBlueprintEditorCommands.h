@@ -5,19 +5,12 @@
 
 #pragma once
 
-class FNoesisStyle
+class FNoesisBlueprintEditorCommands : public TCommands<FNoesisBlueprintEditorCommands>
 {
 public:
-	static void Initialize();
+	FNoesisBlueprintEditorCommands();
 
-	static void Shutdown();
+	TSharedPtr<FUICommandInfo> RestartPreview;
 
-	static TSharedPtr< class ISlateStyle > Get();
-
-	static FName GetStyleSetName();
-private:
-	static FString InResources(const FString& RelativePath, const ANSICHAR* Extension);
-
-private:
-	static TSharedPtr< class FSlateStyleSet > StyleSet;
+	virtual void RegisterCommands() override;
 };

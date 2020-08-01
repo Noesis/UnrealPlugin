@@ -28,5 +28,5 @@ class NOESISRUNTIME_API INoesisRuntimeModuleInterface : public IModuleInterface
 public:
 	static INoesisRuntimeModuleInterface& Get();
 
-	virtual void RegisterFont(class UFont* Font) = 0;
+	virtual void RegisterFont(const class UFontFace* Font) = 0;
 };

@@ -11,14 +11,19 @@ public:
 	FNoesisXamlAssetTypeActions(EAssetTypeCategories::Type Categories);
 
 	// IAssetTypeActions interface
+	virtual bool HasActions(const TArray<UObject*>& InObjects) const override;
+	virtual void GetActions(const TArray<UObject*>& InObjects, struct FToolMenuSection& Section);
 	virtual FText GetName() const override;
 	virtual UClass* GetSupportedClass() const override;
 	virtual FColor GetTypeColor() const override;
 	virtual uint32 GetCategories() override;
+	virtual void GetResolvedSourceFilePaths(const TArray<UObject*>& TypeAssets, TArray<FString>& OutSourceFilePaths) const override;
 	virtual TSharedPtr<class SWidget> GetThumbnailOverlay(const FAssetData& AssetData) const override;
 	virtual bool IsImportedAsset() const override { return true; }
 	// End of IAssetTypeActions interface
 
 private:
+	void AddToViewport(TArray<TWeakObjectPtr<UNoesisXaml>> Objects);
+
 	EAssetTypeCategories::Type Categories;
 };
