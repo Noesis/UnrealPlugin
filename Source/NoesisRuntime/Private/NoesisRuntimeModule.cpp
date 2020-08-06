@@ -142,6 +142,11 @@ void OnBlueprintPreCompile(UBlueprint* Blueprint)
 	NoesisDestroyTypeClassForBlueprint(Blueprint);
 }
 
+void OnBlueprintCompiled()
+{
+	NoesisDestroyTypeClass();
+}
+
 void OnAssetRenamed(const FAssetData&, const FString& OldPath)
 {
 	NoesisDestroyTypeClass(OldPath);
@@ -160,6 +165,7 @@ void OnPostEngineInit()
 	if (GEditor)
 	{
 		GEditor->OnBlueprintPreCompile().AddStatic(OnBlueprintPreCompile);
+		GEditor->OnBlueprintCompiled().AddStatic(OnBlueprintCompiled);
 		FEnumEditorUtils::FEnumEditorManager::Get().AddListener(new NotifyEnumChanged);
 		FStructureEditorUtils::FStructEditorManager::Get().AddListener(new NotifyStructChanged);
 

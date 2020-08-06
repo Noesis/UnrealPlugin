@@ -2399,48 +2399,53 @@ void NoesisDestroyTypeClass(FString Path)
 	// We can't use Noesis::Reflection::GetType because that would create the type.
 	if (RegisteredTypes.Contains(TCHAR_TO_UTF8(*RegisterNameFromPath(Path))))
 	{
-		// The types may be in use. We have to destroy all Views.
-		// We simply get rid of all the thumbnails
-		for (TObjectIterator<UNoesisXaml> It; It; ++It)
-		{
-			UNoesisXaml * Xaml = *It;
-			Xaml->DestroyThumbnailRenderData();
-		}
+		NoesisDestroyTypeClass();
+	}
+}
 
-		// We keep track of the rest of initialized views, and their DataContexts, as those may be running in game.
-		TArray<UNoesisInstance*> InstancesToRecreate;
-		Noesis::Vector<Noesis::Ptr<Noesis::BaseComponent>> DataContexts;
-		for (TObjectIterator<UNoesisInstance> It; It; ++It)
-		{
-			UNoesisInstance* Instance = *It;
-			if (Instance->XamlView != nullptr)
-			{
-				DataContexts.PushBack(Noesis::Ptr<Noesis::BaseComponent>(Instance->Xaml->GetDataContext()));
-				InstancesToRecreate.Add(Instance);
-				Instance->TermInstance();
-			}
-		}
+void NoesisDestroyTypeClass()
+{
+	// The types may be in use. We have to destroy all Views.
+	// We simply get rid of all the thumbnails
+	for (TObjectIterator<UNoesisXaml> It; It; ++It)
+	{
+		UNoesisXaml * Xaml = *It;
+		Xaml->DestroyThumbnailRenderData();
+	}
 
-		// If it has we have to get rid of all the registered types, because class properties may have references to the
-		// unregistered types.
-		for (auto TypeName : RegisteredTypes)
+	// We keep track of the rest of initialized views, and their DataContexts, as those may be running in game.
+	TArray<UNoesisInstance*> InstancesToRecreate;
+	Noesis::Vector<Noesis::Ptr<Noesis::BaseComponent>> DataContexts;
+	for (TObjectIterator<UNoesisInstance> It; It; ++It)
+	{
+		UNoesisInstance* Instance = *It;
+		if (Instance->XamlView != nullptr)
 		{
-			const Noesis::Type* Type = Noesis::Reflection::GetType(Noesis::Symbol(TCHAR_TO_UTF8(*TypeName)));
-
-			if (Type != nullptr)
-			{
-				Noesis::Reflection::Unregister(Type);
-			}
+			DataContexts.PushBack(Noesis::Ptr<Noesis::BaseComponent>(Instance->Xaml->GetDataContext()));
+			InstancesToRecreate.Add(Instance);
+			Instance->TermInstance();
 		}
-		RegisteredTypes.Empty();
+	}
 
-		// Reinitialize the Views that are in game
-		auto It = DataContexts.Begin();
-		for (auto Instance : InstancesToRecreate)
+	// If it has we have to get rid of all the registered types, because class properties may have references to the
+	// unregistered types.
+	for (auto TypeName : RegisteredTypes)
+	{
+		const Noesis::Type* Type = Noesis::Reflection::GetType(Noesis::Symbol(TCHAR_TO_UTF8(*TypeName)));
+
+		if (Type != nullptr)
 		{
-			Instance->InitInstance();
-			Instance->Xaml->SetDataContext(*It++);
+			Noesis::Reflection::Unregister(Type);
 		}
+	}
+	RegisteredTypes.Empty();
+
+	// Reinitialize the Views that are in game
+	auto It = DataContexts.Begin();
+	for (auto Instance : InstancesToRecreate)
+	{
+		Instance->InitInstance();
+		Instance->Xaml->SetDataContext(*It++);
 	}
 }
 #endif
