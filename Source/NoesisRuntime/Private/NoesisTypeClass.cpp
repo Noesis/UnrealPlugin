@@ -344,9 +344,9 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::Rect>(void* BasePointer, 
 {
 	check(Property->IsA<FStructProperty>());
 	FStructProperty* StructProperty = (FStructProperty*)Property;
-	check(StructProperty->Struct->GetName() == TEXT("NoesisRect"));
-	const FNoesisRect& Value = *StructProperty->ContainerPtrToValuePtr<FNoesisRect>(BasePointer);
-	return Noesis::Boxing::Box<Noesis::Rect>(Value.ToNoesis());
+	check(StructProperty->Struct->GetName() == TEXT("Box2D"));
+	const FBox2D& Value = *StructProperty->ContainerPtrToValuePtr<FBox2D>(BasePointer);
+	return Noesis::Boxing::Box<Noesis::Rect>(Noesis::Rect(Value.Min.X, Value.Min.Y, Value.Max.X, Value.Max.Y));
 }
 
 template<>
@@ -357,9 +357,9 @@ void SetProperty<Noesis::Rect>(void* BasePointer, FProperty* Property, Noesis::B
 	{
 		check(Property->IsA<FStructProperty>());
 		FStructProperty* StructProperty = (FStructProperty*)Property;
-		check(StructProperty->Struct->GetName() == TEXT("NoesisRect"));
+		check(StructProperty->Struct->GetName() == TEXT("Box2D"));
 		Noesis::Rect UnboxedValue = Noesis::Boxing::Unbox<Noesis::Rect>(BoxedValue);
-		*StructProperty->ContainerPtrToValuePtr<FNoesisRect>(BasePointer) = FNoesisRect(UnboxedValue);
+		*StructProperty->ContainerPtrToValuePtr<FBox2D>(BasePointer) = FBox2D(FVector2D(UnboxedValue.x, UnboxedValue.y), FVector2D(UnboxedValue.x + UnboxedValue.width, UnboxedValue.y + UnboxedValue.height));
 	}
 }
 
@@ -440,9 +440,9 @@ Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::TimeSpan>(void* BasePoint
 {
 	check(Property->IsA<FStructProperty>());
 	FStructProperty* StructProperty = (FStructProperty*)Property;
-	check(StructProperty->Struct->GetName() == TEXT("NoesisTimeSpan"));
-	const FNoesisTimeSpan& Value = *StructProperty->ContainerPtrToValuePtr<FNoesisTimeSpan>(BasePointer);
-	return Noesis::Boxing::Box<Noesis::TimeSpan>(Value.ToNoesis());
+	check(StructProperty->Struct->GetName() == TEXT("Timespan"));
+	const FTimespan& Value = *StructProperty->ContainerPtrToValuePtr<FTimespan>(BasePointer);
+	return Noesis::Boxing::Box<Noesis::TimeSpan>(Noesis::TimeSpan(Value.GetDays(), Value.GetHours(), Value.GetMinutes(), Value.GetSeconds(), Value.GetFractionMilli()));
 }
 
 template<>
@@ -453,9 +453,9 @@ void SetProperty<Noesis::TimeSpan>(void* BasePointer, FProperty* Property, Noesi
 	{
 		check(Property->IsA<FStructProperty>());
 		FStructProperty* StructProperty = (FStructProperty*)Property;
-		check(StructProperty->Struct->GetName() == TEXT("NoesisTimeSpan"));
+		check(StructProperty->Struct->GetName() == TEXT("Timespan"));
 		Noesis::TimeSpan UnboxedValue = Noesis::Boxing::Unbox<Noesis::TimeSpan>(BoxedValue);
-		*StructProperty->ContainerPtrToValuePtr<FNoesisTimeSpan>(BasePointer) = FNoesisTimeSpan(UnboxedValue);
+		*StructProperty->ContainerPtrToValuePtr<FTimespan>(BasePointer) = FTimespan(UnboxedValue.GetDays(), UnboxedValue.GetHours(), UnboxedValue.GetMinutes(), UnboxedValue.GetSeconds(), UnboxedValue.GetMilliseconds() * 1000);
 	}
 }
 
@@ -1575,7 +1575,7 @@ void UStructTypeFiller(Noesis::Type* Type)
 				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<Noesis::Point>(), &NoesisStructWrapper::GetProperty<Noesis::Point>, nullptr, TypePropertyData(Property));
 				TypeClassBuilder->AddProperty(TypeProperty);
 			}
-			else if (StructProperty->Struct->GetName() == TEXT("NoesisRect"))
+			else if (StructProperty->Struct->GetName() == TEXT("Box2D"))
 			{
 				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<Noesis::Rect>(), &NoesisStructWrapper::GetProperty<Noesis::Rect>, nullptr, TypePropertyData(Property));
 				TypeClassBuilder->AddProperty(TypeProperty);
@@ -1595,7 +1595,7 @@ void UStructTypeFiller(Noesis::Type* Type)
 				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<Noesis::CornerRadius>(), &NoesisStructWrapper::GetProperty<Noesis::CornerRadius>, nullptr, TypePropertyData(Property));
 				TypeClassBuilder->AddProperty(TypeProperty);
 			}
-			else if (StructProperty->Struct->GetName() == TEXT("NoesisTimeSpan"))
+			else if (StructProperty->Struct->GetName() == TEXT("Timespan"))
 			{
 				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<Noesis::TimeSpan>(), &NoesisStructWrapper::GetProperty<Noesis::TimeSpan>, nullptr, TypePropertyData(Property));
 				TypeClassBuilder->AddProperty(TypeProperty);
@@ -1684,7 +1684,7 @@ void UStructTypeFiller(Noesis::Type* Type)
 					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<Noesis::Point>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
 					TypeClassBuilder->AddProperty(TypeProperty);
 				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("NoesisRect"))
+				else if (StructInnerProperty->Struct->GetName() == TEXT("Box2D"))
 				{
 					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<Noesis::Rect>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
 					TypeClassBuilder->AddProperty(TypeProperty);
@@ -1704,7 +1704,7 @@ void UStructTypeFiller(Noesis::Type* Type)
 					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<Noesis::CornerRadius>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
 					TypeClassBuilder->AddProperty(TypeProperty);
 				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("NoesisTimeSpan"))
+				else if (StructInnerProperty->Struct->GetName() == TEXT("Timespan"))
 				{
 					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<Noesis::TimeSpan>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
 					TypeClassBuilder->AddProperty(TypeProperty);
@@ -1838,7 +1838,7 @@ void UClassTypeFiller(Noesis::Type* Type)
 				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<Noesis::Point>(), &NoesisObjectWrapper::GetProperty<Noesis::Point>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<Noesis::Point>, TypePropertyData(Property));
 				TypeClassBuilder->AddProperty(TypeProperty);
 			}
-			else if (StructProperty->Struct->GetName() == TEXT("NoesisRect"))
+			else if (StructProperty->Struct->GetName() == TEXT("Box2D"))
 			{
 				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<Noesis::Rect>(), &NoesisObjectWrapper::GetProperty<Noesis::Rect>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<Noesis::Rect>, TypePropertyData(Property));
 				TypeClassBuilder->AddProperty(TypeProperty);
@@ -1858,7 +1858,7 @@ void UClassTypeFiller(Noesis::Type* Type)
 				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<Noesis::CornerRadius>(), &NoesisObjectWrapper::GetProperty<Noesis::CornerRadius>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<Noesis::CornerRadius>, TypePropertyData(Property));
 				TypeClassBuilder->AddProperty(TypeProperty);
 			}
-			else if (StructProperty->Struct->GetName() == TEXT("NoesisTimeSpan"))
+			else if (StructProperty->Struct->GetName() == TEXT("Timespan"))
 			{
 				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<Noesis::TimeSpan>(), &NoesisObjectWrapper::GetProperty<Noesis::TimeSpan>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<Noesis::TimeSpan>, TypePropertyData(Property));
 				TypeClassBuilder->AddProperty(TypeProperty);
@@ -1947,7 +1947,7 @@ void UClassTypeFiller(Noesis::Type* Type)
 					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<Noesis::Point>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<Noesis::Point>, TypePropertyData(ArrayProperty, InnerProperty));
 					TypeClassBuilder->AddProperty(TypeProperty);
 				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("NoesisRect"))
+				else if (StructInnerProperty->Struct->GetName() == TEXT("Box2D"))
 				{
 					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<Noesis::Rect>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<Noesis::Rect>, TypePropertyData(ArrayProperty, InnerProperty));
 					TypeClassBuilder->AddProperty(TypeProperty);
@@ -1967,7 +1967,7 @@ void UClassTypeFiller(Noesis::Type* Type)
 					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<Noesis::CornerRadius>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<Noesis::CornerRadius>, TypePropertyData(ArrayProperty, InnerProperty));
 					TypeClassBuilder->AddProperty(TypeProperty);
 				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("NoesisTimeSpan"))
+				else if (StructInnerProperty->Struct->GetName() == TEXT("Timespan"))
 				{
 					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<Noesis::TimeSpan>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<Noesis::TimeSpan>, TypePropertyData(ArrayProperty, InnerProperty));
 					TypeClassBuilder->AddProperty(TypeProperty);
@@ -2092,7 +2092,7 @@ void UClassTypeFiller(Noesis::Type* Type)
 					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Point>, nullptr, TypePropertyData(Function, CanExecuteFunction));
 					TypeClassBuilder->AddProperty(TypeProperty);
 				}
-				else if (StructOutParam->Struct->GetName() == TEXT("NoesisRect"))
+				else if (StructOutParam->Struct->GetName() == TEXT("Box2D"))
 				{
 					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Rect>, nullptr, TypePropertyData(Function, CanExecuteFunction));
 					TypeClassBuilder->AddProperty(TypeProperty);
@@ -2112,7 +2112,7 @@ void UClassTypeFiller(Noesis::Type* Type)
 					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::CornerRadius>, nullptr, TypePropertyData(Function, CanExecuteFunction));
 					TypeClassBuilder->AddProperty(TypeProperty);
 				}
-				else if (StructOutParam->Struct->GetName() == TEXT("NoesisTimeSpan"))
+				else if (StructOutParam->Struct->GetName() == TEXT("Timespan"))
 				{
 					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::TimeSpan>, nullptr, TypePropertyData(Function, CanExecuteFunction));
 					TypeClassBuilder->AddProperty(TypeProperty);
@@ -2210,7 +2210,7 @@ void UClassTypeFiller(Noesis::Type* Type)
 					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<Noesis::Point>(), &NoesisObjectWrapper::GetFunctionProperty<Noesis::Point>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<Noesis::Point> : nullptr, TypePropertyData(Function, Setter));
 					TypeClassBuilder->AddProperty(TypeProperty);
 				}
-				else if (StructOutParam->Struct->GetName() == TEXT("NoesisRect"))
+				else if (StructOutParam->Struct->GetName() == TEXT("Box2D"))
 				{
 					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<Noesis::Rect>(), &NoesisObjectWrapper::GetFunctionProperty<Noesis::Rect>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<Noesis::Rect> : nullptr, TypePropertyData(Function, Setter));
 					TypeClassBuilder->AddProperty(TypeProperty);
@@ -2230,7 +2230,7 @@ void UClassTypeFiller(Noesis::Type* Type)
 					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<Noesis::CornerRadius>(), &NoesisObjectWrapper::GetFunctionProperty<Noesis::CornerRadius>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<Noesis::CornerRadius> : nullptr, TypePropertyData(Function, Setter));
 					TypeClassBuilder->AddProperty(TypeProperty);
 				}
-				else if (StructOutParam->Struct->GetName() == TEXT("NoesisTimeSpan"))
+				else if (StructOutParam->Struct->GetName() == TEXT("Timespan"))
 				{
 					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<Noesis::TimeSpan>(), &NoesisObjectWrapper::GetFunctionProperty<Noesis::TimeSpan>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<Noesis::TimeSpan> : nullptr, TypePropertyData(Function, Setter));
 					TypeClassBuilder->AddProperty(TypeProperty);

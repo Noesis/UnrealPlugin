@@ -89,6 +89,24 @@ extern TGlobalResource<FNoesisPosTex0Tex1VertexDeclaration> GNoesisPosTex0Tex1Ve
 extern TGlobalResource<FNoesisPosColorTex1Tex2VertexDeclaration> GNoesisPosColorTex1Tex2VertexDeclaration;
 extern TGlobalResource<FNoesisPosTex0Tex1Tex2VertexDeclaration> GNoesisPosTex0Tex1Tex2VertexDeclaration;
 
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisVSConstants, )
+SHADER_PARAMETER(FMatrix, projectionMtx)
+END_GLOBAL_SHADER_PARAMETER_STRUCT()
+
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisTextureSize, )
+SHADER_PARAMETER(FVector4, textureSize)
+END_GLOBAL_SHADER_PARAMETER_STRUCT()
+
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisPSConstants, )
+SHADER_PARAMETER(FVector4, rgba)
+SHADER_PARAMETER_ARRAY(FVector4, radialGrad, [2])
+SHADER_PARAMETER(float, opacity)
+END_GLOBAL_SHADER_PARAMETER_STRUCT()
+
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisEffects, )
+SHADER_PARAMETER_ARRAY(FVector4, effectsParams, [8])
+END_GLOBAL_SHADER_PARAMETER_STRUCT()
+
 class FNoesisVSBase : public FGlobalShader
 {
 	DECLARE_INLINE_TYPE_LAYOUT(FNoesisVSBase, NonVirtual);
@@ -96,8 +114,8 @@ public:
 	FNoesisVSBase(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FGlobalShader(Initializer)
 	{
-		ProjectionMtx.Bind(Initializer.ParameterMap, TEXT("projectionMtx"));
-		TextureSize.Bind(Initializer.ParameterMap, TEXT("textureSize"));
+		VSConstantsBuffer.Bind(Initializer.ParameterMap, FNoesisVSConstants::StaticStructMetadata.GetShaderVariableName());
+		TextureSizeBuffer.Bind(Initializer.ParameterMap, FNoesisTextureSize::StaticStructMetadata.GetShaderVariableName());
 	}
 
 	FNoesisVSBase()
@@ -106,22 +124,24 @@ public:
 
 	static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& Parameters) { return true; }
 
-	void SetParameters(FRHICommandList& RHICmdList, const FMatrix& ProjectionMtxValue, const float (*TextureSizeValue)[2])
+	void SetVSConstants(FRHICommandList& RHICmdList, const FUniformBufferRHIRef& VSConstants)
 	{
 		FRHIVertexShader* ShaderRHI = RHICmdList.GetBoundVertexShader();
 
-		check(ProjectionMtx.IsBound());
-		SetShaderValue(RHICmdList, ShaderRHI, ProjectionMtx, ProjectionMtxValue);
-
-		if (TextureSizeValue)
-		{
-			check(TextureSize.IsBound());
-			SetShaderValue(RHICmdList, ShaderRHI, TextureSize, *TextureSizeValue);
-		}
+		check(VSConstantsBuffer.IsBound());
+		SetUniformBufferParameter(RHICmdList, ShaderRHI, VSConstantsBuffer, VSConstants);
 	}
 
-	LAYOUT_FIELD(FShaderParameter, ProjectionMtx)
-	LAYOUT_FIELD(FShaderParameter, TextureSize)
+	void SetTextureSize(FRHICommandList& RHICmdList, const FUniformBufferRHIRef& TextureSize)
+	{
+		FRHIVertexShader* ShaderRHI = RHICmdList.GetBoundVertexShader();
+
+		check(TextureSizeBuffer.IsBound());
+		SetUniformBufferParameter(RHICmdList, ShaderRHI, TextureSizeBuffer, TextureSize);
+	}
+
+	LAYOUT_FIELD(FShaderUniformBufferParameter, VSConstantsBuffer);
+	LAYOUT_FIELD(FShaderUniformBufferParameter, TextureSizeBuffer)
 };
 
 template<bool HasColor, bool HasUv0, bool HasUv1, bool HasUv2, bool HasCoverage, bool GenSt1>
@@ -176,11 +196,9 @@ public:
 	FNoesisPSBase(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FGlobalShader(Initializer)
 	{
-		Rgba.Bind(Initializer.ParameterMap, TEXT("rgba"));
-		RadialGrad.Bind(Initializer.ParameterMap, TEXT("radialGrad"));
-		Opacity.Bind(Initializer.ParameterMap, TEXT("opacity"));
-		TextureSize.Bind(Initializer.ParameterMap, TEXT("textureSize"));
-		EffectsParams.Bind(Initializer.ParameterMap, TEXT("effectsParams"));
+		PSConstantsBuffer.Bind(Initializer.ParameterMap, FNoesisPSConstants::StaticStructMetadata.GetShaderVariableName());
+		TextureSizeBuffer.Bind(Initializer.ParameterMap, FNoesisTextureSize::StaticStructMetadata.GetShaderVariableName());
+		EffectsBuffer.Bind(Initializer.ParameterMap, FNoesisEffects::StaticStructMetadata.GetShaderVariableName());
 		PatternTexture.Bind(Initializer.ParameterMap, TEXT("patternTex"));
 		PatternSampler.Bind(Initializer.ParameterMap, TEXT("patternSampler"));
 		RampsTexture.Bind(Initializer.ParameterMap, TEXT("rampsTex"));
@@ -199,46 +217,28 @@ public:
 
 	static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& Parameters) { return true; }
 
-	void SetParameters(FRHICommandList& RHICmdList, const FVector4* RgbaValue, const FVector4 (*RadialGradValue)[2], const float* OpacityValue)
+	void SetPSConstants(FRHICommandList& RHICmdList, const FUniformBufferRHIRef& PSConstants)
 	{
 		FRHIPixelShader* ShaderRHI = RHICmdList.GetBoundPixelShader();
 
-		if (RgbaValue)
-		{
-			check(Rgba.IsBound());
-			SetShaderValue(RHICmdList, ShaderRHI, Rgba, *RgbaValue);
-		}
-
-		if (RadialGradValue)
-		{
-			check(RadialGrad.IsBound());
-			SetShaderValueArray(RHICmdList, ShaderRHI, RadialGrad, *RadialGradValue, 2);
-		}
-
-		if (OpacityValue)
-		{
-			check(Opacity.IsBound());
-			SetShaderValue(RHICmdList, ShaderRHI, Opacity, *OpacityValue);
-		}
+		check(PSConstantsBuffer.IsBound());
+		SetUniformBufferParameter(RHICmdList, ShaderRHI, PSConstantsBuffer, PSConstants);
 	}
 
-	void SetEffectsParameters(FRHICommandList& RHICmdList, const float(*TextureSizeValue)[4], const float* EffectsParamsValue, uint32 EffectsParamsCount)
+	void SetTextureSize(FRHICommandList& RHICmdList, const FUniformBufferRHIRef& TextureSize)
 	{
 		FRHIPixelShader* ShaderRHI = RHICmdList.GetBoundPixelShader();
 
-		if (EffectsParamsCount)
-		{
-			check(TextureSize.IsBound());
-			SetShaderValue(RHICmdList, ShaderRHI, TextureSize, *TextureSizeValue);
+		check(TextureSizeBuffer.IsBound());
+		SetUniformBufferParameter(RHICmdList, ShaderRHI, TextureSizeBuffer, TextureSize);
+	}
 
-			check(EffectsParams.IsBound());
-			SetShaderValueArray(RHICmdList, ShaderRHI, EffectsParams, EffectsParamsValue, EffectsParamsCount);
-		}
-		else
-		{
-			check(!TextureSize.IsBound());
-			check(!EffectsParams.IsBound());
-		}
+	void SetEffects(FRHICommandList& RHICmdList, const FUniformBufferRHIRef& Effects)
+	{
+		FRHIPixelShader* ShaderRHI = RHICmdList.GetBoundPixelShader();
+
+		check(EffectsBuffer.IsBound());
+		SetUniformBufferParameter(RHICmdList, ShaderRHI, EffectsBuffer, Effects);
 	}
 
 	void SetPatternTexture(FRHICommandList& RHICmdList, FRHITexture* PatternTextureResource, FRHISamplerState* PatternSamplerResource)
@@ -276,11 +276,9 @@ public:
 		SetTextureParameter(RHICmdList, ShaderRHI, ShadowTexture, ShadowSampler, ShadowSamplerResource, ShadowTextureResource);
 	}
 
-	LAYOUT_FIELD(FShaderParameter, Rgba)
-	LAYOUT_FIELD(FShaderParameter, RadialGrad)
-	LAYOUT_FIELD(FShaderParameter, Opacity)
-	LAYOUT_FIELD(FShaderParameter, TextureSize)
-	LAYOUT_FIELD(FShaderParameter, EffectsParams)
+	LAYOUT_FIELD(FShaderUniformBufferParameter, PSConstantsBuffer)
+	LAYOUT_FIELD(FShaderUniformBufferParameter, TextureSizeBuffer)
+	LAYOUT_FIELD(FShaderUniformBufferParameter, EffectsBuffer)
 	LAYOUT_FIELD(FShaderResourceParameter, PatternTexture)
 	LAYOUT_FIELD(FShaderResourceParameter, PatternSampler)
 	LAYOUT_FIELD(FShaderResourceParameter, RampsTexture)

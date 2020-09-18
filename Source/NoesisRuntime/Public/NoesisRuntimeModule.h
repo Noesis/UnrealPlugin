@@ -29,4 +29,6 @@ public:
 	static INoesisRuntimeModuleInterface& Get();
 
 	virtual void RegisterFont(const class UFontFace* Font) = 0;
+	virtual void OnXamlChanged(class UNoesisXaml* Xaml) = 0;
+	virtual void OnTextureChanged(class UTexture2D* Texture) = 0;
 };

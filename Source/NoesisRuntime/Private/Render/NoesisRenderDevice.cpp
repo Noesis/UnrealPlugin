@@ -14,6 +14,9 @@
 #include "RHIStaticStates.h"
 #include "PipelineStateCache.h"
 
+// RenderCore includes
+#include "ClearQuad.h"
+
 // NoesisRuntime includes
 #include "Render/NoesisShaders.h"
 #include "NoesisSettings.h"
@@ -25,17 +28,17 @@ public:
 	// Texture interface
 	virtual uint32 GetWidth() const override
 	{
-		return (uint32)ShaderResourceTexture->GetSizeX();
+		return ShaderResourceTexture ? (uint32)ShaderResourceTexture->GetSizeX() : 0;
 	}
 
 	virtual uint32 GetHeight() const override
 	{
-		return (uint32)ShaderResourceTexture->GetSizeY();
+		return ShaderResourceTexture ? (uint32)ShaderResourceTexture->GetSizeY() : 0;
 	}
 
 	virtual bool HasMipMaps() const override
 	{
-		return (bool)(ShaderResourceTexture->GetNumMips() > 1);
+		return ShaderResourceTexture ? (bool)(ShaderResourceTexture->GetNumMips() > 1) : false;
 	}
 
 	virtual bool IsInverted() const override
@@ -67,11 +70,15 @@ public:
 uint32 FNoesisRenderDevice::RHICmdListTlsSlot;
 
 FNoesisRenderDevice::FNoesisRenderDevice()
-	: VertexBufferOffset(0), IndexBufferOffset(0), CurrentRenderTarget(0)
+	: VSConstantsHash(0), TextureSizeHash(0), PSConstantsHash(0), EffectsHash(0)
 {
 	FRHIResourceCreateInfo CreateInfo;
-	DynamicVertexBuffer = RHICreateVertexBuffer(VertexBufferSize, BUF_Dynamic, CreateInfo);
-	DynamicIndexBuffer = RHICreateIndexBuffer(sizeof(int16), IndexBufferSize, BUF_Dynamic, CreateInfo);
+	DynamicVertexBuffer = RHICreateVertexBuffer(DYNAMIC_VB_SIZE, BUF_Dynamic, CreateInfo);
+	DynamicIndexBuffer = RHICreateIndexBuffer(sizeof(int16), DYNAMIC_IB_SIZE, BUF_Dynamic, CreateInfo);
+	VSConstantBuffer = TUniformBufferRef<FNoesisVSConstants>::CreateUniformBufferImmediate(FNoesisVSConstants(), UniformBuffer_MultiFrame);
+	TextureSizeBuffer = TUniformBufferRef<FNoesisTextureSize>::CreateUniformBufferImmediate(FNoesisTextureSize(), UniformBuffer_MultiFrame);
+	PSConstantBuffer = TUniformBufferRef<FNoesisPSConstants>::CreateUniformBufferImmediate(FNoesisPSConstants(), UniformBuffer_MultiFrame);
+	EffectsBuffer = TUniformBufferRef<FNoesisEffects>::CreateUniformBufferImmediate(FNoesisEffects(), UniformBuffer_MultiFrame);
 
 	const auto FeatureLevel = GMaxRHIFeatureLevel;
 
@@ -288,6 +295,12 @@ FNoesisRenderDevice::FNoesisRenderDevice()
 
 FNoesisRenderDevice::~FNoesisRenderDevice()
 {
+	DynamicVertexBuffer.SafeRelease();
+	DynamicIndexBuffer.SafeRelease();
+	VSConstantBuffer.SafeRelease();
+	TextureSizeBuffer.SafeRelease();
+	PSConstantBuffer.SafeRelease();
+	EffectsBuffer.SafeRelease();
 }
 
 uint32 GlyphCacheWidth[] = { 256, 512, 1024, 2048, 4096 };
@@ -332,16 +345,34 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 	if (!InTexture || !InTexture->Resource)
 		return nullptr;
 
-	FNoesisTexture* Texture = nullptr;
+	Noesis::Ptr<FNoesisTexture> Texture;
 	if (InTexture->IsA<UTexture2D>())
 	{
-		FTexture2DRHIRef TextureRef = ((FTexture2DResource*)InTexture->Resource)->GetTexture2DRHI();
-		if (!TextureRef)
-		{
-			return nullptr;
-		}
-		Texture = new FNoesisTexture();
-		Texture->ShaderResourceTexture = TextureRef;
+		Texture = *new FNoesisTexture();
+		FTexture2DResource* Resource = (FTexture2DResource*)InTexture->Resource;
+		// Usually the RHI resource is ready when we create the texture.
+		// However, when we are hot-reloading a texture, UE4 enqueues the
+		// creation to the render thread, so we must do the same.
+		ENQUEUE_RENDER_COMMAND(FNoesisInstance_InitRenderer)
+		(
+			[Texture, Resource](FRHICommandListImmediate& RHICmdList)
+			{
+				FTexture2DRHIRef TextureRef = Resource->GetTexture2DRHI();
+				if (TextureRef)
+				{
+					Texture->ShaderResourceTexture = TextureRef;
+					switch (TextureRef->GetFormat())
+					{
+					case PF_R8G8B8A8:
+						Texture->Format = Noesis::TextureFormat::RGBA8;
+						break;
+					case PF_G8:
+						Texture->Format = Noesis::TextureFormat::R8;
+						break;
+					}
+				}
+			}
+		);
 	}
 	else if (InTexture->IsA<UTextureRenderTarget2D>())
 	{
@@ -350,24 +381,24 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 		{
 			return nullptr;
 		}
-		Texture = new FNoesisTexture();
+		Texture = *new FNoesisTexture();
 		Texture->ShaderResourceTexture = TextureRef;
+		switch (TextureRef->GetFormat())
+		{
+		case PF_R8G8B8A8:
+			Texture->Format = Noesis::TextureFormat::RGBA8;
+			break;
+		case PF_G8:
+			Texture->Format = Noesis::TextureFormat::R8;
+			break;
+		}
 	}
 	else
 	{
 		return nullptr;
 	}
-	switch (Texture->ShaderResourceTexture->GetFormat())
-	{
-	case PF_R8G8B8A8:
-		Texture->Format = Noesis::TextureFormat::RGBA8;
-		break;
-	case PF_G8:
-		Texture->Format = Noesis::TextureFormat::R8;
-		break;
-	}
 
-	return Noesis::Ptr<Noesis::Texture>(*Texture);
+	return Texture;
 }
 
 const Noesis::DeviceCaps& FNoesisRenderDevice::GetCaps() const
@@ -376,25 +407,17 @@ const Noesis::DeviceCaps& FNoesisRenderDevice::GetCaps() const
 	return Caps;
 }
 
-Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CreateRenderTarget(const char* Label, uint32 Width, uint32 Height, uint32 SampleCount)
+static Noesis::Ptr<Noesis::RenderTarget> CreateRenderTarget(const char* Label, uint32 Width, uint32 Height, uint32 SampleCount, FTexture2DRHIRef DepthStencilTarget)
 {
-	uint32 SizeX = (uint32)Width;
-	uint32 SizeY = (uint32)Height;
 	uint8 Format = (uint8)PF_R8G8B8A8;
 	uint32 NumMips = 1;
 	uint32 Flags = 0;
 	uint32 TargetableTextureFlags = (uint32)TexCreate_RenderTargetable;
-	bool bForceSeparateTargetAndShaderResource = true;
+	bool bForceSeparateTargetAndShaderResource = false;
 	FRHIResourceCreateInfo CreateInfo;
 	FTexture2DRHIRef ColorTarget;
 	FTexture2DRHIRef ShaderResourceTexture;
-	uint32 NumSamples = (uint32)SampleCount;
-	RHICreateTargetableShaderResource2D(SizeX, SizeY, Format, NumMips, Flags, TargetableTextureFlags, bForceSeparateTargetAndShaderResource, CreateInfo, ColorTarget, ShaderResourceTexture, NumSamples);
-
-	Format = (uint8)PF_DepthStencil;
-	TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
-	CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
-	FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, CreateInfo);
+	RHICreateTargetableShaderResource2D(Width, Height, Format, NumMips, Flags, TargetableTextureFlags, bForceSeparateTargetAndShaderResource, CreateInfo, ColorTarget, ShaderResourceTexture, SampleCount);
 
 	FNoesisRenderTarget* RenderTarget = new FNoesisRenderTarget();
 	RenderTarget->Texture = *new FNoesisTexture();
@@ -406,30 +429,35 @@ Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CreateRenderTarget(const 
 	FName TextureName = FName(Label);
 	ColorTarget->SetName(TextureName);
 	ShaderResourceTexture->SetName(TextureName);
-	DepthStencilTarget->SetName(TextureName);
 
 	return Noesis::Ptr<Noesis::RenderTarget>(*RenderTarget);
+}
+
+Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CreateRenderTarget(const char* Label, uint32 Width, uint32 Height, uint32 SampleCount)
+{
+	uint32 NumMips = 1;
+	uint8 Format = (uint8)PF_DepthStencil;
+	uint32 TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
+	FRHIResourceCreateInfo CreateInfo;
+	CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
+	FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(Width, Height, Format, NumMips, SampleCount, TargetableTextureFlags, CreateInfo);
+
+	FName TextureName = FName(Label);
+	DepthStencilTarget->SetName(TextureName);
+
+	return ::CreateRenderTarget(Label, Width, Height, SampleCount, DepthStencilTarget);
 }
 
 Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CloneRenderTarget(const char* Label, Noesis::RenderTarget* InSharedRenderTarget)
 {
 	FNoesisRenderTarget* SharedRenderTarget = (FNoesisRenderTarget*)InSharedRenderTarget;
-	FNoesisRenderTarget* RenderTarget = new FNoesisRenderTarget();
-	RenderTarget->Texture = *new FNoesisTexture();
-	RenderTarget->ColorTarget = SharedRenderTarget->ColorTarget;
-	RenderTarget->DepthStencilTarget = SharedRenderTarget->DepthStencilTarget;
 
-	uint32 SizeX = SharedRenderTarget->Texture->ShaderResourceTexture->GetSizeX();
-	uint32 SizeY = SharedRenderTarget->Texture->ShaderResourceTexture->GetSizeY();
-	uint8 Format = (uint8)PF_R8G8B8A8;
-	uint32 NumMips = 1;
-	uint32 Flags = TexCreate_ResolveTargetable | TexCreate_ShaderResource;
-	FRHIResourceCreateInfo CreateInfo;
-	FTexture2DRHIRef ShaderResourceTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, 1, Flags, CreateInfo);
-	RenderTarget->Texture->ShaderResourceTexture = ShaderResourceTexture;
-	RenderTarget->Texture->Format = Noesis::TextureFormat::RGBA8;
+	uint32 Width = SharedRenderTarget->ColorTarget->GetSizeX();
+	uint32 Height = SharedRenderTarget->ColorTarget->GetSizeY();
+	uint32 SampleCount = SharedRenderTarget->ColorTarget->GetNumSamples();
+	FTexture2DRHIRef DepthStencilTarget = SharedRenderTarget->DepthStencilTarget;
 
-	return Noesis::Ptr<Noesis::RenderTarget>(*RenderTarget);
+	return ::CreateRenderTarget(Label, Width, Height, SampleCount, DepthStencilTarget);
 }
 
 Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(const char* Label, uint32 Width, uint32 Height, uint32 NumLevels, Noesis::TextureFormat::Enum TextureFormat, const void** Data)
@@ -490,28 +518,44 @@ void FNoesisRenderDevice::SetRenderTarget(Noesis::RenderTarget* Surface)
 {
 	FRHICommandList* RHICmdList = ThreadLocal_GetRHICmdList();
 	check(RHICmdList);
+#if WANTS_DRAW_MESH_EVENTS
+	SetRenderTargetEvent = new FDrawEvent();
+	BEGIN_DRAW_EVENTF(*RHICmdList, SetRenderTarget, (*SetRenderTargetEvent), TEXT("SetRenderTarget"));
+#endif
 	check(Surface);
 	FNoesisRenderTarget* RenderTarget = (FNoesisRenderTarget*)Surface;
-	FRHIRenderPassInfo RPInfo(RenderTarget->ColorTarget, ERenderTargetActions::Clear_DontStore, RenderTarget->DepthStencilTarget,
-		MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::Clear_DontStore), FExclusiveDepthStencil::DepthNop_StencilWrite);
+	ERenderTargetActions ColorTargetActions = RenderTarget->ColorTarget->GetNumSamples() > 1 ?
+		MakeRenderTargetActions(ERenderTargetLoadAction::ENoAction, ERenderTargetStoreAction::EMultisampleResolve) :
+		ERenderTargetActions::DontLoad_Store;
+
+	EDepthStencilTargetActions DepthStencilTargetActions =
+		MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::DontLoad_DontStore);
+
+	FRHIRenderPassInfo RPInfo(RenderTarget->ColorTarget, ColorTargetActions, RenderTarget->Texture->ShaderResourceTexture,
+		RenderTarget->DepthStencilTarget, DepthStencilTargetActions, nullptr, FExclusiveDepthStencil::DepthNop_StencilWrite);
 
 	check(RHICmdList->IsOutsideRenderPass());
+	RHICmdList->TransitionResource(EResourceTransitionAccess::EWritable, RenderTarget->ColorTarget);
 	RHICmdList->BeginRenderPass(RPInfo, TEXT("NoesisOffScreen"));
 	RHICmdList->SetViewport(0, 0, 0.0f, RenderTarget->ColorTarget->GetSizeX(), RenderTarget->ColorTarget->GetSizeY(), 1.0f);
-	CurrentRenderTarget = RenderTarget;
 }
 
 void FNoesisRenderDevice::BeginTile(const Noesis::Tile& Tile, uint32 SurfaceWidth, uint32 SurfaceHeight)
 {
 	FRHICommandList* RHICmdList = ThreadLocal_GetRHICmdList();
 	check(RHICmdList);
-	check(SurfaceHeight == CurrentRenderTarget->Texture->ShaderResourceTexture->GetSizeY());
+#if WANTS_DRAW_MESH_EVENTS
+	TileEvent = new FDrawEvent();
+	BEGIN_DRAW_EVENTF(*RHICmdList, Tile, (*TileEvent), TEXT("Tile"));
+#endif
 
+	SCOPED_DRAW_EVENT(*RHICmdList, Clear);
 	uint32 ScissorMinX = Tile.x;
 	uint32 ScissorMinY = SurfaceHeight - (Tile.y + Tile.height);
 	uint32 ScissorMaxX = Tile.x + Tile.width;
 	uint32 ScissorMaxY = SurfaceHeight - Tile.y;
 	RHICmdList->SetScissorRect(true, ScissorMinX, ScissorMinY, ScissorMaxX, ScissorMaxY);
+	DrawClearQuad(*RHICmdList, true, FLinearColor(0.0f, 0.0f, 0.0f, 0.0f), false, 0.0f, true, 0);
 }
 
 void FNoesisRenderDevice::EndTile()
@@ -519,35 +563,47 @@ void FNoesisRenderDevice::EndTile()
 	FRHICommandList* RHICmdList = ThreadLocal_GetRHICmdList();
 	check(RHICmdList);
 	RHICmdList->SetScissorRect(false, 0, 0, 0, 0);
+#if WANTS_DRAW_MESH_EVENTS
+	STOP_DRAW_EVENT((*TileEvent));
+#endif
 }
 
 void FNoesisRenderDevice::ResolveRenderTarget(Noesis::RenderTarget* Surface, const Noesis::Tile* Tiles, uint32 NumTiles)
 {
 	FRHICommandList* RHICmdList = ThreadLocal_GetRHICmdList();
 	check(RHICmdList);
-	for (uint32 TileIndex = 0; TileIndex != (uint32)NumTiles; ++TileIndex)
+	check(RHICmdList->IsInsideRenderPass());
+	SCOPED_DRAW_EVENT(*RHICmdList, Resolve);
+	FNoesisRenderTarget* RenderTarget = (FNoesisRenderTarget*)Surface;
+	RHICmdList->EndRenderPass();
+	if (RenderTarget->ColorTarget != RenderTarget->Texture->ShaderResourceTexture)
 	{
-		const Noesis::Tile& Tile = Tiles[TileIndex];
+		for (uint32 TileIndex = 0; TileIndex != (uint32)NumTiles; ++TileIndex)
+		{
+			const Noesis::Tile& Tile = Tiles[TileIndex];
 
-		uint32 ResolveMinX = Tile.x;
-		uint32 ResolveMinY = CurrentRenderTarget->Texture->ShaderResourceTexture->GetSizeY() - (Tile.y + Tile.height);
-		uint32 ResolveMaxX = Tile.x + Tile.width;
-		uint32 ResolveMaxY = CurrentRenderTarget->Texture->ShaderResourceTexture->GetSizeY() - Tile.y;
+			uint32 ResolveMinX = Tile.x;
+			uint32 ResolveMinY = RenderTarget->Texture->ShaderResourceTexture->GetSizeY() - (Tile.y + Tile.height);
+			uint32 ResolveMaxX = Tile.x + Tile.width;
+			uint32 ResolveMaxY = RenderTarget->Texture->ShaderResourceTexture->GetSizeY() - Tile.y;
 
-		FResolveParams ResolveParams;
-		ResolveParams.Rect.X1 = ResolveMinX;
-		ResolveParams.Rect.Y1 = ResolveMinY;
-		ResolveParams.Rect.X2 = ResolveMaxX;
-		ResolveParams.Rect.Y2 = ResolveMaxY;
-		ResolveParams.DestRect.X1 = ResolveMinX;
-		ResolveParams.DestRect.Y1 = ResolveMinY;
-		ResolveParams.DestRect.X2 = ResolveMaxX;
-		ResolveParams.DestRect.Y2 = ResolveMaxY;
-		RHICmdList->CopyToResolveTarget(CurrentRenderTarget->ColorTarget, CurrentRenderTarget->Texture->ShaderResourceTexture, ResolveParams);
+			FResolveParams ResolveParams;
+			ResolveParams.Rect.X1 = ResolveMinX;
+			ResolveParams.Rect.Y1 = ResolveMinY;
+			ResolveParams.Rect.X2 = ResolveMaxX;
+			ResolveParams.Rect.Y2 = ResolveMaxY;
+			ResolveParams.DestRect.X1 = ResolveMinX;
+			ResolveParams.DestRect.Y1 = ResolveMinY;
+			ResolveParams.DestRect.X2 = ResolveMaxX;
+			ResolveParams.DestRect.Y2 = ResolveMaxY;
+			RHICmdList->CopyToResolveTarget(RenderTarget->ColorTarget, RenderTarget->Texture->ShaderResourceTexture, ResolveParams);
+		}
 	}
 
-	check(RHICmdList->IsInsideRenderPass());
-	RHICmdList->EndRenderPass();
+	RHICmdList->TransitionResource(EResourceTransitionAccess::EReadable, RenderTarget->ColorTarget);
+#if WANTS_DRAW_MESH_EVENTS
+	STOP_DRAW_EVENT((*SetRenderTargetEvent));
+#endif
 }
 
 void FNoesisRenderDevice::EndRender()
@@ -729,8 +785,6 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 		ShadowSamplerState = GetSamplerState((uint32)*(uint8*)&Batch.shadowSampler);
 	}
 
-	const auto FeatureLevel = GMaxRHIFeatureLevel;
-
 	uint32 ShaderCode = (uint32)Batch.shader.v;
 
 	FVertexDeclarationRHIRef& VertexDeclaration = VertexDeclarations[ShaderCode];
@@ -743,31 +797,98 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 
 	SetGraphicsPipelineState(*RHICmdList, GraphicsPSOInit);
 
-	float TextureSize[4];
+	if (VSConstantsHash != Batch.projMtxHash)
+	{
+		FNoesisVSConstants VSConstants;
+		VSConstants.projectionMtx = FMatrix(FPlane((*Batch.projMtx)[0], (*Batch.projMtx)[4], (*Batch.projMtx)[8], (*Batch.projMtx)[12]),
+			FPlane((*Batch.projMtx)[1], (*Batch.projMtx)[5], (*Batch.projMtx)[9], (*Batch.projMtx)[13]),
+			FPlane((*Batch.projMtx)[2], (*Batch.projMtx)[6], (*Batch.projMtx)[10], (*Batch.projMtx)[14]),
+			FPlane((*Batch.projMtx)[3], (*Batch.projMtx)[7], (*Batch.projMtx)[11], (*Batch.projMtx)[15]));
+#if PLATFORM_APPLE
+		// UniformBuffers on Metal are broken. They are all treated as Volatile, and new data is not pushed to the GPU after an update.
+		VSConstantBuffer = TUniformBufferRef<FNoesisVSConstants>::CreateUniformBufferImmediate(VSConstants, UniformBuffer_MultiFrame);
+#else
+		RHIUpdateUniformBuffer(VSConstantBuffer, &VSConstants);
+#endif
+		VSConstantsHash = Batch.projMtxHash;
+	}
+	VertexShader->SetVSConstants(*RHICmdList, VSConstantBuffer);
+
+	FNoesisTextureSize TextureSize;
 	if (Batch.glyphs || Batch.image)
 	{
 		FNoesisTexture* Texture = (FNoesisTexture*)(Batch.glyphs ? Batch.glyphs : Batch.image);
 		uint32 Width = Texture->GetWidth();
 		uint32 Height = Texture->GetHeight();
-		TextureSize[0] = (float)Width;
-		TextureSize[1] = (float)Height;
-		TextureSize[2] = 1.0f / Width;
-		TextureSize[3] = 1.0f / Height;
+		TextureSize.textureSize[0] = (float)Width;
+		TextureSize.textureSize[1] = (float)Height;
+		TextureSize.textureSize[2] = 1.0f / Width;
+		TextureSize.textureSize[3] = 1.0f / Height;
+		uint32 Hash = (Width << 16) | Height;
+		if (TextureSizeHash != Hash)
+		{
+#if PLATFORM_APPLE
+			// UniformBuffers on Metal are broken. They are all treated as Volatile, and new data is not pushed to the GPU after an update.
+			TextureSizeBuffer = TUniformBufferRef<FNoesisTextureSize>::CreateUniformBufferImmediate(TextureSize, UniformBuffer_MultiFrame);
+#else
+			RHIUpdateUniformBuffer(TextureSizeBuffer, &TextureSize);
+#endif
+			TextureSizeHash = Hash;
+		}
 	}
+
 	bool GenSt1 = ShaderCode >= Noesis::Shader::SDF_Solid && ShaderCode <= Noesis::Shader::SDF_LCD_Pattern;
+	if (GenSt1)
+	{
+		VertexShader->SetTextureSize(*RHICmdList, TextureSizeBuffer);
+	}
 
-	FMatrix ProjectionMtxValue(FPlane((*Batch.projMtx)[0], (*Batch.projMtx)[4], (*Batch.projMtx)[8], (*Batch.projMtx)[12]),
-		FPlane((*Batch.projMtx)[1], (*Batch.projMtx)[5], (*Batch.projMtx)[9], (*Batch.projMtx)[13]),
-		FPlane((*Batch.projMtx)[2], (*Batch.projMtx)[6], (*Batch.projMtx)[10], (*Batch.projMtx)[14]),
-		FPlane((*Batch.projMtx)[3], (*Batch.projMtx)[7], (*Batch.projMtx)[11], (*Batch.projMtx)[15]));
-	VertexShader->SetParameters(*RHICmdList, ProjectionMtxValue, GenSt1 ? (float(*)[2])&TextureSize : nullptr);
+	if (Batch.rgba != nullptr || Batch.radialGrad != nullptr || Batch.opacity != nullptr)
+	{
+		if (PSConstantsHash != (Batch.rgbaHash ^ Batch.radialGradHash ^ Batch.opacityHash))
+		{
+			FNoesisPSConstants PSConstants;
+			if (Batch.rgba != nullptr)
+			{
+				PSConstants.rgba = *(FVector4*)Batch.rgba;
+			}
+			if (Batch.radialGrad != nullptr)
+			{
+				PSConstants.radialGrad[0] = ((FVector4*)Batch.radialGrad)[0];
+				PSConstants.radialGrad[1] = ((FVector4*)Batch.radialGrad)[1];
+			}
+			if (Batch.opacity != nullptr)
+			{
+				PSConstants.opacity = *Batch.opacity;
+			}
+#if PLATFORM_APPLE
+			// UniformBuffers on Metal are broken. They are all treated as Volatile, and new data is not pushed to the GPU after an update.
+			PSConstantBuffer = TUniformBufferRef<FNoesisPSConstants>::CreateUniformBufferImmediate(PSConstants, UniformBuffer_MultiFrame);
+#else
+			RHIUpdateUniformBuffer(PSConstantBuffer, &PSConstants);
+#endif
+			PSConstantsHash = (Batch.rgbaHash ^ Batch.radialGradHash ^ Batch.opacityHash);
+		}
+		PixelShader->SetPSConstants(*RHICmdList, PSConstantBuffer);
+	}
 
-	const FVector4* RgbaValue = (const FVector4*)Batch.rgba;
-	const FVector4 (*RadialGradValue)[2] = (const FVector4(*)[2])Batch.radialGrad;
-	const float* OpacityValue = Batch.opacity;
-	PixelShader->SetParameters(*RHICmdList, RgbaValue, RadialGradValue, OpacityValue);
-
-	PixelShader->SetEffectsParameters(*RHICmdList, &TextureSize, Batch.effectParams, Batch.effectParamsSize);
+	if (Batch.effectParams != nullptr)
+	{
+		if (EffectsHash != Batch.effectParamsHash)
+		{
+			FNoesisEffects Effects;
+			FMemory::Memcpy(&Effects.effectsParams[0], Batch.effectParams, Batch.effectParamsSize * sizeof(float));
+#if PLATFORM_APPLE
+			// UniformBuffers on Metal are broken. They are all treated as Volatile, and new data is not pushed to the GPU after an update.
+			EffectsBuffer = TUniformBufferRef<FNoesisEffects>::CreateUniformBufferImmediate(Effects, UniformBuffer_MultiFrame);
+#else
+			RHIUpdateUniformBuffer(EffectsBuffer, &Effects);
+#endif
+			EffectsHash = Batch.effectParamsHash;
+		}
+		PixelShader->SetEffects(*RHICmdList, EffectsBuffer);
+		PixelShader->SetTextureSize(*RHICmdList, TextureSizeBuffer);
+	}
 
 	if (PatternTexture)
 	{
@@ -793,5 +914,5 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 	RHICmdList->SetStencilRef(Batch.stencilRef);
 	RHICmdList->SetStreamSource(0, DynamicVertexBuffer, Batch.vertexOffset);
 
-	RHICmdList->DrawIndexedPrimitive(DynamicIndexBuffer, 0, 0, VertexBufferSize, Batch.startIndex, Batch.numIndices / 3, 1);
+	RHICmdList->DrawIndexedPrimitive(DynamicIndexBuffer, 0, 0, Batch.numVertices, Batch.startIndex, Batch.numIndices / 3, 1);
 }

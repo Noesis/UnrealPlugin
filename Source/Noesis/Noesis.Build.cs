@@ -78,6 +78,7 @@ public class Noesis : ModuleRules
 		}
 		else if (Target.Platform == UnrealTargetPlatform.IOS)
 		{
+			PublicDefinitions.Add("NS_STATIC_LIBRARY");
 			PublicAdditionalLibraries.Add(NoesisBasePath + "Lib/ios/libNoesis.a");
 
 			PublicFrameworks.Add("CoreText");
@@ -94,6 +95,7 @@ public class Noesis : ModuleRules
 		}
 		else if (Target.Platform == UnrealTargetPlatform.PS4)
 		{
+			PublicDefinitions.Add("NS_STATIC_LIBRARY");
 			PublicAdditionalLibraries.Add(NoesisBasePath + "Lib/ps4/Noesis.a");
 		}
 		else if (Target.Platform == UnrealTargetPlatform.XboxOne)

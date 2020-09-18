@@ -402,5 +402,14 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 
 	// If this is not the first level XAML and nothing has changed we return null here so that the
 	// dependent XAMLs are not marked dirty.
-	return (!Recursive || HasChanged) ? NoesisXaml : nullptr;
+	if (!Recursive || HasChanged)
+	{
+		// We need this so our own callback is called for hot reloading, but it's alo something all
+		// factories do.
+		GEditor->GetEditorSubsystem<UImportSubsystem>()->BroadcastAssetPostImport(this, NoesisXaml);
+
+		return NoesisXaml;
+	}
+
+	return nullptr;
 }

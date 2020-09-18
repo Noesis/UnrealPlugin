@@ -462,22 +462,6 @@ SamplerState glyphsSampler;
 Texture2D shadowTex;
 SamplerState shadowSampler;
 
-#if EFFECT_RGBA
-    float4 rgba;
-#endif
-
-#if PAINT_RADIAL
-    float4 radialGrad[2];
-#endif
-
-#if PAINT_LINEAR || PAINT_RADIAL || PAINT_PATTERN
-    float opacity;
-#endif
-
-float4 textureSize;
-
-float4 effectsParams[8];
-
 struct In
 {
 #if HAS_COLOR
@@ -570,18 +554,18 @@ Out NoesisPS(in In i)
 
     #elif PAINT_LINEAR
         half4 paint = Texture2DSample(rampsTex, rampsSampler, i.uv0);
-        half opacity_ = opacity;
+        half opacity_ = NoesisPSConstants.opacity;
 
     #elif PAINT_RADIAL
-        half dd = radialGrad[1].y * i.uv0.x - radialGrad[1].z * i.uv0.y;
-        half u = radialGrad[0].x * i.uv0.x + radialGrad[0].y * i.uv0.y + radialGrad[0].z * 
-            sqrt(radialGrad[0].w * i.uv0.x * i.uv0.x + radialGrad[1].x * i.uv0.y * i.uv0.y - dd * dd);
-        half4 paint = Texture2DSample(rampsTex, rampsSampler, half2(u, radialGrad[1].w));
-        half opacity_ = opacity;
+        half dd = NoesisPSConstants.radialGrad[1].y * i.uv0.x - NoesisPSConstants.radialGrad[1].z * i.uv0.y;
+        half u = NoesisPSConstants.radialGrad[0].x * i.uv0.x + NoesisPSConstants.radialGrad[0].y * i.uv0.y + NoesisPSConstants.radialGrad[0].z *
+            sqrt(NoesisPSConstants.radialGrad[0].w * i.uv0.x * i.uv0.x + NoesisPSConstants.radialGrad[1].x * i.uv0.y * i.uv0.y - dd * dd);
+        half4 paint = Texture2DSample(rampsTex, rampsSampler, half2(u, NoesisPSConstants.radialGrad[1].w));
+        half opacity_ = NoesisPSConstants.opacity;
 
     #elif PAINT_PATTERN
         half4 paint = Texture2DSample(patternTex, patternSampler, i.uv0);
-        half opacity_ = opacity;
+        half opacity_ = NoesisPSConstants.opacity;
     #endif
 
     Out o;
@@ -590,7 +574,7 @@ Out NoesisPS(in In i)
     // Apply selected effect
     /////////////////////////////////////////////////////
     #if EFFECT_RGBA
-        o.color = rgba;
+        o.color = NoesisPSConstants.rgba;
 
     #elif EFFECT_MASK
         o.color = half4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -605,10 +589,10 @@ Out NoesisPS(in In i)
         o.color = Texture2DSample(imageTex, imageSampler, i.uv1) * (opacity_ * paint.a);
 
     #elif EFFECT_IMAGE_SHADOW_V
-        #define BLUR_SIZE effectsParams[0].x
+        #define BLUR_SIZE NoesisEffects.effectsParams[0].x
 
         half alpha = 0;
-        half2 dir = half2(0, BLUR_SIZE * textureSize.w);
+        half2 dir = half2(0, BLUR_SIZE * NoesisTextureSize.textureSize.w);
 
         for (int x = 0; x < GAUSSIAN_NUM_SAMPLES; x++)
         {
@@ -623,14 +607,14 @@ Out NoesisPS(in In i)
         o.color = half4(0, 0, 0, alpha);
 
     #elif EFFECT_IMAGE_SHADOW_H
-        #define SHADOW_COLOR effectsParams[0]
-        #define BLUR_SIZE effectsParams[1].x
-        #define SHADOW_OFFSETX effectsParams[1].y
-        #define SHADOW_OFFSETY effectsParams[1].z
+        #define SHADOW_COLOR NoesisEffects.effectsParams[0]
+        #define BLUR_SIZE NoesisEffects.effectsParams[1].x
+        #define SHADOW_OFFSETX NoesisEffects.effectsParams[1].y
+        #define SHADOW_OFFSETY NoesisEffects.effectsParams[1].z
 
         half alpha = 0;
-        half2 dir = half2(BLUR_SIZE * textureSize.z, 0);
-        half2 offset = half2(SHADOW_OFFSETX * textureSize.z, SHADOW_OFFSETY * textureSize.w);
+        half2 dir = half2(BLUR_SIZE * NoesisTextureSize.textureSize.z, 0);
+        half2 offset = half2(SHADOW_OFFSETX * NoesisTextureSize.textureSize.z, SHADOW_OFFSETY * NoesisTextureSize.textureSize.w);
 
         for (int x = 0; x < GAUSSIAN_NUM_SAMPLES; x++)
         {
@@ -646,10 +630,10 @@ Out NoesisPS(in In i)
         o.color = (img + (1.0f - img.a) * (SHADOW_COLOR * alpha)) * (opacity_ * paint.a);
 
     #elif EFFECT_IMAGE_BLUR_V
-        #define BLUR_SIZE effectsParams[0].x
+        #define BLUR_SIZE NoesisEffects.effectsParams[0].x
 
         half4 color = half4(0, 0, 0, 0);
-        half2 dir = half2(0, BLUR_SIZE * textureSize.w);
+        half2 dir = half2(0, BLUR_SIZE * NoesisTextureSize.textureSize.w);
 
         for (int x = 0; x < GAUSSIAN_NUM_SAMPLES; x++)
         {
@@ -664,10 +648,10 @@ Out NoesisPS(in In i)
         o.color = color;
 
     #elif EFFECT_IMAGE_BLUR_H
-        #define BLUR_SIZE effectsParams[0].x
+        #define BLUR_SIZE NoesisEffects.effectsParams[0].x
 
         half4 color = half4(0, 0, 0, 0);
-        half2 dir = half2(BLUR_SIZE * textureSize.z, 0);
+        half2 dir = half2(BLUR_SIZE * NoesisTextureSize.textureSize.z, 0);
 
         for (int x = 0; x < GAUSSIAN_NUM_SAMPLES; x++)
         {

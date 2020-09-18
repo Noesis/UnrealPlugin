@@ -52,13 +52,10 @@ struct Out
 #endif
 };
 
-float4x4 projectionMtx;
-float2 textureSize;
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NoesisVS(in In i, out Out o, out float4 out_position: SV_POSITION)
 {
-    out_position = mul(float4(i.position, 0, 1), projectionMtx);
+    out_position = mul(float4(i.position, 0, 1), NoesisVSConstants.projectionMtx);
 
 #if HAS_COLOR
     o.color FCOLOR_COMPONENT_SWIZZLE = i.color.bgra;
@@ -81,6 +78,6 @@ void NoesisVS(in In i, out Out o, out float4 out_position: SV_POSITION)
 #endif
 
 #if GEN_ST1
-    o.st1 = i.uv1 * textureSize.xy;
+    o.st1 = i.uv1 * NoesisTextureSize.textureSize.xy;
 #endif
 }

@@ -155,6 +155,12 @@ void OnObjectImported(UFactory* ImportFactory, UObject* InObject)
 		Xaml->DestroyThumbnailRenderData();
 	}
 
+	if (InObject->IsA<UNoesisXaml>())
+	{
+		UNoesisXaml* Xaml = (UNoesisXaml*)InObject;
+		INoesisRuntimeModuleInterface::Get().OnXamlChanged(Xaml);
+	}
+
 	if (InObject->IsA<UTexture2D>())
 	{
 		UTexture2D* Texture = (UTexture2D*)InObject;
@@ -170,6 +176,7 @@ void OnObjectImported(UFactory* ImportFactory, UObject* InObject)
 				FixPremultipliedPNGTexture(Texture);
 			}
 		}
+		INoesisRuntimeModuleInterface::Get().OnTextureChanged(Texture);
 	}
 }
 
@@ -210,6 +217,7 @@ void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Even
 					FixPremultipliedPNGTexture(Texture);
 				}
 			}
+			INoesisRuntimeModuleInterface::Get().OnTextureChanged(Texture);
 		}
 		ReentryGuard = 0;
 	}
@@ -280,6 +288,13 @@ public:
 			FMenuBarExtensionDelegate::CreateStatic(&FNoesisEditorModule::AddNoesisMenu)
 		);
 		LevelEditorModule.GetMenuExtensibilityManager()->AddExtender(MenuExtender);
+
+		// Register ticker
+		TickerHandle = FTicker::GetCoreTicker().AddTicker(TEXT("NoesisEditor"), 0.0f, [this](float DeltaTime)
+		{
+			Noesis::GUI::TickInspector();
+			return true;
+		});
 	}
 
 	virtual void ShutdownModule() override
@@ -325,6 +340,9 @@ public:
 		{
 			FCoreUObjectDelegates::OnObjectPropertyChanged.Remove(ObjectPropertyChangedHandle);
 		}
+
+		// Unregister ticker
+		FTicker::GetCoreTicker().RemoveTicker(TickerHandle);
 	}
 	// End of IModuleInterface interface
 
@@ -521,6 +539,7 @@ private:
 	TSharedPtr<FNoesisBlueprintCompiler> NoesisBlueprintCompiler;
 	FDelegateHandle AssetImportHandle;
 	FDelegateHandle ObjectPropertyChangedHandle;
+	FDelegateHandle TickerHandle;
 };
 
 INoesisEditorModuleInterface* FNoesisEditorModule::NoesisEditorModuleInterface = 0;

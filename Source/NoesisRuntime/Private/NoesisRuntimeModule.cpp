@@ -50,7 +50,7 @@ static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* De
 	UE_LOG(LogNoesis, Warning, TEXT("%s"), *NsStringToFString(Desc));
 }
 
-DECLARE_MEMORY_STAT(TEXT("NoesisMemory"), STAT_NoesisMemory, STATGROUP_Noesis);
+DECLARE_MEMORY_STAT(TEXT("CPU Memory"), STAT_NoesisMemory, STATGROUP_Noesis);
 void* NoesisAllocationCallbackUserData = nullptr;
 void* NoesisAlloc(void* UserData, size_t Size)
 {
@@ -517,6 +517,16 @@ public:
 	virtual void RegisterFont(const class UFontFace* FontFace) override
 	{
 		NoesisFontProvider->RegisterFont(FontFace);
+	}
+
+	virtual void OnXamlChanged(class UNoesisXaml* Xaml) override
+	{
+		NoesisXamlProvider->OnXamlChanged(Xaml);
+	}
+
+	virtual void OnTextureChanged(class UTexture2D* Texture) override
+	{
+		NoesisTextureProvider->OnTextureChanged(Texture);
 	}
 	// End of INoesisRuntimeModuleInterface interface
 

@@ -14,22 +14,35 @@
 class FNoesisXamlProvider : public Noesis::XamlProvider
 {
 public:
+	void OnXamlChanged(UNoesisXaml* Xaml);
 
 	class UNoesisXaml* GetXaml(FString XamlProviderPath) const;
 
 	// XamlProvider interface
 	virtual Noesis::Ptr<Noesis::Stream> LoadXaml(const char* Filename) override;
 	// End of XamlProvider interface
+
+#if WITH_EDITOR
+	mutable TMap<UNoesisXaml*, FString> NameMap;
+#endif
 };
 
 class FNoesisTextureProvider : public Noesis::TextureProvider
 {
+public:
+	void OnTextureChanged(UTexture2D* Texture);
+
+private:
 	class UTexture2D* GetTexture(FString TextureProviderPath) const;
 
 	// TextureProvider interface
 	virtual Noesis::TextureInfo GetTextureInfo(const char* Path) override;
 	virtual Noesis::Ptr<Noesis::Texture> LoadTexture(const char* Path, Noesis::RenderDevice* RenderDevice) override;
 	// End of TextureProvider interface
+
+#if WITH_EDITOR
+	mutable TMap<UTexture2D*, FString> NameMap;
+#endif
 };
 
 class FNoesisFontProvider : public Noesis::CachedFontProvider

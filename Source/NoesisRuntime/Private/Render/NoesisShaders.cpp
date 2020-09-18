@@ -5,6 +5,11 @@
 
 #include "NoesisShaders.h"
 
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisVSConstants, "NoesisVSConstants");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisTextureSize, "NoesisTextureSize");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisPSConstants, "NoesisPSConstants");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisEffects, "NoesisEffects");
+
 TGlobalResource<FNoesisPosVertexDeclaration> GNoesisPosVertexDeclaration;
 TGlobalResource<FNoesisPosColorVertexDeclaration> GNoesisPosColorVertexDeclaration;
 TGlobalResource<FNoesisPosTex0VertexDeclaration> GNoesisPosTex0VertexDeclaration;

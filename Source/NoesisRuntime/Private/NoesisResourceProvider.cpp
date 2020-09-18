@@ -18,6 +18,16 @@
 #include "NoesisXaml.h"
 #include "NoesisSupport.h"
 
+void FNoesisXamlProvider::OnXamlChanged(UNoesisXaml* Xaml)
+{
+#if WITH_EDITOR
+	if (FString* Name = NameMap.Find(Xaml))
+	{
+		RaiseXamlChanged(TCHAR_TO_UTF8(**Name));
+	}
+#endif
+}
+
 Noesis::Ptr<Noesis::Stream> FNoesisXamlProvider::LoadXaml(const char* Path)
 {
 	FString XamlPath = NsProviderPathToAssetPath(Path);
@@ -27,16 +37,33 @@ Noesis::Ptr<Noesis::Stream> FNoesisXamlProvider::LoadXaml(const char* Path)
 		// Need to register the XAML's dependencies before returning.
 		Xaml->RegisterDependencies();
 
+#if WITH_EDITOR
+		NameMap.Add(Xaml, Path);
+#endif
+
 		return Noesis::Ptr<Noesis::Stream>(*new Noesis::MemoryStream(Xaml->XamlText.GetData(), (uint32)Xaml->XamlText.Num()));
 	}
 
 	return Noesis::Ptr<Noesis::Stream>();
 };
 
+void FNoesisTextureProvider::OnTextureChanged(UTexture2D* Texture)
+{
+#if WITH_EDITOR
+	if (FString* Name = NameMap.Find(Texture))
+	{
+		RaiseTextureChanged(TCHAR_TO_UTF8(**Name));
+	}
+#endif
+}
+
 UTexture2D* FNoesisTextureProvider::GetTexture(FString TextureProviderPath) const
 {
 	FString TexturePath = NsProviderPathToAssetPath(TextureProviderPath);
 	UTexture2D* Texture = LoadObject<UTexture2D>(nullptr, *(FString("/Game/") + TexturePath), nullptr, LOAD_NoWarn);
+#if WITH_EDITOR
+	NameMap.Add(Texture, TextureProviderPath);
+#endif
 	return Texture;
 }
 

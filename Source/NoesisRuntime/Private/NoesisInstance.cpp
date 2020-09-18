@@ -34,21 +34,24 @@
 #include "NoesisXaml.h"
 #include "NoesisSupport.h"
 
-DECLARE_CYCLE_STAT(TEXT("NoesisInstance::Update"), STAT_NoesisInstance_Update, STATGROUP_Noesis);
-DECLARE_CYCLE_STAT(TEXT("NoesisInstance::DrawOffscreen_RenderThread"), STAT_NoesisInstance_DrawOffscreen, STATGROUP_Noesis);
-DECLARE_CYCLE_STAT(TEXT("NoesisInstance::Draw_RenderThread"), STAT_NoesisInstance_Draw, STATGROUP_Noesis);
-DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnKeyChar"), STAT_NoesisInstance_OnKeyChar, STATGROUP_Noesis);
-DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnKeyDown"), STAT_NoesisInstance_OnKeyDown, STATGROUP_Noesis);
-DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnKeyUp"), STAT_NoesisInstance_OnKeyUp, STATGROUP_Noesis);
-DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnAnalogValueChanged"), STAT_NoesisInstance_OnAnalogValueChanged, STATGROUP_Noesis);
-DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnMouseButtonDown"), STAT_NoesisInstance_OnMouseButtonDown, STATGROUP_Noesis);
-DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnMouseButtonUp"), STAT_NoesisInstance_OnMouseButtonUp, STATGROUP_Noesis);
-DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnMouseMove"), STAT_NoesisInstance_OnMouseMove, STATGROUP_Noesis);
-DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnMouseWheel"), STAT_NoesisInstance_OnMouseWheel, STATGROUP_Noesis);
-DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnTouchStarted"), STAT_NoesisInstance_OnTouchStarted, STATGROUP_Noesis);
-DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnTouchMoved"), STAT_NoesisInstance_OnTouchMoved, STATGROUP_Noesis);
-DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnTouchEnded"), STAT_NoesisInstance_OnTouchEnded, STATGROUP_Noesis);
-DECLARE_CYCLE_STAT(TEXT("NoesisInstance::NativeOnMouseButtonDoubleClick"), STAT_NoesisInstance_OnMouseButtonDoubleClick, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("Update"), STAT_NoesisInstance_Update, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("UpdateRenderTree"), STAT_NoesisInstance_UpdateRenderTree, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("RenderOffscreen"), STAT_NoesisInstance_DrawOffscreen, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("Render"), STAT_NoesisInstance_Draw, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("Char"), STAT_NoesisInstance_OnKeyChar, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("KeyDown"), STAT_NoesisInstance_OnKeyDown, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("KeyUp"), STAT_NoesisInstance_OnKeyUp, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("Scroll"), STAT_NoesisInstance_OnAnalogValueChanged, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("MouseButtonDown"), STAT_NoesisInstance_OnMouseButtonDown, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("MouseButtonUp"), STAT_NoesisInstance_OnMouseButtonUp, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("MouseMove"), STAT_NoesisInstance_OnMouseMove, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("MouseWheel"), STAT_NoesisInstance_OnMouseWheel, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("TouchDown"), STAT_NoesisInstance_OnTouchStarted, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("TouchMove"), STAT_NoesisInstance_OnTouchMoved, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("TouchUp"), STAT_NoesisInstance_OnTouchEnded, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("MouseDoubleClick"), STAT_NoesisInstance_OnMouseButtonDoubleClick, STATGROUP_Noesis);
+
+DECLARE_GPU_STAT_NAMED(NoesisDraw, TEXT("Noesis"));
 
 class FNoesisSlateElement : public ICustomSlateElement
 {
@@ -101,7 +104,8 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 		RHICmdList.BeginRenderPass(RPInfo, TEXT("NoesisOnScreen"));
 		RHICmdList.SetViewport((int32)Left, (int32)Top, 0.0f, (int32)Right, (int32)Bottom, 1.0f);
 		SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
-		SCOPED_DRAW_EVENT(RHICmdList, NoesisDraw);
+		SCOPED_DRAW_EVENT(RHICmdList, Noesis);
+		SCOPED_GPU_STAT(RHICmdList, NoesisDraw);
 		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
 		Renderer->Render(FlipYAxis);
 		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
@@ -388,7 +392,16 @@ void UNoesisInstance::Update(float InLeft, float InTop, float InWidth, float InH
 			break;
 		}
 		XamlView->SetTessellationMaxPixelError(mpe);
-		XamlView->SetFlags((uint32)RenderFlags | (EnablePPAA ? Noesis::RenderFlags_PPAA : 0));
+		uint32 Flags = XamlView->GetFlags();
+		if (EnablePPAA)
+		{
+			Flags |= Noesis::RenderFlags_PPAA;
+		}
+		else
+		{
+			Flags &= ~Noesis::RenderFlags_PPAA;
+		}
+		XamlView->SetFlags(Flags);
 		XamlView->Update(CurrentTime);
 	}
 }
@@ -634,12 +647,18 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 		(
 			[Renderer](FRHICommandListImmediate& RHICmdList)
 			{
-				SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_DrawOffscreen);
-				SCOPED_DRAW_EVENT(RHICmdList, NoesisDrawOffscreen);
-				FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
-				Renderer->UpdateRenderTree();
-				Renderer->RenderOffscreen();
-				FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
+				{
+					SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_UpdateRenderTree);
+					Renderer->UpdateRenderTree();
+				}
+				{
+					SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_DrawOffscreen);
+					SCOPED_DRAW_EVENT(RHICmdList, Noesis_Offscreen);
+					SCOPED_GPU_STAT(RHICmdList, NoesisDraw);
+					FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
+					Renderer->RenderOffscreen();
+					FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
+				}
 			}
 		);
 

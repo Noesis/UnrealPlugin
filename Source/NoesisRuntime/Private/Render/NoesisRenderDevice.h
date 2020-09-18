@@ -15,15 +15,26 @@
 // Noesis includes
 #include "NoesisSDK.h"
 
+// RenderCore includes
+#include "ProfilingDebugging/RealtimeGPUProfiler.h"
+
 class FNoesisRenderDevice : public Noesis::RenderDevice
 {
-	static const uint32 VertexBufferSize = 512 * 1024;
-	static const uint32 IndexBufferSize = 128 * 1024;
-
 	FVertexBufferRHIRef DynamicVertexBuffer;
 	FIndexBufferRHIRef DynamicIndexBuffer;
-	uint32 VertexBufferOffset;
-	uint32 IndexBufferOffset;
+	FUniformBufferRHIRef VSConstantBuffer;
+	FUniformBufferRHIRef TextureSizeBuffer;
+	FUniformBufferRHIRef PSConstantBuffer;
+	FUniformBufferRHIRef EffectsBuffer;
+	uint32 VSConstantsHash;
+	uint32 TextureSizeHash;
+	uint32 PSConstantsHash;
+	uint32 EffectsHash;
+
+#if WANTS_DRAW_MESH_EVENTS
+	FDrawEvent* SetRenderTargetEvent;
+	FDrawEvent* TileEvent;
+#endif
 
 	FNoesisRenderDevice();
 	virtual ~FNoesisRenderDevice();
@@ -33,8 +44,6 @@ public:
 	FVertexDeclarationRHIRef VertexDeclarations[Noesis::Shader::Count];
 	TShaderRef<FNoesisVSBase> VertexShaders[Noesis::Shader::Count];
 	TShaderRef<FNoesisPSBase> PixelShaders[Noesis::Shader::Count];
-
-	class FNoesisRenderTarget* CurrentRenderTarget;
 
 	static FNoesisRenderDevice* Get();
 	static void Destroy();
