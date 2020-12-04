@@ -438,10 +438,10 @@ Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CreateRenderTarget(const 
 {
 	uint32 NumMips = 1;
 	uint8 Format = (uint8)PF_DepthStencil;
-	uint32 TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
+	ETextureCreateFlags TargetableTextureFlags = ETextureCreateFlags::TexCreate_DepthStencilTargetable;
 	FRHIResourceCreateInfo CreateInfo;
 	CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
-	FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(Width, Height, Format, NumMips, SampleCount, ETextureCreateFlags::TexCreate_DepthStencilTargetable, ERHIAccess::SRVGraphics, CreateInfo);
+	FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(Width, Height, Format, NumMips, SampleCount, TargetableTextureFlags, ERHIAccess::SRVGraphics, CreateInfo);
 
 	FName TextureName = FName(Label);
 	DepthStencilTarget->SetName(TextureName);
