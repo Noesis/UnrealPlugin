@@ -101,7 +101,7 @@ TArray<UFontFace*> ImportFontFamily(FString PackagePath, FString FamilyName, FSt
 											FT_Done_Face(SubFace);
 											continue;
 										}
-										FontFacePackage = CreatePackage(NULL, *(FontPackagePath / FontFaceName));
+										FontFacePackage = CreatePackage(*(FontPackagePath / FontFaceName));
 
 										auto FontFaceFactory = NewObject<UFontFileImportFactory>();
 										FontFaceFactory->AddToRoot();

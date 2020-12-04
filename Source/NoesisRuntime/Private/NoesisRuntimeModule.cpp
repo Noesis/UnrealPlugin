@@ -277,6 +277,8 @@ public:
 		return IsMultiline;
 	}
 
+	virtual bool GetSelection(int& OutSelStart, int& OutSelEnd) { return false; }
+
 private:
 	Noesis::TextBox* TextBox;
 	FString InitialText;
@@ -333,6 +335,8 @@ public:
 	{
 		return false;
 	}
+
+	virtual bool GetSelection(int& OutSelStart, int& OutSelEnd) { return false; }
 
 private:
 	Noesis::PasswordBox* PasswordBox;
