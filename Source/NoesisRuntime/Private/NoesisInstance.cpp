@@ -94,7 +94,7 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 			ETextureCreateFlags TargetableTextureFlags = ETextureCreateFlags::TexCreate_DepthStencilTargetable;
 			FRHIResourceCreateInfo CreateInfo;
 			CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
-			DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, ETextureCreateFlags::TexCreate_DepthStencilTargetable, ERHIAccess::SRVGraphics, CreateInfo);
+			DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, ERHIAccess::SRVGraphics, CreateInfo);
 		}
 		// Clear the stencil buffer
 		FRHIRenderPassInfo RPInfo(ColorTarget, ERenderTargetActions::Load_Store, DepthStencilTarget,
@@ -606,7 +606,7 @@ void UNoesisInstance::DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRe
 				FRHIResourceCreateInfo CreateInfo;
 				CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
 				FTexture2DRHIRef ColorTarget = BackBuffer;
-				FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, ETextureCreateFlags::TexCreate_DepthStencilTargetable, ERHIAccess::SRVGraphics, CreateInfo);
+				FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, ERHIAccess::SRVGraphics, CreateInfo);
 				FRHIRenderPassInfo RPInfo(ColorTarget, ERenderTargetActions::Load_Store, DepthStencilTarget,
 					MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::Clear_DontStore), FExclusiveDepthStencil::DepthNop_StencilWrite);
 
