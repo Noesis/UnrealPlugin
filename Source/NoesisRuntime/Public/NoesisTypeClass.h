@@ -21,6 +21,7 @@ NOESISRUNTIME_API void NoesisDestroyTypeClassForEnum(const class UEnum*);
 NOESISRUNTIME_API void NoesisDestroyTypeClass(FString Path);
 NOESISRUNTIME_API void NoesisDestroyTypeClass();
 #endif
+NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisFindComponentForUObject(UObject* Object);
 NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUStruct(class UScriptStruct*, void*);
 NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUObject(class UObject*);
 NOESISRUNTIME_API class UObject* NoesisCreateUObjectForComponent(Noesis::BaseComponent*);

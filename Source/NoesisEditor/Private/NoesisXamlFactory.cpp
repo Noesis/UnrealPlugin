@@ -146,6 +146,25 @@ TArray<UFontFace*> ImportFontFamily(FString PackagePath, FString FamilyName, FSt
 	return Visitor.Fonts;
 }
 
+static void SplitPath(FString Path, TArray<FString>& Components)
+{
+	FString Left, Right;
+	while (Path.Split(TEXT("/"), &Left, &Right))
+	{
+		Components.Push(MoveTemp(Left));
+		Path = MoveTemp(Right);
+	}
+}
+
+static void JoinPath(TArray<FString> Components, FString & Path)
+{
+	for (auto Component : Components)
+	{
+		Path += Component;
+		Path += TEXT("/");
+	}
+}
+
 UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject* Context, const TCHAR* Type, const uint8*& Buffer, const uint8* BufferEnd, FFeedbackContext* Warn)
 {
 	// This needs to go first, before we invoke other factories, since it's stored in a static.
@@ -183,33 +202,23 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 	UNoesisXaml* NoesisXaml = nullptr;
 	if (!Recursive || HasChanged)
 	{
-		FString ProjectURIRoot;
+		FString PackageRoot;
+		FString PackagePath;
+		FString PackageName;
+		FPackageName::SplitLongPackageName(Parent->GetPathName(), PackageRoot, PackagePath, PackageName, false);
+		TArray<FString> ProjectAssetPathRootComponents;
+		SplitPath(PackageRoot + PackagePath, ProjectAssetPathRootComponents);
+		TArray<FString> ProjectURIRootComponents;
+		SplitPath(FPaths::GetPath(FullFilePath) + TEXT("/"), ProjectURIRootComponents);
+		while (ProjectAssetPathRootComponents.Last() == ProjectURIRootComponents.Last())
+		{
+			ProjectAssetPathRootComponents.Pop();
+			ProjectURIRootComponents.Pop();
+		}
 		FString ProjectAssetPathRoot;
-		for (const auto& Setting : GetDefault<UEditorLoadingSavingSettings>()->AutoReimportDirectorySettings)
-		{
-			FString RelativeFilename = FullFilePath;
-			FString SourceDirectory = Setting.SourceDirectory + TEXT("/");
-			if (Setting.SourceDirectory.Len() != 0 && FPaths::MakePathRelativeTo(RelativeFilename, *SourceDirectory))
-			{
-				FPaths::CollapseRelativeDirectories(RelativeFilename);
-				FPaths::NormalizeFilename(RelativeFilename);
-				if (!RelativeFilename.StartsWith(TEXT("..")))
-				{
-					ProjectURIRoot = SourceDirectory;
-					ProjectAssetPathRoot = Setting.MountPoint + TEXT("/");
-					break;
-				}
-			}
-		}
-		if (ProjectURIRoot.IsEmpty())
-		{
-			FString PackageRoot;
-			FString PackagePath;
-			FString PackageName;
-			FPackageName::SplitLongPackageName(Parent->GetPathName(), PackageRoot, PackagePath, PackageName, false);
-			ProjectAssetPathRoot = PackageRoot + PackagePath;
-			ProjectURIRoot = FPaths::GetPath(FullFilePath) + TEXT("/");
-		}
+		JoinPath(ProjectAssetPathRootComponents, ProjectAssetPathRoot);
+		FString ProjectURIRoot;
+		JoinPath(ProjectURIRootComponents, ProjectURIRoot);
 
 		NoesisXaml = NewObject<UNoesisXaml>(Parent, Class, Name, Flags);
 

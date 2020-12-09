@@ -460,9 +460,9 @@ public:
 		Noesis::GUI::Init("", "");
 		NsRegisterReflectionAppInteractivity();
 
-		NoesisXamlProvider = new FNoesisXamlProvider();
-		NoesisTextureProvider = new FNoesisTextureProvider();
-		NoesisFontProvider = new FNoesisFontProvider();
+		NoesisXamlProvider = *new FNoesisXamlProvider();
+		NoesisTextureProvider = *new FNoesisTextureProvider();
+		NoesisFontProvider = *new FNoesisFontProvider();
 		Noesis::GUI::SetXamlProvider(NoesisXamlProvider);
 		Noesis::GUI::SetTextureProvider(NoesisTextureProvider);
 		Noesis::GUI::SetFontProvider(NoesisFontProvider);
@@ -498,15 +498,9 @@ public:
 
 		FNoesisRenderDevice::Destroy();
 
-		Noesis::GUI::SetXamlProvider(nullptr);
-		Noesis::GUI::SetTextureProvider(nullptr);
-		Noesis::GUI::SetFontProvider(nullptr);
-		delete NoesisXamlProvider;
-		NoesisXamlProvider = nullptr;
-		delete NoesisTextureProvider;
-		NoesisTextureProvider = nullptr;
-		delete NoesisFontProvider;
-		NoesisFontProvider = nullptr;
+		NoesisXamlProvider.Reset();
+		NoesisTextureProvider.Reset();
+		NoesisFontProvider.Reset();
 
 		NoesisRuntimeModuleInterface = 0;
 		Noesis::GUI::Shutdown();
@@ -531,9 +525,9 @@ public:
 	// End of INoesisRuntimeModuleInterface interface
 
 	static INoesisRuntimeModuleInterface* NoesisRuntimeModuleInterface;
-	FNoesisXamlProvider* NoesisXamlProvider;
-	FNoesisTextureProvider* NoesisTextureProvider;
-	FNoesisFontProvider* NoesisFontProvider;
+	Noesis::Ptr<FNoesisXamlProvider> NoesisXamlProvider;
+	Noesis::Ptr<FNoesisTextureProvider> NoesisTextureProvider;
+	Noesis::Ptr<FNoesisFontProvider> NoesisFontProvider;
 	FDelegateHandle PostGarbageCollectConditionalBeginDestroyDelegateHandle;
 	FDelegateHandle PostEngineInitDelegateHandle;
 };

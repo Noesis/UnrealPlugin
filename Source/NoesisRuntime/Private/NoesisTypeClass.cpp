@@ -2488,6 +2488,28 @@ Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUStruct(UScriptStruct
 	return Wrapper;
 }
 
+NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisFindComponentForUObject(UObject* Object)
+{
+	if (!Object)
+	{
+		return nullptr;
+	}
+
+	UNoesisBaseComponent* BaseComponent = Cast<UNoesisBaseComponent>(Object);
+	if (BaseComponent)
+	{
+		return BaseComponent->NoesisComponent;
+	}
+
+	Noesis::Ptr<Noesis::BaseComponent>* ComponentPtr = ObjectMap.Find(Object);
+	if (ComponentPtr)
+	{
+		return *ComponentPtr;
+	}
+
+	return nullptr;
+}
+
 NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUObject(UObject* Object)
 {
 	if (!Object)

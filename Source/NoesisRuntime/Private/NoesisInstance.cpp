@@ -296,7 +296,6 @@ void UNoesisInstance::InitInstance()
 			NoesisSlateElement = MakeShared<FNoesisSlateElement, ESPMode::ThreadSafe>(Renderer);
 
 			CurrentTime = 0.0f;
-			Update(0.0f, 0.0f, 256.0f, 256.0f);
 		}
 
 		Xaml->PreviewGotKeyboardFocus() += Noesis::MakeDelegate(this, &UNoesisInstance::OnPreviewGotKeyboardFocus);

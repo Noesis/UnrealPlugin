@@ -24,21 +24,39 @@
 class FNoesisTexture : public Noesis::Texture
 {
 public:
+	FNoesisTexture(UTexture2D* Texture2D)
+	{
+		Width = (uint32)Texture2D->GetSizeX();
+		Height = (uint32)Texture2D->GetSizeY();
+		NumMipMaps = (uint32)Texture2D->GetNumMips();
+	}
+
+	FNoesisTexture(UTextureRenderTarget2D* TextureRenderTarget2D)
+	{
+		Width = (uint32)TextureRenderTarget2D->SizeX;
+		Height = (uint32)TextureRenderTarget2D->SizeY;
+		NumMipMaps = (uint32)TextureRenderTarget2D->GetNumMips();
+	}
+
+	FNoesisTexture(uint32 InWidth, uint32 InHeight, uint32 InNumMipMaps)
+		: Width(InWidth), Height(InHeight), NumMipMaps(InNumMipMaps)
+	{
+	}
 
 	// Texture interface
 	virtual uint32 GetWidth() const override
 	{
-		return ShaderResourceTexture ? (uint32)ShaderResourceTexture->GetSizeX() : 0;
+		return Width;
 	}
 
 	virtual uint32 GetHeight() const override
 	{
-		return ShaderResourceTexture ? (uint32)ShaderResourceTexture->GetSizeY() : 0;
+		return Height;
 	}
 
 	virtual bool HasMipMaps() const override
 	{
-		return ShaderResourceTexture ? (bool)(ShaderResourceTexture->GetNumMips() > 1) : false;
+		return NumMipMaps > 1;
 	}
 
 	virtual bool IsInverted() const override
@@ -49,6 +67,9 @@ public:
 
 	FTexture2DRHIRef ShaderResourceTexture;
 	Noesis::TextureFormat::Enum Format;
+	uint32 Width;
+	uint32 Height;
+	uint32 NumMipMaps;
 };
 
 class FNoesisRenderTarget : public Noesis::RenderTarget
@@ -340,6 +361,19 @@ FRHICommandList* FNoesisRenderDevice::ThreadLocal_GetRHICmdList()
 	return (FRHICommandList*)FPlatformTLS::GetTlsValue(RHICmdListTlsSlot);
 }
 
+static void SetTextureFormat(FNoesisTexture* Texture, EPixelFormat Format)
+{
+	switch (Format)
+	{
+		case PF_R8G8B8A8:
+			Texture->Format = Noesis::TextureFormat::RGBA8;
+			break;
+		case PF_G8:
+			Texture->Format = Noesis::TextureFormat::R8;
+			break;
+	}
+}
+
 Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InTexture)
 {
 	if (!InTexture || !InTexture->Resource)
@@ -348,7 +382,8 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 	Noesis::Ptr<FNoesisTexture> Texture;
 	if (InTexture->IsA<UTexture2D>())
 	{
-		Texture = *new FNoesisTexture();
+		UTexture2D* Texture2D = (UTexture2D*)InTexture;
+		Texture = *new FNoesisTexture(Texture2D);
 		FTexture2DResource* Resource = (FTexture2DResource*)InTexture->Resource;
 		// Usually the RHI resource is ready when we create the texture.
 		// However, when we are hot-reloading a texture, UE4 enqueues the
@@ -360,16 +395,11 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 				FTexture2DRHIRef TextureRef = Resource->GetTexture2DRHI();
 				if (TextureRef)
 				{
+					check(Texture->Width == TextureRef->GetSizeX());
+					check(Texture->Height == TextureRef->GetSizeY());
+					check(Texture->NumMipMaps == TextureRef->GetNumMips());
 					Texture->ShaderResourceTexture = TextureRef;
-					switch (TextureRef->GetFormat())
-					{
-					case PF_R8G8B8A8:
-						Texture->Format = Noesis::TextureFormat::RGBA8;
-						break;
-					case PF_G8:
-						Texture->Format = Noesis::TextureFormat::R8;
-						break;
-					}
+					SetTextureFormat(Texture, TextureRef->GetFormat());
 				}
 			}
 		);
@@ -381,17 +411,13 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 		{
 			return nullptr;
 		}
-		Texture = *new FNoesisTexture();
+		UTextureRenderTarget2D* TextureRenderTarget2D = (UTextureRenderTarget2D*)InTexture;
+		Texture = *new FNoesisTexture(TextureRenderTarget2D);
+		check(Texture->Width == TextureRef->GetSizeX());
+		check(Texture->Height == TextureRef->GetSizeY());
+		check(Texture->NumMipMaps == TextureRef->GetNumMips());
 		Texture->ShaderResourceTexture = TextureRef;
-		switch (TextureRef->GetFormat())
-		{
-		case PF_R8G8B8A8:
-			Texture->Format = Noesis::TextureFormat::RGBA8;
-			break;
-		case PF_G8:
-			Texture->Format = Noesis::TextureFormat::R8;
-			break;
-		}
+		SetTextureFormat(Texture, TextureRef->GetFormat());
 	}
 	else
 	{
@@ -420,7 +446,7 @@ static Noesis::Ptr<Noesis::RenderTarget> CreateRenderTarget(const char* Label, u
 	RHICreateTargetableShaderResource2D(Width, Height, Format, NumMips, Flags, TargetableTextureFlags, bForceSeparateTargetAndShaderResource, CreateInfo, ColorTarget, ShaderResourceTexture, SampleCount);
 
 	FNoesisRenderTarget* RenderTarget = new FNoesisRenderTarget();
-	RenderTarget->Texture = *new FNoesisTexture();
+	RenderTarget->Texture = *new FNoesisTexture(Width, Height, NumMips);
 	RenderTarget->ColorTarget = ColorTarget;
 	RenderTarget->Texture->ShaderResourceTexture = ShaderResourceTexture;
 	RenderTarget->Texture->Format = Noesis::TextureFormat::RGBA8;
@@ -472,7 +498,7 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(const char* Labe
 	FRHIResourceCreateInfo CreateInfo;
 	FTexture2DRHIRef ShaderResourceTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, Flags, CreateInfo);
 
-	FNoesisTexture* Texture = new FNoesisTexture();
+	FNoesisTexture* Texture = new FNoesisTexture(SizeX, SizeY, NumMips);
 	Texture->ShaderResourceTexture = ShaderResourceTexture;
 	Texture->Format = TextureFormat;
 

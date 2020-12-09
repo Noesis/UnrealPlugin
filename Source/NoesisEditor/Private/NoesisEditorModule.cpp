@@ -176,6 +176,12 @@ void OnObjectImported(UFactory* ImportFactory, UObject* InObject)
 				FixPremultipliedPNGTexture(Texture);
 			}
 		}
+		Noesis::Ptr<Noesis::BaseComponent> Component = NoesisFindComponentForUObject(Texture);
+		if (Component != nullptr)
+		{
+			Noesis::TextureSource* TextureSource = (Noesis::TextureSource*)Component.GetPtr();
+			TextureSource->SetTexture(NoesisCreateTexture(Texture).GetPtr());
+		}
 		INoesisRuntimeModuleInterface::Get().OnTextureChanged(Texture);
 	}
 }
@@ -216,6 +222,12 @@ void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Even
 				{
 					FixPremultipliedPNGTexture(Texture);
 				}
+			}
+			Noesis::Ptr<Noesis::BaseComponent> Component = NoesisFindComponentForUObject(Texture);
+			if (Component != nullptr)
+			{
+				Noesis::TextureSource* TextureSource = (Noesis::TextureSource*)Component.GetPtr();
+				TextureSource->SetTexture(NoesisCreateTexture(Texture).GetPtr());
 			}
 			INoesisRuntimeModuleInterface::Get().OnTextureChanged(Texture);
 		}

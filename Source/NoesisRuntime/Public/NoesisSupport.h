@@ -74,7 +74,7 @@ struct FNoesisWrapper
 	}
 };
 
-Noesis::Ptr<Noesis::Texture> NoesisCreateTexture(class UTexture* Texture);
+NOESISRUNTIME_API Noesis::Ptr<Noesis::Texture> NoesisCreateTexture(class UTexture* Texture);
 
 NOESISRUNTIME_API void CollectElements(Noesis::FrameworkElement* Element, TArray<Noesis::FrameworkElement*>& Elements);
 
