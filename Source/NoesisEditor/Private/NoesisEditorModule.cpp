@@ -292,7 +292,7 @@ public:
 		// Register ticker
 		TickerHandle = FTicker::GetCoreTicker().AddTicker(TEXT("NoesisEditor"), 0.0f, [this](float DeltaTime)
 		{
-			Noesis::GUI::TickInspector();
+			Noesis::GUI::UpdateInspector();
 			return true;
 		});
 	}
