@@ -5,7 +5,11 @@
 
 # NoesisGUI Unreal Engine 4.26 Plugin
 
-> This is just a short guide on how to install and build the plugin from the source code on this repository. For your convenience, you can download a ready to use version of the plugin directly from [our website](https://www.noesisengine.com/developers/downloads.php). If you do so, you can skip the installation instructions and jump directly to our [First steps with NoesisGUI and Unreal](https://www.noesisengine.com/docs/Gui.Core.UnrealTutorial.html). If you encounter any issues, please report them on our [Bugtracker](https://www.noesisengine.com/bugs/)
+This repository contains the source code for the [NoesisGUI](https://www.noesisengine.com/) Unreal integration.
+
+> This is just a short guide on how to install and build the plugin from the source code on this repository. For your convenience, you can download a ready to use version of the plugin directly from [our website](https://www.noesisengine.com/developers/downloads.php). If you do so, you can skip the installation instructions and jump directly to our [First steps with NoesisGUI and Unreal](https://www.noesisengine.com/docs/Gui.Core.UnrealTutorial.html).
+
+Please, use our [forums](https://forums.noesisengine.com) and [tracker](https://bugs.noesisengine.com) to submit bugs and feature requests.
 
 ### Prerequisites
 
