@@ -33,9 +33,9 @@ NS_END_COLD_REGION
 NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/DataBindingHelper.cpp"
 NS_END_COLD_REGION
-#include "NoesisSDK/Src/Packages/App/Interactivity/Src/DataTrigger.Interactivity.cpp"
-NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/DataEventTrigger.cpp"
+NS_END_COLD_REGION
+#include "NoesisSDK/Src/Packages/App/Interactivity/Src/DataTrigger.Interactivity.cpp"
 NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/EventTrigger.Interactivity.cpp"
 NS_END_COLD_REGION

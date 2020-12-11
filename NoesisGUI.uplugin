@@ -10,7 +10,7 @@
 	"DocsURL": "https://github.com/Noesis/UE4Plugin/blob/master/README.md",
 	"MarketplaceURL": "",
 	"SupportURL": "https://forums.noesisengine.com",
-	"EngineVersion": "4.25.0",
+	"EngineVersion": "4.26.0",
 	"CanContainContent": true,
 	"Installed": true,
 	"EnabledByDefault": false,
@@ -19,6 +19,11 @@
 			"Name": "NoesisRuntime",
 			"Type": "Runtime",
 			"LoadingPhase": "PostConfigInit"
+		},
+		{
+			"Name": "NoesisBlueprint",
+			"Type": "UncookedOnly",
+			"LoadingPhase": "Default"
 		},
 		{
 			"Name": "NoesisEditor",

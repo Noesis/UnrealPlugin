@@ -182,7 +182,7 @@ void FNoesisXamlAssetTypeActions::AddToViewport(TArray<TWeakObjectPtr<UNoesisXam
 	{
 		FString ViewPackageName, ViewAssetName;
 		AssetToolsModule.Get().CreateUniqueAssetName(PackageRoot + PackagePath, TEXT("View"), ViewPackageName, ViewAssetName);
-		UPackage* ViewPackage = CreatePackage(NULL, *ViewPackageName);
+		UPackage* ViewPackage = CreatePackage(*ViewPackageName);
 		View = CastChecked<UNoesisBlueprint>(FKismetEditorUtilities::CreateBlueprint(UNoesisInstance::StaticClass(), ViewPackage, FName(*ViewAssetName), BPTYPE_Normal, UNoesisBlueprint::StaticClass(), UNoesisBlueprintGeneratedClass::StaticClass(), "UNoesisBlueprintFactory"));
 		View->EnablePPAA = true;
 		FAssetRegistryModule::AssetCreated(View);

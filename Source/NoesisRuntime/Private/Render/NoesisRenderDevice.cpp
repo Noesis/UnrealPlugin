@@ -8,6 +8,7 @@
 // Engine includes
 #include "Engine/Texture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "Rendering/Texture2DResource.h"
 
 // RHI includes
 #include "RHICommandList.h"
@@ -433,17 +434,65 @@ const Noesis::DeviceCaps& FNoesisRenderDevice::GetCaps() const
 	return Caps;
 }
 
+static void NoesisCreateTargetableShaderResource2D(
+	uint32 SizeX,
+	uint32 SizeY,
+	uint8 Format,
+	uint32 NumMips,
+	ETextureCreateFlags Flags,
+	ETextureCreateFlags TargetableTextureFlags,
+	bool bForceSeparateTargetAndShaderResource,
+	bool bForceSharedTargetAndShaderResource,
+	FRHIResourceCreateInfo& CreateInfo,
+	FTexture2DRHIRef& OutTargetableTexture,
+	FTexture2DRHIRef& OutShaderResourceTexture,
+	uint32 NumSamples = 1
+)
+{
+	// Ensure none of the usage flags are passed in.
+	check(!(Flags & TexCreate_RenderTargetable));
+	check(!(Flags & TexCreate_ResolveTargetable));
+
+	// Ensure we aren't forcing separate and shared textures at the same time.
+	check(!(bForceSeparateTargetAndShaderResource && bForceSharedTargetAndShaderResource));
+
+	// Ensure that the targetable texture is either render or depth-stencil targetable.
+	check(TargetableTextureFlags & (TexCreate_RenderTargetable | TexCreate_DepthStencilTargetable | TexCreate_UAV));
+
+	if (NumSamples > 1 && !bForceSharedTargetAndShaderResource)
+	{
+		bForceSeparateTargetAndShaderResource = RHISupportsSeparateMSAAAndResolveTextures(GMaxRHIShaderPlatform);
+	}
+
+	if (!bForceSeparateTargetAndShaderResource)
+	{
+		// Create a single texture that has both TargetableTextureFlags and TexCreate_ShaderResource set.
+		OutTargetableTexture = OutShaderResourceTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, Flags | TargetableTextureFlags | TexCreate_ShaderResource, ERHIAccess::SRVGraphics, CreateInfo);
+	}
+	else
+	{
+		ETextureCreateFlags ResolveTargetableTextureFlags = TexCreate_ResolveTargetable;
+		if (TargetableTextureFlags & TexCreate_DepthStencilTargetable)
+		{
+			ResolveTargetableTextureFlags |= TexCreate_DepthStencilResolveTarget;
+		}
+		// Create a texture that has TargetableTextureFlags set, and a second texture that has TexCreate_ResolveTargetable and TexCreate_ShaderResource set.
+		OutTargetableTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, Flags | TargetableTextureFlags, ERHIAccess::RTV, CreateInfo);
+		OutShaderResourceTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, 1, Flags | ResolveTargetableTextureFlags | TexCreate_ShaderResource, ERHIAccess::SRVGraphics, CreateInfo);
+	}
+}
+
 static Noesis::Ptr<Noesis::RenderTarget> CreateRenderTarget(const char* Label, uint32 Width, uint32 Height, uint32 SampleCount, FTexture2DRHIRef DepthStencilTarget)
 {
 	uint8 Format = (uint8)PF_R8G8B8A8;
 	uint32 NumMips = 1;
-	uint32 Flags = 0;
-	uint32 TargetableTextureFlags = (uint32)TexCreate_RenderTargetable;
+	ETextureCreateFlags Flags = TexCreate_None;
+	ETextureCreateFlags TargetableTextureFlags = TexCreate_RenderTargetable;
 	bool bForceSeparateTargetAndShaderResource = false;
 	FRHIResourceCreateInfo CreateInfo;
 	FTexture2DRHIRef ColorTarget;
 	FTexture2DRHIRef ShaderResourceTexture;
-	RHICreateTargetableShaderResource2D(Width, Height, Format, NumMips, Flags, TargetableTextureFlags, bForceSeparateTargetAndShaderResource, CreateInfo, ColorTarget, ShaderResourceTexture, SampleCount);
+	NoesisCreateTargetableShaderResource2D(Width, Height, Format, NumMips, Flags, TargetableTextureFlags, bForceSeparateTargetAndShaderResource, false, CreateInfo, ColorTarget, ShaderResourceTexture, SampleCount);
 
 	FNoesisRenderTarget* RenderTarget = new FNoesisRenderTarget();
 	RenderTarget->Texture = *new FNoesisTexture(Width, Height, NumMips);
@@ -463,10 +512,11 @@ Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CreateRenderTarget(const 
 {
 	uint32 NumMips = 1;
 	uint8 Format = (uint8)PF_DepthStencil;
-	uint32 TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
+	ETextureCreateFlags TargetableTextureFlags = TexCreate_DepthStencilTargetable;
+	ERHIAccess Access = ERHIAccess::DSVWrite;
 	FRHIResourceCreateInfo CreateInfo;
 	CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
-	FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(Width, Height, Format, NumMips, SampleCount, TargetableTextureFlags, CreateInfo);
+	FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(Width, Height, Format, NumMips, SampleCount, TargetableTextureFlags, Access, CreateInfo);
 
 	FName TextureName = FName(Label);
 	DepthStencilTarget->SetName(TextureName);
@@ -494,9 +544,10 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(const char* Labe
 	uint8 Format = (uint8)Formats[TextureFormat];
 	uint32 NumMips = (uint32)NumLevels;
 	uint32 NumSamples = 1;
-	uint32 Flags = 0;
+	ETextureCreateFlags Flags = TexCreate_None;
+	ERHIAccess Access = ERHIAccess::SRVGraphics;
 	FRHIResourceCreateInfo CreateInfo;
-	FTexture2DRHIRef ShaderResourceTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, Flags, CreateInfo);
+	FTexture2DRHIRef ShaderResourceTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, Flags, Access, CreateInfo);
 
 	FNoesisTexture* Texture = new FNoesisTexture(SizeX, SizeY, NumMips);
 	Texture->ShaderResourceTexture = ShaderResourceTexture;
@@ -550,18 +601,20 @@ void FNoesisRenderDevice::SetRenderTarget(Noesis::RenderTarget* Surface)
 #endif
 	check(Surface);
 	FNoesisRenderTarget* RenderTarget = (FNoesisRenderTarget*)Surface;
-	ERenderTargetActions ColorTargetActions = RenderTarget->ColorTarget->GetNumSamples() > 1 ?
-		MakeRenderTargetActions(ERenderTargetLoadAction::ENoAction, ERenderTargetStoreAction::EMultisampleResolve) :
-		ERenderTargetActions::DontLoad_Store;
+	ERenderTargetActions ColorTargetActions = ERenderTargetActions::DontLoad_Store;
 
 	EDepthStencilTargetActions DepthStencilTargetActions =
 		MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::DontLoad_DontStore);
 
-	FRHIRenderPassInfo RPInfo(RenderTarget->ColorTarget, ColorTargetActions, RenderTarget->Texture->ShaderResourceTexture,
+	FRHIRenderPassInfo RPInfo(RenderTarget->ColorTarget, ColorTargetActions, nullptr,
 		RenderTarget->DepthStencilTarget, DepthStencilTargetActions, nullptr, FExclusiveDepthStencil::DepthNop_StencilWrite);
 
 	check(RHICmdList->IsOutsideRenderPass());
-	RHICmdList->TransitionResource(EResourceTransitionAccess::EWritable, RenderTarget->ColorTarget);
+	if (RenderTarget->ColorTarget == RenderTarget->Texture->ShaderResourceTexture)
+	{
+		RHICmdList->Transition(FRHITransitionInfo(RenderTarget->ColorTarget, ERHIAccess::SRVGraphics, ERHIAccess::RTV));
+	}
+
 	RHICmdList->BeginRenderPass(RPInfo, TEXT("NoesisOffScreen"));
 	RHICmdList->SetViewport(0, 0, 0.0f, RenderTarget->ColorTarget->GetSizeX(), RenderTarget->ColorTarget->GetSizeY(), 1.0f);
 }
@@ -622,11 +675,19 @@ void FNoesisRenderDevice::ResolveRenderTarget(Noesis::RenderTarget* Surface, con
 			ResolveParams.DestRect.Y1 = ResolveMinY;
 			ResolveParams.DestRect.X2 = ResolveMaxX;
 			ResolveParams.DestRect.Y2 = ResolveMaxY;
+			ResolveParams.MipIndex = 0;
+			ResolveParams.SourceArrayIndex = 0;
+			ResolveParams.DestArrayIndex = 0;
+			ResolveParams.SourceAccessFinal = ERHIAccess::RTV;
+			ResolveParams.DestAccessFinal = ERHIAccess::SRVGraphics;
 			RHICmdList->CopyToResolveTarget(RenderTarget->ColorTarget, RenderTarget->Texture->ShaderResourceTexture, ResolveParams);
 		}
 	}
+	else
+	{
+		RHICmdList->Transition(FRHITransitionInfo(RenderTarget->ColorTarget, ERHIAccess::RTV, ERHIAccess::SRVGraphics));
+	}
 
-	RHICmdList->TransitionResource(EResourceTransitionAccess::EReadable, RenderTarget->ColorTarget);
 #if WANTS_DRAW_MESH_EVENTS
 	STOP_DRAW_EVENT((*SetRenderTargetEvent));
 #endif

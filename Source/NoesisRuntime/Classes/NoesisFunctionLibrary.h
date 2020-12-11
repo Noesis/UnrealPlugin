@@ -32,7 +32,7 @@ class NOESISRUNTIME_API UNoesisFunctionLibrary : public UBlueprintFunctionLibrar
 	UFUNCTION(BlueprintCallable, Category = "NoesisGUI", meta = (HidePin = "Target"))
 	static UObject* LoadXaml(class UNoesisXaml* Xaml);
 
-	UFUNCTION(BlueprintCallable, CustomThunk, meta = (BlueprintInternalUseOnly = "true", CustomStructureParam = "A, B"), Category = "Noesis|Struct")
+	UFUNCTION(BlueprintCallable, CustomThunk, meta = (BlueprintInternalUseOnly = "true", CustomStructureParam = "A,B"), Category = "Noesis|Struct")
 	static bool NoesisStruct_NotEqual(const FGenericStruct& A, const FGenericStruct& B);
 
 	DECLARE_FUNCTION(execNoesisStruct_NotEqual);

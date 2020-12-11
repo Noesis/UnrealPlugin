@@ -14,15 +14,11 @@
 #include "Internationalization/Regex.h"
 
 // Engine includes
-#include "ObjectEditorUtils.h"
 #include "Engine/Font.h"
 #include "Engine/FontFace.h"
 #include "Engine/Texture2D.h"
 #include "Engine/LevelScriptBlueprint.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "Kismet/KismetMathLibrary.h"
-#include "Kismet/KismetStringLibrary.h"
-#include "Kismet/KismetTextLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "EditorFramework/AssetImportData.h"
 #include "Sound/SoundWave.h"
@@ -33,11 +29,8 @@
 #include "PackageTools.h"
 #include "EdGraphUtilities.h"
 #include "UnrealEdGlobals.h"
-#include "EditorCategoryUtils.h"
 #include "EditorReimportHandler.h"
-#include "Editor/EditorEngine.h"
 #include "Editor/UnrealEdEngine.h"
-#include "Kismet2/KismetEditorUtilities.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "Factories/Factory.h"
 #include "Factories/FontFactory.h"
@@ -46,17 +39,7 @@
 #include "ThumbnailRendering/DefaultSizedThumbnailRenderer.h"
 
 // BlueprintGraph includes
-#include "EdGraphSchema_K2.h"
-#include "BlueprintActionDatabaseRegistrar.h"
-#include "BlueprintVariableNodeSpawner.h"
 #include "K2Node_CallFunction.h"
-#include "K2Node_VariableGet.h"
-#include "K2Node_VariableSet.h"
-#include "K2Node_IfThenElse.h"
-#include "K2Node_Self.h"
-#include "K2Node_EnumInequality.h"
-#include "K2Node_Variable.h"
-
 // FreeType2 includes
 THIRD_PARTY_INCLUDES_START
 #include "ft2build.h"
@@ -64,17 +47,9 @@ THIRD_PARTY_INCLUDES_START
 THIRD_PARTY_INCLUDES_END
 
 // BlueprintGraph includes
-#include "BlueprintGraphModule.h"
 #include "BlueprintNodeTemplateCache.h"
-
 // AssetRegistry includes
 #include "AssetRegistryModule.h"
-
-// EditorStyle includes
-#include "Classes/EditorStyleSettings.h"
-
-// KismetCompiler includes
-#include "KismetCompiler.h"
 
 // Kismet includes
 #include "BlueprintCompilationManager.h"

@@ -277,6 +277,13 @@ public:
 		return IsMultiline;
 	}
 
+	bool GetSelection(int& OutSelStart, int& OutSelEnd) override
+	{
+		OutSelStart = TextBox->GetSelectionStart();
+		OutSelEnd = OutSelStart + TextBox->GetSelectionLength();
+		return true;
+	}
+
 private:
 	Noesis::TextBox* TextBox;
 	FString InitialText;
@@ -331,6 +338,12 @@ public:
 
 	virtual bool IsMultilineEntry() const override
 	{
+		return false;
+	}
+
+	bool GetSelection(int& OutSelStart, int& OutSelEnd) override
+	{
+		
 		return false;
 	}
 
@@ -453,6 +466,8 @@ public:
 	// IModuleInterface interface
 	virtual void StartupModule() override
 	{
+		NoesisRuntimeModuleInterface = this;
+
 		Noesis::GUI::SetErrorHandler(&NoesisErrorHandler);
 		Noesis::GUI::SetLogHandler(&NoesisLogHandler);
 		Noesis::MemoryCallbacks MemoryCallbacks{ NoesisAllocationCallbackUserData, &NoesisAlloc, &NoesisRealloc, &NoesisDealloc, &NoesisAllocSize };
@@ -473,8 +488,6 @@ public:
 
 		Noesis::GUI::SetPlayAudioCallback(nullptr, &NoesisPlaySoundCallback);
 
-		NoesisRuntimeModuleInterface = this;
-
 		PostGarbageCollectConditionalBeginDestroyDelegateHandle = FCoreUObjectDelegates::PostGarbageCollectConditionalBeginDestroy.AddStatic(NoesisGarbageCollected);
 
 		PostEngineInitDelegateHandle = FCoreDelegates::OnPostEngineInit.AddStatic(OnPostEngineInit);
@@ -487,6 +500,8 @@ public:
 
 	virtual void ShutdownModule() override
 	{
+		NoesisRuntimeModuleInterface = nullptr;
+
 		Noesis::Reflection::SetFallbackHandler(nullptr);
 
 		FCoreDelegates::OnPostEngineInit.Remove(PostEngineInitDelegateHandle);
@@ -502,7 +517,6 @@ public:
 		NoesisTextureProvider.Reset();
 		NoesisFontProvider.Reset();
 
-		NoesisRuntimeModuleInterface = 0;
 		Noesis::GUI::Shutdown();
 	}
 	// End of IModuleInterface interface

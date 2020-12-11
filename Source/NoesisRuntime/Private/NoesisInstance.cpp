@@ -91,10 +91,11 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 			uint8 Format = (uint8)PF_DepthStencil;
 			uint32 NumMips = 1;
 			uint32 NumSamples = ColorTarget->GetNumSamples();
-			uint32 TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
+			ETextureCreateFlags TargetableTextureFlags = TexCreate_DepthStencilTargetable;
+			ERHIAccess Access = ERHIAccess::DSVWrite;
 			FRHIResourceCreateInfo CreateInfo;
 			CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
-			DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, CreateInfo);
+			DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, Access, CreateInfo);
 		}
 		// Clear the stencil buffer
 		FRHIRenderPassInfo RPInfo(ColorTarget, ERenderTargetActions::Load_Store, DepthStencilTarget,
@@ -601,11 +602,12 @@ void UNoesisInstance::DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRe
 				uint8 Format = (uint8)PF_DepthStencil;
 				uint32 NumMips = BackBuffer->GetNumMips();
 				uint32 NumSamples = BackBuffer->GetNumSamples();
-				uint32 TargetableTextureFlags = (uint32)TexCreate_DepthStencilTargetable;
+				ETextureCreateFlags TargetableTextureFlags = TexCreate_DepthStencilTargetable;
+				ERHIAccess Access = ERHIAccess::DSVWrite;
 				FRHIResourceCreateInfo CreateInfo;
 				CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
 				FTexture2DRHIRef ColorTarget = BackBuffer;
-				FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, CreateInfo);
+				FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, Access, CreateInfo);
 				FRHIRenderPassInfo RPInfo(ColorTarget, ERenderTargetActions::Load_Store, DepthStencilTarget,
 					MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::Clear_DontStore), FExclusiveDepthStencil::DepthNop_StencilWrite);
 

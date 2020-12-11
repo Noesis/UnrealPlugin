@@ -14,9 +14,9 @@ public class Noesis : ModuleRules
 	{
 		Type = ModuleType.External;
 
-		string NoesisBasePath = ModuleDirectory + "/NoesisSDK/";
-		string NoesisIncludePath = NoesisBasePath + "Include/";
-		string NoesisInteractivityIncludePath = NoesisBasePath + "Src/Packages/App/Interactivity/Include/";
+		string NoesisBasePath = Path.Combine(ModuleDirectory, "NoesisSDK");
+		string NoesisIncludePath = Path.Combine(NoesisBasePath, "Include");
+		string NoesisInteractivityIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "Interactivity", "Include");
 
 		PublicIncludePaths.Add(ModuleDirectory);
 		PublicIncludePaths.Add(NoesisIncludePath);
@@ -27,9 +27,9 @@ public class Noesis : ModuleRules
 			throw new BuildException("Could not find NoesisGUI SDK in " + NoesisBasePath + ".");
 		}
 
-		if (!Directory.Exists(NoesisBasePath + "Include"))
+		if (!Directory.Exists(NoesisIncludePath))
 		{
-			throw new BuildException("Could not find NoesisGUI SDK Include directory in " + NoesisBasePath + "Include.");
+			throw new BuildException("Could not find NoesisGUI SDK Include directory in " + NoesisIncludePath);
 		}
 
 		PublicSystemIncludePaths.Add(NoesisIncludePath);
@@ -37,74 +37,75 @@ public class Noesis : ModuleRules
 		UnrealTargetPlatform Platform;
 		if (Target.Platform == UnrealTargetPlatform.Win64)
 		{
-			PublicAdditionalLibraries.Add(NoesisBasePath + "Lib/windows_x86_64/Noesis.lib");
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "windows_x86_64", "Noesis.lib"));
 
-			string NoesisDllPath = "/NoesisSDK/Bin/windows_x86_64/Noesis.dll";
-			string NoesisDllTargetPath = "/Binaries/Win64/Noesis.dll";
+			string NoesisDllPath = Path.Combine("NoesisSDK", "Bin", "windows_x86_64", "Noesis.dll");
+			string NoesisDllTargetPath = Path.Combine("Binaries", "Win64", "Noesis.dll");
 
 			if (Target.ProjectFile != null)
 			{
-				System.Console.WriteLine("Copying Noesis.dll to {0}", DirectoryReference.FromFile(Target.ProjectFile).ToString() + NoesisDllTargetPath);
-				CopyNoesisDll(ModuleDirectory + NoesisDllPath, DirectoryReference.FromFile(Target.ProjectFile).ToString() + NoesisDllTargetPath);
+				System.Console.WriteLine("Copying Noesis.dll to {0}", Path.Combine(DirectoryReference.FromFile(Target.ProjectFile).ToString(), NoesisDllTargetPath));
+				CopyNoesisDll(Path.Combine(ModuleDirectory, NoesisDllPath), Path.Combine(DirectoryReference.FromFile(Target.ProjectFile).ToString(), NoesisDllTargetPath));
 			}
 
-			System.Console.WriteLine("Copying Noesis.dll to {0}", System.IO.Path.GetFullPath(ModuleDirectory + "/../.." + NoesisDllTargetPath));
-			CopyNoesisDll(ModuleDirectory + NoesisDllPath, ModuleDirectory + "/../.." + NoesisDllTargetPath);
+			System.Console.WriteLine("Copying Noesis.dll to {0}", System.IO.Path.GetFullPath(Path.Combine(ModuleDirectory, "..", "..", NoesisDllTargetPath)));
+			CopyNoesisDll(Path.Combine(ModuleDirectory, NoesisDllPath), Path.Combine(ModuleDirectory, "..", "..", NoesisDllTargetPath));
 
-			if (System.IO.File.Exists(Target.RelativeEnginePath + NoesisDllTargetPath))
+			if (System.IO.File.Exists(Path.Combine(Target.RelativeEnginePath, NoesisDllTargetPath)))
 			{
-				System.IO.File.Delete(Target.RelativeEnginePath + NoesisDllTargetPath);
+				System.Console.WriteLine("Deleting Noesis.dll from {0}", Path.Combine(Target.RelativeEnginePath, NoesisDllTargetPath));
+				System.IO.File.Delete(Path.Combine(Target.RelativeEnginePath, NoesisDllTargetPath));
 			}
 
 			if (Target.LinkType == TargetLinkType.Monolithic)
 			{
-				RuntimeDependencies.Add("$(ProjectDir)" + NoesisDllTargetPath);
+				RuntimeDependencies.Add(Path.Combine("$(ProjectDir)", NoesisDllTargetPath));
 			}
 			else
 			{
-				RuntimeDependencies.Add("$(EngineDir)" + NoesisDllTargetPath);
+				RuntimeDependencies.Add(Path.Combine("$(EngineDir)", NoesisDllTargetPath));
 			}
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Linux)
 		{
-			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/linunx_x86_64/libNoesis.so");
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "linunx_x86_64", "libNoesis.so"));
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Mac)
 		{
-			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/macos/Noesis.dylib");
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "macos", "Noesis.dylib"));
 
-			string NoesisDylibPath = "/NoesisSDK/Bin/macos/Noesis.dylib";
-			RuntimeDependencies.Add(ModuleDirectory + NoesisDylibPath);
+			string NoesisDylibPath = Path.Combine("NoesisSDK", "Bin", "macos", "Noesis.dylib");
+			RuntimeDependencies.Add(Path.Combine(ModuleDirectory, NoesisDylibPath));
 		}
 		else if (Target.Platform == UnrealTargetPlatform.IOS)
 		{
 			PublicDefinitions.Add("NS_STATIC_LIBRARY");
-			PublicAdditionalLibraries.Add(NoesisBasePath + "Lib/ios/libNoesis.a");
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "ios", "libNoesis.a"));
 
 			PublicFrameworks.Add("CoreText");
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Android)
 		{
-			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/android_arm/libNoesis.so");
-			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/android_arm64/libNoesis.so");
-			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/android_x86/libNoesis.so");
-			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/android_x86_64/libNoesis.so");
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "android_arm", "libNoesis.so"));
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "android_arm64", "libNoesis.so"));
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "android_x86", "libNoesis.so"));
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "android_x86_64", "libNoesis.so"));
 
-			string NoesisAplPath = "/Noesis_APL.xml";
-			AdditionalPropertiesForReceipt.Add("AndroidPlugin", ModuleDirectory + NoesisAplPath);
+			string NoesisAplPath = "Noesis_APL.xml";
+			AdditionalPropertiesForReceipt.Add("AndroidPlugin", Path.Combine(ModuleDirectory, NoesisAplPath));
 		}
 		else if (Target.Platform == UnrealTargetPlatform.PS4)
 		{
 			PublicDefinitions.Add("NS_STATIC_LIBRARY");
-			PublicAdditionalLibraries.Add(NoesisBasePath + "Lib/ps4/Noesis.a");
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "ps4", "Noesis.a"));
 		}
 		else if (Target.Platform == UnrealTargetPlatform.XboxOne)
 		{
-			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/xbox_one/Noesis.lib");
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "xbox_one", "Noesis.lib"));
 		}
 		else if (UnrealTargetPlatform.TryParse("HTML5", out Platform) && Target.Platform == Platform)
 		{
-			PublicAdditionalLibraries.Add(NoesisBasePath + "Bin/wasm/Noesis.bc");
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "wasm", "Noesis.bc"));
 		}
 	}
 

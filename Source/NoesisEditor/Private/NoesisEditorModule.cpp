@@ -247,6 +247,8 @@ public:
 	// IModuleInterface interface
 	virtual void StartupModule() override
 	{
+		NoesisEditorModuleInterface = this;
+
 		FCoreDelegates::OnPostEngineInit.AddRaw(this, &FNoesisEditorModule::OnPostEngineInit);
 	}
 
@@ -283,8 +285,6 @@ public:
 		// Register thumbnail renderers
 		UThumbnailManager::Get().RegisterCustomRenderer(UNoesisXaml::StaticClass(), UNoesisXamlThumbnailRenderer::StaticClass());
 
-		NoesisEditorModuleInterface = this;
-
 		AssetImportHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetPostImport.AddStatic(&OnObjectImported);
 
 		ObjectPropertyChangedHandle = FCoreUObjectDelegates::OnObjectPropertyChanged.AddStatic(&OnObjectPropertyChanged);
@@ -311,7 +311,7 @@ public:
 
 	virtual void ShutdownModule() override
 	{
-		NoesisEditorModuleInterface = 0;
+		NoesisEditorModuleInterface = nullptr;
 
 		// Unregister slate style overrides
 		FNoesisStyle::Shutdown();

@@ -1,10 +1,11 @@
 <a href="https://www.noesisengine.com"><img alt="website" src="https://img.shields.io/badge/site-noesisengine.com-blue.svg"></a>
 <a href="https://www.noesisengine.com/docs/Gui.Core.Index.html"><img alt="documentation" src="https://img.shields.io/badge/doc-index-blue.svg"></a>
+<a href="https://www.noesisengine.com/bugs/"><img alt="issues" src="https://img.shields.io/badge/issues-bugtracker-blue"></a>
 <a href="https://twitter.com/NoesisEngine"><img src="https://img.shields.io/badge/twitter-%40NoesisEngine-55acee.svg?style=flat-square"></a>
 
-# NoesisGUI Unreal Engine 4.25 Plugin
+# NoesisGUI Unreal Engine 4.26 Plugin
 
-> This is just a short guide on how to install and build the plugin from the source code on this repository. For your convenience, you can download a ready to use version of the plugin directly from [our website](https://www.noesisengine.com/developers/downloads.php). If you do so, you can skip the installation instructions and jump directly to our [First steps with NoesisGUI and Unreal](https://www.noesisengine.com/docs/Gui.Core.UnrealTutorial.html).
+> This is just a short guide on how to install and build the plugin from the source code on this repository. For your convenience, you can download a ready to use version of the plugin directly from [our website](https://www.noesisengine.com/developers/downloads.php). If you do so, you can skip the installation instructions and jump directly to our [First steps with NoesisGUI and Unreal](https://www.noesisengine.com/docs/Gui.Core.UnrealTutorial.html). If you encounter any issues, please report them on our [Bugtracker](https://www.noesisengine.com/bugs/)
 
 ### Prerequisites
 
@@ -34,6 +35,7 @@ If all the steps so far have been successful, your Unreal Engine install should 
 ```
 [NoesisGUIRoot]
 +-- Binaries
++-- Config
 +-- Intermediate
 +-- Resources
 +-- Shaders
@@ -44,6 +46,7 @@ If all the steps so far have been successful, your Unreal Engine install should 
             +-- Include
             +-- Lib
             +-- version.txt
+    +-- NoesisBlueprint
     +-- NoesisEditor
     +-- NoesisRuntime
 +-- NoesisGUI.uplugin
