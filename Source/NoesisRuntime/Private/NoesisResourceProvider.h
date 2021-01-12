@@ -33,8 +33,6 @@ public:
 	void OnTextureChanged(UTexture2D* Texture);
 
 private:
-	class UTexture2D* GetTexture(FString TextureProviderPath) const;
-
 	// TextureProvider interface
 	virtual Noesis::TextureInfo GetTextureInfo(const char* Path) override;
 	virtual Noesis::Ptr<Noesis::Texture> LoadTexture(const char* Path, Noesis::RenderDevice* RenderDevice) override;

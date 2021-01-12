@@ -55,6 +55,8 @@ NS_END_COLD_REGION
 NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/LaunchUriOrFileAction.cpp"
 NS_END_COLD_REGION
+#include "NoesisSDK/Src/Packages/App/Interactivity/Src/LoadContentAction.cpp"
+NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/MouseDragElementBehavior.cpp"
 NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/PlaySoundAction.cpp"

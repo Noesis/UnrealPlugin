@@ -36,18 +36,26 @@ void UNoesisSettings::SetLicense() const
 }
 
 static uint32 ApplicationResourcesHash;
+static UNoesisXaml* ApplicationResourcesRef;
 void UNoesisSettings::SetApplicationResources() const
 {
-	UNoesisXaml* Resources = LoadObject<UNoesisXaml>(nullptr, *ApplicationResources.GetAssetPathString(), nullptr, LOAD_NoWarn);
-	if (Resources)
+	// To prevent ApplicationResources and all its dependencies from being deleted
+	// during garbage collection we have to manually add it to the root object
+	if (ApplicationResourcesRef != nullptr)
 	{
-		uint32 Hash = Resources->GetContentHash();
+		ApplicationResourcesRef->RemoveFromRoot();
+	}
+	ApplicationResourcesRef = LoadObject<UNoesisXaml>(nullptr, *ApplicationResources.GetAssetPathString(), nullptr, LOAD_NoWarn);
+	if (ApplicationResourcesRef)
+	{
+		ApplicationResourcesRef->AddToRoot();
+		uint32 Hash = ApplicationResourcesRef->GetContentHash();
 		if (ApplicationResourcesHash != Hash)
 		{
 			ApplicationResourcesHash = Hash;
 			Noesis::Ptr<Noesis::ResourceDictionary> Dictionary = Noesis::MakePtr<Noesis::ResourceDictionary>();
 			Noesis::GUI::SetApplicationResources(Dictionary);
-			Resources->LoadComponent(Dictionary);
+			ApplicationResourcesRef->LoadComponent(Dictionary);
 		}
 	}
 	else
@@ -104,6 +112,7 @@ static TArray<FString> GetFamilyNames(FT_Library Library, const TArray<uint8>& F
 	return FamilyNames;
 }
 
+static TArray<UFontFace*> DefaultFontRefs;
 void UNoesisSettings::SetFontFallbacks() const
 {
 	INoesisRuntimeModuleInterface& NoesisRuntime = INoesisRuntimeModuleInterface::Get();
@@ -111,12 +120,19 @@ void UNoesisSettings::SetFontFallbacks() const
 	FT_Error Error = FT_Init_FreeType(&Library);
 	if (Error == 0)
 	{
+		for (UFontFace* FontFace : DefaultFontRefs)
+		{
+			FontFace->RemoveFromRoot();
+		}
+		DefaultFontRefs.Empty(DefaultFonts.Num());
 		TArray<Noesis::String> FamilyNamesStr;
 		for (auto& FontFallback : DefaultFonts)
 		{
 			UFontFace* FontFace = Cast<UFontFace>(FontFallback.TryLoad());
 			if (FontFace)
 			{
+				FontFace->AddToRoot();
+				DefaultFontRefs.Add(FontFace);
 				NoesisRuntime.RegisterFont(FontFace);
 
 #if !WITH_EDITORONLY_DATA

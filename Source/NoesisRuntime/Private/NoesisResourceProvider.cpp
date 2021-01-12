@@ -57,31 +57,32 @@ void FNoesisTextureProvider::OnTextureChanged(UTexture2D* Texture)
 #endif
 }
 
-UTexture2D* FNoesisTextureProvider::GetTexture(FString TextureProviderPath) const
-{
-	FString TexturePath = NsProviderPathToAssetPath(TextureProviderPath);
-	UTexture2D* Texture = LoadObject<UTexture2D>(nullptr, *(FString("/Game/") + TexturePath), nullptr, LOAD_NoWarn);
-#if WITH_EDITOR
-	NameMap.Add(Texture, TextureProviderPath);
-#endif
-	return Texture;
-}
-
 Noesis::TextureInfo FNoesisTextureProvider::GetTextureInfo(const char* Path)
 {
-	UTexture* Texture = GetTexture(Path);
+	FString TexturePath = NsProviderPathToAssetPath(Path);
+	UTexture2D* Texture = LoadObject<UTexture2D>(nullptr, *(FString("/Game/") + TexturePath), nullptr, LOAD_NoWarn);
 	if (Texture)
 	{
-		UTexture2D* Texture2D = CastChecked<UTexture2D>(Texture);
-		return Noesis::TextureInfo{ (uint32)Texture2D->GetSizeX(), (uint32)Texture2D->GetSizeY() };
+#if WITH_EDITOR
+		NameMap.Add(Texture, Path);
+#endif
+		return Noesis::TextureInfo { (uint32)Texture->GetSizeX(), (uint32)Texture->GetSizeY() };
 	}
 
-	return Noesis::TextureInfo{};
+	return Noesis::TextureInfo {};
 }
 
 Noesis::Ptr<Noesis::Texture> FNoesisTextureProvider::LoadTexture(const char* Path, Noesis::RenderDevice* RenderDevice)
 {
-	return NoesisCreateTexture(GetTexture(Path));
+	FString TexturePath = NsProviderPathToAssetPath(Path);
+	FString TextureObjectPath = TexturePath + TEXT(".") + FPackageName::GetShortName(TexturePath);
+	UTexture2D* Texture = FindObject<UTexture2D>(nullptr, *(FString("/Game/") + TextureObjectPath));
+	if (Texture)
+	{
+		return NoesisCreateTexture(Texture);
+	}
+
+	return nullptr;
 };
 
 void FNoesisFontProvider::RegisterFont(const UFontFace* FontFace)
