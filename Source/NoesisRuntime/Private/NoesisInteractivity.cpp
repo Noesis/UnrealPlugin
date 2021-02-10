@@ -3,7 +3,6 @@
 // Copyright (c) 2013 Noesis Technologies S.L. All Rights Reserved.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define NS_APP_INTERACTIVITY_API NS_DLL_EXPORT
 #if PLATFORM_WINDOWS || PLATFORM_XBOXONE
 #pragma warning(push)
 #pragma warning(disable:4426)

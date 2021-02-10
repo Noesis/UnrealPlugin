@@ -18,6 +18,14 @@ public class Noesis : ModuleRules
 		string NoesisIncludePath = Path.Combine(NoesisBasePath, "Include");
 		string NoesisInteractivityIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "Interactivity", "Include");
 
+		// In monolithic builds we don't want the Interactivity functions
+		// dllexported or dllimported from any modules.
+		// That's why we use PublicDefinitions.
+		if (Target.LinkType == TargetLinkType.Monolithic)
+		{
+			PublicDefinitions.Add("NS_APP_INTERACTIVITY_API=");
+		}
+
 		PublicIncludePaths.Add(ModuleDirectory);
 		PublicIncludePaths.Add(NoesisIncludePath);
 		PublicIncludePaths.Add(NoesisInteractivityIncludePath);
@@ -101,7 +109,25 @@ public class Noesis : ModuleRules
 		}
 		else if (Target.Platform == UnrealTargetPlatform.XboxOne)
 		{
-			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "xbox_one", "Noesis.lib"));
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "xbox_one", "Noesis.lib"));
+
+			string NoesisDllPath = Path.Combine("NoesisSDK", "Bin", "xbox_one", "Noesis.dll");
+			string NoesisDllTargetPath = Path.Combine("Binaries", "XboxOne", "Noesis.dll");
+
+			if (Target.ProjectFile != null)
+			{
+				System.Console.WriteLine("Copying Noesis.dll to {0}", Path.Combine(DirectoryReference.FromFile(Target.ProjectFile).ToString(), NoesisDllTargetPath));
+				CopyNoesisDll(Path.Combine(ModuleDirectory, NoesisDllPath), Path.Combine(DirectoryReference.FromFile(Target.ProjectFile).ToString(), NoesisDllTargetPath));
+			}
+
+			if (Target.LinkType == TargetLinkType.Monolithic)
+			{
+				RuntimeDependencies.Add(Path.Combine("$(ProjectDir)", NoesisDllTargetPath));
+			}
+			else
+			{
+				RuntimeDependencies.Add(Path.Combine("$(EngineDir)", NoesisDllTargetPath));
+			}
 		}
 		else if (UnrealTargetPlatform.TryParse("HTML5", out Platform) && Target.Platform == Platform)
 		{

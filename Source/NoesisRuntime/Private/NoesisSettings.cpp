@@ -6,6 +6,10 @@
 #include "NoesisSettings.h"
 
 // FreeType2 includes
+#if PLATFORM_COMPILER_HAS_GENERIC_KEYWORD
+#define generic __identifier(generic)
+#endif	//PLATFORM_COMPILER_HAS_GENERIC_KEYWORD
+
 THIRD_PARTY_INCLUDES_START
 #include "ft2build.h"
 #include FT_FREETYPE_H
