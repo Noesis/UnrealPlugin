@@ -516,8 +516,8 @@ void UNoesisInstance::TermInstance()
 	if (XamlView)
 	{
 		Noesis::Ptr<Noesis::IRenderer> Renderer(XamlView->GetRenderer());
-		XamlView.Reset();
 		Xaml.Reset();
+		XamlView.Reset();
 
 		// Pass the slate element to the render thread so that it's deleted after it's shown for the last time
 		ENQUEUE_RENDER_COMMAND(SafeDeleteNoesisSlateElement)

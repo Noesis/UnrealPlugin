@@ -8,6 +8,10 @@
 // UnrealEd includes
 #include "Settings/EditorLoadingSavingSettings.h"
 
+// NoesisRuntime includes
+#include "Extensions/LocTableExtension.h"
+#include "Extensions/LocTextExtension.h"
+
 // NoesisEditor includes
 #include "NoesisEditorModule.h"
 
@@ -165,6 +169,90 @@ static void JoinPath(TArray<FString> Components, FString & Path)
 	}
 }
 
+TMap<void*, TArray<FText>> UnrealTexts;
+class LocTextExtensionEditor : public LocTextExtension
+{
+	FText GetText()
+	{
+		const char* ns = GetNamespace();
+		if (strlen(ns) == 0)
+		{
+			Noesis::IUITreeNode* node = Noesis::DynamicCast<Noesis::IUITreeNode*>(this);
+			while (node != nullptr)
+			{
+				Noesis::DependencyObject* object = Noesis::DynamicCast<Noesis::DependencyObject*>(node);
+				if (object != nullptr)
+				{
+					ns = object->GetValue<Noesis::String>(NamespaceProperty).Str();
+					if (strlen(ns) > 0)
+						break;
+				}
+				node = node->GetNodeParent();
+			}
+		}
+		return FText::ChangeKey(UTF8_TO_TCHAR(ns), UTF8_TO_TCHAR(GetKey()), FText::FromString(UTF8_TO_TCHAR(GetSource())));
+	}
+
+	/// From MarkupExtension
+	//@{
+	Noesis::Ptr<Noesis::BaseComponent> ProvideValue(const Noesis::ValueTargetProvider* provider) override
+	{
+		Noesis::IUITreeNode* TextNode = Noesis::DynamicCast<Noesis::IUITreeNode*>(this);
+		void* Ptr = Noesis::GetNodeRoot(TextNode);
+		UnrealTexts.FindOrAdd(Ptr).Add(GetText());
+		return nullptr;
+	}
+	//@}
+
+};
+
+static Noesis::BaseComponent* CreateLocText(Noesis::Symbol)
+{
+	return new LocTextExtensionEditor();
+};
+
+class LocTableExtensionEditor : public LocTableExtension
+{
+	FText GetText()
+	{
+		const char* id = GetId();
+		if (strlen(id) == 0)
+		{
+			Noesis::IUITreeNode* node = Noesis::DynamicCast<Noesis::IUITreeNode*>(this);
+			while (node != nullptr)
+			{
+				Noesis::DependencyObject* object = Noesis::DynamicCast<Noesis::DependencyObject*>(node);
+				if (object != nullptr)
+				{
+					id = object->GetValue<Noesis::String>(IdProperty).Str();
+					if (strlen(id) > 0)
+						break;
+				}
+				node = node->GetNodeParent();
+			}
+		}
+
+		return FText::FromStringTable(UTF8_TO_TCHAR(id), UTF8_TO_TCHAR(GetKey()), EStringTableLoadingPolicy::FindOrLoad);
+	}
+
+	/// From MarkupExtension
+	//@{
+	Noesis::Ptr<Noesis::BaseComponent> ProvideValue(const Noesis::ValueTargetProvider* provider) override
+	{
+		Noesis::IUITreeNode* TextNode = Noesis::DynamicCast<Noesis::IUITreeNode*>(this);
+		void* Ptr = Noesis::GetNodeRoot(TextNode);
+		UnrealTexts.FindOrAdd(Ptr).Add(GetText());
+		return nullptr;
+	}
+	//@}
+
+};
+
+static Noesis::BaseComponent* CreateLocTable(Noesis::Symbol)
+{
+	return new LocTableExtensionEditor();
+};
+
 UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject* Context, const TCHAR* Type, const uint8*& Buffer, const uint8* BufferEnd, FFeedbackContext* Warn)
 {
 	// This needs to go first, before we invoke other factories, since it's stored in a static.
@@ -311,6 +399,10 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 						{
 							NoesisXaml->Sounds.Add(Sound);
 						}
+						else if (UMediaSource* Video = Cast<UMediaSource>(Asset))
+						{
+							NoesisXaml->Videos.Add(Video);
+						}
 					}
 					return;
 				}
@@ -356,6 +448,10 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 					else if (USoundWave* Sound = Cast<USoundWave>(Asset))
 					{
 						NoesisXaml->Sounds.Add(Sound);
+					}
+					else if (UMediaSource* Video = Cast<UMediaSource>(Asset))
+					{
+						NoesisXaml->Videos.Add(Video);
 					}
 				}
 			}
@@ -403,8 +499,28 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 
 	if (!Recursive)
 	{
+		UnrealTexts.Empty();
+		Noesis::UnregisterComponent<LocTextExtension>();
+		const Noesis::Type* LocTextType = Noesis::TypeOf<LocTextExtension>();
+		Noesis::Factory::RegisterComponent(LocTextType->GetTypeId(), Noesis::Symbol::Null(), CreateLocText);
+		Noesis::UnregisterComponent<LocTableExtension>();
+		const Noesis::Type* LocTableType = Noesis::TypeOf<LocTableExtension>();
+		Noesis::Factory::RegisterComponent(LocTableType->GetTypeId(), Noesis::Symbol::Null(), CreateLocTable);
+
 		// Show parsing errors in the console
-		NoesisXaml->LoadXaml();
+		Noesis::Ptr<Noesis::BaseComponent> Ptr = NoesisXaml->LoadXaml();
+		Noesis::IUITreeNode* Root = Noesis::DynamicCast<Noesis::IUITreeNode*>(Ptr.GetPtr());
+
+		NoesisXaml->Texts.Empty();
+		for (auto Text : UnrealTexts.FindOrAdd(Root))
+		{
+			NoesisXaml->Texts.Add(Text);
+		}
+
+		Noesis::UnregisterComponent<LocTextExtension>();
+		Noesis::RegisterComponent<LocTextExtension>();
+		Noesis::UnregisterComponent<LocTableExtension>();
+		Noesis::RegisterComponent<LocTableExtension>();
 	}
 
 	StaticRecursive = Recursive;

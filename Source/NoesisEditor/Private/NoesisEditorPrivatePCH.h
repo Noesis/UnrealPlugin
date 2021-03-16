@@ -23,6 +23,9 @@
 #include "EditorFramework/AssetImportData.h"
 #include "Sound/SoundWave.h"
 
+// MediaAsset includes
+#include "MediaSource.h"
+
 // UnrealEd includes
 #include "AutomatedAssetImportData.h"
 #include "ObjectTools.h"

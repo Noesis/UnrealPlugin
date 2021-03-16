@@ -7,6 +7,7 @@
 #pragma warning(push)
 #pragma warning(disable:4426)
 #endif
+
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/App.Interactivity.cpp"
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/AttachableObject.cpp"
 NS_END_COLD_REGION
@@ -55,6 +56,8 @@ NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/LaunchUriOrFileAction.cpp"
 NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/LoadContentAction.cpp"
+NS_END_COLD_REGION
+#include "NoesisSDK/Src/Packages/App/Interactivity/Src/MediaActions.cpp"
 NS_END_COLD_REGION
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/MouseDragElementBehavior.cpp"
 NS_END_COLD_REGION

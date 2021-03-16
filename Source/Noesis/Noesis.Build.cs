@@ -17,18 +17,21 @@ public class Noesis : ModuleRules
 		string NoesisBasePath = Path.Combine(ModuleDirectory, "NoesisSDK");
 		string NoesisIncludePath = Path.Combine(NoesisBasePath, "Include");
 		string NoesisInteractivityIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "Interactivity", "Include");
+		string NoesisMediaElementIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "MediaElement", "Include");
 
-		// In monolithic builds we don't want the Interactivity functions
+		// In monolithic builds we don't want the Interactivity and MediaElement functions
 		// dllexported or dllimported from any modules.
 		// That's why we use PublicDefinitions.
 		if (Target.LinkType == TargetLinkType.Monolithic)
 		{
 			PublicDefinitions.Add("NS_APP_INTERACTIVITY_API=");
+			PublicDefinitions.Add("NS_APP_MEDIAELEMENT_API=");
 		}
 
 		PublicIncludePaths.Add(ModuleDirectory);
 		PublicIncludePaths.Add(NoesisIncludePath);
 		PublicIncludePaths.Add(NoesisInteractivityIncludePath);
+		PublicIncludePaths.Add(NoesisMediaElementIncludePath);
 
 		if (!Directory.Exists(NoesisBasePath))
 		{
@@ -47,32 +50,10 @@ public class Noesis : ModuleRules
 		{
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "windows_x86_64", "Noesis.lib"));
 
-			string NoesisDllPath = Path.Combine("NoesisSDK", "Bin", "windows_x86_64", "Noesis.dll");
-			string NoesisDllTargetPath = Path.Combine("Binaries", "Win64", "Noesis.dll");
+			string NoesisDllPath = Path.Combine(NoesisBasePath, "Bin", "windows_x86_64", "Noesis.dll");
+			string NoesisDllTargetPath = Path.Combine("$(BinaryOutputDir)", "Noesis.dll");
 
-			if (Target.ProjectFile != null)
-			{
-				System.Console.WriteLine("Copying Noesis.dll to {0}", Path.Combine(DirectoryReference.FromFile(Target.ProjectFile).ToString(), NoesisDllTargetPath));
-				CopyNoesisDll(Path.Combine(ModuleDirectory, NoesisDllPath), Path.Combine(DirectoryReference.FromFile(Target.ProjectFile).ToString(), NoesisDllTargetPath));
-			}
-
-			System.Console.WriteLine("Copying Noesis.dll to {0}", System.IO.Path.GetFullPath(Path.Combine(ModuleDirectory, "..", "..", NoesisDllTargetPath)));
-			CopyNoesisDll(Path.Combine(ModuleDirectory, NoesisDllPath), Path.Combine(ModuleDirectory, "..", "..", NoesisDllTargetPath));
-
-			if (System.IO.File.Exists(Path.Combine(Target.RelativeEnginePath, NoesisDllTargetPath)))
-			{
-				System.Console.WriteLine("Deleting Noesis.dll from {0}", Path.Combine(Target.RelativeEnginePath, NoesisDllTargetPath));
-				System.IO.File.Delete(Path.Combine(Target.RelativeEnginePath, NoesisDllTargetPath));
-			}
-
-			if (Target.LinkType == TargetLinkType.Monolithic)
-			{
-				RuntimeDependencies.Add(Path.Combine("$(ProjectDir)", NoesisDllTargetPath));
-			}
-			else
-			{
-				RuntimeDependencies.Add(Path.Combine("$(EngineDir)", NoesisDllTargetPath));
-			}
+			RuntimeDependencies.Add(NoesisDllTargetPath, NoesisDllPath, StagedFileType.NonUFS);
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Linux)
 		{
@@ -111,47 +92,14 @@ public class Noesis : ModuleRules
 		{
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "xbox_one", "Noesis.lib"));
 
-			string NoesisDllPath = Path.Combine("NoesisSDK", "Bin", "xbox_one", "Noesis.dll");
-			string NoesisDllTargetPath = Path.Combine("Binaries", "XboxOne", "Noesis.dll");
+			string NoesisDllPath = Path.Combine(NoesisBasePath, "Bin", "xbox_one", "Noesis.dll");
+			string NoesisDllTargetPath = Path.Combine("$(BinaryOutputDir)", "Noesis.dll");
 
-			if (Target.ProjectFile != null)
-			{
-				System.Console.WriteLine("Copying Noesis.dll to {0}", Path.Combine(DirectoryReference.FromFile(Target.ProjectFile).ToString(), NoesisDllTargetPath));
-				CopyNoesisDll(Path.Combine(ModuleDirectory, NoesisDllPath), Path.Combine(DirectoryReference.FromFile(Target.ProjectFile).ToString(), NoesisDllTargetPath));
-			}
-
-			if (Target.LinkType == TargetLinkType.Monolithic)
-			{
-				RuntimeDependencies.Add(Path.Combine("$(ProjectDir)", NoesisDllTargetPath));
-			}
-			else
-			{
-				RuntimeDependencies.Add(Path.Combine("$(EngineDir)", NoesisDllTargetPath));
-			}
+			RuntimeDependencies.Add(NoesisDllTargetPath, NoesisDllPath, StagedFileType.NonUFS);
 		}
 		else if (UnrealTargetPlatform.TryParse("HTML5", out Platform) && Target.Platform == Platform)
 		{
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "wasm", "Noesis.bc"));
-		}
-	}
-
-	private void CopyNoesisDll(string Source, string Target)
-	{
-		try
-		{
-			string TargetDirectory = System.IO.Path.GetDirectoryName(Target);
-			if (!System.IO.Directory.Exists(TargetDirectory))
-			{
-				System.IO.Directory.CreateDirectory(TargetDirectory);
-			}
-			System.IO.File.Copy(Source, Target, true);
-		}
-		catch (IOException Exception)
-		{
-			if (Exception.HResult != -2147024864) // 0x80070020: The process cannot access the file ... because it is being used by another process.
-			{
-				throw;
-			}
 		}
 	}
 }

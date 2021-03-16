@@ -44,6 +44,7 @@ public:
 	FVertexDeclarationRHIRef VertexDeclarations[Noesis::Shader::Count];
 	TShaderRef<FNoesisVSBase> VertexShaders[Noesis::Shader::Count];
 	TShaderRef<FNoesisPSBase> PixelShaders[Noesis::Shader::Count];
+	TShaderRef<FNoesisPSBase> PixelShadersPatternSRGB[Noesis::Shader::Count];
 
 	static FNoesisRenderDevice* Get();
 	static void Destroy();

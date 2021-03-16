@@ -37,6 +37,12 @@ class NOESISRUNTIME_API UNoesisXaml : public UObject
 	UPROPERTY()
 	TArray<class USoundWave*> Sounds;
 
+	UPROPERTY()
+	TArray<class UMediaSource*> Videos;
+
+	UPROPERTY()
+	TArray<FText> Texts;
+
 	Noesis::Ptr<Noesis::BaseComponent> LoadXaml();
 	void LoadComponent(Noesis::BaseComponent* Component);
 	uint32 GetContentHash() const;

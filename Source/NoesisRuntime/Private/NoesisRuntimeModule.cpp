@@ -11,6 +11,7 @@
 #include "Modules/ModuleManager.h"
 #include "Stats/Stats.h"
 #include "Stats/Stats2.h"
+#include "UObject/UObjectBaseUtility.h"
 
 // RenderCore includes
 #include "ShaderCore.h"
@@ -35,11 +36,16 @@
 #include "NoesisTypeClass.h"
 #include "NoesisSettings.h"
 #include "NoesisSupport.h"
+#include "NoesisMediaPlayer.h"
+#include "Extensions/LocTableExtension.h"
+#include "Extensions/LocTextExtension.h"
 
 // Noesis includes
 #include "NoesisSDK.h"
+#include "NsApp/MediaElement.h"
 
 extern "C" void NsRegisterReflectionAppInteractivity();
+extern "C" void NsRegisterReflectionAppMediaElement();
 
 static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* Desc, bool Fatal)
 {
@@ -435,10 +441,6 @@ void NoesisPlaySoundCallback(void* UserData, const char* Filename, float Volume)
 
 	FString SoundPath = NsProviderPathToAssetPath(Filename);
 	USoundWave* Sound = LoadObject<USoundWave>(nullptr, *(FString(TEXT("/Game/")) + SoundPath), nullptr, LOAD_NoWarn);
-	if (Sound == nullptr)
-	{
-		Sound = LoadObject<USoundWave>(nullptr, *(FString(TEXT("/NoesisGUI/")) + SoundPath), nullptr, LOAD_NoWarn);
-	}
 
 	if (!Sound)
 		return;
@@ -460,6 +462,11 @@ void NoesisPlaySoundCallback(void* UserData, const char* Filename, float Volume)
 	}
 }
 
+static Noesis::Ptr<NoesisApp::MediaPlayer> NoesisCreateMediaPlayerCallback(NoesisApp::MediaElement* Owner, const char* Uri, void* User)
+{
+	return *new NoesisMediaPlayer(Owner, Uri, User);
+}
+
 class FNoesisRuntimeModule : public INoesisRuntimeModuleInterface
 {
 public:
@@ -474,6 +481,9 @@ public:
 		Noesis::GUI::SetMemoryCallbacks(MemoryCallbacks);
 		Noesis::GUI::Init("", "");
 		NsRegisterReflectionAppInteractivity();
+		NsRegisterReflectionAppMediaElement();
+		Noesis::RegisterComponent<LocTextExtension>();
+		Noesis::RegisterComponent<LocTableExtension>();
 
 		NoesisXamlProvider = *new FNoesisXamlProvider();
 		NoesisTextureProvider = *new FNoesisTextureProvider();
@@ -487,6 +497,7 @@ public:
 		Noesis::GUI::SetSoftwareKeyboardCallback(nullptr, &NoesisSoftwareKeyboardCallback);
 
 		Noesis::GUI::SetPlayAudioCallback(nullptr, &NoesisPlaySoundCallback);
+		NoesisApp::MediaElement::SetCreateMediaPlayerCallback(NoesisCreateMediaPlayerCallback, nullptr);
 
 		PostGarbageCollectConditionalBeginDestroyDelegateHandle = FCoreUObjectDelegates::PostGarbageCollectConditionalBeginDestroy.AddStatic(NoesisGarbageCollected);
 
@@ -496,11 +507,15 @@ public:
 
 		FString PluginShaderDir = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("NoesisGUI"))->GetBaseDir(), TEXT("Shaders"));
 		AddShaderSourceDirectoryMapping(TEXT("/Plugin/NoesisGUI"), PluginShaderDir);
+
+		CultureChangedHandle = FTextLocalizationManager::Get().OnTextRevisionChangedEvent.AddStatic(&NoesisCultureChanged);
 	}
 
 	virtual void ShutdownModule() override
 	{
 		NoesisRuntimeModuleInterface = nullptr;
+
+		FTextLocalizationManager::Get().OnTextRevisionChangedEvent.Remove(CultureChangedHandle);
 
 		Noesis::Reflection::SetFallbackHandler(nullptr);
 
@@ -517,6 +532,9 @@ public:
 		NoesisTextureProvider.Reset();
 		NoesisFontProvider.Reset();
 
+
+		Noesis::UnregisterComponent<LocTextExtension>();
+		Noesis::UnregisterComponent<LocTableExtension>();
 		Noesis::GUI::Shutdown();
 	}
 	// End of IModuleInterface interface
@@ -544,6 +562,7 @@ public:
 	Noesis::Ptr<FNoesisFontProvider> NoesisFontProvider;
 	FDelegateHandle PostGarbageCollectConditionalBeginDestroyDelegateHandle;
 	FDelegateHandle PostEngineInitDelegateHandle;
+	FDelegateHandle CultureChangedHandle;
 };
 
 INoesisRuntimeModuleInterface* FNoesisRuntimeModule::NoesisRuntimeModuleInterface = 0;

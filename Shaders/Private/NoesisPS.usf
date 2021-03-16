@@ -1,4 +1,5 @@
 #include "/Engine/Private/Common.ush"
+#include "/Engine/Private/GammaCorrectionCommon.ush"
 
 #ifndef EFFECT
     #error EFFECT not defined
@@ -565,6 +566,9 @@ Out NoesisPS(in In i)
 
     #elif PAINT_PATTERN
         half4 paint = Texture2DSample(patternTex, patternSampler, i.uv0);
+        #if PATTERN_SRGB
+            paint.xyz = LinearToSrgb(paint.xyz);
+        #endif
         half opacity_ = NoesisPSConstants.opacity;
     #endif
 

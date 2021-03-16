@@ -39,6 +39,13 @@ public:
 		NumMipMaps = (uint32)TextureRenderTarget2D->GetNumMips();
 	}
 
+	FNoesisTexture(UMediaTexture* MediaTexture)
+	{
+		Width = (uint32)MediaTexture->GetWidth();
+		Height = (uint32)MediaTexture->GetHeight();
+		NumMipMaps = (uint32)MediaTexture->NumMips;
+	}
+
 	FNoesisTexture(uint32 InWidth, uint32 InHeight, uint32 InNumMipMaps)
 		: Width(InWidth), Height(InHeight), NumMipMaps(InNumMipMaps)
 	{
@@ -313,6 +320,19 @@ FNoesisRenderDevice::FNoesisRenderDevice()
 	VertexDeclarations[Noesis::Shader::Image_Blur127H_Pattern] = GNoesisPosColorTex1Tex2VertexDeclaration.VertexDeclarationRHI;
 	VertexShaders[Noesis::Shader::Image_Blur127H_Pattern] = TShaderMapRef<FNoesisPosColorTex1Tex2VS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Image_Blur127H_Pattern] = TShaderMapRef<FNoesisImageBlur127HPatternPS>(GetGlobalShaderMap(FeatureLevel));
+
+	// Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
+	PixelShadersPatternSRGB[Noesis::Shader::Path_Pattern] = TShaderMapRef<FNoesisPathPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersPatternSRGB[Noesis::Shader::PathAA_Pattern] = TShaderMapRef<FNoesisPathAaPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersPatternSRGB[Noesis::Shader::SDF_Pattern] = TShaderMapRef<FNoesisSDFPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersPatternSRGB[Noesis::Shader::SDF_LCD_Pattern] = TShaderMapRef<FNoesisSDFLCDPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersPatternSRGB[Noesis::Shader::Image_Opacity_Pattern] = TShaderMapRef<FNoesisImageOpacityPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersPatternSRGB[Noesis::Shader::Image_Shadow35H_Pattern] = TShaderMapRef<FNoesisImageShadow35HPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersPatternSRGB[Noesis::Shader::Image_Shadow63H_Pattern] = TShaderMapRef<FNoesisImageShadow63HPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersPatternSRGB[Noesis::Shader::Image_Shadow127H_Pattern] = TShaderMapRef<FNoesisImageShadow127HPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersPatternSRGB[Noesis::Shader::Image_Blur35H_Pattern] = TShaderMapRef<FNoesisImageBlur35HPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersPatternSRGB[Noesis::Shader::Image_Blur63H_Pattern] = TShaderMapRef<FNoesisImageBlur63HPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersPatternSRGB[Noesis::Shader::Image_Blur127H_Pattern] = TShaderMapRef<FNoesisImageBlur127HPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
 }
 
 FNoesisRenderDevice::~FNoesisRenderDevice()
@@ -414,6 +434,27 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 		}
 		UTextureRenderTarget2D* TextureRenderTarget2D = (UTextureRenderTarget2D*)InTexture;
 		Texture = *new FNoesisTexture(TextureRenderTarget2D);
+		check(Texture->Width == TextureRef->GetSizeX());
+		check(Texture->Height == TextureRef->GetSizeY());
+		check(Texture->NumMipMaps == TextureRef->GetNumMips());
+		Texture->ShaderResourceTexture = TextureRef;
+		SetTextureFormat(Texture, TextureRef->GetFormat());
+	}
+	else if (InTexture->IsA<UMediaTexture>())
+	{
+		FTextureResource* Resource = (FTextureResource*)InTexture->Resource;
+		FTextureRHIRef TextureRHI = Resource->TextureRHI;
+		if (!TextureRHI)
+		{
+			return nullptr;
+		}
+		FTexture2DRHIRef TextureRef = TextureRHI->GetTexture2D();
+		if (!TextureRef)
+		{
+			return nullptr;
+		}
+		UMediaTexture* MediaTexture = (UMediaTexture*)InTexture;
+		Texture = *new FNoesisTexture(MediaTexture);
 		check(Texture->Width == TextureRef->GetSizeX());
 		check(Texture->Height == TextureRef->GetSizeY());
 		check(Texture->NumMipMaps == TextureRef->GetNumMips());
@@ -829,11 +870,17 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 
 	FRHITexture* PatternTexture = 0;
 	FRHISamplerState* PatternSamplerState = 0;
+	bool PatternSRGB = false;
 	if (Batch.pattern)
 	{
 		FNoesisTexture* Texture = (FNoesisTexture*)(Batch.pattern);
 		PatternTexture = Texture->ShaderResourceTexture;
 		PatternSamplerState = GetSamplerState((uint32)*(uint8*)&Batch.patternSampler);
+		if ((PatternTexture->GetFlags() & TexCreate_SRGB) != 0)
+		{
+			// Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
+			PatternSRGB = true;
+		}
 	}
 
 	FRHITexture* RampsTexture = 0;
@@ -876,7 +923,7 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 
 	FVertexDeclarationRHIRef& VertexDeclaration = VertexDeclarations[ShaderCode];
 	TShaderRef<FNoesisVSBase> VertexShader = VertexShaders[ShaderCode];
-	TShaderRef<FNoesisPSBase> PixelShader = PixelShaders[ShaderCode];
+	TShaderRef<FNoesisPSBase> PixelShader = PatternSRGB ? PixelShadersPatternSRGB[ShaderCode] : PixelShaders[ShaderCode];
 	GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = VertexDeclaration;
 	GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();

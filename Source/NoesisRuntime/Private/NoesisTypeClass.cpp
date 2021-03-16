@@ -708,6 +708,7 @@ public:
 	NS_IMPLEMENT_INLINE_REFLECTION(NoesisValueArrayWrapperBase, Noesis::BaseComponent)
 	{
 		NsImpl<Noesis::IList>();
+		NsProp("Count", &NoesisValueArrayWrapperBase::Count);
 	}
 
 public:
@@ -901,6 +902,7 @@ public:
 	{
 		NsImpl<Noesis::IList>();
 		NsImpl<Noesis::INotifyCollectionChanged>();
+		NsProp("Count", &NoesisValueArrayWrapperBase::Count);
 	}
 
 private:
@@ -2538,8 +2540,8 @@ NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUOb
 	else
 	{
 		Wrapper = *new NoesisObjectWrapper(Object);
+		ObjectMap.Add(Object, Wrapper);
 	}
-	ObjectMap.Add(Object, Wrapper);
 
 	return Wrapper;
 }
@@ -2724,6 +2726,52 @@ void NoesisNotifyArrayPropertyPostSet(void* ArrayPointer, int32 Index)
 void NoesisDeleteMaps()
 {
 	ObjectMap.Reset();
+}
+
+void NoesisCultureChanged()
+{
+	if (GIsRunning)
+	{
+		for (auto It = ObjectMap.CreateIterator(); It; ++It)
+		{
+			auto& ObjectComponentPair = *It;
+			UObject* Object = ObjectComponentPair.Key;
+			if (!Object->IsPendingKill() && !Object->IsUnreachable())
+			{
+				NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)ObjectComponentPair.Value.GetPtr();
+				UClass* Class = Object->GetClass();
+
+				for (TFieldIterator<FProperty> PropertyIt(Class, EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
+				{
+					FProperty* Property = *PropertyIt;
+					if (Property->IsA<FTextProperty>())
+					{
+						FString PropertyName = Property->GetName();
+						Noesis::Symbol PropertyId = Noesis::Symbol(TCHAR_TO_UTF8(*PropertyName));
+
+						Wrapper->NotifyPropertyChanged(PropertyId);
+					}
+				}
+
+				for (TFieldIterator<UFunction> FunctionIt(Class, EFieldIteratorFlags::IncludeSuper); FunctionIt; ++FunctionIt)
+				{
+					UFunction* Function = *FunctionIt;
+					if (Function->GetName().StartsWith(TEXT("Get")) && Function->NumParms == 1 && Function->HasAnyFunctionFlags(FUNC_HasOutParms))
+					{
+						FProperty* OutParam = CastField<FProperty>(Function->ChildProperties);
+
+						if (OutParam->IsA<FTextProperty>())
+						{
+							FString PropertyName = Function->GetName().RightChop(3);
+							Noesis::Symbol PropertyId = Noesis::Symbol(TCHAR_TO_UTF8(*PropertyName));
+
+							Wrapper->NotifyPropertyChanged(PropertyId);
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 void NoesisGarbageCollected()

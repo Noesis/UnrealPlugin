@@ -291,7 +291,7 @@ public:
 	LAYOUT_FIELD(FShaderResourceParameter, ShadowSampler)
 };
 
-template<Noesis::Shader::Enum Effect>
+template<Noesis::Shader::Enum Effect, bool PatternSRGB = false>
 class FNoesisPS : public FNoesisPSBase
 {
 	DECLARE_SHADER_TYPE(FNoesisPS, Global);
@@ -314,6 +314,14 @@ class FNoesisPS : public FNoesisPSBase
 	{
 		FGlobalShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 		OutEnvironment.SetDefine(TEXT("EFFECT"), Effect);
+
+		// MediaTextures don't work correctly if they are not rendered to SRGB textures.
+		// We need to convert them on the shaders.
+		// MediaTextures are sampled from the pattern textures.
+		// The shaders that need to do this conversion are more expensive, so we are still
+		// setting SRGB to false when we import textures. But at least this means that
+		// user textures should work regardless.
+		OutEnvironment.SetDefine(TEXT("PATTERN_SRGB"), PatternSRGB);
 	}
 };
 
@@ -383,3 +391,16 @@ typedef FNoesisPS<Noesis::Shader::Image_Blur127H_Solid> FNoesisImageBlur127HSoli
 typedef FNoesisPS<Noesis::Shader::Image_Blur127H_Linear> FNoesisImageBlur127HLinearPS;
 typedef FNoesisPS<Noesis::Shader::Image_Blur127H_Radial> FNoesisImageBlur127HRadialPS;
 typedef FNoesisPS<Noesis::Shader::Image_Blur127H_Pattern> FNoesisImageBlur127HPatternPS;
+
+// Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
+typedef FNoesisPS<Noesis::Shader::Path_Pattern, true> FNoesisPathPatternSRGBPS;
+typedef FNoesisPS<Noesis::Shader::PathAA_Pattern, true> FNoesisPathAaPatternSRGBPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern, true> FNoesisSDFPatternSRGBPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern, true> FNoesisSDFLCDPatternSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Image_Opacity_Pattern, true> FNoesisImageOpacityPatternSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Image_Shadow35H_Pattern, true> FNoesisImageShadow35HPatternSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Image_Shadow63H_Pattern, true> FNoesisImageShadow63HPatternSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Image_Shadow127H_Pattern, true> FNoesisImageShadow127HPatternSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Image_Blur35H_Pattern, true> FNoesisImageBlur35HPatternSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Image_Blur63H_Pattern, true> FNoesisImageBlur63HPatternSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Image_Blur127H_Pattern, true> FNoesisImageBlur127HPatternSRGBPS;

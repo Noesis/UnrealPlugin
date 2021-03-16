@@ -97,3 +97,16 @@ IMPLEMENT_SHADER_TYPE(template<>, FNoesisImageBlur127HSolidPS, TEXT("/Plugin/Noe
 IMPLEMENT_SHADER_TYPE(template<>, FNoesisImageBlur127HLinearPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 IMPLEMENT_SHADER_TYPE(template<>, FNoesisImageBlur127HRadialPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 IMPLEMENT_SHADER_TYPE(template<>, FNoesisImageBlur127HPatternPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+
+// Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternSRGBPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAaPatternSRGBPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternSRGBPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternSRGBPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisImageOpacityPatternSRGBPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisImageShadow35HPatternSRGBPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisImageShadow63HPatternSRGBPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisImageShadow127HPatternSRGBPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisImageBlur35HPatternSRGBPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisImageBlur63HPatternSRGBPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisImageBlur127HPatternSRGBPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);

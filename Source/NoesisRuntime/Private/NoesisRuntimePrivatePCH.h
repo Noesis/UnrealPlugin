@@ -20,8 +20,17 @@
 #include "Kismet/KismetArrayLibrary.h"
 #include "EditorFramework/AssetImportData.h"
 
+// MediaAsset includes
+#include "MediaSource.h"
+#include "MediaPlayer.h"
+#include "MediaTexture.h"
+#include "MediaSoundComponent.h"
+#include "IMediaEventSink.h"
+#include "AudioDevice.h"
+
 // CoreUObject includes
 #include "UObject/UObjectGlobals.h"
+#include "UObject/UObjectBaseUtility.h"
 
 // UMG includes
 #include "Blueprint/UserWidget.h"

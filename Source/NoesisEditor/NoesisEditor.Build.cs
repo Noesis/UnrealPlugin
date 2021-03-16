@@ -30,6 +30,8 @@ public class NoesisEditor : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
+				"MediaAssets",
+				"AudioMixer",
 				"UnrealEd",
 				"SlateCore",
 			}

@@ -57,3 +57,4 @@ NOESISRUNTIME_API void NoesisNotifyArrayPropertyPostSet(void*, int32);
 NOESISRUNTIME_API void NoesisGarbageCollected();
 void NoesisReflectionRegistryCallback(Noesis::Symbol TypeId);
 void NoesisRegisterTypes();
+void NoesisCultureChanged();

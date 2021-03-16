@@ -13,13 +13,14 @@ public class NoesisRuntime : ModuleRules
 		PCHUsage = PCHUsageMode.NoSharedPCHs;
 		PrivatePCHHeaderFile = "Private/NoesisRuntimePrivatePCH.h";
 
-		// In modular builds we want the Interactivity functions
+		// In modular builds we want the Interactivity and MediaElement functions
 		// dllexported from this module and
 		// dllimported from the other modules.
 		// That's why we use PrivateDefinitions.
 		if (Target.LinkType == TargetLinkType.Modular)
 		{
 			PrivateDefinitions.Add("NS_APP_INTERACTIVITY_API=NS_DLL_EXPORT");
+			PrivateDefinitions.Add("NS_APP_MEDIAELEMENT_API=NS_DLL_EXPORT");
 		}
 
 		PublicIncludePaths.AddRange(
@@ -39,6 +40,8 @@ public class NoesisRuntime : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
+				"MediaAssets",
+				"AudioMixer",
 				"RHI",
 				"RenderCore",
 				"SlateCore",
