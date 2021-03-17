@@ -57,7 +57,7 @@ public class Noesis : ModuleRules
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Linux)
 		{
-			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "linunx_x86_64", "libNoesis.so"));
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "linux_x86_64", "libNoesis.so"));
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Mac)
 		{
