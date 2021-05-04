@@ -411,7 +411,7 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 		// creation to the render thread, so we must do the same.
 		ENQUEUE_RENDER_COMMAND(FNoesisInstance_InitRenderer)
 		(
-			[Texture, Resource](FRHICommandListImmediate& RHICmdList)
+			[Texture, Resource](FRHICommandListImmediate&)
 			{
 				FTexture2DRHIRef TextureRef = Resource->GetTexture2DRHI();
 				if (TextureRef)

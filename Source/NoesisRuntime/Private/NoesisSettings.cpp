@@ -30,7 +30,6 @@ UNoesisSettings::UNoesisSettings(const FObjectInitializer& ObjectInitializer)
 	DefaultFontWeight = ENoesisFontWeight::Normal;
 	DefaultFontStretch = ENoesisFontStretch::Normal;
 	DefaultFontStyle = ENoesisFontStyle::Normal;
-	RestoreUITexturePNGPremultipliedAlpha = true;
 	PremultiplyAlpha = true;
 }
 

@@ -31,69 +31,6 @@
 
 #define LOCTEXT_NAMESPACE "NoesisEditorModule"
 
-void FixPremultipliedPNGTexture(UTexture2D* Texture)
-{
-	UAssetImportData* TextureImportData = Texture->AssetImportData;
-	if (!TextureImportData->GetFirstFilename().ToLower().EndsWith(".png"))
-	{
-		return;
-	}
-
-	FTextureSource& TextureSource = Texture->Source;
-	const ETextureSourceFormat SourceFormat = TextureSource.GetFormat();
-	int32 TextureWidth = TextureSource.GetSizeX();
-	int32 TextureHeight = TextureSource.GetSizeY();
-
-	switch (SourceFormat)
-	{
-	case TSF_BGRA8:
-		{
-			uint8* SourceData = TextureSource.LockMip(0);
-			for (int32 Y = 0; Y < TextureHeight; ++Y)
-			{
-				for (int32 X = 0; X < TextureWidth; ++X)
-				{
-					uint8* PixelData = SourceData + (Y * TextureWidth + X) * 4;
-
-					if (PixelData[3] == 0)
-					{
-						uint32* ColorData = (uint32*)PixelData;
-						*ColorData = 0;
-					}
-				}
-			}
-			TextureSource.UnlockMip(0);
-			Texture->PostEditChange();
-			break;
-		}
-
-	case TSF_RGBA16:
-		{
-			uint16* SourceData = (uint16*)TextureSource.LockMip(0);
-			for (int32 Y = 0; Y < TextureHeight; ++Y)
-			{
-				for (int32 X = 0; X < TextureWidth; ++X)
-				{
-					uint16* PixelData = SourceData + (Y * TextureWidth + X) * 4;
-
-					if (PixelData[3] == 0)
-					{
-						uint64* ColorData = (uint64*)PixelData;
-						*ColorData = 0;
-					}
-				}
-			}
-			TextureSource.UnlockMip(0);
-			Texture->PostEditChange();
-			break;
-		}
-
-	default:
-		UE_LOG(LogNoesisEditor, Warning, TEXT("Texture %s format invalid"), *Texture->GetPathName());
-		break;
-	}
-}
-
 void PremultiplyAlpha(UTexture2D* Texture)
 {
 	FTextureSource& TextureSource = Texture->Source;
@@ -171,10 +108,6 @@ void OnObjectImported(UFactory* ImportFactory, UObject* InObject)
 			{
 				PremultiplyAlpha(Texture);
 			}
-			if (GetDefault<UNoesisSettings>()->RestoreUITexturePNGPremultipliedAlpha)
-			{
-				FixPremultipliedPNGTexture(Texture);
-			}
 		}
 		Noesis::Ptr<Noesis::BaseComponent> Component = NoesisFindComponentForUObject(Texture);
 		if (Component != nullptr)
@@ -216,11 +149,6 @@ void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Even
 						// Important!!!
 						// PremultiplyAlpha will be called from the ObjectImported callback
 					}
-				}
-
-				if (GetDefault<UNoesisSettings>()->RestoreUITexturePNGPremultipliedAlpha)
-				{
-					FixPremultipliedPNGTexture(Texture);
 				}
 			}
 			Noesis::Ptr<Noesis::BaseComponent> Component = NoesisFindComponentForUObject(Texture);

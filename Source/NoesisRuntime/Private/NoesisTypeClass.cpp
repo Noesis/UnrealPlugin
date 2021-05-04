@@ -45,9 +45,12 @@ DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertyResize"), STAT_NoesisNotifyArr
 DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertySet"), STAT_NoesisNotifyArrayPropertySet, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("NoesisGarbageCollected"), STAT_NoesisGarbageCollected, STATGROUP_Noesis);
 
-TMap<UObject*, Noesis::Ptr<Noesis::BaseComponent> > ObjectMap;
+TMap<UObject*, class NoesisObjectWrapper* > ObjectMap;
+TMap<UObject*, Noesis::TextureSource* > TextureMap;
 TMap<void*, class NoesisArrayWrapperBase*> ArrayMap;
 TArray<FString> RegisteredTypes;
+TArray<class Noesis::Type*> DeletedTypes;
+bool NoesisIsShuttingDown = false;
 
 class NoesisObjectWrapper;
 class NoesisStructWrapper;
@@ -139,6 +142,11 @@ public:
 	NoesisTypeEnum(UEnum* InEnum, Noesis::Symbol Name)
 		: Noesis::TypeEnum(Name), Enum(InEnum)
 	{
+	}
+
+	~NoesisTypeEnum()
+	{
+		check(NoesisIsShuttingDown);
 	}
 
 	bool GetValueObject(Noesis::Symbol Id, Noesis::Ptr<Noesis::BoxedValue>& Value) const override;
@@ -699,9 +707,9 @@ public:
 		return -1;
 	}
 
-	virtual int IndexOfComponent(Noesis::BaseComponent* Item) const override
+	virtual int IndexOfComponent(const Noesis::BaseComponent* Item) const override
 	{
-		return ComponentArray.Find(Noesis::Ptr<Noesis::BaseComponent>(Item));
+		return ComponentArray.Find(Noesis::Ptr<Noesis::BaseComponent>((Noesis::BaseComponent*)Item));
 	}
 	// End of IList interface
 
@@ -712,7 +720,7 @@ public:
 	}
 
 public:
-	TArray<Noesis::Ptr<Noesis::BaseComponent> > ComponentArray;
+	TArray<Noesis::Ptr<Noesis::BaseComponent>> ComponentArray;
 };
 
 template<class T>
@@ -807,7 +815,7 @@ public:
 		return Index;
 	}
 
-	virtual int IndexOfComponent(Noesis::BaseComponent* Item) const override
+	virtual int IndexOfComponent(const Noesis::BaseComponent* Item) const override
 	{
 		for (uint32 Index = 0; Index != Count(); ++Index)
 		{
@@ -1142,6 +1150,15 @@ public:
 	NoesisObjectWrapper(UObject* InObject) :
 		Noesis::BaseComponent(), Object(InObject)
 	{
+		ObjectMap.Add(Object, this);
+	}
+
+	~NoesisObjectWrapper()
+	{
+		if (Object != nullptr)
+		{
+			ObjectMap.Remove(Object);
+		}
 	}
 
 	virtual Noesis::BaseComponent* GetBaseObject() const override
@@ -1171,11 +1188,13 @@ public:
 
 	virtual const Noesis::TypeClass* GetClassType() const override
 	{
-#if WITH_EDITOR
 		// Can't return null. Just pretend it's a BaseComponent
 		if (Object == nullptr)
+		{
+			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
 			return Noesis::BaseComponent::StaticGetClassType(nullptr);
-#endif
+		}
+
 		if (!Object->IsPendingKill() && !Object->IsUnreachable())
 		{
 			UClass* Class = Object->GetClass();
@@ -1187,10 +1206,11 @@ public:
 
 	Noesis::String ToString() const override
 	{
-#if WITH_EDITOR
 		if (Object == nullptr)
+		{
+			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
 			return "";
-#endif
+		}
 
 		if (!Object->IsPendingKill() && !Object->IsUnreachable())
 		{
@@ -1201,10 +1221,12 @@ public:
 
 	bool Equals(const Noesis::BaseObject* BaseObject) const override
 	{
-#if WITH_EDITOR
 		if (Object == nullptr)
+		{
+			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
 			return false;
-#endif
+		}
+
 		const NoesisObjectWrapper* Wrapper = Noesis::DynamicCast<const NoesisObjectWrapper*>(BaseObject);
 		return Wrapper && Object == Wrapper->Object;
 	}
@@ -1232,20 +1254,22 @@ public:
 	template<class T>
 	Noesis::Ptr<Noesis::BaseComponent> GetProperty(const TypePropertyData& Data) const
 	{
-#if WITH_EDITOR
 		if (Object == nullptr)
+		{
+			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
 			return Noesis::Ptr<Noesis::BaseComponent>();
-#endif
+		}
 
 		return ::GetProperty<T>(Object, Data.Property);
 	}
 	template<class T>
 	bool SetProperty(const TypePropertyData& Data, Noesis::BaseComponent* Value)
 	{
-#if WITH_EDITOR
 		if (Object == nullptr)
+		{
+			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
 			return false;
-#endif
+		}
 
 		Noesis::Ptr<Noesis::BaseComponent> OldValue = ::GetProperty<T>(Object, Data.Property);
 		::SetProperty<T>(Object, Data.Property, Value);
@@ -1255,20 +1279,22 @@ public:
 	template<class T>
 	Noesis::Ptr<Noesis::BaseComponent> GetFunctionProperty(const TypePropertyData& Data) const
 	{
-#if WITH_EDITOR
 		if (Object == nullptr)
+		{
+			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
 			return Noesis::Ptr<Noesis::BaseComponent>();
-#endif
+		}
 
 		return ::GetFunctionProperty<T>(Object, Data.Getter);
 	}
 	template<class T>
 	bool SetFunctionProperty(const TypePropertyData& Data, Noesis::BaseComponent* Value)
 	{
-#if WITH_EDITOR
 		if (Object == nullptr)
+		{
+			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
 			return false;
-#endif
+		}
 
 		Noesis::Ptr<Noesis::BaseComponent> OldValue = ::GetFunctionProperty<T>(Object, Data.Getter);
 		::SetFunctionProperty<T>(Object, Data.Setter, Value);
@@ -1278,10 +1304,11 @@ public:
 
 	Noesis::Ptr<Noesis::BaseComponent> GetCommandProperty(const TypePropertyData& Data) const
 	{
-#if WITH_EDITOR
 		if (Object == nullptr)
+		{
+			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
 			return Noesis::Ptr<Noesis::BaseComponent>();
-#endif
+		}
 
 		auto CommandPtr = FunctionToCommand.Find(Data.Function);
 		if (CommandPtr)
@@ -1297,10 +1324,11 @@ public:
 	template<class T>
 	Noesis::Ptr<Noesis::BaseComponent> GetCommandOneParamProperty(const TypePropertyData& Data) const
 	{
-#if WITH_EDITOR
 		if (Object == nullptr)
+		{
+			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
 			return Noesis::Ptr<Noesis::BaseComponent>();
-#endif
+		}
 
 		auto CommandPtr = FunctionToCommand.Find(Data.Function);
 		if (CommandPtr)
@@ -1316,10 +1344,11 @@ public:
 	template<class T>
 	Noesis::Ptr<Noesis::BaseComponent> GetArrayProperty(const TypePropertyData& Data) const
 	{
-#if WITH_EDITOR
 		if (Object == nullptr)
+		{
+			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
 			return Noesis::Ptr<Noesis::BaseComponent>();
-#endif
+		}
 
 		auto ListPtr = ArrayToList.Find(Data.ArrayProperty);
 		if (ListPtr)
@@ -1335,10 +1364,11 @@ public:
 	template<class T>
 	bool SetArrayProperty(const TypePropertyData& Data, Noesis::BaseComponent* Value)
 	{
-#if WITH_EDITOR
 		if (Object == nullptr)
+		{
+			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
 			return false;
-#endif
+		}
 
 		NoesisArrayWrapperBase* ValueWrapper = Noesis::DynamicCast<NoesisArrayWrapperBase*>(Value);
 		if (ValueWrapper)
@@ -1377,12 +1407,30 @@ public:
 	UObject* Object;
 };
 
-template<class T>
-class TypePropertyNoesisObjectWrapper : public Noesis::TypeProperty
+class TypePropertyNoesisObjectWrapperBase : public Noesis::TypeProperty
 {
 public:
-	typedef Noesis::Ptr<Noesis::BaseComponent> (T::*GetterFn)(const TypePropertyData&) const;
-	typedef bool (T::*SetterFn)(const TypePropertyData&, Noesis::BaseComponent*);
+	TypePropertyNoesisObjectWrapperBase(Noesis::Symbol Name, const Noesis::Type* Type, const TypePropertyData& InData)
+		: Noesis::TypeProperty(Name, Type), Data(InData)
+	{
+	}
+	~TypePropertyNoesisObjectWrapperBase()
+	{
+		check(NoesisIsShuttingDown);
+	}
+	void Invalidate()
+	{
+		Data.Property = nullptr;
+	}
+	TypePropertyData Data;
+};
+
+template<class T>
+class TypePropertyNoesisObjectWrapper : public TypePropertyNoesisObjectWrapperBase
+{
+public:
+	typedef Noesis::Ptr<Noesis::BaseComponent>(T::* GetterFn)(const TypePropertyData&) const;
+	typedef bool (T::* SetterFn)(const TypePropertyData&, Noesis::BaseComponent*);
 
 	/// Constructor
 	TypePropertyNoesisObjectWrapper(Noesis::Symbol Name, const Noesis::Type* Type, GetterFn Getter, SetterFn Setter, const TypePropertyData& Data);
@@ -1407,12 +1455,11 @@ protected:
 private:
 	GetterFn Getter;
 	SetterFn Setter;
-	const TypePropertyData Data;
 };
 
 template<class T>
 TypePropertyNoesisObjectWrapper<T>::TypePropertyNoesisObjectWrapper(Noesis::Symbol Name, const Noesis::Type* Type, GetterFn InGetter, SetterFn InSetter, const TypePropertyData& InData) :
-	TypeProperty(Name, Type), Getter(InGetter), Setter(InSetter), Data(InData)
+	TypePropertyNoesisObjectWrapperBase(Name, Type, InData), Getter(InGetter), Setter(InSetter)
 {
 	NS_ASSERT(Getter);
 }
@@ -1434,6 +1481,14 @@ const void* TypePropertyNoesisObjectWrapper<T>::GetContent(const void* Ptr) cons
 template<class T>
 Noesis::Ptr<Noesis::BaseComponent> TypePropertyNoesisObjectWrapper<T>::GetComponent(const void* Ptr) const
 {
+#if WITH_EDITOR
+	if (Data.Property == nullptr)
+	{
+		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted class is still referenced"));
+		return nullptr;
+	}
+#endif
+
 	return (static_cast<const T*>(Ptr)->*Getter)(Data);
 }
 
@@ -1445,6 +1500,14 @@ void TypePropertyNoesisObjectWrapper<T>::SetComponent(void* Ptr, Noesis::BaseCom
 template<>
 void TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>::SetComponent(void* Ptr, Noesis::BaseComponent* Value) const
 {
+#if WITH_EDITOR
+	if (Data.Property == nullptr)
+	{
+		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted class is still referenced"));
+		return;
+	}
+#endif
+
 	NoesisObjectWrapper* ObjectWrapper = (NoesisObjectWrapper*)Ptr;
 	if ((ObjectWrapper->*Setter)(Data, Value))
 	{
@@ -1474,6 +1537,14 @@ void TypePropertyNoesisObjectWrapper<T>::InternalSet(void* Ptr, const void* Valu
 template<class T>
 bool TypePropertyNoesisObjectWrapper<T>::InternalIsReadOnly() const
 {
+#if WITH_EDITOR
+	if (Data.Property == nullptr)
+	{
+		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted class is still referenced"));
+		return true;
+	}
+#endif
+
 	return Setter == 0;
 }
 
@@ -1485,9 +1556,19 @@ public:
 	{
 	}
 
-#if WITH_EDITOR
-	FDelegateHandle ChangeDelegateHandle;
-#endif
+	~NoesisTypeClass()
+	{
+		check(NoesisIsShuttingDown);
+	}
+
+	void InvalidateProperties()
+	{
+		for (auto TypeProperty : mProperties)
+		{
+			TypePropertyNoesisObjectWrapperBase* NoesisTypeProperty = (TypePropertyNoesisObjectWrapperBase*)TypeProperty;
+			NoesisTypeProperty->Invalidate();
+		}
+	}
 
 	UStruct* Class;
 
@@ -2359,7 +2440,7 @@ Noesis::BaseComponent* CallbackCreateEnumConverter(Noesis::Symbol Id)
 	const char* ConverterName = Id.Str();
 	check(FCStringAnsi::Strlen(ConverterName) > 11);
 	Noesis::String EnumName = Noesis::String(ConverterName + 10, FCStringAnsi::Strlen(ConverterName) - 11);
-	 
+
 	Noesis::Type* Type = (Noesis::Type*)Noesis::Reflection::GetType(Noesis::Symbol(EnumName.Str()));
 	Noesis::TypeEnum* TypeEnum = Noesis::DynamicCast<Noesis::TypeEnum*>(Type);
 	if (TypeEnum != nullptr)
@@ -2433,12 +2514,15 @@ void NoesisDestroyTypeClass()
 	// unregistered types.
 	for (auto TypeName : RegisteredTypes)
 	{
-		const Noesis::Type* Type = Noesis::Reflection::GetType(Noesis::Symbol(TCHAR_TO_UTF8(*TypeName)));
+		Noesis::Type* Type = (Noesis::Type*)Noesis::Reflection::GetType(Noesis::Symbol(TCHAR_TO_UTF8(*TypeName)));
+		NoesisTypeClass* TypeClass = Noesis::DynamicCast<NoesisTypeClass*>(Type);
 
-		if (Type != nullptr)
+		if (TypeClass != nullptr)
 		{
-			Noesis::Reflection::Unregister(Type);
+			TypeClass->InvalidateProperties();
 		}
+		DeletedTypes.Add(Type);
+		Noesis::Reflection::UnregisterNoDelete(Type);
 	}
 	RegisteredTypes.Empty();
 
@@ -2503,10 +2587,22 @@ NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisFindComponentForUObje
 		return BaseComponent->NoesisComponent;
 	}
 
-	Noesis::Ptr<Noesis::BaseComponent>* ComponentPtr = ObjectMap.Find(Object);
-	if (ComponentPtr)
+	UClass* Class = Object->GetClass();
+	if (Class == UTexture2D::StaticClass() || Class == UTextureRenderTarget2D::StaticClass())
 	{
-		return *ComponentPtr;
+		Noesis::TextureSource** WrapperPtr = TextureMap.Find(Object);
+		if (WrapperPtr)
+		{
+			return Noesis::Ptr<Noesis::BaseComponent>(*WrapperPtr);
+		}
+	}
+	else
+	{
+		NoesisObjectWrapper** WrapperPtr = ObjectMap.Find(Object);
+		if (WrapperPtr)
+		{
+			return Noesis::Ptr<Noesis::BaseComponent>(*WrapperPtr);
+		}
 	}
 
 	return nullptr;
@@ -2525,22 +2621,23 @@ NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUOb
 		return BaseComponent->NoesisComponent;
 	}
 
-	Noesis::Ptr<Noesis::BaseComponent>* ComponentPtr = ObjectMap.Find(Object);
-	if (ComponentPtr)
+	NoesisObjectWrapper** WrapperPtr = ObjectMap.Find(Object);
+	if (WrapperPtr)
 	{
-		return *ComponentPtr;
+		return Noesis::Ptr<Noesis::BaseComponent>(*WrapperPtr);
 	}
 
 	UClass* Class = Object->GetClass();
 	Noesis::Ptr<Noesis::BaseComponent> Wrapper;
 	if (Class == UTexture2D::StaticClass() || Class == UTextureRenderTarget2D::StaticClass())
 	{
-		Wrapper = *new Noesis::TextureSource(NoesisCreateTexture((UTexture*)Object).GetPtr());
+		Noesis::TextureSource* TextureSource = new Noesis::TextureSource(NoesisCreateTexture((UTexture*)Object).GetPtr());
+		TextureMap.Add(Object, TextureSource);
+		Wrapper = *TextureSource;
 	}
 	else
 	{
 		Wrapper = *new NoesisObjectWrapper(Object);
-		ObjectMap.Add(Object, Wrapper);
 	}
 
 	return Wrapper;
@@ -2548,10 +2645,14 @@ NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUOb
 
 NOESISRUNTIME_API UObject* NoesisCreateUObjectForComponent(Noesis::BaseComponent* Component)
 {
-	UObject* const* ObjectPtr = ObjectMap.FindKey(Noesis::Ptr<Noesis::BaseComponent>(Component));
-	if (ObjectPtr)
+	NoesisObjectWrapper* Wrapper = Noesis::DynamicCast<NoesisObjectWrapper*>(Component);
+	if (Wrapper != nullptr)
 	{
-		return *ObjectPtr;
+		UObject* const* ObjectPtr = ObjectMap.FindKey(Wrapper);
+		if (ObjectPtr)
+		{
+			return *ObjectPtr;
+		}
 	}
 
 	UNoesisBaseComponent* BaseComponent = NewObject<UNoesisBaseComponent>();
@@ -2572,13 +2673,16 @@ NOESISRUNTIME_API void NoesisCopyUStructFromComponent(UScriptStruct* Struct, Noe
 void NoesisNotifyPropertyChanged(UObject* Owner, FName PropertyName)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyPropertyChanged);
-	Noesis::Ptr<Noesis::BaseComponent>* WrapperPtr = ObjectMap.Find(Owner);
+	NoesisObjectWrapper** WrapperPtr = ObjectMap.Find(Owner);
 	if (WrapperPtr)
 	{
-		NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)WrapperPtr->GetPtr();
+		NoesisObjectWrapper* Wrapper = *WrapperPtr;
 		auto PropertySymbol = Noesis::Symbol(TCHARToNsString(*PropertyName.ToString()).Str());
 #if DO_CHECK // Skip in shipping build
-		if (!Wrapper->GetClassType()->FindProperty(PropertySymbol))
+		const Noesis::TypeClass* WrapperTypeClass = Wrapper->GetClassType();
+		Noesis::TypeClassProperty ClassProperty = Noesis::FindProperty(WrapperTypeClass, PropertySymbol);
+		const Noesis::TypeProperty* TypeProperty = ClassProperty.property;
+		if (TypeProperty == nullptr)
 		{
 			UE_LOG(LogNoesis, Warning, TEXT("Couldn't resolve property %s::%s"), *Owner->GetClass()->GetFName().ToString(), *PropertyName.ToString());
 		}
@@ -2590,13 +2694,15 @@ void NoesisNotifyPropertyChanged(UObject* Owner, FName PropertyName)
 void NoesisNotifyArrayPropertyChanged(UObject* Owner, FName ArrayPropertyName)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyChanged);
-	Noesis::Ptr<Noesis::BaseComponent>* WrapperPtr = ObjectMap.Find(Owner);
+	NoesisObjectWrapper** WrapperPtr = ObjectMap.Find(Owner);
 	if (WrapperPtr)
 	{
-		NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)WrapperPtr->GetPtr();
+		NoesisObjectWrapper* Wrapper = *WrapperPtr;
 		const Noesis::TypeClass* WrapperTypeClass = Wrapper->GetClassType();
-		const Noesis::TypeProperty* ArrayTypeProperty = WrapperTypeClass->FindProperty(Noesis::Symbol(TCHARToNsString(*ArrayPropertyName.ToString()).Str()));
-		if (ArrayTypeProperty)
+		auto PropertySymbol = Noesis::Symbol(TCHARToNsString(*ArrayPropertyName.ToString()).Str());
+		Noesis::TypeClassProperty ClassProperty = Noesis::FindProperty(WrapperTypeClass, PropertySymbol);
+		const Noesis::TypeProperty* ArrayTypeProperty = ClassProperty.property;
+		if (ArrayTypeProperty != nullptr)
 		{
 			NoesisArrayWrapperBase* Array = (NoesisArrayWrapperBase*)(ArrayTypeProperty->GetComponent(Wrapper).GetPtr());
 			if (Array)
@@ -2725,7 +2831,14 @@ void NoesisNotifyArrayPropertyPostSet(void* ArrayPointer, int32 Index)
 
 void NoesisDeleteMaps()
 {
+	NoesisIsShuttingDown = true;
 	ObjectMap.Reset();
+
+	for (auto TypeClass : DeletedTypes)
+	{
+		delete TypeClass;
+	}
+	DeletedTypes.Empty();
 }
 
 void NoesisCultureChanged()
@@ -2738,7 +2851,7 @@ void NoesisCultureChanged()
 			UObject* Object = ObjectComponentPair.Key;
 			if (!Object->IsPendingKill() && !Object->IsUnreachable())
 			{
-				NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)ObjectComponentPair.Value.GetPtr();
+				NoesisObjectWrapper* Wrapper = ObjectComponentPair.Value;
 				UClass* Class = Object->GetClass();
 
 				for (TFieldIterator<FProperty> PropertyIt(Class, EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
@@ -2785,13 +2898,18 @@ void NoesisGarbageCollected()
 			UObject* Object = ObjectComponentPair.Key;
 			if (Object->IsUnreachable())
 			{
-				UClass* Class = Object->GetClass();
-				if (Class != UTexture2D::StaticClass() && Class != UTextureRenderTarget2D::StaticClass())
-				{
-					// Can't use a dynamic cast because the object has already been destroyed
-					NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)(ObjectComponentPair.Value.GetPtr());
-					Wrapper->Object = nullptr;
-				}
+				NoesisObjectWrapper* Wrapper = ObjectComponentPair.Value;
+				Wrapper->Object = nullptr;
+				It.RemoveCurrent();
+			}
+		}
+
+		for (auto It = TextureMap.CreateIterator(); It; ++It)
+		{
+			auto& ObjectComponentPair = *It;
+			UObject* Object = ObjectComponentPair.Key;
+			if (Object->IsUnreachable())
+			{
 				It.RemoveCurrent();
 			}
 		}
@@ -2811,11 +2929,17 @@ void NoesisGarbageCollected()
 				}
 				FString AnsiClassName(TCHARToNsString(*RegisterNameFromPath(ClassName)).Str());
 				const char* PersistentClassName = GetPersistentName(AnsiClassName);
-				Noesis::Type* Type = (Noesis::Type*)Noesis::Reflection::GetType(Noesis::Symbol(PersistentClassName));
-				Noesis::TypeClass* TypeClass = Noesis::DynamicCast<Noesis::TypeClass*>(Type);
-				if (TypeClass != nullptr)
+				if (Noesis::Reflection::IsTypeRegistered(Noesis::Symbol(PersistentClassName)))
 				{
-					Noesis::Reflection::Unregister(TypeClass);
+					Noesis::Type* Type = (Noesis::Type*)Noesis::Reflection::GetType(Noesis::Symbol(PersistentClassName));
+					NoesisTypeClass* TypeClass = Noesis::DynamicCast<NoesisTypeClass*>(Type);
+
+					if (TypeClass != nullptr)
+					{
+						TypeClass->InvalidateProperties();
+					}
+					DeletedTypes.Add(Type);
+					Noesis::Reflection::UnregisterNoDelete(Type);
 				}
 			}
 		}
@@ -2827,11 +2951,17 @@ void NoesisGarbageCollected()
 				FString ClassName = It->GetPathName();
 				FString AnsiClassName(TCHARToNsString(*RegisterNameFromPath(ClassName)).Str());
 				const char* PersistentClassName = GetPersistentName(AnsiClassName);
-				Noesis::Type* Type = (Noesis::Type*)Noesis::Reflection::GetType(Noesis::Symbol(PersistentClassName));
-				Noesis::TypeClass* TypeClass = Noesis::DynamicCast<Noesis::TypeClass*>(Type);
-				if (TypeClass != nullptr)
+				if (Noesis::Reflection::IsTypeRegistered(Noesis::Symbol(PersistentClassName)))
 				{
-					Noesis::Reflection::Unregister(TypeClass);
+					Noesis::Type* Type = (Noesis::Type*)Noesis::Reflection::GetType(Noesis::Symbol(PersistentClassName));
+					NoesisTypeClass* TypeClass = Noesis::DynamicCast<NoesisTypeClass*>(Type);
+
+					if (TypeClass != nullptr)
+					{
+						TypeClass->InvalidateProperties();
+					}
+					DeletedTypes.Add(Type);
+					Noesis::Reflection::UnregisterNoDelete(Type);
 				}
 			}
 		}
@@ -2843,11 +2973,11 @@ void NoesisGarbageCollected()
 				FString EnumName = It->GetPathName();
 				FString AnsiEnumName(TCHARToNsString(*RegisterNameFromPath(EnumName)).Str());
 				const char* PersistentEnumName = GetPersistentName(AnsiEnumName);
-				Noesis::Type* Type = (Noesis::Type*)Noesis::Reflection::GetType(Noesis::Symbol(PersistentEnumName));
-				Noesis::TypeEnum* TypeEnum = Noesis::DynamicCast<Noesis::TypeEnum*>(Type);
-				if (TypeEnum != nullptr)
+				if (Noesis::Reflection::IsTypeRegistered(Noesis::Symbol(PersistentEnumName)))
 				{
-					Noesis::Reflection::Unregister(TypeEnum);
+					Noesis::Type* Type = (Noesis::Type*)Noesis::Reflection::GetType(Noesis::Symbol(PersistentEnumName));
+					DeletedTypes.Add(Type);
+					Noesis::Reflection::UnregisterNoDelete(Type);
 				}
 			}
 		}

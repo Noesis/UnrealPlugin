@@ -108,10 +108,6 @@ class NOESISRUNTIME_API UNoesisSettings : public UObject
 	UPROPERTY(EditAnywhere, Config, Category = "Editor Settings")
 	ENoesisLoggingSettings LogVerbosity;
 
-	/** Restores the color of UI PNG texture texels with an alpha value of zero. */
-	UPROPERTY(EditAnywhere, Config, Category = "Editor Settings", DisplayName = "Fix for premultiplied alpha UI textures")
-	bool RestoreUITexturePNGPremultipliedAlpha;
-
 	/** Premultiplies the color channels of UI textures with the value of the alpha channel. */
 	UPROPERTY(EditAnywhere, Config, Category = "Editor Settings")
 	bool PremultiplyAlpha;
