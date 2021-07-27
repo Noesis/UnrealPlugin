@@ -24,6 +24,16 @@ Noesis::Ptr<Noesis::Texture> NoesisCreateTexture(UTexture* Texture)
 	return FNoesisRenderDevice::CreateTexture(Texture);
 }
 
+void* NoesisCreateMaterial(UMaterialInterface* Material)
+{
+	return FNoesisRenderDevice::CreateMaterial(Material);
+}
+
+void NoesisDestroyMaterial(void* Material)
+{
+	FNoesisRenderDevice::DestroyMaterial(Material);
+}
+
 void CollectElements(Noesis::FrameworkElement* Element, TArray<Noesis::FrameworkElement*>& Elements)
 {
 	const char* ElementName = Element->GetName();

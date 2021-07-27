@@ -52,7 +52,9 @@ void FNoesisBlueprintEditorToolbar::FillNoesisBlueprintEditorModesToolbar(FToolB
 			.OnGetActiveMode(GetActiveMode)
 			.OnSetActiveMode(SetActiveMode)
 			.IconImage(FEditorStyle::GetBrush("UMGEditor.SwitchToDesigner"))
+#if ENGINE_MAJOR_VERSION < 5
 			.SmallIconImage(FEditorStyle::GetBrush("UMGEditor.SwitchToDesigner.Small"))
+#endif
 			.AddMetaData<FTagMetaData>(FTagMetaData(TEXT("PreviewMode")))
 		);
 
@@ -65,7 +67,9 @@ void FNoesisBlueprintEditorToolbar::FillNoesisBlueprintEditorModesToolbar(FToolB
 			.CanBeSelected(BlueprintEditorPtr.Get(), &FBlueprintEditor::IsEditingSingleBlueprint)
 			.ToolTipText(LOCTEXT("GraphModeButtonTooltip", "Switch to Graph Editing Mode"))
 			.IconImage(FEditorStyle::GetBrush("FullBlueprintEditor.SwitchToScriptingMode"))
+#if ENGINE_MAJOR_VERSION < 5
 			.SmallIconImage(FEditorStyle::GetBrush("FullBlueprintEditor.SwitchToScriptingMode.Small"))
+#endif
 			.AddMetaData<FTagMetaData>(FTagMetaData(TEXT("GraphMode")))
 		);
 

@@ -1,5 +1,5 @@
 #include "/Engine/Private/Common.ush"
-#include "/Engine/Private/GammaCorrectionCommon.ush"
+#include "/Engine/Generated/Material.ush"
 
 #ifndef EFFECT
     #error EFFECT not defined
@@ -348,20 +348,11 @@
     #define HAS_UV1 1
 #endif
 
-Texture2D patternTex;
-SamplerState patternSampler;
-
-Texture2D rampsTex;
-SamplerState rampsSampler;
-
 Texture2D imageTex;
 SamplerState imageSampler;
 
 Texture2D glyphsTex;
 SamplerState glyphsSampler;
-
-Texture2D shadowTex;
-SamplerState shadowSampler;
 
 struct In
 {
@@ -419,47 +410,30 @@ Out NoesisPS(in In i)
     /////////////////////////////////////////////////////
     // Fetch paint color and opacity
     /////////////////////////////////////////////////////
-    #if PAINT_SOLID
-        half4 paint = i.color;
-        half opacity_ = 1.0;
+    #if PAINT_PATTERN
+        ResolvedView = ResolveView();
+        FMaterialPixelParameters Parameters = MakeInitializedMaterialPixelParameters();
 
-    #elif PAINT_LINEAR
-        half4 paint = Texture2DSample(rampsTex, rampsSampler, i.uv0);
-        half opacity_ = NoesisPSOpacityConstants.opacity;
-
-    #elif PAINT_RADIAL
-        half dd = NoesisPSRadialGradConstants.radialGrad[1].x * i.uv0.x - NoesisPSRadialGradConstants.radialGrad[1].y * i.uv0.y;
-        half u = NoesisPSRadialGradConstants.radialGrad[0].x * i.uv0.x + NoesisPSRadialGradConstants.radialGrad[0].y * i.uv0.y + NoesisPSRadialGradConstants.radialGrad[0].z *
-            sqrt(i.uv0.x * i.uv0.x + i.uv0.y * i.uv0.y - dd * dd);
-        half4 paint = Texture2DSample(rampsTex, rampsSampler, half2(u, NoesisPSRadialGradConstants.radialGrad[1].z));
-        half opacity_ = NoesisPSRadialGradConstants.radialGrad[0].w;
-
-    #elif PAINT_PATTERN
-        #if CLAMP_PATTERN
-            float inside = all(i.uv0 == clamp(i.uv0, i.rect.xy, i.rect.zw));
-            half4 paint = inside * Texture2DSample(patternTex, patternSampler, i.uv0);
-        #elif REPEAT_PATTERN || MIRRORU_PATTERN || MIRRORV_PATTERN || MIRROR_PATTERN
-            float2 uv = (i.uv0 - i.tile.xy) / i.tile.zw;
-            #if REPEAT_PATTERN
-                uv = frac(uv);
-            #elif MIRRORU_PATTERN
-                uv.x = abs(uv.x - 2.0 * floor((uv.x - 1.0) / 2.0) - 2.0);
-                uv.y = frac(uv.y);
-            #elif MIRRORV_PATTERN
-                uv.x = frac(uv.x);
-                uv.y = abs(uv.y - 2.0 * floor((uv.y - 1.0) / 2.0) - 2.0);
-            #else 
-                uv = abs(uv - 2.0 * floor((uv - 1.0) / 2.0) - 2.0);
-            #endif
-            uv = uv * i.tile.zw + i.tile.xy;
-            float inside = all(uv == clamp(uv, i.rect.xy, i.rect.zw));
-            half4 paint = inside * Texture2DSampleGrad(patternTex, patternSampler, uv, ddx(i.uv0), ddy(i.uv0));
-        #else
-            half4 paint = Texture2DSample(patternTex, patternSampler, i.uv0);
+        #if NUM_MATERIAL_TEXCOORDS
+            UNROLL
+            for( int CoordinateIndex = 0; CoordinateIndex < NUM_MATERIAL_TEXCOORDS; CoordinateIndex++ )
+            {
+                Parameters.TexCoords[CoordinateIndex] = i.uv0;
+            }
         #endif
-        #if PATTERN_SRGB
-            paint.xyz = LinearToSrgb(paint.xyz);
-        #endif
+
+        Parameters.VertexColor = half4(1, 1, 1, 1);
+
+        FPixelMaterialInputs PixelMaterialInputs;
+        CalcMaterialParameters( Parameters, PixelMaterialInputs, i.position, true );
+
+        // Clip if masked
+        GetMaterialCoverageAndClipping( Parameters, PixelMaterialInputs );
+
+        half Opacity = GetMaterialOpacity(PixelMaterialInputs);
+        half3 Color = GetMaterialEmissive(PixelMaterialInputs);
+
+        half4 paint = half4(Color * Opacity, Opacity); // Premultiplied alpha
         half opacity_ = NoesisPSOpacityConstants.opacity;
     #endif
 
@@ -468,16 +442,7 @@ Out NoesisPS(in In i)
     /////////////////////////////////////////////////////
     // Apply selected effect
     /////////////////////////////////////////////////////
-    #if EFFECT_RGBA
-        o.color = NoesisPSRgbaConstants.rgba;
-
-    #elif EFFECT_MASK
-        o.color = half4(1.0f, 1.0f, 1.0f, 1.0f);
-
-    #elif EFFECT_CLEAR
-        o.color = half4(0.0f, 0.0f, 0.0f, 0.0f);
-
-    #elif EFFECT_PATH
+    #if EFFECT_PATH
         o.color = opacity_ * paint;
 
     #elif EFFECT_PATH_AA
@@ -485,15 +450,6 @@ Out NoesisPS(in In i)
 
     #elif EFFECT_OPACITY
         o.color = Texture2DSample(imageTex, imageSampler, i.uv1) * (opacity_ * paint.a);
-
-    #elif EFFECT_SHADOW
-        half2 uv = clamp(i.uv1 - NoesisShadowConstants.shadowOffset, i.rect.xy, i.rect.zw);
-        half alpha = lerp(Texture2DSample(imageTex, imageSampler, uv).a, Texture2DSample(shadowTex, shadowSampler, uv).a, NoesisShadowConstants.blend);
-        half4 img = Texture2DSample(imageTex, imageSampler, clamp(i.uv1, i.rect.xy, i.rect.zw));
-        o.color = (img + (1.0 - img.a) * (NoesisShadowConstants.shadowColor * alpha)) * paint.a;
-
-    #elif EFFECT_BLUR
-        o.color = lerp(Texture2DSample(imageTex, imageSampler, i.uv1), Texture2DSample(shadowTex, shadowSampler, i.uv1), NoesisBlurConstants.blend) * paint.a;
 
     #elif EFFECT_SDF
         half4 color = Texture2DSample(glyphsTex, glyphsSampler, i.uv1);
@@ -541,18 +497,6 @@ Out NoesisPS(in In i)
 
         o.color = half4(opacity_ * paint.rgb * alpha.rgb, alpha.g);
         o.alpha = half4((opacity_ * paint.a) * alpha.rgb, alpha.g);
-
-    #elif EFFECT_DOWNSAMPLE
-        o.color = 
-        (
-            Texture2DSample(patternTex, patternSampler, i.uv0) +
-            Texture2DSample(patternTex, patternSampler, i.uv1) +
-            Texture2DSample(patternTex, patternSampler, i.uv2) +
-            Texture2DSample(patternTex, patternSampler, i.uv3)
-        ) * 0.25;
-
-    #elif EFFECT_UPSAMPLE
-        o.color = lerp(Texture2DSample(imageTex, imageSampler, i.uv1), Texture2DSample(patternTex, patternSampler, i.uv0), paint.a);
 
     #endif
 

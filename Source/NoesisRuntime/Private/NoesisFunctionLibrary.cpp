@@ -12,6 +12,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetArrayLibrary.h"
+#include "Kismet/BlueprintMapLibrary.h"
 
 // NoesisRuntime includes
 #include "NoesisTypeClass.h"
@@ -391,4 +392,110 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Set)
 	}
 	P_NATIVE_END;
 	InnerProp->DestroyValue(StorageSpace);
+}
+
+DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisMap_Add)
+{
+	Stack.MostRecentProperty = nullptr;
+	Stack.StepCompiledIn<FMapProperty>(NULL);
+	void* MapAddr = Stack.MostRecentPropertyAddress;
+	FMapProperty* MapProperty = CastField<FMapProperty>(Stack.MostRecentProperty);
+	if (!MapProperty)
+	{
+		Stack.bArrayContextFailed = true;
+		return;
+	}
+
+	// Since Key and Value aren't really an int, step the stack manually
+	const FProperty* CurrKeyProp = MapProperty->KeyProp;
+	const int32 KeyPropertySize = CurrKeyProp->ElementSize * CurrKeyProp->ArrayDim;
+	void* KeyStorageSpace = FMemory_Alloca(KeyPropertySize);
+	CurrKeyProp->InitializeValue(KeyStorageSpace);
+
+	Stack.MostRecentPropertyAddress = NULL;
+	Stack.StepCompiledIn<FProperty>(KeyStorageSpace);
+
+	const FProperty* CurrValueProp = MapProperty->ValueProp;
+	const int32 ValuePropertySize = CurrValueProp->ElementSize * CurrValueProp->ArrayDim;
+	void* ValueStorageSpace = FMemory_Alloca(ValuePropertySize);
+	CurrValueProp->InitializeValue(ValueStorageSpace);
+
+	Stack.MostRecentPropertyAddress = NULL;
+	Stack.StepCompiledIn<FProperty>(ValueStorageSpace);
+
+	P_FINISH;
+
+	P_NATIVE_BEGIN;
+	UBlueprintMapLibrary::GenericMap_Add(MapAddr, MapProperty, KeyStorageSpace, ValueStorageSpace);
+	if (CurrKeyProp->IsA<FStrProperty>())
+	{
+		FString* KeyPtr = (FString*)KeyStorageSpace;
+		NoesisNotifyMapPropertyPostAdd(MapAddr, *KeyPtr);
+	}
+	P_NATIVE_END;
+
+	CurrValueProp->DestroyValue(ValueStorageSpace);
+	CurrKeyProp->DestroyValue(KeyStorageSpace);
+}
+
+DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisMap_Remove)
+{
+	Stack.MostRecentProperty = nullptr;
+	Stack.StepCompiledIn<FMapProperty>(NULL);
+	void* MapAddr = Stack.MostRecentPropertyAddress;
+	FMapProperty* MapProperty = CastField<FMapProperty>(Stack.MostRecentProperty);
+	if (!MapProperty)
+	{
+		Stack.bArrayContextFailed = true;
+		return;
+	}
+
+	// Since Key and Value aren't really an int, step the stack manually
+	const FProperty* CurrKeyProp = MapProperty->KeyProp;
+	const int32 KeyPropertySize = CurrKeyProp->ElementSize * CurrKeyProp->ArrayDim;
+	void* KeyStorageSpace = FMemory_Alloca(KeyPropertySize);
+	CurrKeyProp->InitializeValue(KeyStorageSpace);
+
+	Stack.MostRecentPropertyAddress = NULL;
+	Stack.StepCompiledIn<FProperty>(KeyStorageSpace);
+
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	if (CurrKeyProp->IsA<FStrProperty>())
+	{
+		FString* KeyPtr = (FString*)KeyStorageSpace;
+		NoesisNotifyMapPropertyPreRemove(MapAddr, *KeyPtr);
+	}
+	*(bool*)RESULT_PARAM = UBlueprintMapLibrary::GenericMap_Remove(MapAddr, MapProperty, KeyStorageSpace);
+	if (CurrKeyProp->IsA<FStrProperty>())
+	{
+		FString* KeyPtr = (FString*)KeyStorageSpace;
+		NoesisNotifyMapPropertyPostRemove(MapAddr, *KeyPtr);
+	}
+	P_NATIVE_END;
+
+	CurrKeyProp->DestroyValue(KeyStorageSpace);
+}
+
+DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisMap_Clear)
+{
+	Stack.MostRecentProperty = nullptr;
+	Stack.StepCompiledIn<FMapProperty>(NULL);
+	void* MapAddr = Stack.MostRecentPropertyAddress;
+	FMapProperty* MapProperty = CastField<FMapProperty>(Stack.MostRecentProperty);
+	if (!MapProperty)
+	{
+		Stack.bArrayContextFailed = true;
+		return;
+	}
+
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	UBlueprintMapLibrary::GenericMap_Clear(MapAddr, MapProperty);
+	const FProperty* CurrKeyProp = MapProperty->KeyProp;
+	if (CurrKeyProp->IsA<FStrProperty>())
+	{
+		NoesisNotifyMapPropertyPostChanged(MapAddr);
+	}
+	P_NATIVE_END
 }

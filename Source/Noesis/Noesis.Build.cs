@@ -6,7 +6,6 @@
 using UnrealBuildTool;
 using System;
 using System.IO;
-using Tools.DotNETCommon;
 
 public class Noesis : ModuleRules
 {
@@ -86,12 +85,11 @@ public class Noesis : ModuleRules
 			string NoesisAplPath = "Noesis_APL.xml";
 			AdditionalPropertiesForReceipt.Add("AndroidPlugin", Path.Combine(ModuleDirectory, NoesisAplPath));
 		}
-		else if (Target.Platform == UnrealTargetPlatform.PS4)
+		else if (UnrealTargetPlatform.TryParse("HTML5", out Platform) && Target.Platform == Platform)
 		{
-			PublicDefinitions.Add("NS_STATIC_LIBRARY");
-			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "ps4", "Noesis.a"));
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "wasm", "Noesis.bc"));
 		}
-		else if (Target.Platform == UnrealTargetPlatform.XboxOne)
+		else if (UnrealTargetPlatform.TryParse("XboxOne", out Platform) && Target.Platform == Platform)
 		{
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "xbox_one", "Noesis.lib"));
 
@@ -100,9 +98,29 @@ public class Noesis : ModuleRules
 
 			RuntimeDependencies.Add(NoesisDllTargetPath, NoesisDllPath, StagedFileType.NonUFS);
 		}
-		else if (UnrealTargetPlatform.TryParse("HTML5", out Platform) && Target.Platform == Platform)
+		else if (UnrealTargetPlatform.TryParse("XSX", out Platform) && Target.Platform == Platform)
 		{
-			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "wasm", "Noesis.bc"));
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "xbox_series", "Noesis.lib"));
+
+			string NoesisDllPath = Path.Combine(NoesisBasePath, "Bin", "xbox_series", "Noesis.dll");
+			string NoesisDllTargetPath = Path.Combine("$(BinaryOutputDir)", "Noesis.dll");
+
+			RuntimeDependencies.Add(NoesisDllTargetPath, NoesisDllPath, StagedFileType.NonUFS);
+		}
+		else if (Target.Platform == UnrealTargetPlatform.PS4)
+		{
+			PublicDefinitions.Add("NS_STATIC_LIBRARY");
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "ps4", "Noesis.a"));
+		}
+		else if (UnrealTargetPlatform.TryParse("PS5", out Platform) && Target.Platform == Platform)
+		{
+			PublicDefinitions.Add("NS_STATIC_LIBRARY");
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "ps5", "Noesis.a"));
+		}
+		else if (Target.Platform == UnrealTargetPlatform.Switch)
+		{
+			PublicDefinitions.Add("NS_STATIC_LIBRARY");
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "nx", "Noesis.a"));
 		}
 	}
 }

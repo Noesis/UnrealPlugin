@@ -1,0 +1,142 @@
+#include "/Engine/Private/Common.ush"
+#include "/Engine/Private/ScreenPass.ush"
+
+#ifndef POST_PROCESS_MATERIAL
+    #define POST_PROCESS_MATERIAL 0
+#endif
+
+#ifndef POST_PROCESS_MATERIAL_MOBILE
+    #define POST_PROCESS_MATERIAL_MOBILE 0
+#endif
+
+#if (POST_PROCESS_MATERIAL == 0)
+    #error POST_PROCESS_MATERIAL must be defined to non-zero in the shader compilation environment.
+#endif
+
+// Must match ESceneTextureId
+#define PPI_PostProcessInput0 14
+#define PPI_PostProcessInput1 15
+#define PPI_PostProcessInput2 16
+#define PPI_PostProcessInput3 17
+#define PPI_PostProcessInput4 18
+
+static float2 PostProcessInput_0_Extent;
+static float2 PostProcessInput_0_ExtentInverse;
+static float2 PostProcessInput_0_ScreenPosToViewportScale;
+static float2 PostProcessInput_0_ScreenPosToViewportBias;
+static uint2  PostProcessInput_0_ViewportMin;
+static uint2  PostProcessInput_0_ViewportMax;
+static float2 PostProcessInput_0_ViewportSize;
+static float2 PostProcessInput_0_ViewportSizeInverse;
+static float2 PostProcessInput_0_UVViewportMin;
+static float2 PostProcessInput_0_UVViewportMax;
+static float2 PostProcessInput_0_UVViewportSize;
+static float2 PostProcessInput_0_UVViewportSizeInverse;
+static float2 PostProcessInput_0_UVViewportBilinearMin;
+static float2 PostProcessInput_0_UVViewportBilinearMax;
+
+SCREEN_PASS_TEXTURE_VIEWPORT(PostProcessInput_1)
+SCREEN_PASS_TEXTURE_VIEWPORT(PostProcessInput_2)
+SCREEN_PASS_TEXTURE_VIEWPORT(PostProcessInput_3)
+SCREEN_PASS_TEXTURE_VIEWPORT(PostProcessInput_4)
+SCREEN_PASS_TEXTURE_VIEWPORT(PostProcessOutput)
+
+Texture2D PostProcessInput_0_Texture;
+Texture2D PostProcessInput_1_Texture;
+Texture2D PostProcessInput_2_Texture;
+Texture2D PostProcessInput_3_Texture;
+Texture2D PostProcessInput_4_Texture;
+
+SamplerState PostProcessInput_0_Sampler;
+SamplerState PostProcessInput_1_Sampler;
+SamplerState PostProcessInput_2_Sampler;
+SamplerState PostProcessInput_3_Sampler;
+SamplerState PostProcessInput_4_Sampler;
+SamplerState PostProcessInput_BilinearSampler;
+
+#if SUPPORTS_INDEPENDENT_SAMPLERS
+	#define PostProcessInput_0_SharedSampler PostProcessInput_0_Sampler
+	#define PostProcessInput_1_SharedSampler PostProcessInput_0_Sampler
+	#define PostProcessInput_2_SharedSampler PostProcessInput_0_Sampler
+	#define PostProcessInput_3_SharedSampler PostProcessInput_0_Sampler
+	#define PostProcessInput_4_SharedSampler PostProcessInput_0_Sampler
+#else
+	#define PostProcessInput_0_SharedSampler PostProcessInput_0_Sampler
+	#define PostProcessInput_1_SharedSampler PostProcessInput_1_Sampler
+	#define PostProcessInput_2_SharedSampler PostProcessInput_2_Sampler
+	#define PostProcessInput_3_SharedSampler PostProcessInput_3_Sampler
+	#define PostProcessInput_4_SharedSampler PostProcessInput_4_Sampler
+#endif
+
+#define EYE_ADAPTATION_LOOSE_PARAMETERS 1
+
+#include "/Engine/Generated/Material.ush"
+
+struct In
+{
+    float4 position: SV_POSITION;
+    nointerpolation half4 color: COLOR;
+    float2 uv0: TEXCOORD0;
+    nointerpolation float4 rect: RECT;
+    float4 imagePos: IMAGE_POSITION;
+};
+
+struct Out
+{
+    half4 color: SV_Target0;
+};
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Out NoesisPS(in In i)
+{
+    ResolvedView = ResolveView();
+    FMaterialPixelParameters Parameters = MakeInitializedMaterialPixelParameters();
+
+    PostProcessInput_0_Extent = PostProcessInput_1_Extent;
+    PostProcessInput_0_ExtentInverse = PostProcessInput_1_ExtentInverse;
+
+    PostProcessInput_0_ScreenPosToViewportScale = PostProcessInput_1_ScreenPosToViewportScale;
+    PostProcessInput_0_ScreenPosToViewportBias = PostProcessInput_1_ScreenPosToViewportBias;
+
+    PostProcessInput_0_UVViewportBilinearMin = i.rect.xy;
+    PostProcessInput_0_UVViewportBilinearMax = i.rect.zw;
+
+    PostProcessInput_0_UVViewportSize = (i.rect.zw - i.rect.xy) + PostProcessInput_0_ExtentInverse;
+    PostProcessInput_0_UVViewportSizeInverse = 1.0 / PostProcessInput_0_UVViewportSize;
+
+    PostProcessInput_0_UVViewportMin = i.rect.xy - 0.5 * PostProcessInput_0_ExtentInverse;
+    PostProcessInput_0_UVViewportMax = i.rect.zw + 0.5 * PostProcessInput_0_ExtentInverse;
+
+    PostProcessInput_0_ViewportSize = PostProcessInput_0_UVViewportSize / i.imagePos.zw;
+    PostProcessInput_0_ViewportSizeInverse = 1.0 / PostProcessInput_0_ViewportSize;
+
+    PostProcessInput_0_ViewportMin = (uint2)(PostProcessInput_0_UVViewportMin * PostProcessInput_0_Extent);
+    PostProcessInput_0_ViewportMax = (uint2)(PostProcessInput_0_UVViewportMax * PostProcessInput_0_Extent);
+
+    #if NUM_MATERIAL_TEXCOORDS
+        float2 uv = (i.uv0 - PostProcessInput_0_UVViewportMin) / PostProcessInput_0_UVViewportSize;
+        UNROLL
+        for( int CoordinateIndex = 0; CoordinateIndex < NUM_MATERIAL_TEXCOORDS; CoordinateIndex++ )
+        {
+            Parameters.TexCoords[CoordinateIndex] = uv;
+        }
+    #endif
+
+    Parameters.VertexColor = i.color;
+
+    FPixelMaterialInputs PixelMaterialInputs;
+    CalcMaterialParameters( Parameters, PixelMaterialInputs, i.position, true );
+
+    // Clip if masked
+    GetMaterialCoverageAndClipping( Parameters, PixelMaterialInputs );
+
+    half Opacity = GetMaterialOpacity(PixelMaterialInputs);
+    half3 Color = GetMaterialEmissive(PixelMaterialInputs);
+
+    Out o;
+
+    o.color = half4(Color * Opacity, Opacity); // Premultiplied alpha
+
+    return o;
+}

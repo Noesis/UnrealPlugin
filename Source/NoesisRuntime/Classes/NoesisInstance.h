@@ -44,6 +44,9 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	float Width;
 	float Height;
 	float CurrentTime;
+	float WorldTimeSeconds;
+	float WorldDeltaSeconds;
+	float WorldRealTimeSeconds;
 	bool FlipYAxis;
 
 	typedef TSharedPtr<class FNoesisSlateElement, ESPMode::ThreadSafe> FNoesisSlateElementPtr;
@@ -99,7 +102,6 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	void TermInstance();
 
 	// UObject interface
-	virtual class UWorld* GetWorld() const override;
 	virtual void BeginDestroy() override;
 	// End of UObject interface
 
@@ -110,6 +112,8 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 
 	void DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRef& BackBuffer);
 #endif // WITH_EDITOR
+
+	void UpdateWorldTimes();
 
 	// UUserWidget interface
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;

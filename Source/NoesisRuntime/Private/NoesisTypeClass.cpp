@@ -12,6 +12,7 @@
 #include "UObject/TextProperty.h"
 #include "UObject/UObjectIterator.h"
 #include "UObject/UObjectThreadContext.h"
+#include "UObject/FieldIterator.h"
 
 // Engine includes
 #include "Engine/Texture2D.h"
@@ -19,6 +20,9 @@
 #include "Engine/Blueprint.h"
 #include "Engine/UserDefinedStruct.h"
 #include "Engine/UserDefinedEnum.h"
+#include "Materials/Material.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "Slate/SlateTextureAtlasInterface.h"
 
 // AssetRegistry includes
 #include "AssetRegistryModule.h"
@@ -44,23 +48,680 @@ DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertyClear"), STAT_NoesisNotifyArra
 DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertyResize"), STAT_NoesisNotifyArrayPropertyResize, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertySet"), STAT_NoesisNotifyArrayPropertySet, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("NoesisGarbageCollected"), STAT_NoesisGarbageCollected, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisNotifyMapPropertyAdd"), STAT_NoesisNotifyMapPropertyAdd, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisNotifyMapPropertyChanged"), STAT_NoesisNotifyMapPropertyChanged, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisNotifyMapPropertyRemove"), STAT_NoesisNotifyMapPropertyRemove, STATGROUP_Noesis);
+
+Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForTArray(void*, FArrayProperty*);
+Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForTArrayStruct(void*, FArrayProperty*, void*);
+const Noesis::Type* NoesisCreateTypeForTArray(FArrayProperty*);
+Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForTMap(void* MapPtr, FMapProperty* MapProperty);
+Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForTMapStruct(void* MapPtr, FMapProperty* MapProperty, void* StructPtr);
+const Noesis::Type* NoesisCreateTypeForTMap(FMapProperty* MapProperty);
+bool AssignStruct(void*, UScriptStruct*, Noesis::BaseComponent*);
+const Noesis::Type* NoesisGetTypeForUClass(UClass*);
+const Noesis::Type* NoesisGetTypeForUStruct(UStruct*);
+Noesis::TypeClass* NoesisCreateTypeClassForUMaterial(UMaterialInterface* Material);
+Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUTexture(UTexture*);
+
+template<class UnrealType>
+struct NoesisTypeTraits
+{
+	typedef UnrealType NoesisType;
+	static NoesisType ToNoesis(const UnrealType& Value)
+	{
+		return Value;
+	}
+	static UnrealType ToUnreal(const NoesisType& Value)
+	{
+		return Value;
+	}
+	static bool Equals(const UnrealType& Left, const UnrealType& Right)
+	{
+		return Left == Right;
+	}
+};
+
+template<>
+struct NoesisTypeTraits<FString>
+{
+	typedef Noesis::String NoesisType;
+	static Noesis::String ToNoesis(const FString& Value)
+	{
+		return TCHARToNsString(*Value);
+	}
+	static FString ToUnreal(const Noesis::String& Value)
+	{
+		return NsStringToFString(Value.Str());
+	}
+	static bool Equals(const FString& Left, const FString& Right)
+	{
+		return Left == Right;
+	}
+};
+
+template<>
+struct NoesisTypeTraits<FText>
+{
+	typedef Noesis::String NoesisType;
+	static Noesis::String ToNoesis(const FText& Value)
+	{
+		return TCHARToNsString(*Value.ToString());
+	}
+	static FText ToUnreal(const Noesis::String& Value)
+	{
+		return FText::FromString(NsStringToFString(Value.Str()));
+	}
+	static bool Equals(const FText& Left, const FText& Right)
+	{
+		return Left.EqualTo(Right);
+	}
+};
+
+template<>
+struct NoesisTypeTraits<FColor>
+{
+	typedef Noesis::Color NoesisType;
+	static Noesis::Color ToNoesis(const FColor& Value)
+	{
+#if PLATFORM_LITTLE_ENDIAN
+		return Noesis::Color::FromPackedBGRA(Value.DWColor());
+#else // PLATFORM_LITTLE_ENDIAN
+		return Noesis::Color(Value.R, Value.G, Value.B, Value.A);
+#endif
+	}
+	static FColor ToUnreal(const Noesis::Color& Value)
+	{
+#if PLATFORM_LITTLE_ENDIAN
+		return FColor(Value.GetPackedColorBGRA());
+#else // PLATFORM_LITTLE_ENDIAN
+		return FColor(Value.G, Value.R, Value.A, Value.B);
+#endif
+	}
+	static bool Equals(const FColor& Left, const FColor& Right)
+	{
+		return Left == Right;
+	}
+};
+
+template<>
+struct NoesisTypeTraits<FVector2D>
+{
+	typedef Noesis::Point NoesisType;
+	static Noesis::Point ToNoesis(const FVector2D& Value)
+	{
+		return Noesis::Point(Value.X, Value.Y);
+	}
+	static FVector2D ToUnreal(const Noesis::Point& Value)
+	{
+		return FVector2D(Value.x, Value.y);
+	}
+	static bool Equals(const FVector2D& Left, const FVector2D& Right)
+	{
+		return Left == Right;
+	}
+};
+
+template<>
+struct NoesisTypeTraits<FBox2D>
+{
+	typedef Noesis::Rect NoesisType;
+	static Noesis::Rect ToNoesis(const FBox2D& Value)
+	{
+		return Noesis::Rect(Value.Min.X, Value.Min.Y, Value.Max.X, Value.Max.Y);
+	}
+	static FBox2D ToUnreal(const Noesis::Rect& Value)
+	{
+		return FBox2D(FVector2D(Value.x, Value.y), FVector2D(Value.x + Value.width, Value.y + Value.height));
+	}
+	static bool Equals(const FBox2D& Left, const FBox2D& Right)
+	{
+		return Left == Right;
+	}
+};
+
+template<>
+struct NoesisTypeTraits<FNoesisSize>
+{
+	typedef Noesis::Size NoesisType;
+	static Noesis::Size ToNoesis(const FNoesisSize& Value)
+	{
+		return Value.ToNoesis();
+	}
+	static FNoesisSize ToUnreal(const Noesis::Size& Value)
+	{
+		return FNoesisSize(Value);
+	}
+	static bool Equals(const FNoesisSize& Left, const FNoesisSize& Right)
+	{
+		return Left.Width == Right.Width && Left.Height == Right.Height;
+	}
+};
+
+template<>
+struct NoesisTypeTraits<FNoesisCornerRadius>
+{
+	typedef Noesis::CornerRadius NoesisType;
+	static Noesis::CornerRadius ToNoesis(const FNoesisCornerRadius& Value)
+	{
+		return Value.ToNoesis();
+	}
+	static FNoesisCornerRadius ToUnreal(const Noesis::CornerRadius& Value)
+	{
+		return FNoesisCornerRadius(Value);
+	}
+	static bool Equals(const FNoesisCornerRadius& Left, const FNoesisCornerRadius& Right)
+	{
+		return Left.TopLeft == Right.TopLeft && Left.TopRight == Right.TopRight &&
+			Left.BottomRight == Right.BottomRight && Left.BottomLeft == Right.BottomLeft;
+	}
+};
+
+template<>
+struct NoesisTypeTraits<FNoesisThickness>
+{
+	typedef Noesis::Thickness NoesisType;
+	static Noesis::Thickness ToNoesis(const FNoesisThickness& Value)
+	{
+		return Value.ToNoesis();
+	}
+	static FNoesisThickness ToUnreal(const Noesis::Thickness& Value)
+	{
+		return FNoesisThickness(Value);
+	}
+	static bool Equals(const FNoesisThickness& Left, const FNoesisThickness& Right)
+	{
+		return Left.Left == Right.Left && Left.Top == Right.Top &&
+			Left.Right == Right.Right && Left.Bottom == Right.Bottom;
+	}
+};
+
+template<>
+struct NoesisTypeTraits<FNoesisDuration>
+{
+	typedef Noesis::Duration NoesisType;
+	static Noesis::Duration ToNoesis(const FNoesisDuration& Value)
+	{
+		return Value.ToNoesis();
+	}
+	static FNoesisDuration ToUnreal(const Noesis::Duration& Value)
+	{
+		return FNoesisDuration(Value);
+	}
+	static bool Equals(const FNoesisDuration& Left, const FNoesisDuration& Right)
+	{
+		return Left.DurationType == Right.DurationType && Left.Milliseconds == Right.Milliseconds;
+	}
+};
+
+template<>
+struct NoesisTypeTraits<FNoesisKeyTime>
+{
+	typedef Noesis::KeyTime NoesisType;
+	static Noesis::KeyTime ToNoesis(const FNoesisKeyTime& Value)
+	{
+		return Value.ToNoesis();
+	}
+	static FNoesisKeyTime ToUnreal(const Noesis::KeyTime& Value)
+	{
+		return FNoesisKeyTime(Value);
+	}
+	static bool Equals(const FNoesisKeyTime& Left, const FNoesisKeyTime& Right)
+	{
+		return Left.TextForm == Right.TextForm;
+	}
+};
+
+template<>
+struct NoesisTypeTraits<FTimespan>
+{
+	typedef Noesis::TimeSpan NoesisType;
+	static Noesis::TimeSpan ToNoesis(const FTimespan& Value)
+	{
+		return Noesis::TimeSpan((int64_t)Value.GetTicks());
+	}
+	static FTimespan ToUnreal(const Noesis::TimeSpan& Value)
+	{
+		return FTimespan(Value.GetTicks());
+	}
+	static bool Equals(const FTimespan& Left, const FTimespan& Right)
+	{
+		return Left.GetTicks() == Right.GetTicks();
+	}
+};
+
+template<>
+struct NoesisTypeTraits<UTexture2D*>
+{
+	typedef Noesis::TextureSource* NoesisType;
+	static Noesis::Ptr<Noesis::BaseComponent> ToNoesis(UObject* Value)
+	{
+		check(Value->IsA<UTexture2D>());
+		return NoesisCreateComponentForUTexture((UTexture2D*)Value);
+	}
+	static UObject* ToUnreal(Noesis::BaseComponent* Value)
+	{
+		return nullptr;
+	}
+	static bool Equals(UObject* Left, UObject* Right)
+	{
+		return Left == Right;
+	}
+};
+
+template<>
+struct NoesisTypeTraits<UTextureRenderTarget2D*>
+{
+	typedef Noesis::TextureSource* NoesisType;
+	static Noesis::Ptr<Noesis::BaseComponent> ToNoesis(UObject* Value)
+	{
+		check(Value->IsA<UTextureRenderTarget2D>());
+		return NoesisCreateComponentForUTexture((UTextureRenderTarget2D*)Value);
+	}
+	static UObject* ToUnreal(Noesis::BaseComponent* Value)
+	{
+		return nullptr;
+	}
+	static bool Equals(UObject* Left, UObject* Right)
+	{
+		return Left == Right;
+	}
+};
+
+template<class T>
+Noesis::Ptr<Noesis::BaseComponent> GenericGetter(void* BasePointer, FProperty* Property)
+{
+	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
+	T& TValue = *(T*)Value;
+	return Noesis::Boxing::Box<typename NoesisTypeTraits<T>::NoesisType>(NoesisTypeTraits<T>::ToNoesis(TValue));
+}
+
+template<class T>
+bool GenericSetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)
+{
+	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
+	T TInput = NoesisTypeTraits<T>::ToUnreal(Noesis::Boxing::Unbox<typename NoesisTypeTraits<T>::NoesisType>(Input));
+	T& TValue = *(T*)Value;
+	bool Changed = !NoesisTypeTraits<T>::Equals(TInput, TValue);
+	TValue = TInput;
+	return Changed;
+}
+
+template<class T>
+const Noesis::Type* GenericGetType(FProperty*)
+{
+	return Noesis::TypeOf<typename NoesisTypeTraits<T>::NoesisType>();
+}
+
+template<class T>
+Noesis::Ptr<Noesis::BaseComponent> GenericGetterPtr(void* BasePointer, FProperty* Property)
+{
+	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
+	T& TValue = *(T*)Value;
+	return Noesis::Ptr<Noesis::RemovePointer<typename NoesisTypeTraits<T>::NoesisType>>(*NoesisTypeTraits<T>::ToNoesis(TValue));
+}
+
+template<class T>
+bool GenericSetterPtr(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)
+{
+	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
+	T TInput = NoesisTypeTraits<T>::ToUnreal((typename NoesisTypeTraits<T>::NoesisType)Input);
+	T& TValue = *(T*)Value;
+	bool Changed = !NoesisTypeTraits<T>::Equals(TInput, TValue);
+	TValue = TInput;
+	return Changed;
+}
+
+template<class T>
+const Noesis::Type* GenericGetTypePtr(FProperty*)
+{
+	return Noesis::TypeOf< Noesis::RemovePointer<typename NoesisTypeTraits<T>::NoesisType>>();
+}
+
+typedef Noesis::Ptr<Noesis::BaseComponent>(*GetterFn)(void*, FProperty*);
+typedef bool (*SetterFn)(Noesis::BaseComponent*, void*, FProperty*);
+typedef const Noesis::Type* (*GetTypeFn)(FProperty*);
+struct NoesisTypeInfo
+{
+	GetterFn Getter;
+	SetterFn Setter;
+	GetTypeFn GetType;
+};
+
+TMap<UScriptStruct*, NoesisTypeInfo> StructTypeInfos;
+
+Noesis::Ptr<Noesis::BaseComponent> StructGetter(void* BasePointer, FProperty* Property)
+{
+	check(Property->IsA<FStructProperty>());
+	FStructProperty* StructProperty = (FStructProperty*)Property;
+	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
+	return NoesisCreateComponentForUStruct(StructProperty->Struct, Value);
+}
+
+bool StructSetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)
+{
+	check(Property->IsA<FStructProperty>());
+	FStructProperty* StructProperty = (FStructProperty*)Property;
+	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
+	return AssignStruct(Value, StructProperty->Struct, Input);
+}
+
+const Noesis::Type* StructGetType(FProperty* Property)
+{
+	check(Property->IsA<FStructProperty>());
+	FStructProperty* StructProperty = (FStructProperty*)Property;
+	NoesisTypeInfo* TypeInfo = StructTypeInfos.Find(StructProperty->Struct);
+	if (TypeInfo != nullptr)
+	{
+		return (*TypeInfo->GetType)(Property);
+	}
+	else
+	{
+		return NoesisGetTypeForUStruct(StructProperty->Struct);
+		//return NoesisCreateTypeClassForUStruct(StructProperty->Struct);
+	}
+}
+
+Noesis::Ptr<Noesis::BaseComponent> EnumGetter(void* BasePointer, FProperty* Property)
+{
+	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
+	check(Property->IsA<FEnumProperty>());
+	FEnumProperty* EnumProperty = (FEnumProperty*)Property;
+	FNumericProperty* UnderlyingProperty = EnumProperty->GetUnderlyingProperty();
+	check(UnderlyingProperty->IsInteger());
+	int64 IntValue = UnderlyingProperty->GetSignedIntPropertyValue(Value);
+	return NoesisCreateComponentForUEnum(EnumProperty->GetEnum(), IntValue);
+}
+
+bool EnumSetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)
+{
+	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
+	check(Property->IsA<FEnumProperty>());
+	int32 EnumInput = Noesis::Boxing::Unbox<int32>(Input);
+	FEnumProperty* EnumProperty = (FEnumProperty*)Property;
+	FNumericProperty* UnderlyingProperty = EnumProperty->GetUnderlyingProperty();
+	check(UnderlyingProperty->IsInteger());
+	int64 IntValue = UnderlyingProperty->GetSignedIntPropertyValue(Value);
+	bool Changed = ((int64)EnumInput != IntValue);
+	UnderlyingProperty->SetIntPropertyValue(Value, (int64)EnumInput);
+	return Changed;
+}
+
+const Noesis::Type* EnumGetType(FProperty* Property)
+{
+	check(Property->IsA<FEnumProperty>());
+	FEnumProperty* EnumProperty = (FEnumProperty*)Property;
+	return NoesisCreateTypeEnumForUEnum(EnumProperty->GetEnum());
+}
+
+Noesis::Ptr<Noesis::BaseComponent> ByteGetter(void* BasePointer, FProperty* Property)
+{
+	check(Property->IsA<FByteProperty>());
+	FByteProperty* ByteProperty = (FByteProperty*)Property;
+	if (ByteProperty->Enum)
+	{
+		//Noesis::TypeEnum* TypeEnum = NoesisCreateTypeEnumForUEnum(ByteProperty->Enum);
+		void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
+		uint8& ByteValue = *(uint8*)Value;
+		return NoesisCreateComponentForUEnum(ByteProperty->Enum, (int64)ByteValue);
+	}
+	else
+	{
+		return GenericGetter<uint8>(BasePointer, Property);
+	}
+}
+
+bool ByteSetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)
+{
+	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
+	check(Property->IsA<FByteProperty>());
+	int32 EnumInput = Noesis::Boxing::Unbox<int32>(Input);
+	FByteProperty* ByteProperty = (FByteProperty*)Property;
+	int64 IntValue = ByteProperty->GetSignedIntPropertyValue(Value);
+	bool Changed = ((int64)EnumInput != IntValue);
+	ByteProperty->SetIntPropertyValue(Value, (int64)EnumInput);
+	return Changed;
+}
+
+const Noesis::Type* ByteGetType(FProperty* Property)
+{
+	check(Property->IsA<FByteProperty>());
+	FByteProperty* ByteProperty = (FByteProperty*)Property;
+	if (ByteProperty->Enum)
+	{
+		return NoesisCreateTypeEnumForUEnum(ByteProperty->Enum);
+	}
+	else
+	{
+		return Noesis::TypeOf<uint8>();
+	}
+}
+
+typedef Noesis::Ptr<Noesis::BaseComponent> (*WrapperFn)(UObject*);
+typedef UObject* (*UnwrapperFn)(Noesis::BaseComponent*);
+typedef const Noesis::Type* (*GetTypeFn)(FProperty*);
+struct NoesisClassConversion
+{
+	WrapperFn Wrapper;
+	UnwrapperFn Unwrapper;
+	const Noesis::Type* Type;
+
+	template<class T>
+	static NoesisClassConversion FromType()
+	{
+		NoesisClassConversion Ret;
+		Ret.Wrapper = &NoesisTypeTraits<T>::ToNoesis;
+		Ret.Unwrapper = &NoesisTypeTraits<T>::ToUnreal;
+		Ret.Type = Noesis::TypeOf<typename NoesisTypeTraits<T>::NoesisType>();
+		return Ret;
+	}
+};
+TMap<UClass*, NoesisClassConversion> ClassConversions;
+
+Noesis::Ptr<Noesis::BaseComponent> ObjectGetter(void* BasePointer, FProperty* Property)
+{
+	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
+	UObject*& Object = *(UObject**)Value;
+	check(Property->IsA<FObjectProperty>());
+	FObjectProperty* ObjectProperty = (FObjectProperty*)Property;
+	NoesisClassConversion* ClassConversion = ClassConversions.Find(ObjectProperty->PropertyClass);
+	if (ClassConversion != nullptr)
+	{
+		return (*ClassConversion->Wrapper)(Object);
+	}
+	else
+	{
+		return NoesisCreateComponentForUObject(Object);
+	}
+}
+
+bool ObjectSetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)
+{
+	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
+	UObject*& Object = *(UObject**)Value;
+	check(Property->IsA<FObjectProperty>());
+	FObjectProperty* ObjectProperty = (FObjectProperty*)Property;
+	NoesisClassConversion* ClassConversion = ClassConversions.Find(ObjectProperty->PropertyClass); 
+	if (ClassConversion != nullptr)
+	{
+		UObject* NewObject = (*ClassConversion->Unwrapper)(Input);
+		bool Changed = Object != NewObject;
+		Object = NewObject;
+		return Changed;
+	}
+	else
+	{
+		UObject* NewObject = NoesisCreateUObjectForComponent(Input);
+		bool Changed = Object != NewObject;
+		Object = NewObject;
+		return Changed;
+	}
+}
+
+const Noesis::Type* ObjectGetType(FProperty* Property)
+{
+	check(Property->IsA<FObjectProperty>());
+	FObjectProperty* ObjectProperty = (FObjectProperty*)Property;
+	NoesisClassConversion* ClassConversion = ClassConversions.Find(ObjectProperty->PropertyClass);
+	if (ClassConversion != nullptr)
+	{
+		return ClassConversion->Type;
+	}
+	else
+	{
+		return NoesisGetTypeForUClass(ObjectProperty->PropertyClass);
+	}
+}
+
+TMap<FFieldClass*, NoesisTypeInfo> TypeInfos;
+
+Noesis::Ptr<Noesis::BaseComponent> ArrayGetter(void* BasePointer, FProperty* Property)
+{
+	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
+	check(Property->IsA<FArrayProperty>());
+	FArrayProperty* ArrayProperty = (FArrayProperty*)Property;
+	if (Property->GetOwnerVariant().IsUObject() && Property->GetOwnerVariant().ToUObject()->IsA<UClass>())
+	{
+		return NoesisCreateComponentForTArray(Value, ArrayProperty);
+	}
+	else
+	{
+		return NoesisCreateComponentForTArrayStruct(Value, ArrayProperty, BasePointer);
+	}
+}
+
+bool ArraySetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)
+{
+	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
+	check(false);
+	return false;
+}
+
+const Noesis::Type* ArrayGetType(FProperty* Property)
+{
+	check(Property->IsA<FArrayProperty>());
+	FArrayProperty* ArrayProperty = (FArrayProperty*)Property;
+	FProperty* InnerProperty = ArrayProperty->Inner;
+	NoesisTypeInfo* TypeInfo = TypeInfos.Find(InnerProperty->GetClass());
+	if (TypeInfo != nullptr)
+	{
+		const Noesis::Type* InnerType = (*TypeInfo->GetType)(InnerProperty);
+		if (InnerType != nullptr)
+		{
+			return NoesisCreateTypeForTArray(ArrayProperty);
+		}
+	}
+
+	return nullptr;
+}
+
+Noesis::Ptr<Noesis::BaseComponent> MapGetter(void* BasePointer, FProperty* Property)
+{
+	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
+	check(Property->IsA<FMapProperty>());
+	FMapProperty* MapProperty = (FMapProperty*)Property;
+	if (Property->GetOwnerVariant().IsUObject() && Property->GetOwnerVariant().ToUObject()->IsA<UClass>())
+	{
+		return NoesisCreateComponentForTMap(Value, MapProperty);
+	}
+	else
+	{
+		return NoesisCreateComponentForTMapStruct(Value, MapProperty, BasePointer);
+	}
+	return nullptr;
+}
+
+bool MapSetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)
+{
+	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
+	check(false);
+	return false;
+}
+
+const Noesis::Type* MapGetType(FProperty* Property)
+{
+	check(Property->IsA<FMapProperty>());
+	FMapProperty* MapProperty = (FMapProperty*)Property;
+	FProperty* KeyProperty = MapProperty->KeyProp;
+	if (KeyProperty->IsA<FStrProperty>())
+	{
+		FProperty* ValueProperty = MapProperty->ValueProp;
+		NoesisTypeInfo* TypeInfo = TypeInfos.Find(ValueProperty->GetClass());
+		if (TypeInfo != nullptr)
+		{
+			const Noesis::Type* InnerType = (*TypeInfo->GetType)(ValueProperty);
+			if (InnerType != nullptr)
+			{
+				return NoesisCreateTypeForTMap(MapProperty);
+			}
+		}
+	}
+
+	return nullptr;
+}
+
+void NoesisInitTypeTables()
+{
+	ClassConversions =
+	{
+		{UTexture2D::StaticClass(), NoesisClassConversion::FromType<UTexture2D*>() }
+	};
+
+	UScriptStruct* TimespanStruct = nullptr;
+	for (TObjectIterator<UScriptStruct> It; It; ++It)
+	{
+		if (It->GetName() == TEXT("Timespan"))
+		{
+			TimespanStruct = *It;
+			break;
+		}
+	}
+
+	StructTypeInfos =
+	{
+		{TBaseStructure<FColor>::Get(), { &GenericGetter<FColor>, &GenericSetter<FColor>, &GenericGetType<FColor> }},
+		{TBaseStructure<FVector2D>::Get(), { &GenericGetter<FVector2D>, &GenericSetter<FVector2D>, &GenericGetType<FVector2D> }},
+		{TBaseStructure<FBox2D>::Get(), { &GenericGetter<FBox2D>, &GenericSetter<FBox2D>, &GenericGetType<FBox2D> }},
+		{TBaseStructure<FNoesisSize>::Get(), { &GenericGetter<FNoesisSize>, &GenericSetter<FNoesisSize>, &GenericGetType<FNoesisSize> }},
+		{TBaseStructure<FNoesisThickness>::Get(), { &GenericGetter<FNoesisThickness>, &GenericSetter<FNoesisThickness>, &GenericGetType<FNoesisThickness> }},
+		{TBaseStructure<FNoesisCornerRadius>::Get(), { &GenericGetter<FNoesisCornerRadius>, &GenericSetter<FNoesisCornerRadius>, &GenericGetType<FNoesisCornerRadius> }},
+		{TBaseStructure<FNoesisDuration>::Get(), { &GenericGetter<FNoesisDuration>, &GenericSetter<FNoesisDuration>, &GenericGetType<FNoesisDuration> }},
+		{TBaseStructure<FNoesisKeyTime>::Get(), { &GenericGetter<FNoesisKeyTime>, &GenericSetter<FNoesisKeyTime>, &GenericGetType<FNoesisKeyTime> }},
+		{TimespanStruct, { &GenericGetter<FTimespan>, &GenericSetter<FTimespan>, &GenericGetType<FTimespan> }}
+	};
+
+	TypeInfos =
+	{
+		{FIntProperty::StaticClass(), { &GenericGetter<int32>, &GenericSetter<int32>, &GenericGetType<int32> }},
+		{FFloatProperty::StaticClass(),{  &GenericGetter<float>, &GenericSetter<float>, &GenericGetType<float> }},
+		{FBoolProperty::StaticClass(), { &GenericGetter<bool>, &GenericSetter<bool>, &GenericGetType<bool> }},
+		{FStrProperty::StaticClass(), { &GenericGetter<FString>, &GenericSetter<FString>, &GenericGetType<Noesis::String> }},
+		{FTextProperty::StaticClass(), { &GenericGetter<FText>, &GenericSetter<FText>, &GenericGetType<Noesis::String> }},
+		{FEnumProperty::StaticClass(), { &EnumGetter, &EnumSetter, &EnumGetType }},
+		{FByteProperty::StaticClass(), { &ByteGetter, &ByteSetter, &ByteGetType }},
+		{FStructProperty::StaticClass(), { &StructGetter, &StructSetter, &StructGetType }},
+		{FObjectProperty::StaticClass(), { &ObjectGetter, &ObjectSetter, &ObjectGetType }},
+		{FArrayProperty::StaticClass(), { &ArrayGetter, &ArraySetter, &ArrayGetType }},
+		{FMapProperty::StaticClass(), { &MapGetter, &MapSetter, &MapGetType }}
+	};
+}
 
 TMap<UObject*, class NoesisObjectWrapper* > ObjectMap;
-TMap<UObject*, Noesis::TextureSource* > TextureMap;
-TMap<void*, class NoesisArrayWrapperBase*> ArrayMap;
-TArray<FString> RegisteredTypes;
+TMap<UObject*, class NoesisTextureWrapper* > TextureMap;
+TMap<void*, class NoesisArrayWrapper*> ArrayMap;
+TMap<void*, class NoesisMapWrapper*> MapMap;
+
+TMap<UClass*, class NoesisTypeClass*> ClassMap;
+TMap<UStruct*, class NoesisTypeClass*> StructMap;
+TMap<UEnum*, class NoesisTypeEnum*> EnumMap;
+TMap<UMaterialInterface*, class NoesisTypeClass*> MaterialMap;
+
 TArray<class Noesis::Type*> DeletedTypes;
 bool NoesisIsShuttingDown = false;
 
 class NoesisObjectWrapper;
 class NoesisStructWrapper;
 class NoesisEnumWrapper;
-
-const char* GetPersistentName(FString Name)
-{
-	Noesis::Symbol Symbol(TCHARToNsString(*Name).Str());
-	return Symbol.Str();
-}
 
 FString PathFromRegisterName_GameAsset(FString RegisterName);
 FString PathFromRegisterName_ModuleAsset(FString RegisterName);
@@ -151,7 +812,24 @@ public:
 
 	bool GetValueObject(Noesis::Symbol Id, Noesis::Ptr<Noesis::BoxedValue>& Value) const override;
 
+	void ChangeName(Noesis::Symbol NewName)
+	{
+		UEnum* EnumRef = Enum;
+		Noesis::ArrayRef<Value> ValueRefs = GetValues();
+		Noesis::Vector<Value> Values(ValueRefs.Begin(), ValueRefs.End());
+		NoesisIsShuttingDown = true;
+		this->~NoesisTypeEnum();
+		NoesisIsShuttingDown = false;
+		::new(this) NoesisTypeEnum(EnumRef, NewName);
+		for (auto& Value : Values)
+		{
+			AddValue(Value.first, Value.second);
+		}
+	}
+
 	UEnum* Enum;
+
+	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisTypeEnum, Noesis::TypeEnum)
 };
 
 class NoesisTypeEnumNull : public Noesis::TypeEnum
@@ -173,19 +851,18 @@ NoesisTypeEnumNull NullEnumType;
 class NoesisEnumWrapper : public Noesis::Boxed<int32>
 {
 public:
-	NoesisEnumWrapper(UEnum* InEnum, int64 InValue)
-		: Noesis::Boxed<int32>((int32)InValue), Enum(InEnum)
+	NoesisEnumWrapper(const NoesisTypeEnum* InTypeEnum, int64 InValue)
+		: Noesis::Boxed<int32>((int32)InValue), TypeEnum(InTypeEnum)
 	{
 		check(INT_MIN <= InValue && InValue <= INT_MAX);
 	}
 
 	virtual const Noesis::Type* GetValueType() const override
 	{
-		const Noesis::Type* Type = NoesisCreateTypeEnumForUEnum(Enum);
-		return Type == nullptr ? &NullEnumType : Type;
+		return TypeEnum;
 	}
 
-	UEnum* Enum;
+	const NoesisTypeEnum* TypeEnum;
 
 	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisEnumWrapper, Noesis::Boxed<int32>)
 };
@@ -195,21 +872,21 @@ bool NoesisTypeEnum::GetValueObject(Noesis::Symbol Id, Noesis::Ptr<Noesis::Boxed
 	int32 Val;
 	if (!HasName(Id, Val))
 		return false;
-	Value = Noesis::Ptr<Noesis::BoxedValue>(*new NoesisEnumWrapper(Enum, Val));
+	Value = Noesis::Ptr<Noesis::BoxedValue>(*new NoesisEnumWrapper(this, Val));
 	return true;
 }
 
 class NoesisEnumConverter : public Noesis::BaseEnumConverter
 {
 public:
-	NoesisEnumConverter(const Noesis::TypeEnum* InTypeEnum)
+	NoesisEnumConverter(const NoesisTypeEnum* InTypeEnum)
 		: Noesis::BaseEnumConverter(InTypeEnum), TypeEnum(InTypeEnum)
 	{
 	}
 
 	virtual Noesis::Ptr<Noesis::BaseComponent> Box(uint32 Value) const override
 	{
-		return *new NoesisEnumWrapper(((NoesisTypeEnum*)TypeEnum)->Enum, Value);
+		return *new NoesisEnumWrapper(TypeEnum, Value);
 	}
 
 	virtual uint32 Unbox(Noesis::BaseComponent* Value) const override
@@ -217,453 +894,142 @@ public:
 		return (uint32)Noesis::Boxing::Unbox<int32>(Value);
 	}
 
-	const Noesis::TypeEnum* TypeEnum;
+	const NoesisTypeEnum* TypeEnum;
 
 	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisEnumConverter, Noesis::BaseEnumConverter)
 };
 
-template<class T>
-Noesis::Ptr<Noesis::BaseComponent> GetProperty(void* BasePointer, FProperty* Property)
+Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUEnum(class UEnum* Enum, int64 Value)
 {
-	check(Property->IsA<TProperty_Numeric<T> >());
-	TProperty_Numeric<T>* NumericProperty = (TProperty_Numeric<T>*)Property;
-	const T& Value = NumericProperty->GetPropertyValue(NumericProperty->template ContainerPtrToValuePtr<void>(BasePointer));
-	return Noesis::Boxing::Box<T>(Value);
+	NoesisTypeEnum* TypeEnum = (NoesisTypeEnum*)NoesisCreateTypeEnumForUEnum(Enum);
+	return *new NoesisEnumWrapper(TypeEnum, Value);
 }
 
-template<class T>
-void SetProperty(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Value)
+Noesis::Ptr<Noesis::BaseComponent> GetPropertyByRef(void* BasePointer, FProperty* Property)
 {
-	Noesis::Boxed<T>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<T>*>(Value);
-	if (BoxedValue)
+	FFieldClass* PropertyClass = Property->GetClass();
+	if (PropertyClass == FStructProperty::StaticClass())
 	{
-		check(Property->IsA<TProperty_Numeric<T> >());
-		TProperty_Numeric<T>* NumericProperty = (TProperty_Numeric<T>*)Property;
-		NumericProperty->SetPropertyValue(NumericProperty->template ContainerPtrToValuePtr<void>(BasePointer), Noesis::Boxing::Unbox<T>(BoxedValue));
-	}
-}
-
-template<>
-Noesis::Ptr<Noesis::BaseComponent> GetProperty<NoesisEnumWrapper>(void* BasePointer, FProperty* Property)
-{
-	if (FEnumProperty* EnumProperty = CastField<FEnumProperty>(Property))
-	{
-		Noesis::TypeEnum* TypeEnum = NoesisCreateTypeEnumForUEnum(EnumProperty->GetEnum());
-		FNumericProperty* UnderlyingProperty = EnumProperty->GetUnderlyingProperty();
-		check(UnderlyingProperty->IsInteger());
-		int64 Value = UnderlyingProperty->GetSignedIntPropertyValue(EnumProperty->template ContainerPtrToValuePtr<void>(BasePointer));
-		return *new NoesisEnumWrapper(EnumProperty->GetEnum(), Value);
-	}
-	else 
-	{
-		FByteProperty* ByteProperty = CastField<FByteProperty>(Property);
-		check(ByteProperty);
-		if (ByteProperty->Enum)
+		FStructProperty* StructProperty = (FStructProperty*)Property;
+		NoesisTypeInfo* TypeInfo = StructTypeInfos.Find(StructProperty->Struct);
+		if (TypeInfo != nullptr)
 		{
-			Noesis::TypeEnum* TypeEnum = NoesisCreateTypeEnumForUEnum(ByteProperty->Enum);
-			const uint8& Value = ByteProperty->GetPropertyValue(ByteProperty->template ContainerPtrToValuePtr<void>(BasePointer));
-			return *new NoesisEnumWrapper(ByteProperty->Enum, (int64)Value);
-		}
-	}
-
-	return Noesis::Ptr<Noesis::BaseComponent>();
-}
-
-template<>
-void SetProperty<NoesisEnumWrapper>(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Value)
-{
-	NoesisEnumWrapper* BoxedValue = Noesis::DynamicCast<NoesisEnumWrapper*>(Value);
-	if (BoxedValue)
-	{
-		if (FEnumProperty* EnumProperty = CastField<FEnumProperty>(Property))
-		{
-			FNumericProperty* UnderlyingProperty = EnumProperty->GetUnderlyingProperty();
-			check(UnderlyingProperty->IsInteger());
-			UnderlyingProperty->SetIntPropertyValue(EnumProperty->template ContainerPtrToValuePtr<void>(BasePointer), (int64)Noesis::Boxing::Unbox<int32>(BoxedValue));
+			return (*TypeInfo->Getter)(BasePointer, Property);
 		}
 		else
 		{
-			check(Property->IsA<FByteProperty>());
-			FByteProperty* ByteProperty = (FByteProperty*)Property;
-			ByteProperty->SetPropertyValue(ByteProperty->template ContainerPtrToValuePtr<void>(BasePointer), Noesis::Boxing::Unbox<int32>(BoxedValue));
+			return StructGetter(BasePointer, Property);
 		}
-	}
-}
-
-template<>
-Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::Color>(void* BasePointer, FProperty* Property)
-{
-	check(Property->IsA<FStructProperty>());
-	FStructProperty* StructProperty = (FStructProperty*)Property;
-	check(StructProperty->Struct->GetFName() == NAME_Color);
-	const FColor& Value = *StructProperty->ContainerPtrToValuePtr<FColor>(BasePointer);
-#if PLATFORM_LITTLE_ENDIAN
-	return Noesis::Boxing::Box<Noesis::Color>(Noesis::Color::FromPackedBGRA(Value.DWColor()));
-#else // PLATFORM_LITTLE_ENDIAN
-	return Noesis::Boxing::Box<Noesis::Color>(Noesis::Color(Value.R, Value.G, VBalue.B, Value.A));
-#endif
-}
-
-template<>
-void SetProperty<Noesis::Color>(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Value)
-{
-	Noesis::Boxed<Noesis::Color>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::Color>*>(Value);
-	if (BoxedValue)
-	{
-		check(Property->IsA<FStructProperty>());
-		FStructProperty* StructProperty = (FStructProperty*)Property;
-		check(StructProperty->Struct->GetFName() == NAME_Color);
-		Noesis::Color UnboxedValue = Noesis::Boxing::Unbox<Noesis::Color>(BoxedValue);
-#if PLATFORM_LITTLE_ENDIAN
-		*StructProperty->ContainerPtrToValuePtr<FColor>(BasePointer) = FColor(UnboxedValue.GetPackedColorBGRA());
-#else // PLATFORM_LITTLE_ENDIAN
-		FColor Color = FColor(UnboxedValue.GetPackedColorBGRA());
-		*StructProperty->ContainerPtrToValuePtr<FColor>(BasePointer) = FColor(Color.G, Color.R, Color.A, Color.B);
-#endif
-	}
-}
-
-template<>
-Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::Point>(void* BasePointer, FProperty* Property)
-{
-	check(Property->IsA<FStructProperty>());
-	FStructProperty* StructProperty = (FStructProperty*)Property;
-	check(StructProperty->Struct->GetFName() == NAME_Vector2D);
-	const FVector2D& Value = *StructProperty->ContainerPtrToValuePtr<FVector2D>(BasePointer);
-	return Noesis::Boxing::Box<Noesis::Point>(Noesis::Point(Value.X, Value.Y));
-}
-
-template<>
-void SetProperty<Noesis::Point>(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Value)
-{
-	Noesis::Boxed<Noesis::Point>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::Point>*>(Value);
-	if (BoxedValue)
-	{
-		check(Property->IsA<FStructProperty>());
-		FStructProperty* StructProperty = (FStructProperty*)Property;
-		check(StructProperty->Struct->GetFName() == NAME_Vector2D);
-		Noesis::Point UnboxedValue = Noesis::Boxing::Unbox<Noesis::Point>(BoxedValue);
-		*StructProperty->ContainerPtrToValuePtr<FVector2D>(BasePointer) = FVector2D(UnboxedValue.x, UnboxedValue.y);
-	}
-}
-
-template<>
-Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::Rect>(void* BasePointer, FProperty* Property)
-{
-	check(Property->IsA<FStructProperty>());
-	FStructProperty* StructProperty = (FStructProperty*)Property;
-	check(StructProperty->Struct->GetName() == TEXT("Box2D"));
-	const FBox2D& Value = *StructProperty->ContainerPtrToValuePtr<FBox2D>(BasePointer);
-	return Noesis::Boxing::Box<Noesis::Rect>(Noesis::Rect(Value.Min.X, Value.Min.Y, Value.Max.X, Value.Max.Y));
-}
-
-template<>
-void SetProperty<Noesis::Rect>(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Value)
-{
-	Noesis::Boxed<Noesis::Rect>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::Rect>*>(Value);
-	if (BoxedValue)
-	{
-		check(Property->IsA<FStructProperty>());
-		FStructProperty* StructProperty = (FStructProperty*)Property;
-		check(StructProperty->Struct->GetName() == TEXT("Box2D"));
-		Noesis::Rect UnboxedValue = Noesis::Boxing::Unbox<Noesis::Rect>(BoxedValue);
-		*StructProperty->ContainerPtrToValuePtr<FBox2D>(BasePointer) = FBox2D(FVector2D(UnboxedValue.x, UnboxedValue.y), FVector2D(UnboxedValue.x + UnboxedValue.width, UnboxedValue.y + UnboxedValue.height));
-	}
-}
-
-template<>
-Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::Size>(void* BasePointer, FProperty* Property)
-{
-	check(Property->IsA<FStructProperty>());
-	FStructProperty* StructProperty = (FStructProperty*)Property;
-	check(StructProperty->Struct->GetName() == TEXT("NoesisSize"));
-	const FNoesisSize& Value = *StructProperty->ContainerPtrToValuePtr<FNoesisSize>(BasePointer);
-	return Noesis::Boxing::Box<Noesis::Size>(Value.ToNoesis());
-}
-
-template<>
-void SetProperty<Noesis::Size>(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Value)
-{
-	Noesis::Boxed<Noesis::Size>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::Size>*>(Value);
-	if (BoxedValue)
-	{
-		check(Property->IsA<FStructProperty>());
-		FStructProperty* StructProperty = (FStructProperty*)Property;
-		check(StructProperty->Struct->GetName() == TEXT("NoesisSize"));
-		Noesis::Size UnboxedValue = Noesis::Boxing::Unbox<Noesis::Size>(BoxedValue);
-		*StructProperty->ContainerPtrToValuePtr<FNoesisSize>(BasePointer) = FNoesisSize(UnboxedValue);
-	}
-}
-
-template<>
-Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::Thickness>(void* BasePointer, FProperty* Property)
-{
-	check(Property->IsA<FStructProperty>());
-	FStructProperty* StructProperty = (FStructProperty*)Property;
-	check(StructProperty->Struct->GetName() == TEXT("NoesisThickness"));
-	const FNoesisThickness& Value = *StructProperty->ContainerPtrToValuePtr<FNoesisThickness>(BasePointer);
-	return Noesis::Boxing::Box<Noesis::Thickness>(Value.ToNoesis());
-}
-
-template<>
-void SetProperty<Noesis::Thickness>(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Value)
-{
-	Noesis::Boxed<Noesis::Thickness>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::Thickness>*>(Value);
-	if (BoxedValue)
-	{
-		check(Property->IsA<FStructProperty>());
-		FStructProperty* StructProperty = (FStructProperty*)Property;
-		check(StructProperty->Struct->GetName() == TEXT("NoesisThickness"));
-		Noesis::Thickness UnboxedValue = Noesis::Boxing::Unbox<Noesis::Thickness>(BoxedValue);
-		*StructProperty->ContainerPtrToValuePtr<FNoesisThickness>(BasePointer) = FNoesisThickness(UnboxedValue);
-	}
-}
-
-template<>
-Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::CornerRadius>(void* BasePointer, FProperty* Property)
-{
-	check(Property->IsA<FStructProperty>());
-	FStructProperty* StructProperty = (FStructProperty*)Property;
-	check(StructProperty->Struct->GetName() == TEXT("NoesisCornerRadius"));
-	const FNoesisCornerRadius& Value = *StructProperty->ContainerPtrToValuePtr<FNoesisCornerRadius>(BasePointer);
-	return Noesis::Boxing::Box<Noesis::CornerRadius>(Value.ToNoesis());
-}
-
-template<>
-void SetProperty<Noesis::CornerRadius>(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Value)
-{
-	Noesis::Boxed<Noesis::CornerRadius>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::CornerRadius>*>(Value);
-	if (BoxedValue)
-	{
-		check(Property->IsA<FStructProperty>());
-		FStructProperty* StructProperty = (FStructProperty*)Property;
-		check(StructProperty->Struct->GetName() == TEXT("NoesisCornerRadius"));
-		Noesis::CornerRadius UnboxedValue = Noesis::Boxing::Unbox<Noesis::CornerRadius>(BoxedValue);
-		*StructProperty->ContainerPtrToValuePtr<FNoesisCornerRadius>(BasePointer) = FNoesisCornerRadius(UnboxedValue);
-	}
-}
-
-template<>
-Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::TimeSpan>(void* BasePointer, FProperty* Property)
-{
-	check(Property->IsA<FStructProperty>());
-	FStructProperty* StructProperty = (FStructProperty*)Property;
-	check(StructProperty->Struct->GetName() == TEXT("Timespan"));
-	const FTimespan& Value = *StructProperty->ContainerPtrToValuePtr<FTimespan>(BasePointer);
-	return Noesis::Boxing::Box<Noesis::TimeSpan>(Noesis::TimeSpan(Value.GetDays(), Value.GetHours(), Value.GetMinutes(), Value.GetSeconds(), Value.GetFractionMilli()));
-}
-
-template<>
-void SetProperty<Noesis::TimeSpan>(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Value)
-{
-	Noesis::Boxed<Noesis::TimeSpan>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::TimeSpan>*>(Value);
-	if (BoxedValue)
-	{
-		check(Property->IsA<FStructProperty>());
-		FStructProperty* StructProperty = (FStructProperty*)Property;
-		check(StructProperty->Struct->GetName() == TEXT("Timespan"));
-		Noesis::TimeSpan UnboxedValue = Noesis::Boxing::Unbox<Noesis::TimeSpan>(BoxedValue);
-		*StructProperty->ContainerPtrToValuePtr<FTimespan>(BasePointer) = FTimespan(UnboxedValue.GetDays(), UnboxedValue.GetHours(), UnboxedValue.GetMinutes(), UnboxedValue.GetSeconds(), UnboxedValue.GetMilliseconds() * 1000);
-	}
-}
-
-template<>
-Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::Duration>(void* BasePointer, FProperty* Property)
-{
-	check(Property->IsA<FStructProperty>());
-	FStructProperty* StructProperty = (FStructProperty*)Property;
-	check(StructProperty->Struct->GetName() == TEXT("NoesisDuration"));
-	const FNoesisDuration& Value = *StructProperty->ContainerPtrToValuePtr<FNoesisDuration>(BasePointer);
-	return Noesis::Boxing::Box<Noesis::Duration>(Value.ToNoesis());
-}
-
-template<>
-void SetProperty<Noesis::Duration>(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Value)
-{
-	Noesis::Boxed<Noesis::Duration>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::Duration>*>(Value);
-	if (BoxedValue)
-	{
-		check(Property->IsA<FStructProperty>());
-		FStructProperty* StructProperty = (FStructProperty*)Property;
-		check(StructProperty->Struct->GetName() == TEXT("NoesisDuration"));
-		Noesis::Duration UnboxedValue = Noesis::Boxing::Unbox<Noesis::Duration>(BoxedValue);
-		*StructProperty->ContainerPtrToValuePtr<FNoesisDuration>(BasePointer) = FNoesisDuration(UnboxedValue);
-	}
-}
-
-template<>
-Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::KeyTime>(void* BasePointer, FProperty* Property)
-{
-	check(Property->IsA<FStructProperty>());
-	FStructProperty* StructProperty = (FStructProperty*)Property;
-	check(StructProperty->Struct->GetName() == TEXT("NoesisKeyTime"));
-	const FNoesisKeyTime& Value = *StructProperty->ContainerPtrToValuePtr<FNoesisKeyTime>(BasePointer);
-	return Noesis::Boxing::Box<Noesis::KeyTime>(Value.ToNoesis());
-}
-
-template<>
-void SetProperty<Noesis::KeyTime>(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Value)
-{
-	Noesis::Boxed<Noesis::KeyTime>* BoxedValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::KeyTime>*>(Value);
-	if (BoxedValue)
-	{
-		check(Property->IsA<FStructProperty>());
-		FStructProperty* StructProperty = (FStructProperty*)Property;
-		check(StructProperty->Struct->GetName() == TEXT("NoesisKeyTime"));
-		Noesis::KeyTime UnboxedValue = Noesis::Boxing::Unbox<Noesis::KeyTime>(BoxedValue);
-		*StructProperty->ContainerPtrToValuePtr<FNoesisKeyTime>(BasePointer) = FNoesisKeyTime(UnboxedValue);
-	}
-}
-
-template<>
-Noesis::Ptr<Noesis::BaseComponent> GetProperty<bool>(void* BasePointer, FProperty* Property)
-{
-	check(Property->IsA<FBoolProperty>());
-	FBoolProperty* BoolProperty = (FBoolProperty*)Property;
-	bool Value = BoolProperty->GetPropertyValue(BoolProperty->ContainerPtrToValuePtr<void>(BasePointer));
-	return Noesis::Boxing::Box<bool>(Value);
-}
-
-template<>
-void SetProperty<bool>(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Value)
-{
-	Noesis::Boxed<bool>* BoolValue = Noesis::DynamicCast<Noesis::Boxed<bool>*>(Value);
-	if (BoolValue)
-	{
-		check(Property->IsA<FBoolProperty>());
-		FBoolProperty* BoolProperty = (FBoolProperty*)Property;
-		BoolProperty->SetPropertyValue(BoolProperty->ContainerPtrToValuePtr<void>(BasePointer), Noesis::Boxing::Unbox<bool>(BoolValue));
-	}
-}
-
-template<>
-Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::String>(void* BasePointer, FProperty* Property)
-{
-	if (Property->IsA<FStrProperty>())
-	{
-		FStrProperty* StrProperty = (FStrProperty*)Property;
-		FString Value = StrProperty->GetPropertyValue(StrProperty->ContainerPtrToValuePtr<void>(BasePointer));
-		return Noesis::Boxing::Box<Noesis::String>(TCHARToNsString(*Value));
 	}
 	else
 	{
-		check(Property->IsA<FTextProperty>());
-		FTextProperty* TextProperty = (FTextProperty*)Property;
-		FText Value = TextProperty->GetPropertyValue(TextProperty->ContainerPtrToValuePtr<void>(BasePointer));
-		return Noesis::Boxing::Box<Noesis::String>(TCHARToNsString(*Value.ToString()));
+		NoesisTypeInfo* TypeInfo = TypeInfos.Find(Property->GetClass());
+		return (*TypeInfo->Getter)(BasePointer, Property);
 	}
 }
 
-template<>
-void SetProperty<Noesis::String>(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Value)
+bool SetPropertyByRef(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Input)
 {
-	Noesis::Boxed<Noesis::String>* StrValue = Noesis::DynamicCast<Noesis::Boxed<Noesis::String>*>(Value);
-	if (StrValue)
+	FFieldClass* PropertyClass = Property->GetClass();
+	if (PropertyClass == FStructProperty::StaticClass())
 	{
-		if (Property->IsA<FStrProperty>())
+		FStructProperty* StructProperty = (FStructProperty*)Property;
+		NoesisTypeInfo* TypeInfo = StructTypeInfos.Find(StructProperty->Struct);
+		if (TypeInfo != nullptr)
 		{
-			FStrProperty* StrProperty = (FStrProperty*)Property;
-			StrProperty->SetPropertyValue(StrProperty->ContainerPtrToValuePtr<void>(BasePointer), NsStringToFString(Noesis::Boxing::Unbox<Noesis::String>(StrValue).Str()));
+			return (*TypeInfo->Setter)(Input, BasePointer, Property);
 		}
 		else
 		{
-			check(Property->IsA<FTextProperty>());
-			FTextProperty* TextProperty = (FTextProperty*)Property;
-			TextProperty->SetPropertyValue(TextProperty->ContainerPtrToValuePtr<void>(BasePointer), FText::FromString(NsStringToFString(Noesis::Boxing::Unbox<Noesis::String>(StrValue).Str())));
+			return StructSetter(Input, BasePointer, Property);
 		}
+	}
+	else
+	{
+		NoesisTypeInfo* TypeInfo = TypeInfos.Find(Property->GetClass());
+		return (*TypeInfo->Setter)(Input, BasePointer, Property);
 	}
 }
 
-template<>
-Noesis::Ptr<Noesis::BaseComponent> GetProperty<NoesisObjectWrapper>(void* BasePointer, FProperty* Property)
+const Noesis::Type* GetPropertyType(FProperty* Property)
 {
-	check(Property->IsA<FObjectProperty>());
-	FObjectProperty* ObjectProperty = (FObjectProperty*)Property;
-	UObject* ReferencedObject = ObjectProperty->GetPropertyValue(ObjectProperty->ContainerPtrToValuePtr<void>(BasePointer));
+	NoesisTypeInfo* TypeInfo = TypeInfos.Find(Property->GetClass());
+	if (TypeInfo != nullptr)
+	{
+		return (*TypeInfo->GetType)(Property);
+	}
 
-	return NoesisCreateComponentForUObject(ReferencedObject);
+	return nullptr;
 }
 
-template<>
-void SetProperty<NoesisObjectWrapper>(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Value)
+static void InitializeFunctionParams(UFunction* Function, void* Params)
 {
-	check(Property->IsA<FObjectProperty>());
-	FObjectProperty* ObjectProperty = (FObjectProperty*)Property;
-	UObject* Object = NoesisCreateUObjectForComponent(Noesis::Ptr<Noesis::BaseComponent>(Value));
-	ObjectProperty->SetPropertyValue(ObjectProperty->ContainerPtrToValuePtr<void>(BasePointer), Object);
+	for (TFieldIterator<FProperty> It(Function); It && ((It->PropertyFlags & CPF_Parm) == CPF_Parm); ++It)
+	{
+		FProperty* Property = *It;
+		Property->InitializeValue(Params);
+	}
 }
 
-template<>
-Noesis::Ptr<Noesis::BaseComponent> GetProperty<NoesisStructWrapper>(void* BasePointer, FProperty* Property)
+static void DestroyFunctionParams(UFunction* Function, void* Params)
 {
-	check(Property->IsA<FStructProperty>());
-
-	FStructProperty* StructProperty = (FStructProperty*)Property;
-	void* Data = StructProperty->ContainerPtrToValuePtr<void>(BasePointer);
-
-	return NoesisCreateComponentForUStruct(StructProperty->Struct, Data);
+	for (TFieldIterator<FProperty> It(Function); It && ((It->PropertyFlags & CPF_Parm) == CPF_Parm); ++It)
+	{
+		FProperty* Property = *It;
+		Property->DestroyValue(Params);
+	}
 }
 
-void AssignStruct(void*, FStructProperty*, Noesis::BaseComponent*);
-
-template<>
-void SetProperty<NoesisStructWrapper>(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Value)
-{
-	check(Property->IsA<FStructProperty>());
-
-	AssignStruct(BasePointer, (FStructProperty*)Property, Value);
-}
-
-template<>
-Noesis::Ptr<Noesis::BaseComponent> GetProperty<Noesis::TextureSource>(void* BasePointer, FProperty* Property)
-{
-	check(Property->IsA<FObjectProperty>());
-	FObjectProperty* ObjectProperty = (FObjectProperty*)Property;
-	UObject* ReferencedObject = ObjectProperty->GetPropertyValue(ObjectProperty->ContainerPtrToValuePtr<void>(BasePointer));
-
-	return NoesisCreateComponentForUObject(ReferencedObject);
-}
-
-template<>
-void SetProperty<Noesis::TextureSource>(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Value)
-{
-
-}
-
-template<class T>
 Noesis::Ptr<Noesis::BaseComponent> GetFunctionProperty(void* BasePointer, UFunction* Getter)
 {
 	UObject* Object = (UObject*)BasePointer;
 	if (!Object->IsPendingKill() && !Object->IsUnreachable())
 	{
-		FProperty* OutputParam = (FProperty*)Getter->ChildProperties;
-		uint8* Params = (uint8*)FMemory_Alloca(Getter->ParmsSize);
-		FMemory::Memzero(Params, Getter->ParmsSize);
+		void* Params = FMemory_Alloca(Getter->GetStructureSize());
+		InitializeFunctionParams(Getter, Params);
 		Object->ProcessEvent(Getter, Params);
-		return GetProperty<T>(Params, OutputParam);
+		FProperty* OutputProperty = (FProperty*)Getter->ChildProperties; 
+		Noesis::Ptr<Noesis::BaseComponent> Ret = GetPropertyByRef(Params, OutputProperty);
+		DestroyFunctionParams(Getter, Params);
+		return Ret;
 	}
-	return Noesis::Ptr<Noesis::BaseComponent>();
+	return nullptr;
 }
 
-template<class T>
-void SetFunctionProperty(void* BasePointer, UFunction* Setter, Noesis::BaseComponent* Value)
+bool SetFunctionProperty(void* BasePointer, UFunction* Setter, Noesis::BaseComponent* Value)
 {
 	UObject* Object = (UObject*)BasePointer;
 	if (!Object->IsPendingKill() && !Object->IsUnreachable())
 	{
-		FProperty* InputParam = (FProperty*)Setter->ChildProperties;
-		uint8* Params = (uint8*)FMemory_Alloca(Setter->ParmsSize);
-		FMemory::Memzero(Params, Setter->ParmsSize);
-		SetProperty<T>(Params, InputParam, Value);
+		void* Params = FMemory_Alloca(Setter->GetStructureSize());
+		InitializeFunctionParams(Setter, Params);
+		FProperty* InputProperty = (FProperty*)Setter->ChildProperties;
+		SetPropertyByRef(Params, InputProperty, Value);
 		Object->ProcessEvent(Setter, Params);
-	}
+		DestroyFunctionParams(Setter, Params);
+		return true;
 }
 
-class NoesisValueArrayWrapperBase : public Noesis::BaseComponent, public Noesis::IList
+	return false;
+}
+
+class NoesisValueArrayWrapper : public Noesis::BaseComponent, public Noesis::IList
 {
 public:
-	NoesisValueArrayWrapperBase()
+	NoesisValueArrayWrapper(void* ArrayPtr, FArrayProperty* ArrayProperty)
 	{
+		FProperty* InnerProperty = ArrayProperty->Inner;
+		check(InnerProperty->GetOffset_ForDebug() == 0);
+
+		ComponentArray.Empty();
+
+		FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayPtr);
+
+		for (int32 Index = 0; Index != ArrayHelper.Num(); ++Index)
+		{
+			Noesis::Ptr<Noesis::BaseComponent> Item = GetPropertyByRef(ArrayHelper.GetRawPtr(Index), InnerProperty);
+			ComponentArray.Add(Item);
+		}
 	}
 
 	virtual Noesis::BaseComponent* GetBaseObject() const override
@@ -713,48 +1079,27 @@ public:
 	}
 	// End of IList interface
 
-	NS_IMPLEMENT_INLINE_REFLECTION(NoesisValueArrayWrapperBase, Noesis::BaseComponent)
+	NS_IMPLEMENT_INLINE_REFLECTION(NoesisValueArrayWrapper, Noesis::BaseComponent)
 	{
 		NsImpl<Noesis::IList>();
-		NsProp("Count", &NoesisValueArrayWrapperBase::Count);
+		NsProp("Count", &NoesisValueArrayWrapper::Count);
 	}
 
 public:
 	TArray<Noesis::Ptr<Noesis::BaseComponent>> ComponentArray;
 };
 
-template<class T>
-class NoesisValueArrayWrapper : public NoesisValueArrayWrapperBase
+class NoesisArrayWrapper : public Noesis::BaseComponent, public Noesis::IList, public Noesis::INotifyCollectionChanged
 {
 public:
-	NoesisValueArrayWrapper(void* BasePointer, FArrayProperty* ArrayProperty, FProperty* ArrayInnerProperty)
-		: NoesisValueArrayWrapperBase()
+	NoesisArrayWrapper(void* ArrayPtr, FArrayProperty* InArrayProperty)
+		: ArrayProperty(InArrayProperty), ArrayPointer(ArrayPtr)
 	{
-		check(ArrayInnerProperty->GetOffset_ForDebug() == 0);
-
-		ComponentArray.Empty();
-
-		FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(BasePointer));
-
-		for (int32 Index = 0; Index != ArrayHelper.Num(); ++Index)
-		{
-			Noesis::Ptr<Noesis::BaseComponent> Item = GetProperty<T>(ArrayHelper.GetRawPtr(Index), ArrayInnerProperty);
-			ComponentArray.Add(Item);
-		}
-	}
-};
-
-class NoesisArrayWrapperBase : public Noesis::BaseComponent, public Noesis::IList, public Noesis::INotifyCollectionChanged
-{
-public:
-	NoesisArrayWrapperBase(void* BasePointer, FArrayProperty* ArrayProperty, FProperty* ArrayInnerProperty)
-		: InnerProperty(ArrayInnerProperty), ArrayPointer(ArrayProperty->ContainerPtrToValuePtr<void>(BasePointer)), ArrayHelper(ArrayProperty, ArrayPointer), PreviousCount(INDEX_NONE)
-	{
-		check(InnerProperty->GetOffset_ForDebug() == 0);
+		check(ArrayProperty->Inner->GetOffset_ForDebug() == 0);
 		ArrayMap.Add(ArrayPointer, this);
 	}
 
-	~NoesisArrayWrapperBase()
+	~NoesisArrayWrapper()
 	{
 		ArrayMap.Remove(ArrayPointer);
 	}
@@ -780,12 +1125,64 @@ public:
 	}
 
 protected:
-	virtual Noesis::Ptr<Noesis::BaseComponent> NativeGet(uint32 Index) const = 0;
-	virtual void NativeSet(uint32 Index, Noesis::BaseComponent* Item) = 0;
-	int32 NativeSize() const { return ArrayHelper.Num(); }
-	void NativeInsert(uint32 Index) { ArrayHelper.InsertValues(Index); }
-	void NativeClear() { ArrayHelper.EmptyValues(); }
-	void NativeRemoveAt(uint32 Index) { ArrayHelper.RemoveValues(Index); }
+	Noesis::Ptr<Noesis::BaseComponent> NativeGet(uint32 Index) const
+	{
+#if WITH_EDITOR
+		if (ArrayProperty == nullptr)
+			return nullptr;
+#endif
+		FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayPointer);
+		ArrayHelper.ExpandForIndex(Index);
+		FProperty* InnerProperty = ArrayProperty->Inner;
+		return GetPropertyByRef(ArrayHelper.GetRawPtr(Index), InnerProperty);
+	}
+	bool NativeSet(uint32 Index, Noesis::BaseComponent* Item)
+	{
+#if WITH_EDITOR
+		if (ArrayProperty == nullptr)
+			return false;
+#endif
+		FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayPointer);
+		ArrayHelper.ExpandForIndex(Index);
+		FProperty* InnerProperty = ArrayProperty->Inner;
+		return SetPropertyByRef(ArrayHelper.GetRawPtr(Index), InnerProperty, Item);
+	}
+	int32 NativeSize() const
+	{
+#if WITH_EDITOR
+		if (ArrayProperty == nullptr)
+			return 0;
+#endif
+		FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayPointer);
+		return ArrayHelper.Num();
+	}
+	void NativeInsert(uint32 Index)
+	{
+#if WITH_EDITOR
+		if (ArrayProperty == nullptr)
+			return;
+#endif
+		FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayPointer);
+		ArrayHelper.InsertValues(Index);
+	}
+	void NativeClear()
+	{
+#if WITH_EDITOR
+		if (ArrayProperty == nullptr)
+			return;
+#endif
+		FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayPointer);
+		ArrayHelper.EmptyValues();
+	}
+	void NativeRemoveAt(uint32 Index)
+	{
+#if WITH_EDITOR
+		if (ArrayProperty == nullptr)
+			return;
+#endif
+		FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayPointer);
+		ArrayHelper.RemoveValues(Index);
+	}
 
 public:
 	// IList interface
@@ -906,46 +1303,184 @@ public:
 		PreviousCount = INDEX_NONE;
 	}
 
-	NS_IMPLEMENT_INLINE_REFLECTION(NoesisArrayWrapperBase, Noesis::BaseComponent)
+	NS_IMPLEMENT_INLINE_REFLECTION(NoesisArrayWrapper, Noesis::BaseComponent)
 	{
 		NsImpl<Noesis::IList>();
 		NsImpl<Noesis::INotifyCollectionChanged>();
-		NsProp("Count", &NoesisValueArrayWrapperBase::Count);
+		NsProp("Count", &NoesisArrayWrapper::Count);
 	}
 
 private:
 	Noesis::NotifyCollectionChangedEventHandler CollectionChangedHandler;
 
 public:
-	FProperty* InnerProperty;
-	void* ArrayPointer;
-	mutable FScriptArrayHelper ArrayHelper;
+	FArrayProperty* ArrayProperty;
+	void* ArrayPointer; 
 	Noesis::Ptr<Noesis::BaseComponent> ItemToDelete;
 	int32 PreviousCount;
 };
 
-template<class T>
-class NoesisArrayWrapper : public NoesisArrayWrapperBase
+class NoesisMapWrapper : public Noesis::BaseComponent, public Noesis::IDictionary, public Noesis::INotifyDictionaryChanged
 {
 public:
-	NoesisArrayWrapper(void* BasePointer, FArrayProperty* ArrayProperty, FProperty* ArrayInnerProperty)
-		: NoesisArrayWrapperBase(BasePointer, ArrayProperty, ArrayInnerProperty)
+	NoesisMapWrapper(void* MapPtr, FMapProperty* InMapProperty)
+		: MapProperty(InMapProperty), MapPointer(MapPtr)
 	{
-		check(InnerProperty->GetOffset_ForDebug() == 0);
+		MapMap.Add(MapPtr, this);
 	}
 
-	virtual Noesis::Ptr<Noesis::BaseComponent> NativeGet(uint32 Index) const override
+	~NoesisMapWrapper()
 	{
-		ArrayHelper.ExpandForIndex(Index);
-		return GetProperty<T>(ArrayHelper.GetRawPtr(Index), InnerProperty);
+		MapMap.Remove(MapPointer);
 	}
 
-	virtual void NativeSet(uint32 Index, Noesis::BaseComponent* Item) override
+	virtual Noesis::BaseComponent* GetBaseObject() const override
 	{
-		ArrayHelper.ExpandForIndex(Index);
-		SetProperty<T>(ArrayHelper.GetRawPtr(Index), InnerProperty, Item);
+		return (Noesis::BaseComponent*)this;
 	}
+
+	virtual int32 AddReference() const override
+	{
+		return Noesis::BaseComponent::AddReference();
+	}
+
+	virtual int32 Release() const override
+	{
+		return Noesis::BaseComponent::Release();
+	}
+
+	virtual int32 GetNumReferences() const override
+	{
+		return Noesis::BaseComponent::GetNumReferences();
+	}
+
+protected:
+	bool NativeFind(const char* Key, Noesis::Ptr<Noesis::BaseComponent>& Value) const
+	{
+		FScriptMapHelper MapHelper(MapProperty, MapPointer);
+		FString KeyString = UTF8_TO_TCHAR(Key);
+		uint8* PairPtr = MapHelper.FindMapPairPtrFromHash(&KeyString);
+		if (PairPtr)
+		{
+			FProperty* ValueProperty = MapProperty->ValueProp;
+			Value = GetPropertyByRef(PairPtr, ValueProperty);
+			return true;
+		}
+		return false;
+	}
+
+	void NativeSet(const char* Key, Noesis::BaseComponent* Value)
+	{
+		FScriptMapHelper MapHelper(MapProperty, MapPointer);
+		FString KeyString = UTF8_TO_TCHAR(Key);
+		uint8* PairPtr = MapHelper.FindMapPairPtrFromHash(&KeyString);
+		if (PairPtr)
+		{
+			FProperty* ValueProperty = MapProperty->ValueProp;
+			SetPropertyByRef(PairPtr, ValueProperty, Value);
+		}
+	}
+
+	void NativeAdd(const char* Key, Noesis::BaseComponent* Value)
+	{
+		FScriptMapHelper MapHelper(MapProperty, MapPointer);
+		FString KeyString = UTF8_TO_TCHAR(Key);
+		FProperty* ValueProperty = MapProperty->ValueProp;
+		uint8* PairPtr = MapHelper.FindMapPairPtrFromHash(&KeyString);
+		if (!PairPtr)
+		{
+			int32 Index = MapHelper.AddDefaultValue_Invalid_NeedsRehash();
+			MapHelper.Rehash();
+			PairPtr = MapHelper.GetPairPtr(Index);
+		}
+		SetPropertyByRef(PairPtr, ValueProperty, Value);
+	}
+
+public:
+	// IDictionary interface
+	virtual bool Find(const char* Key, Noesis::Ptr<Noesis::BaseComponent>& Value) const override
+	{
+		return NativeFind(Key, Value);
+	}
+
+	virtual void Set(const char* Key, Noesis::BaseComponent* Value) override
+	{
+		NativeSet(Key, Value);
+	}
+
+	virtual void Add(const char* Key, BaseComponent* Value) override
+	{
+		NativeAdd(Key, Value);
+	}
+
+	virtual Noesis::NotifyDictionaryChangedEventHandler& DictionaryChanged() override
+	{
+		return DictionaryChangedHandler;
+	}
+
+	void NotifyPostAdd(const char* Key)
+	{
+		Noesis::Ptr<Noesis::BaseComponent> Item;
+		NativeFind(Key, Item);
+		Noesis::NotifyDictionaryChangedEventArgs DictionaryChangedArgs = { Noesis::NotifyDictionaryChangedAction_Add, Key, nullptr, Item.GetPtr() };
+		DictionaryChangedHandler(this, DictionaryChangedArgs);
+	}
+
+	void NotifyPostChanged()
+	{
+		Noesis::NotifyDictionaryChangedEventArgs DictionaryChangedArgs = { Noesis::NotifyDictionaryChangedAction_Reset, "", nullptr, nullptr };
+		DictionaryChangedHandler(this, DictionaryChangedArgs);
+	}
+
+	void NotifyPreRemove(const char* Key)
+	{
+		check(ItemToDelete == nullptr);
+		NativeFind(Key, ItemToDelete);
+	}
+
+	void NotifyPostRemove(const char* Key)
+	{
+		check(ItemToDelete != nullptr);
+		Noesis::NotifyDictionaryChangedEventArgs DictionaryChangedArgs = { Noesis::NotifyDictionaryChangedAction_Add, Key, ItemToDelete.GetPtr(), nullptr };
+		DictionaryChangedHandler(this, DictionaryChangedArgs);
+		ItemToDelete = nullptr;
+	}
+
+	NS_IMPLEMENT_INLINE_REFLECTION(NoesisMapWrapper, Noesis::BaseComponent)
+	{
+		NsImpl<Noesis::IDictionary>();
+		NsImpl<Noesis::INotifyDictionaryChanged>();
+	}
+
+private:
+	Noesis::NotifyDictionaryChangedEventHandler DictionaryChangedHandler;
+
+public:
+	FMapProperty* MapProperty;
+	void* MapPointer;
+	Noesis::Ptr<Noesis::BaseComponent> ItemToDelete;
 };
+
+Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForTMap(void* MapPtr, FMapProperty* MapProperty)
+{
+	auto WrapperPtr = MapMap.Find(MapPtr);
+	if (WrapperPtr)
+	{
+		return Noesis::Ptr<Noesis::BaseComponent>(*WrapperPtr);
+	}
+
+	return *new NoesisMapWrapper(MapPtr, MapProperty);
+}
+
+Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForTMapStruct(void* MapPtr, FMapProperty* MapProperty, void* StructPtr)
+{
+	return *new NoesisMapWrapper(MapPtr, MapProperty);
+}
+
+const Noesis::Type* NoesisCreateTypeForTMap(FMapProperty* MapProperty)
+{
+	return Noesis::TypeOf<Noesis::BaseComponent>();
+}
 
 class NoesisFunctionWrapper : public Noesis::BaseCommand
 {
@@ -959,61 +1494,28 @@ public:
 	{
 		if (!Object->IsPendingKill() && !Object->IsUnreachable() && CanExecuteFunction)
 		{
-			int32 ReturnValue = 0;
-			Object->ProcessEvent(CanExecuteFunction, &ReturnValue);
-			FBoolProperty* OutputParam = (FBoolProperty*)(CanExecuteFunction->ChildProperties);
-			return OutputParam->GetPropertyValue(OutputParam->ContainerPtrToValuePtr<bool>(&ReturnValue));
-		}
-
-		return true;
-	}
-
-	void Execute(Noesis::BaseComponent* Param) const override
-	{
-		if (!Object->IsPendingKill() && !Object->IsUnreachable())
-		{
-			check(Function->NumParms == 0);
-			Object->ProcessEvent(Function, nullptr);
-		}
-	}
-
-	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisFunctionWrapper, Noesis::BaseCommand)
-
-protected:
-	UObject* Object;
-	UFunction* Function;
-	UFunction* CanExecuteFunction;
-};
-
-template<class T>
-class NoesisFunctionOneParamWrapper : public NoesisFunctionWrapper
-{
-public:
-	NoesisFunctionOneParamWrapper(UObject* InObject, UFunction* InFunction, UFunction* InCanExecuteFunction)
-		: NoesisFunctionWrapper(InObject, InFunction, InCanExecuteFunction)
-	{
-	}
-
-	bool CanExecute(Noesis::BaseComponent* Param) const override
-	{
-		if (!Object->IsPendingKill() && !Object->IsUnreachable() && CanExecuteFunction)
-		{
 			if (CanExecuteFunction->NumParms == 1)
 			{
-				int32 ReturnValue = 0;
-				Object->ProcessEvent(CanExecuteFunction, &ReturnValue);
-				FBoolProperty* OutputParam = (FBoolProperty*)(CanExecuteFunction->ChildProperties);
-				return OutputParam->GetPropertyValue(OutputParam->ContainerPtrToValuePtr<bool>(&ReturnValue));
+				void* Params = FMemory_Alloca(CanExecuteFunction->GetStructureSize());
+				InitializeFunctionParams(CanExecuteFunction, Params);
+				Object->ProcessEvent(CanExecuteFunction, Params);
+				FBoolProperty* OutputProperty = (FBoolProperty*)(CanExecuteFunction->ChildProperties);
+				bool Ret = OutputProperty->GetPropertyValue(OutputProperty->ContainerPtrToValuePtr<bool>(Params));
+				DestroyFunctionParams(CanExecuteFunction, Params);
+				return Ret;
 			}
 			else
 			{
 				check(CanExecuteFunction->NumParms == 2);
-				uint8* Params = (uint8*)FMemory_Alloca(CanExecuteFunction->ParmsSize);
-				FMemory::Memzero(Params, CanExecuteFunction->ParmsSize);
-				::SetProperty<T>(Params, (FProperty*)CanExecuteFunction->ChildProperties, Param);
+				void* Params = FMemory_Alloca(CanExecuteFunction->GetStructureSize());
+				InitializeFunctionParams(CanExecuteFunction, Params);
+				FProperty* InputProperty = (FProperty*)CanExecuteFunction->ChildProperties;
+				SetPropertyByRef(Params, InputProperty, Param);
 				Object->ProcessEvent(CanExecuteFunction, Params);
-				FBoolProperty* OutputParam = (FBoolProperty*)(CanExecuteFunction->ChildProperties->Next);
-				return OutputParam->GetPropertyValue(OutputParam->ContainerPtrToValuePtr<bool>(Params));
+				FBoolProperty* OutputProperty = (FBoolProperty*)(CanExecuteFunction->ChildProperties->Next);
+				bool Ret = OutputProperty->GetPropertyValue(OutputProperty->ContainerPtrToValuePtr<bool>(Params));
+				DestroyFunctionParams(CanExecuteFunction, Params);
+				return Ret;
 			}
 		}
 
@@ -1030,65 +1532,229 @@ public:
 			}
 			else
 			{
-				uint8* Params = (uint8*)FMemory_Alloca(Function->ParmsSize);
-				FMemory::Memzero(Params, Function->ParmsSize);
-				::SetProperty<T>(Params, (FProperty*)Function->ChildProperties, Param);
+				void* Params = FMemory_Alloca(Function->GetStructureSize());
+				InitializeFunctionParams(Function, Params);
+				FProperty* InputProperty = (FProperty*)Function->ChildProperties;
+				SetPropertyByRef(Params, InputProperty, Param);
 				Object->ProcessEvent(Function, Params);
+				DestroyFunctionParams(Function, Params);
 			}
 		}
 	}
+
+	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisFunctionWrapper, Noesis::BaseCommand)
+
+protected:
+	UObject* Object;
+	UFunction* Function;
+	UFunction* CanExecuteFunction;
 };
 
-union TypePropertyData
+class NoesisTypeProperty : public Noesis::TypeProperty
 {
-	explicit TypePropertyData(UFunction* InFunction, UFunction* InCanExecuteFunction)
-		: Function(InFunction), CanExecuteFunction(InCanExecuteFunction)
-	{
-	}
+public:
+	NoesisTypeProperty(Noesis::Symbol Name, const Noesis::Type* Type);
 
-	explicit TypePropertyData(FProperty* InProperty)
-		: Property(InProperty)
-	{
-	}
+	/// From TypeProperty
+	//@{
+	void* GetContent(void* Ptr) const;
+	void* GetContent(const void* Ptr) const;
+	void SetComponent(void* Ptr, Noesis::BaseComponent* Value) const;
+	//@}
 
-	explicit TypePropertyData(FArrayProperty* InArrayProperty, FProperty* InArrayInnerProperty)
-		: ArrayProperty(InArrayProperty), ArrayInnerProperty(InArrayInnerProperty)
-	{
-	}
+	virtual void Invalidate() = 0;
 
-	FProperty* Property;
-	struct
-	{
-		FArrayProperty* ArrayProperty;
-		FProperty* ArrayInnerProperty;
-	};
-	struct
-	{
-		UFunction* Function;
-		UFunction* CanExecuteFunction;
-	};
-	struct
-	{
-		UFunction* Getter;
-		UFunction* Setter;
-	};
+protected:
+	/// From TypeProperty
+	//@{
+	const void* InternalGet(const void* Ptr) const;
+	void InternalGet(const void* Ptr, void* Storage) const;
+	void InternalSet(void* Ptr, const void* Value) const;
+	bool IsReadOnly() const override;
+	//@}
 };
+
+NoesisTypeProperty::NoesisTypeProperty(Noesis::Symbol Name, const Noesis::Type* Type)
+	: Noesis::TypeProperty(Name, Type)
+{
+	check(Type != nullptr);
+}
+
+void* NoesisTypeProperty::GetContent(void* Ptr) const
+{
+	check(false);
+	return nullptr;
+}
+
+void* NoesisTypeProperty::GetContent(const void* Ptr) const
+{
+	check(false);
+	return nullptr;
+}
+
+const void* NoesisTypeProperty::InternalGet(const void* Ptr) const
+{
+	check(false);
+	return nullptr;
+}
+
+void NoesisTypeProperty::SetComponent(void* Ptr, Noesis::BaseComponent* Value) const
+{
+}
+
+void NoesisTypeProperty::InternalGet(const void* Ptr, void* Storage) const
+{
+	check(false);
+}
+
+void NoesisTypeProperty::InternalSet(void* Ptr, const void* Value) const
+{
+	check(false);
+}
+
+bool NoesisTypeProperty::IsReadOnly() const
+{
+	return true;
+}
+
+class NoesisTypeClass : public Noesis::TypeClass
+{
+public:
+	NoesisTypeClass(Noesis::Symbol Name)
+		: Noesis::TypeClass(Name, false)
+	{
+	}
+
+	~NoesisTypeClass()
+	{
+		check(NoesisIsShuttingDown);
+	}
+
+	bool Equals(const Noesis::BaseObject* BaseObject) const override
+	{
+		const NoesisTypeClass* TypeClass = Noesis::DynamicCast<const NoesisTypeClass*>(BaseObject);
+		return TypeClass && Class == TypeClass->Class;
+	}
+
+	void AddBase(const Noesis::TypeClass* BaseType)
+	{
+		check(BaseType);
+		check(!mBase);
+
+		mBase = BaseType;
+	}
+
+	void AddProperty(NoesisTypeProperty* Property)
+	{
+		check(Property);
+
+		PropertyVector::Iterator It = LowerBound(mProperties.Begin(), mProperties.End(), Property,
+			[](Noesis::TypeProperty* elem1, Noesis::TypeProperty* elem2)
+			{
+				return elem1->GetName() < elem2->GetName();
+			});
+
+		check(It == mProperties.End() || (*It)->GetName() != Property->GetName());
+
+		mProperties.Insert(It, Property);
+	}
+
+	void ChangeName(Noesis::Symbol NewName)
+	{
+		PropertyVector Properties = mProperties;
+		mProperties.Clear();
+		const Noesis::TypeClass* Base = mBase;
+		NoesisIsShuttingDown = true;
+		this->~NoesisTypeClass();
+		NoesisIsShuttingDown = false;
+		::new(this) NoesisTypeClass(NewName);
+		mProperties = Noesis::MoveArg(Properties);
+		mBase = Base;
+	}
+
+	void InvalidateProperties()
+	{
+		for (auto TypeProperty : mProperties)
+		{
+			NoesisTypeProperty* Property = (NoesisTypeProperty*)TypeProperty;
+			Property->Invalidate();
+		}
+	}
+
+	union
+	{
+		UStruct* Class;
+		UMaterialInterface* Material;
+	};
+
+	int32 GetStructureSize() const
+	{
+		return Class->GetStructureSize();
+	}
+
+	int32 GetMinAlignment() const
+	{
+		return Class->GetMinAlignment();
+	}
+
+	void InitializeStruct(void* Dest) const
+	{
+		Class->InitializeStruct(Dest);
+	}
+
+	void DestroyStruct(void* Dest) const
+	{
+		Class->DestroyStruct(Dest);
+	}
+
+	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisTypeClass, Noesis::TypeClass)
+};
+
+bool IsTypeRegistered(Noesis::Type* TypeClass)
+{
+	Noesis::Symbol TypeId = TypeClass->GetTypeId();
+	return Noesis::Reflection::IsTypeRegistered(TypeId);
+}
+
+void ReplaceType(Noesis::Type* OldType, Noesis::Type* NewType)
+{
+	if (IsTypeRegistered(OldType))
+	{
+		Noesis::Reflection::UnregisterNoDelete(OldType);
+		if (NewType != nullptr)
+		{
+			Noesis::Reflection::RegisterType(NewType);
+		}
+	}
+	DeletedTypes.Add(OldType);
+}
+
+void ReplaceTypeClass(NoesisTypeClass* OldTypeClass, NoesisTypeClass* NewTypeClass)
+{
+	OldTypeClass->InvalidateProperties();
+	ReplaceType(OldTypeClass, NewTypeClass);
+}
 
 class NoesisStructWrapper : public Noesis::BaseComponent
 {
 public:
 
-	NoesisStructWrapper(UScriptStruct* InStruct) :
-		Noesis::BaseComponent(), Struct(InStruct)
+	NoesisStructWrapper(NoesisTypeClass* InTypeClass) :
+		Noesis::BaseComponent(), TypeClass(InTypeClass)
 	{
-		StructData.AddUninitialized(InStruct->GetStructureSize());
-		Struct->InitializeStruct(GetStructPtr());
+		StructData = FMemory::Malloc(TypeClass->GetStructureSize(), TypeClass->GetMinAlignment());
+		TypeClass->InitializeStruct(GetStructPtr());
+	}
+
+	~NoesisStructWrapper()
+	{
+		TypeClass->DestroyStruct(GetStructPtr());
+		FMemory::Free(StructData);
 	}
 
 	virtual const Noesis::TypeClass* GetClassType() const override
 	{
-		const Noesis::TypeClass* TypeClass = NoesisCreateTypeClassForUStruct(Struct);
-		return TypeClass == nullptr ? Noesis::BaseComponent::StaticGetClassType(nullptr) : TypeClass;
+		return TypeClass;
 	}
 
 	Noesis::String ToString() const override
@@ -1099,7 +1765,8 @@ public:
 	bool Equals(const Noesis::BaseObject* BaseObject) const override
 	{
 		const NoesisStructWrapper* Wrapper = Noesis::DynamicCast<const NoesisStructWrapper*>(BaseObject);
-		return Wrapper && Struct == Wrapper->Struct && Struct->CompareScriptStruct(GetStructPtr(), Wrapper->GetStructPtr(), PPF_None);
+		check(TypeClass->Class->IsA<UScriptStruct>());
+		return Wrapper && TypeClass->Equals(Wrapper->TypeClass) && ((UScriptStruct*)TypeClass->Class)->CompareScriptStruct(GetStructPtr(), Wrapper->GetStructPtr(), PPF_None);
 	}
 
 	static const Noesis::TypeClass* StaticGetClassType(Noesis::TypeTag<NoesisStructWrapper>* = 0)
@@ -1117,30 +1784,18 @@ public:
 		return Type;
 	}
 
-	template <class VOID_> static void StaticFillClassType(Noesis::TypeClassCreator& Helper)
+	static void StaticFillClassType(Noesis::TypeClassCreator& Helper)
 	{
-	}
-
-	template<class T>
-	Noesis::Ptr<Noesis::BaseComponent> GetProperty(const TypePropertyData& Data) const
-	{
-		return ::GetProperty<T>(GetStructPtr(), Data.Property);
-	}
-
-	template<class T>
-	Noesis::Ptr<Noesis::BaseComponent> GetArrayProperty(const TypePropertyData& Data) const
-	{
-		return *new NoesisValueArrayWrapper<T>(GetStructPtr(), Data.ArrayProperty, Data.ArrayInnerProperty);
 	}
 
 	void* GetStructPtr() const
 	{
-		return (void*)StructData.GetData();
+		return StructData;
 	}
 
 public:
-	UScriptStruct* Struct;
-	TArray<uint8_t> StructData;
+	NoesisTypeClass* TypeClass;
+	void* StructData;
 };
 
 class NoesisObjectWrapper : public Noesis::BaseComponent, public Noesis::INotifyPropertyChanged
@@ -1246,152 +1901,9 @@ public:
 		return Type;
 	}
 
-	template <class VOID_> static void StaticFillClassType(Noesis::TypeClassCreator& Helper)
+	static void StaticFillClassType(Noesis::TypeClassCreator& Helper)
 	{
 		Helper.Impl<NoesisObjectWrapper, Noesis::INotifyPropertyChanged>();
-	}
-
-	template<class T>
-	Noesis::Ptr<Noesis::BaseComponent> GetProperty(const TypePropertyData& Data) const
-	{
-		if (Object == nullptr)
-		{
-			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
-			return Noesis::Ptr<Noesis::BaseComponent>();
-		}
-
-		return ::GetProperty<T>(Object, Data.Property);
-	}
-	template<class T>
-	bool SetProperty(const TypePropertyData& Data, Noesis::BaseComponent* Value)
-	{
-		if (Object == nullptr)
-		{
-			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
-			return false;
-		}
-
-		Noesis::Ptr<Noesis::BaseComponent> OldValue = ::GetProperty<T>(Object, Data.Property);
-		::SetProperty<T>(Object, Data.Property, Value);
-		Noesis::Ptr<Noesis::BaseComponent> NewValue = ::GetProperty<T>(Object, Data.Property);
-		return (NewValue && !NewValue->Equals(OldValue.GetPtr()));
-	}
-	template<class T>
-	Noesis::Ptr<Noesis::BaseComponent> GetFunctionProperty(const TypePropertyData& Data) const
-	{
-		if (Object == nullptr)
-		{
-			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
-			return Noesis::Ptr<Noesis::BaseComponent>();
-		}
-
-		return ::GetFunctionProperty<T>(Object, Data.Getter);
-	}
-	template<class T>
-	bool SetFunctionProperty(const TypePropertyData& Data, Noesis::BaseComponent* Value)
-	{
-		if (Object == nullptr)
-		{
-			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
-			return false;
-		}
-
-		Noesis::Ptr<Noesis::BaseComponent> OldValue = ::GetFunctionProperty<T>(Object, Data.Getter);
-		::SetFunctionProperty<T>(Object, Data.Setter, Value);
-		Noesis::Ptr<Noesis::BaseComponent> NewValue = ::GetFunctionProperty<T>(Object, Data.Getter);
-		return (NewValue && !NewValue->Equals(OldValue.GetPtr()));
-	}
-
-	Noesis::Ptr<Noesis::BaseComponent> GetCommandProperty(const TypePropertyData& Data) const
-	{
-		if (Object == nullptr)
-		{
-			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
-			return Noesis::Ptr<Noesis::BaseComponent>();
-		}
-
-		auto CommandPtr = FunctionToCommand.Find(Data.Function);
-		if (CommandPtr)
-		{
-			return *CommandPtr;
-		}
-
-		Noesis::Ptr<Noesis::BaseComponent> Command = *new NoesisFunctionWrapper(Object, Data.Function, Data.CanExecuteFunction);
-		FunctionToCommand.Add(Data.Function, Command);
-		return Command;
-	}
-
-	template<class T>
-	Noesis::Ptr<Noesis::BaseComponent> GetCommandOneParamProperty(const TypePropertyData& Data) const
-	{
-		if (Object == nullptr)
-		{
-			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
-			return Noesis::Ptr<Noesis::BaseComponent>();
-		}
-
-		auto CommandPtr = FunctionToCommand.Find(Data.Function);
-		if (CommandPtr)
-		{
-			return *CommandPtr;
-		}
-
-		Noesis::Ptr<Noesis::BaseComponent> Command = *new NoesisFunctionOneParamWrapper<T>(Object, Data.Function, Data.CanExecuteFunction);
-		FunctionToCommand.Add(Data.Function, Command);
-		return Command;
-	}
-
-	template<class T>
-	Noesis::Ptr<Noesis::BaseComponent> GetArrayProperty(const TypePropertyData& Data) const
-	{
-		if (Object == nullptr)
-		{
-			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
-			return Noesis::Ptr<Noesis::BaseComponent>();
-		}
-
-		auto ListPtr = ArrayToList.Find(Data.ArrayProperty);
-		if (ListPtr)
-		{
-			return *ListPtr;
-		}
-
-		Noesis::Ptr<Noesis::BaseComponent> Wrapper = *new NoesisArrayWrapper<T>(Object, Data.ArrayProperty, Data.ArrayInnerProperty);
-		ArrayToList.Add(Data.ArrayProperty, Wrapper);
-		return Wrapper;
-	}
-
-	template<class T>
-	bool SetArrayProperty(const TypePropertyData& Data, Noesis::BaseComponent* Value)
-	{
-		if (Object == nullptr)
-		{
-			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
-			return false;
-		}
-
-		NoesisArrayWrapperBase* ValueWrapper = Noesis::DynamicCast<NoesisArrayWrapperBase*>(Value);
-		if (ValueWrapper)
-		{
-			FScriptArrayHelper SourceArrayHelper = ValueWrapper->ArrayHelper;
-			check(Data.ArrayProperty->IsA<FArrayProperty>());
-			FProperty* InnerProperty = Data.ArrayProperty->Inner;
-			if (InnerProperty->SameType(ValueWrapper->InnerProperty))
-			{
-				FScriptArrayHelper TargetArrayHelper(Data.ArrayProperty, Object);
-
-				TargetArrayHelper.EmptyAndAddUninitializedValues(SourceArrayHelper.Num());
-				for (int32 Index = 0; Index < SourceArrayHelper.Num(); ++Index)
-				{
-					InnerProperty->CopySingleValue(TargetArrayHelper.GetRawPtr(Index), SourceArrayHelper.GetRawPtr(Index));
-				}
-			}
-		}
-
-		Noesis::Ptr<Noesis::BaseComponent> Wrapper = GetArrayProperty<T>(Data);
-		((NoesisArrayWrapperBase*)Wrapper.GetPtr())->NotifyPostChanged();
-
-		return false;
 	}
 
 	void NotifyPropertyChanged(Noesis::Symbol PropertyId)
@@ -1402,210 +1914,414 @@ public:
 
 public:
 	Noesis::PropertyChangedEventHandler PropertyChangedHandler;
-	mutable TMap<UFunction*, Noesis::Ptr<Noesis::BaseComponent> > FunctionToCommand;
-	mutable TMap<FArrayProperty*, Noesis::Ptr<Noesis::BaseComponent> > ArrayToList;
 	UObject* Object;
 };
 
-class TypePropertyNoesisObjectWrapperBase : public Noesis::TypeProperty
+class NoesisMaterialWrapper
 {
 public:
-	TypePropertyNoesisObjectWrapperBase(Noesis::Symbol Name, const Noesis::Type* Type, const TypePropertyData& InData)
-		: Noesis::TypeProperty(Name, Type), Data(InData)
+
+	NoesisMaterialWrapper(UMaterialInterface* InMaterial)
 	{
+		TypeClass = (NoesisTypeClass*)NoesisCreateTypeClassForUMaterial(InMaterial);
+
+		MaterialInstanceDynamic = UMaterialInstanceDynamic::Create(InMaterial, GetTransientPackage());
+		MaterialInstanceDynamic->AddToRoot();
+		Material = NoesisCreateMaterial(MaterialInstanceDynamic);
 	}
-	~TypePropertyNoesisObjectWrapperBase()
+
+	virtual ~NoesisMaterialWrapper()
 	{
-		check(NoesisIsShuttingDown);
+		NoesisDestroyMaterial(Material);
+		MaterialInstanceDynamic->RemoveFromRoot();
 	}
-	void Invalidate()
+
+	void SetScalarParameterValue(FName ParamName, float Value)
 	{
-		Data.Property = nullptr;
+		if (MaterialInstanceDynamic != nullptr)
+		{
+			MaterialInstanceDynamic->SetScalarParameterValue(ParamName, Value);
+		}
 	}
-	TypePropertyData Data;
+
+	void SetVectorParameterValue(FName ParamName, FLinearColor Value)
+	{
+		if (MaterialInstanceDynamic != nullptr)
+		{
+			MaterialInstanceDynamic->SetVectorParameterValue(ParamName, Value);
+		}
+	}
+
+protected:
+
+	NoesisTypeClass* TypeClass = nullptr;
+	UMaterialInstanceDynamic* MaterialInstanceDynamic = nullptr;
+	void* Material = nullptr;
 };
 
-template<class T>
-class TypePropertyNoesisObjectWrapper : public TypePropertyNoesisObjectWrapperBase
+class NoesisUIMaterialWrapper : public Noesis::BrushShader, public NoesisMaterialWrapper
 {
 public:
-	typedef Noesis::Ptr<Noesis::BaseComponent>(T::* GetterFn)(const TypePropertyData&) const;
-	typedef bool (T::* SetterFn)(const TypePropertyData&, Noesis::BaseComponent*);
 
-	/// Constructor
-	TypePropertyNoesisObjectWrapper(Noesis::Symbol Name, const Noesis::Type* Type, GetterFn Getter, SetterFn Setter, const TypePropertyData& Data);
+	NoesisUIMaterialWrapper(UMaterialInterface* InMaterial)
+		: NoesisMaterialWrapper(InMaterial)
+	{
+		SetPixelShader(Material, Target::Path);
+		SetPixelShader(Material, Target::Path_AA);
+		SetPixelShader(Material, Target::SDF);
+		SetPixelShader(Material, Target::SDF_LCD);
+		SetPixelShader(Material, Target::Opacity);
+	}
+
+	virtual const Noesis::TypeClass* GetClassType() const override
+	{
+		return TypeClass;
+	}
+};
+
+class NoesisPostProcessMaterialWrapper : public Noesis::ShaderEffect, public NoesisMaterialWrapper
+{
+public:
+
+	NoesisPostProcessMaterialWrapper(UMaterialInterface* InMaterial)
+		: NoesisMaterialWrapper(InMaterial)
+	{
+		SetPixelShader(Material);
+	}
+
+	virtual const Noesis::TypeClass* GetClassType() const override
+	{
+		return TypeClass;
+	}
+};
+
+class NoesisTextureWrapper : public Noesis::TextureSource
+{
+public:
+	NoesisTextureWrapper(UTexture* InTexture)
+		: Noesis::TextureSource(NoesisCreateTexture(InTexture)), Texture(InTexture)
+	{
+	}
+
+	~NoesisTextureWrapper()
+	{
+		if (Texture != nullptr)
+		{
+			TextureMap.Remove(Texture);
+		}
+	}
+
+	UTexture* Texture;
+};
+
+Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUTexture(UTexture* Texture)
+{
+	return *new NoesisTextureWrapper(Texture);
+}
+
+Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForTArray(void* ArrayPtr, FArrayProperty* ArrayProperty)
+{
+	auto ListPtr = ArrayMap.Find(ArrayPtr);
+	if (ListPtr)
+	{
+		return Noesis::Ptr<Noesis::BaseComponent>(*ListPtr);
+	}
+
+	return *new NoesisArrayWrapper(ArrayPtr, ArrayProperty);
+}
+
+Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForTArrayStruct(void* ArrayPtr, FArrayProperty* ArrayProperty, void* StructPtr)
+{
+	return *new NoesisValueArrayWrapper(ArrayPtr, ArrayProperty);
+}
+
+const Noesis::Type* NoesisCreateTypeForTArray(FArrayProperty* ArrayProperty)
+{
+	return Noesis::TypeOf<Noesis::BaseComponent>();
+}
+
+class NoesisTypePropertyStructWrapper : public NoesisTypeProperty
+{
+public:
+	NoesisTypePropertyStructWrapper(Noesis::Symbol Name, const Noesis::Type* Type, FProperty* InProperty);
 
 	/// From TypeProperty
 	//@{
-	void* GetContent(void* Ptr) const;
-	const void* GetContent(const void* Ptr) const;
+	Noesis::Ptr<Noesis::BaseComponent> GetComponent(const void* Ptr) const;
+	//@}
+
+	virtual void Invalidate() override;
+
+private:
+	FProperty* Property;
+};
+
+NoesisTypePropertyStructWrapper::NoesisTypePropertyStructWrapper(Noesis::Symbol Name, const Noesis::Type* Type, FProperty* InProperty)
+	: NoesisTypeProperty(Name, Type), Property(InProperty)
+{
+}
+
+Noesis::Ptr<Noesis::BaseComponent> NoesisTypePropertyStructWrapper::GetComponent(const void* Ptr) const
+{
+#if WITH_EDITOR
+	if (Property == nullptr)
+	{
+		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted struct is still referenced"));
+		return nullptr;
+	}
+#endif
+
+	NoesisStructWrapper* Wrapper = (NoesisStructWrapper*)Ptr;
+	return GetPropertyByRef(Wrapper->GetStructPtr(), Property);
+}
+
+void NoesisTypePropertyStructWrapper::Invalidate()
+{
+	Property = nullptr;
+}
+
+class NoesisTypePropertyObjectWrapper : public NoesisTypeProperty
+{
+public:
+	NoesisTypePropertyObjectWrapper(Noesis::Symbol Name, const Noesis::Type* Type, FProperty* InProperty);
+
+	/// From TypeProperty
+	//@{
 	Noesis::Ptr<Noesis::BaseComponent> GetComponent(const void* Ptr) const;
 	void SetComponent(void* Ptr, Noesis::BaseComponent* Value) const;
 	//@}
 
+	virtual void Invalidate() override;
+
 protected:
 	/// From TypeProperty
 	//@{
-	const void* InternalGet(const void* Ptr) const;
-	void InternalGet(const void* Ptr, void* Storage) const;
-	void InternalSet(void* Ptr, const void* Value) const;
-	bool InternalIsReadOnly() const;
+	bool IsReadOnly() const override;
 	//@}
 
 private:
-	GetterFn Getter;
-	SetterFn Setter;
+	FProperty* Property;
 };
 
-template<class T>
-TypePropertyNoesisObjectWrapper<T>::TypePropertyNoesisObjectWrapper(Noesis::Symbol Name, const Noesis::Type* Type, GetterFn InGetter, SetterFn InSetter, const TypePropertyData& InData) :
-	TypePropertyNoesisObjectWrapperBase(Name, Type, InData), Getter(InGetter), Setter(InSetter)
+NoesisTypePropertyObjectWrapper::NoesisTypePropertyObjectWrapper(Noesis::Symbol Name, const Noesis::Type* Type, FProperty* InProperty)
+	: NoesisTypeProperty(Name, Type), Property(InProperty)
 {
-	NS_ASSERT(Getter);
 }
 
-template<class T>
-void* TypePropertyNoesisObjectWrapper<T>::GetContent(void* Ptr) const
-{
-	check(false);
-	return nullptr;
-}
-
-template<class T>
-const void* TypePropertyNoesisObjectWrapper<T>::GetContent(const void* Ptr) const
-{
-	check(false);
-	return nullptr;
-}
-
-template<class T>
-Noesis::Ptr<Noesis::BaseComponent> TypePropertyNoesisObjectWrapper<T>::GetComponent(const void* Ptr) const
+Noesis::Ptr<Noesis::BaseComponent> NoesisTypePropertyObjectWrapper::GetComponent(const void* Ptr) const
 {
 #if WITH_EDITOR
-	if (Data.Property == nullptr)
+	if (Property == nullptr)
 	{
 		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted class is still referenced"));
 		return nullptr;
 	}
 #endif
 
-	return (static_cast<const T*>(Ptr)->*Getter)(Data);
+	NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)Ptr;
+	if (Wrapper->Object == nullptr)
+	{
+		UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
+		return nullptr;
+	}
+
+	return GetPropertyByRef(Wrapper->Object, Property);
 }
 
-template<class T>
-void TypePropertyNoesisObjectWrapper<T>::SetComponent(void* Ptr, Noesis::BaseComponent* Value) const
-{
-}
-
-template<>
-void TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>::SetComponent(void* Ptr, Noesis::BaseComponent* Value) const
+void NoesisTypePropertyObjectWrapper::SetComponent(void* Ptr, Noesis::BaseComponent* Value) const
 {
 #if WITH_EDITOR
-	if (Data.Property == nullptr)
+	if (Property == nullptr)
 	{
 		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted class is still referenced"));
 		return;
 	}
 #endif
 
-	NoesisObjectWrapper* ObjectWrapper = (NoesisObjectWrapper*)Ptr;
-	if ((ObjectWrapper->*Setter)(Data, Value))
+	NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)Ptr;
+	if (Wrapper->Object == nullptr)
 	{
-		ObjectWrapper->NotifyPropertyChanged(GetName());
+		UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
+		return;
+	}
+
+	if (SetPropertyByRef(Wrapper->Object, Property, Value))
+	{
+		Wrapper->NotifyPropertyChanged(GetName());
 	}
 }
 
-template<class T>
-const void* TypePropertyNoesisObjectWrapper<T>::InternalGet(const void* Ptr) const
+void NoesisTypePropertyObjectWrapper::Invalidate()
 {
-	check(false);
-	return nullptr;
+	for (auto Pair : ArrayMap)
+	{
+		NoesisArrayWrapper* Wrapper = Pair.Value;
+		if (Wrapper->ArrayProperty == Property)
+		{
+			Wrapper->ArrayProperty = nullptr;
+		}
+	}
+	Property = nullptr;
 }
 
-template<class T>
-void TypePropertyNoesisObjectWrapper<T>::InternalGet(const void* Ptr, void* Storage) const
-{
-	check(false);
-}
-
-template<class T>
-void TypePropertyNoesisObjectWrapper<T>::InternalSet(void* Ptr, const void* Value) const
-{
-	check(false);
-}
-
-template<class T>
-bool TypePropertyNoesisObjectWrapper<T>::InternalIsReadOnly() const
+bool NoesisTypePropertyObjectWrapper::IsReadOnly() const
 {
 #if WITH_EDITOR
-	if (Data.Property == nullptr)
+	if (Property == nullptr)
 	{
 		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted class is still referenced"));
 		return true;
 	}
 #endif
 
-	return Setter == 0;
+	return Property->HasAllPropertyFlags(CPF_BlueprintReadOnly);
 }
 
-class NoesisTypeClass : public Noesis::TypeClass
+class NoesisTypePropertyObjectWrapperGetterSetter : public NoesisTypeProperty
 {
 public:
-	NoesisTypeClass(Noesis::Symbol Name)
-		: Noesis::TypeClass(Name, false)
-	{
-	}
+	NoesisTypePropertyObjectWrapperGetterSetter(Noesis::Symbol Name, const Noesis::Type* Type, UFunction* InGetter, UFunction* InSetter);
 
-	~NoesisTypeClass()
-	{
-		check(NoesisIsShuttingDown);
-	}
+	/// From TypeProperty
+	//@{
+	Noesis::Ptr<Noesis::BaseComponent> GetComponent(const void* Ptr) const;
+	void SetComponent(void* Ptr, Noesis::BaseComponent* Value) const;
+	//@}
 
-	void InvalidateProperties()
-	{
-		for (auto TypeProperty : mProperties)
-		{
-			TypePropertyNoesisObjectWrapperBase* NoesisTypeProperty = (TypePropertyNoesisObjectWrapperBase*)TypeProperty;
-			NoesisTypeProperty->Invalidate();
-		}
-	}
+	virtual void Invalidate() override;
 
-	UStruct* Class;
+protected:
+	/// From TypeProperty
+	//@{
+	bool IsReadOnly() const override;
+	//@}
 
-	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisTypeClass, Noesis::TypeClass)
+private:
+	UFunction* Getter;
+	UFunction* Setter;
 };
 
-Noesis::Type* UClassTypeCreator(Noesis::Symbol Name)
+NoesisTypePropertyObjectWrapperGetterSetter::NoesisTypePropertyObjectWrapperGetterSetter(Noesis::Symbol Name, const Noesis::Type* Type, UFunction* InGetter, UFunction* InSetter)
+	: NoesisTypeProperty(Name, Type), Getter(InGetter), Setter(InSetter)
 {
-	return new NoesisTypeClass(Name);
 }
 
-void UStructTypeFiller(Noesis::Type* Type)
+Noesis::Ptr<Noesis::BaseComponent> NoesisTypePropertyObjectWrapperGetterSetter::GetComponent(const void* Ptr) const
 {
-	const char* ClassName = Type->GetName();
-	FString UnrealClassName = NsStringToFString(ClassName);
-	UScriptStruct* Class = LoadObject<UScriptStruct>(nullptr, *PathFromRegisterName_GameAsset(UnrealClassName), nullptr, LOAD_NoWarn);
-	if (Class == nullptr)
+#if WITH_EDITOR
+	if (Getter == nullptr)
 	{
-		Class = LoadObject<UScriptStruct>(nullptr, *PathFromRegisterName_Native(UnrealClassName), nullptr, LOAD_NoWarn);
-		if (Class == nullptr)
-		{
-			FString ModulePath = PathFromRegisterName_ModuleAsset(UnrealClassName);
-			if (!ModulePath.IsEmpty())
-			{
-				Class = LoadObject<UScriptStruct>(nullptr, *ModulePath, nullptr, LOAD_NoWarn);
-			}
-		}
+		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted class is still referenced"));
+		return nullptr;
+	}
+#endif
+
+	NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)Ptr;
+	if (Wrapper->Object == nullptr)
+	{
+		UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
+		return nullptr;
 	}
 
+	return GetFunctionProperty(Wrapper->Object, Getter);
+}
+
+void NoesisTypePropertyObjectWrapperGetterSetter::SetComponent(void* Ptr, Noesis::BaseComponent* Value) const
+{
+#if WITH_EDITOR
+	if (Getter == nullptr)
+	{
+		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted class is still referenced"));
+		return;
+	}
+#endif
+
+	NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)Ptr;
+	if (Wrapper->Object == nullptr)
+	{
+		UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
+		return;
+	}
+
+	if (SetFunctionProperty(Wrapper->Object, Setter, Value))
+	{
+		Wrapper->NotifyPropertyChanged(GetName());
+	}
+}
+
+void NoesisTypePropertyObjectWrapperGetterSetter::Invalidate()
+{
+	Getter = nullptr;
+}
+
+bool NoesisTypePropertyObjectWrapperGetterSetter::IsReadOnly() const
+{
+#if WITH_EDITOR
+	if (Getter == nullptr)
+	{
+		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted class is still referenced"));
+		return true;
+	}
+#endif
+
+	return Setter == nullptr;
+}
+
+class NoesisTypePropertyObjectWrapperCommand : public NoesisTypeProperty
+{
+public:
+	NoesisTypePropertyObjectWrapperCommand(Noesis::Symbol Name, const Noesis::Type* Type, UFunction* InCommand, UFunction* InCanExecute);
+
+	/// From TypeProperty
+	//@{
+	Noesis::Ptr<Noesis::BaseComponent> GetComponent(const void* Ptr) const;
+	//@}
+
+	virtual void Invalidate() override;
+
+private:
+	UFunction* Command;
+	UFunction* CanExecute;
+};
+
+NoesisTypePropertyObjectWrapperCommand::NoesisTypePropertyObjectWrapperCommand(Noesis::Symbol Name, const Noesis::Type* Type, UFunction* InCommand, UFunction* InCanExecute)
+	: NoesisTypeProperty(Name, Type), Command(InCommand), CanExecute(InCanExecute)
+{
+}
+
+Noesis::Ptr<Noesis::BaseComponent> NoesisTypePropertyObjectWrapperCommand::GetComponent(const void* Ptr) const
+{
+#if WITH_EDITOR
+	if (Command == nullptr)
+	{
+		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted class is still referenced"));
+		return nullptr;
+	}
+#endif
+
+	NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)Ptr;
+	if (Wrapper->Object == nullptr)
+	{
+		UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
+		return nullptr;
+	}
+
+	return *new NoesisFunctionWrapper(Wrapper->Object, Command, CanExecute);
+}
+
+void NoesisTypePropertyObjectWrapperCommand::Invalidate()
+{
+	Command = nullptr;
+}
+
+void NoesisFillTypeClassForUStruct(NoesisTypeClass* TypeClass, UScriptStruct* Class)
+{
 	const Noesis::TypeClass* ParentType = NoesisStructWrapper::StaticGetClassType(nullptr);
 
-	NoesisTypeClass* TypeClass = Noesis::DynamicCast<NoesisTypeClass*>(Type);
 	TypeClass->Class = Class;
 	check(TypeClass);
 
-	Noesis::TypeClassBuilder* TypeClassBuilder = (Noesis::TypeClassBuilder*)TypeClass;
-	TypeClassBuilder->AddBase(ParentType);
+	TypeClass->AddBase(ParentType);
 
 	for (TFieldIterator<FProperty> PropertyIt(Class, EFieldIteratorFlags::ExcludeSuper); PropertyIt; ++PropertyIt)
 	{
@@ -1621,247 +2337,17 @@ void UStructTypeFiller(Noesis::Type* Type)
 		}
 		Noesis::Symbol PropertyId = Noesis::Symbol(TCHARToNsString(*PropertyName).Str());
 
-		if (Property->IsA<FIntProperty>())
+		const Noesis::Type* PropertyType = GetPropertyType(Property);
+		if (PropertyType != nullptr)
 		{
-			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<int>(), &NoesisStructWrapper::GetProperty<int>, nullptr, TypePropertyData(Property));
-			TypeClassBuilder->AddProperty(TypeProperty);
-		}
-		else if (Property->IsA<FFloatProperty>())
-		{
-			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<float>(), &NoesisStructWrapper::GetProperty<float>, nullptr, TypePropertyData(Property));
-			TypeClassBuilder->AddProperty(TypeProperty);
-		}
-		else if (Property->IsA<FBoolProperty>())
-		{
-			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<bool>(), &NoesisStructWrapper::GetProperty<bool>, nullptr, TypePropertyData(Property));
-			TypeClassBuilder->AddProperty(TypeProperty);
-		}
-		else if (Property->IsA<FStrProperty>())
-		{
-			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<Noesis::String>(), &NoesisStructWrapper::GetProperty<Noesis::String>, nullptr, TypePropertyData(Property));
-			TypeClassBuilder->AddProperty(TypeProperty);
-		}
-		else if (Property->IsA<FTextProperty>())
-		{
-			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<Noesis::String>(), &NoesisStructWrapper::GetProperty<Noesis::String>, nullptr, TypePropertyData(Property));
-			TypeClassBuilder->AddProperty(TypeProperty);
-		}
-		else if (FStructProperty* StructProperty = CastField<FStructProperty>(Property))
-		{
-			if (StructProperty->Struct->GetFName() == NAME_Color)
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<Noesis::Color>(), &NoesisStructWrapper::GetProperty<Noesis::Color>, nullptr, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (StructProperty->Struct->GetFName() == NAME_Vector2D)
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<Noesis::Point>(), &NoesisStructWrapper::GetProperty<Noesis::Point>, nullptr, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (StructProperty->Struct->GetName() == TEXT("Box2D"))
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<Noesis::Rect>(), &NoesisStructWrapper::GetProperty<Noesis::Rect>, nullptr, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (StructProperty->Struct->GetName() == TEXT("NoesisSize"))
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<Noesis::Size>(), &NoesisStructWrapper::GetProperty<Noesis::Size>, nullptr, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (StructProperty->Struct->GetName() == TEXT("NoesisThickness"))
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<Noesis::Thickness>(), &NoesisStructWrapper::GetProperty<Noesis::Thickness>, nullptr, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (StructProperty->Struct->GetName() == TEXT("NoesisCornerRadius"))
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<Noesis::CornerRadius>(), &NoesisStructWrapper::GetProperty<Noesis::CornerRadius>, nullptr, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (StructProperty->Struct->GetName() == TEXT("Timespan"))
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<Noesis::TimeSpan>(), &NoesisStructWrapper::GetProperty<Noesis::TimeSpan>, nullptr, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (StructProperty->Struct->GetName() == TEXT("NoesisDuration"))
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<Noesis::Duration>(), &NoesisStructWrapper::GetProperty<Noesis::Duration>, nullptr, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (StructProperty->Struct->GetName() == TEXT("NoesisKeyTime"))
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<Noesis::KeyTime>(), &NoesisStructWrapper::GetProperty<Noesis::KeyTime>, nullptr, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisStructWrapper>(), &NoesisStructWrapper::GetProperty<NoesisStructWrapper>, nullptr, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-		}
-		else if (FObjectProperty* ObjectProperty = CastField<FObjectProperty>(Property))
-		{
-			if (ObjectProperty->PropertyClass == UTexture2D::StaticClass() || ObjectProperty->PropertyClass == UTextureRenderTarget2D::StaticClass())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<Noesis::TextureSource>(), &NoesisStructWrapper::GetProperty<Noesis::TextureSource>, nullptr, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisObjectWrapper>(), &NoesisStructWrapper::GetProperty<NoesisObjectWrapper>, nullptr, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-		}
-		else if (FEnumProperty* EnumProperty = CastField<FEnumProperty>(Property))
-		{
-			Noesis::TypeEnum* TypeEnum = NoesisCreateTypeEnumForUEnum(EnumProperty->GetEnum());
-			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, TypeEnum, &NoesisStructWrapper::GetProperty<NoesisEnumWrapper>, nullptr, TypePropertyData(EnumProperty));
-			TypeClassBuilder->AddProperty(TypeProperty);
-		}
-		else if (FByteProperty* ByteProperty = CastField<FByteProperty>(Property))
-		{
-			if (ByteProperty->Enum)
-			{
-				Noesis::TypeEnum* TypeEnum = NoesisCreateTypeEnumForUEnum(ByteProperty->Enum);
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, TypeEnum, &NoesisStructWrapper::GetProperty<NoesisEnumWrapper>, nullptr, TypePropertyData(ByteProperty));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-		}
-		else if (FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Property))
-		{
-			FProperty* InnerProperty = ArrayProperty->Inner;
-			if (InnerProperty->IsA<FIntProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<int>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (InnerProperty->IsA<FFloatProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<float>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (InnerProperty->IsA<FBoolProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<bool>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (InnerProperty->IsA<FStrProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<Noesis::String>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (InnerProperty->IsA<FTextProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<Noesis::String>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (FStructProperty* StructInnerProperty = CastField<FStructProperty>(InnerProperty))
-			{
-				if (StructInnerProperty->Struct->GetFName() == NAME_Color)
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<Noesis::Color>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructInnerProperty->Struct->GetFName() == NAME_Vector2D)
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<Noesis::Point>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("Box2D"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<Noesis::Rect>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("NoesisSize"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<Noesis::Size>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("NoesisThickness"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<Noesis::Thickness>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("NoesisCornerRadius"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<Noesis::CornerRadius>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("Timespan"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<Noesis::TimeSpan>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("NoesisDuration"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<Noesis::Duration>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("NoesisKeyTime"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<Noesis::KeyTime>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<NoesisStructWrapper>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-			}
-			else if (FObjectProperty* ObjectInnerProperty = CastField<FObjectProperty>(InnerProperty))
-			{
-				if (ObjectInnerProperty->PropertyClass == UTexture2D::StaticClass() || ObjectInnerProperty->PropertyClass == UTextureRenderTarget2D::StaticClass())
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<Noesis::TextureSource>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<NoesisObjectWrapper>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-			}
-			else if (FEnumProperty* EnumInnerProperty = CastField<FEnumProperty>(InnerProperty))
-			{
-				NoesisCreateTypeEnumForUEnum(EnumInnerProperty->GetEnum());
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisStructWrapper::GetArrayProperty<NoesisEnumWrapper>, nullptr, TypePropertyData(ArrayProperty, EnumInnerProperty));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (FByteProperty* ByteInnerProperty = CastField<FByteProperty>(InnerProperty))
-			{
-				if (ByteInnerProperty->Enum)
-				{
-					Noesis::TypeEnum* TypeEnum = NoesisCreateTypeEnumForUEnum(ByteInnerProperty->Enum);
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisStructWrapper>(PropertyId, TypeEnum, &NoesisStructWrapper::GetArrayProperty<NoesisEnumWrapper>, nullptr, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-			}
-
+			NoesisTypeProperty* TypeProperty = new NoesisTypePropertyStructWrapper(PropertyId, PropertyType, Property);
+			TypeClass->AddProperty(TypeProperty);
 		}
 	}
 }
 
-void UClassTypeFiller(Noesis::Type* Type)
+void NoesisFillTypeClassForUClass(NoesisTypeClass* TypeClass, UClass* Class)
 {
-	const char* ClassName = Type->GetName();
-	FString UnrealClassName = NsStringToFString(ClassName);
-	// Classes that come from script are registered using the Blueprint name, not the class name,
-	// to remove the _C suffix. We need to restore it here.
-	// We could also load the Blueprint and get the GeneratedClass from it.
-	UClass* Class = LoadObject<UClass>(nullptr, *(PathFromRegisterName_GameAsset(UnrealClassName) + TEXT("_C")), nullptr, LOAD_NoWarn);
-	if (Class == nullptr)
-	{
-		Class = LoadObject<UClass>(nullptr, *PathFromRegisterName_Native(UnrealClassName), nullptr, LOAD_NoWarn);
-		if (Class == nullptr)
-		{
-			FString ModulePath = (PathFromRegisterName_ModuleAsset(UnrealClassName) + TEXT("_C"));
-			if (!ModulePath.IsEmpty())
-			{
-				Class = LoadObject<UClass>(nullptr, *ModulePath, nullptr, LOAD_NoWarn);
-			}
-		}
-	}
-
 	const Noesis::TypeClass* ParentType = NoesisObjectWrapper::StaticGetClassType(nullptr);
 	UClass* SuperClass = Class->GetSuperClass();
 	if (SuperClass)
@@ -1869,505 +2355,119 @@ void UClassTypeFiller(Noesis::Type* Type)
 		ParentType = NoesisCreateTypeClassForUClass(SuperClass);
 	}
 
-	NoesisTypeClass* TypeClass = Noesis::DynamicCast<NoesisTypeClass*>(Type);
 	TypeClass->Class = Class;
 	check(TypeClass);
 
-	Noesis::TypeClassBuilder* TypeClassBuilder = (Noesis::TypeClassBuilder*)TypeClass;
-
-	TypeClassBuilder->AddBase(ParentType);
-
-	for (TFieldIterator<FProperty> PropertyIt(Class, EFieldIteratorFlags::ExcludeSuper); PropertyIt; ++PropertyIt)
-	{
-		FProperty* Property = *PropertyIt;
-		FString PropertyName = Property->GetName();
-		bool IsReadOnly = Property->HasAllPropertyFlags(CPF_BlueprintReadOnly);
-		Noesis::Symbol PropertyId = Noesis::Symbol(TCHARToNsString(*PropertyName).Str());
-
-		if (Property->IsA<FIntProperty>())
-		{
-			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<int>(), &NoesisObjectWrapper::GetProperty<int>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<int>, TypePropertyData(Property));
-			TypeClassBuilder->AddProperty(TypeProperty);
-		}
-		else if (Property->IsA<FFloatProperty>())
-		{
-			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<float>(), &NoesisObjectWrapper::GetProperty<float>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<float>, TypePropertyData(Property));
-			TypeClassBuilder->AddProperty(TypeProperty);
-		}
-		else if (Property->IsA<FBoolProperty>())
-		{
-			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<bool>(), &NoesisObjectWrapper::GetProperty<bool>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<bool>, TypePropertyData(Property));
-			TypeClassBuilder->AddProperty(TypeProperty);
-		}
-		else if (Property->IsA<FStrProperty>())
-		{
-			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<Noesis::String>(), &NoesisObjectWrapper::GetProperty<Noesis::String>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<Noesis::String>, TypePropertyData(Property));
-			TypeClassBuilder->AddProperty(TypeProperty);
-		}
-		else if (Property->IsA<FTextProperty>())
-		{
-			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<Noesis::String>(), &NoesisObjectWrapper::GetProperty<Noesis::String>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<Noesis::String>, TypePropertyData(Property));
-			TypeClassBuilder->AddProperty(TypeProperty);
-		}
-		else if (FStructProperty* StructProperty = CastField<FStructProperty>(Property))
-		{
-			if (StructProperty->Struct->GetFName() == NAME_Color)
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<Noesis::Color>(), &NoesisObjectWrapper::GetProperty<Noesis::Color>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<Noesis::Color>, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (StructProperty->Struct->GetFName() == NAME_Vector2D)
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<Noesis::Point>(), &NoesisObjectWrapper::GetProperty<Noesis::Point>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<Noesis::Point>, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (StructProperty->Struct->GetName() == TEXT("Box2D"))
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<Noesis::Rect>(), &NoesisObjectWrapper::GetProperty<Noesis::Rect>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<Noesis::Rect>, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (StructProperty->Struct->GetName() == TEXT("NoesisSize"))
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<Noesis::Size>(), &NoesisObjectWrapper::GetProperty<Noesis::Size>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<Noesis::Size>, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (StructProperty->Struct->GetName() == TEXT("NoesisThickness"))
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<Noesis::Thickness>(), &NoesisObjectWrapper::GetProperty<Noesis::Thickness>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<Noesis::Thickness>, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (StructProperty->Struct->GetName() == TEXT("NoesisCornerRadius"))
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<Noesis::CornerRadius>(), &NoesisObjectWrapper::GetProperty<Noesis::CornerRadius>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<Noesis::CornerRadius>, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (StructProperty->Struct->GetName() == TEXT("Timespan"))
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<Noesis::TimeSpan>(), &NoesisObjectWrapper::GetProperty<Noesis::TimeSpan>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<Noesis::TimeSpan>, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (StructProperty->Struct->GetName() == TEXT("NoesisDuration"))
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<Noesis::Duration>(), &NoesisObjectWrapper::GetProperty<Noesis::Duration>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<Noesis::Duration>, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (StructProperty->Struct->GetName() == TEXT("NoesisKeyTime"))
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<Noesis::KeyTime>(), &NoesisObjectWrapper::GetProperty<Noesis::KeyTime>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<Noesis::KeyTime>, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisStructWrapper>(), &NoesisObjectWrapper::GetProperty<NoesisStructWrapper>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<NoesisStructWrapper>, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-		}
-		else if (FObjectProperty* ObjectProperty = CastField<FObjectProperty>(Property))
-		{
-			if (ObjectProperty->PropertyClass == UTexture2D::StaticClass() || ObjectProperty->PropertyClass == UTextureRenderTarget2D::StaticClass())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<Noesis::TextureSource>(), &NoesisObjectWrapper::GetProperty<Noesis::TextureSource>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<Noesis::TextureSource>, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisObjectWrapper>(), &NoesisObjectWrapper::GetProperty<NoesisObjectWrapper>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<NoesisObjectWrapper>, TypePropertyData(Property));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-		}
-		else if (FEnumProperty* EnumProperty = CastField<FEnumProperty>(Property))
-		{
-			Noesis::TypeEnum* TypeEnum = NoesisCreateTypeEnumForUEnum(EnumProperty->GetEnum());
-			Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, TypeEnum, &NoesisObjectWrapper::GetProperty<NoesisEnumWrapper>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<NoesisEnumWrapper>, TypePropertyData(EnumProperty));
-			TypeClassBuilder->AddProperty(TypeProperty);
-		}
-		else if (FByteProperty* ByteProperty = CastField<FByteProperty>(Property))
-		{
-			if (ByteProperty->Enum)
-			{
-				Noesis::TypeEnum* TypeEnum = NoesisCreateTypeEnumForUEnum(ByteProperty->Enum);
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, TypeEnum, &NoesisObjectWrapper::GetProperty<NoesisEnumWrapper>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetProperty<NoesisEnumWrapper>, TypePropertyData(ByteProperty));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-		}
-		else if (FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Property))
-		{
-			FProperty* InnerProperty = ArrayProperty->Inner;
-			if (InnerProperty->IsA<FIntProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<int>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<int>, TypePropertyData(ArrayProperty, InnerProperty));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (InnerProperty->IsA<FFloatProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<float>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<float>, TypePropertyData(ArrayProperty, InnerProperty));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (InnerProperty->IsA<FBoolProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<bool>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<bool>, TypePropertyData(ArrayProperty, InnerProperty));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (InnerProperty->IsA<FStrProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<Noesis::String>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<Noesis::String>, TypePropertyData(ArrayProperty, InnerProperty));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (InnerProperty->IsA<FTextProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<Noesis::String>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<Noesis::String>, TypePropertyData(ArrayProperty, InnerProperty));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (FStructProperty* StructInnerProperty = CastField<FStructProperty>(InnerProperty))
-			{
-				if (StructInnerProperty->Struct->GetFName() == NAME_Color)
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<Noesis::Color>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<Noesis::Color>, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructInnerProperty->Struct->GetFName() == NAME_Vector2D)
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<Noesis::Point>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<Noesis::Point>, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("Box2D"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<Noesis::Rect>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<Noesis::Rect>, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("NoesisSize"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<Noesis::Size>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<Noesis::Size>, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("NoesisThickness"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<Noesis::Thickness>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<Noesis::Thickness>, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("NoesisCornerRadius"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<Noesis::CornerRadius>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<Noesis::CornerRadius>, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("Timespan"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<Noesis::TimeSpan>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<Noesis::TimeSpan>, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("NoesisDuration"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<Noesis::Duration>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<Noesis::Duration>, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructInnerProperty->Struct->GetName() == TEXT("NoesisKeyTime"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<Noesis::KeyTime>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<Noesis::KeyTime>, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<NoesisStructWrapper>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<NoesisStructWrapper>, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-			}
-			else if (FObjectProperty* ObjectInnerProperty = CastField<FObjectProperty>(InnerProperty))
-			{
-				if (ObjectInnerProperty->PropertyClass == UTexture2D::StaticClass() || ObjectInnerProperty->PropertyClass == UTextureRenderTarget2D::StaticClass())
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<Noesis::TextureSource>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<Noesis::TextureSource>, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<NoesisObjectWrapper>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<NoesisObjectWrapper>, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-			}
-			else if (FEnumProperty* EnumInnerProperty = CastField<FEnumProperty>(InnerProperty))
-			{
-				NoesisCreateTypeEnumForUEnum(EnumInnerProperty->GetEnum());
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, Noesis::TypeOf<NoesisArrayWrapperBase>(), &NoesisObjectWrapper::GetArrayProperty<NoesisEnumWrapper>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<NoesisEnumWrapper>, TypePropertyData(ArrayProperty, EnumInnerProperty));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (FByteProperty* ByteInnerProperty = CastField<FByteProperty>(InnerProperty))
-			{
-				if (ByteInnerProperty->Enum)
-				{
-					Noesis::TypeEnum* TypeEnum = NoesisCreateTypeEnumForUEnum(ByteInnerProperty->Enum);
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(PropertyId, TypeEnum, &NoesisObjectWrapper::GetArrayProperty<NoesisEnumWrapper>, IsReadOnly ? nullptr : &NoesisObjectWrapper::SetArrayProperty<NoesisEnumWrapper>, TypePropertyData(ArrayProperty, InnerProperty));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-			}
-
-		}
-	}
+	TypeClass->AddBase(ParentType);
 
 	for (TFieldIterator<UFunction> FunctionIt(Class, EFieldIteratorFlags::ExcludeSuper); FunctionIt; ++FunctionIt)
 	{
 		UFunction* Function = *FunctionIt;
 
+		FProperty* Param = CastField<FProperty>(Function->ChildProperties);
 		bool HasNoParams = Function->NumParms == 0;
-		bool HasOneParam = Function->NumParms == 1 && !Function->HasAnyFunctionFlags(FUNC_HasOutParms);
-		FField* Param = HasOneParam ? Function->ChildProperties	 : nullptr;
+		bool HasOneParam = Function->NumParms == 1 && (Param != nullptr) && ((Param->PropertyFlags & CPF_OutParm) == 0);
 
 		if (HasNoParams || HasOneParam)
 		{
 			UFunction* CanExecuteFunction = Class->FindFunctionByName(*(FString(TEXT("CanExecute")) + Function->GetName()), EIncludeSuperFlag::ExcludeSuper);
 			if (CanExecuteFunction)
 			{
+				FProperty* CanExecuteParam = CastField<FProperty>(CanExecuteFunction->ChildProperties);
 				bool CanExecuteHasNoParams = CanExecuteFunction->NumParms == 1 &&
-					CanExecuteFunction->HasAnyFunctionFlags(FUNC_HasOutParms) &&
-					CanExecuteFunction->ChildProperties->IsA<FBoolProperty>();
+					(CanExecuteParam != nullptr) &&
+					CanExecuteParam->IsA<FBoolProperty>() &&
+					((CanExecuteParam->PropertyFlags & CPF_OutParm) != 0);
 				bool CanExecuteHasOneParam = CanExecuteFunction->NumParms == 2 &&
-					CanExecuteFunction->HasAnyFunctionFlags(FUNC_HasOutParms) &&
-					(!Param || CanExecuteFunction->ChildProperties->GetClass() == Param->GetClass()) &&
-					CanExecuteFunction->ChildProperties->Next->IsA<FBoolProperty>();
+					(CanExecuteParam != nullptr) &&
+					((CanExecuteParam->PropertyFlags & CPF_OutParm) == 0) &&
+					(Param != nullptr) &&
+					(CanExecuteParam->GetClass() == Param->GetClass()) &&
+					CanExecuteParam->Next->IsA<FBoolProperty>() &&
+					((((FProperty*)CanExecuteParam->Next)->PropertyFlags & CPF_OutParm) != 0);
 				if (!CanExecuteHasNoParams && !CanExecuteHasOneParam)
 				{
 					CanExecuteFunction = nullptr;
-				}
-				else if (CanExecuteHasOneParam)
-				{
-					Param = CanExecuteFunction->ChildProperties;
 				}
 			}
 
 			if (!Param)
 			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandProperty, nullptr, TypePropertyData(Function, CanExecuteFunction));
-				TypeClassBuilder->AddProperty(TypeProperty);
+				NoesisTypeProperty* TypeProperty = new NoesisTypePropertyObjectWrapperCommand(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), Function, CanExecuteFunction);
+				TypeClass->AddProperty(TypeProperty);
 			}
-			else if (Param->IsA<FIntProperty>())
+			else
 			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<int>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (Param->IsA<FFloatProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<float>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (Param->IsA<FBoolProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<bool>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (Param->IsA<FStrProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::String>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (Param->IsA<FTextProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::String>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (FStructProperty* StructOutParam = CastField<FStructProperty>(Param))
-			{
-				if (StructOutParam->Struct->GetFName() == NAME_Color)
+				const Noesis::Type* ParamType = GetPropertyType(Param);
+				if (ParamType != nullptr)
 				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Color>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructOutParam->Struct->GetFName() == NAME_Vector2D)
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Point>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructOutParam->Struct->GetName() == TEXT("Box2D"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Rect>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructOutParam->Struct->GetName() == TEXT("NoesisSize"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Size>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructOutParam->Struct->GetName() == TEXT("NoesisThickness"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Thickness>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructOutParam->Struct->GetName() == TEXT("NoesisCornerRadius"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::CornerRadius>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructOutParam->Struct->GetName() == TEXT("Timespan"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::TimeSpan>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructOutParam->Struct->GetName() == TEXT("NoesisDuration"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::Duration>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructOutParam->Struct->GetName() == TEXT("NoesisKeyTime"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::KeyTime>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<NoesisStructWrapper>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-			}
-			else if (FObjectProperty* ObjectOutParam = CastField<FObjectProperty>(Param))
-			{
-				if (ObjectOutParam->PropertyClass == UTexture2D::StaticClass() || ObjectOutParam->PropertyClass == UTextureRenderTarget2D::StaticClass())
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<Noesis::TextureSource>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<NoesisObjectWrapper>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-			}
-			else if (FEnumProperty* EnumOutParam = CastField<FEnumProperty>(Param))
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<NoesisEnumWrapper>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (FByteProperty* ByteOutParam = CastField<FByteProperty>(Param))
-			{
-				if (ByteOutParam->Enum)
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), &NoesisObjectWrapper::GetCommandOneParamProperty<NoesisEnumWrapper>, nullptr, TypePropertyData(Function, CanExecuteFunction));
-					TypeClassBuilder->AddProperty(TypeProperty);
+					NoesisTypeProperty* TypeProperty = new NoesisTypePropertyObjectWrapperCommand(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), Function, CanExecuteFunction);
+					TypeClass->AddProperty(TypeProperty);
 				}
 			}
 		}
 
-		if (Function->GetName().StartsWith(TEXT("Get")) && Function->NumParms == 1 && Function->HasAnyFunctionFlags(FUNC_HasOutParms))
+		if (Function->GetName().StartsWith(TEXT("Get")))
 		{
+			Noesis::Symbol PropertyId = Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str());
 			FProperty* OutParam = CastField<FProperty>(Function->ChildProperties);
+			if (Function->NumParms == 1 && (OutParam != nullptr) && ((OutParam->PropertyFlags & CPF_OutParm) != 0))
+			{
+				FString SetterName = Function->GetName();
+				SetterName[0] = TEXT('S');
+				UFunction* Setter = Class->FindFunctionByName(*SetterName, EIncludeSuperFlag::ExcludeSuper);
+				if (Setter != nullptr)
+				{
+					FProperty* SetterParam = CastField<FProperty>(Setter->ChildProperties);
+					bool SetterHasOneParam = Setter->NumParms == 1 &&
+						(SetterParam != nullptr) &&
+						((SetterParam->PropertyFlags & CPF_OutParm) == 0) &&
+						(SetterParam->SameType(OutParam));
+					if (!SetterHasOneParam)
+						Setter = nullptr;
+				}
 
-			FString SetterName = Function->GetName();
-			SetterName[0] = TEXT('S');
-			UFunction* Setter = Class->FindFunctionByName(*SetterName, EIncludeSuperFlag::ExcludeSuper);
-			if (!Setter || Setter->NumParms != 1 || Setter->HasAnyFunctionFlags(FUNC_HasOutParms) || !CastField<FProperty>(Setter->ChildProperties)->SameType(OutParam))
-			{
-				Setter = nullptr;
+				const Noesis::Type* OutParamType = GetPropertyType(OutParam);
+				if (OutParamType != nullptr)
+				{
+					NoesisTypeProperty* TypeProperty = new NoesisTypePropertyObjectWrapperGetterSetter(PropertyId, OutParamType, Function, Setter);
+					TypeClass->AddProperty(TypeProperty);
+				}
 			}
+		}
+	}
 
-			if (OutParam->IsA<FIntProperty>())
+	for (TFieldIterator<FProperty> PropertyIt(Class, EFieldIteratorFlags::ExcludeSuper); PropertyIt; ++PropertyIt)
+	{
+		FProperty* Property = *PropertyIt;
+		FString PropertyName = Property->GetName();
+		Noesis::Symbol PropertyId = Noesis::Symbol(TCHARToNsString(*PropertyName).Str());
+
+		if (TypeClass->FindProperty(PropertyId) == nullptr)
+		{
+			const Noesis::Type* PropertyType = GetPropertyType(Property);
+			if (PropertyType != nullptr)
 			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<int>(), &NoesisObjectWrapper::GetFunctionProperty<int>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<int> : nullptr, TypePropertyData(Function, Setter));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (OutParam->IsA<FFloatProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<float>(), &NoesisObjectWrapper::GetFunctionProperty<float>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<float> : nullptr, TypePropertyData(Function, Setter));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (OutParam->IsA<FBoolProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<bool>(), &NoesisObjectWrapper::GetFunctionProperty<bool>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<bool> : nullptr, TypePropertyData(Function, Setter));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (OutParam->IsA<FStrProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<Noesis::String>(), &NoesisObjectWrapper::GetFunctionProperty<Noesis::String>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<Noesis::String> : nullptr, TypePropertyData(Function, Setter));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (OutParam->IsA<FTextProperty>())
-			{
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<Noesis::String>(), &NoesisObjectWrapper::GetFunctionProperty<Noesis::String>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<Noesis::String> : nullptr, TypePropertyData(Function, Setter));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (FStructProperty* StructOutParam = CastField<FStructProperty>(OutParam))
-			{
-				if (StructOutParam->Struct->GetFName() == NAME_Color)
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<Noesis::Color>(), &NoesisObjectWrapper::GetFunctionProperty<Noesis::Color>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<Noesis::Color> : nullptr, TypePropertyData(Function, Setter));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructOutParam->Struct->GetFName() == NAME_Vector2D)
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<Noesis::Point>(), &NoesisObjectWrapper::GetFunctionProperty<Noesis::Point>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<Noesis::Point> : nullptr, TypePropertyData(Function, Setter));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructOutParam->Struct->GetName() == TEXT("Box2D"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<Noesis::Rect>(), &NoesisObjectWrapper::GetFunctionProperty<Noesis::Rect>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<Noesis::Rect> : nullptr, TypePropertyData(Function, Setter));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructOutParam->Struct->GetName() == TEXT("NoesisSize"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<Noesis::Size>(), &NoesisObjectWrapper::GetFunctionProperty<Noesis::Size>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<Noesis::Size> : nullptr, TypePropertyData(Function, Setter));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructOutParam->Struct->GetName() == TEXT("NoesisThickness"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<Noesis::Thickness>(), &NoesisObjectWrapper::GetFunctionProperty<Noesis::Thickness>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<Noesis::Thickness> : nullptr, TypePropertyData(Function, Setter));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructOutParam->Struct->GetName() == TEXT("NoesisCornerRadius"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<Noesis::CornerRadius>(), &NoesisObjectWrapper::GetFunctionProperty<Noesis::CornerRadius>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<Noesis::CornerRadius> : nullptr, TypePropertyData(Function, Setter));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructOutParam->Struct->GetName() == TEXT("Timespan"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<Noesis::TimeSpan>(), &NoesisObjectWrapper::GetFunctionProperty<Noesis::TimeSpan>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<Noesis::TimeSpan> : nullptr, TypePropertyData(Function, Setter));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructOutParam->Struct->GetName() == TEXT("NoesisDuration"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<Noesis::Duration>(), &NoesisObjectWrapper::GetFunctionProperty<Noesis::Duration>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<Noesis::Duration> : nullptr, TypePropertyData(Function, Setter));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else if (StructOutParam->Struct->GetName() == TEXT("NoesisKeyTime"))
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<Noesis::KeyTime>(), &NoesisObjectWrapper::GetFunctionProperty<Noesis::KeyTime>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<Noesis::KeyTime> : nullptr, TypePropertyData(Function, Setter));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<NoesisStructWrapper>(), &NoesisObjectWrapper::GetFunctionProperty<NoesisStructWrapper>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<NoesisStructWrapper> : nullptr, TypePropertyData(Function, Setter));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-			}
-			else if (FObjectProperty* ObjectOutParam = CastField<FObjectProperty>(OutParam))
-			{
-				if (ObjectOutParam->PropertyClass == UTexture2D::StaticClass() || ObjectOutParam->PropertyClass == UTextureRenderTarget2D::StaticClass())
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<Noesis::TextureSource>(), &NoesisObjectWrapper::GetFunctionProperty<Noesis::TextureSource>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<Noesis::TextureSource> : nullptr, TypePropertyData(Function, Setter));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-				else
-				{
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), Noesis::TypeOf<NoesisObjectWrapper>(), &NoesisObjectWrapper::GetFunctionProperty<NoesisObjectWrapper>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<NoesisObjectWrapper> : nullptr, TypePropertyData(Function, Setter));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
-			}
-			else if (FEnumProperty* EnumOutParam = CastField<FEnumProperty>(OutParam))
-			{
-				Noesis::TypeEnum* TypeEnum = NoesisCreateTypeEnumForUEnum(EnumOutParam->GetEnum());
-				Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), TypeEnum, &NoesisObjectWrapper::GetFunctionProperty<NoesisEnumWrapper>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<NoesisEnumWrapper> : nullptr, TypePropertyData(Function, Setter));
-				TypeClassBuilder->AddProperty(TypeProperty);
-			}
-			else if (FByteProperty* ByteOutParam = CastField<FByteProperty>(OutParam))
-			{
-				if (ByteOutParam->Enum)
-				{
-					Noesis::TypeEnum* TypeEnum = NoesisCreateTypeEnumForUEnum(ByteOutParam->Enum);
-					Noesis::TypeProperty* TypeProperty = new TypePropertyNoesisObjectWrapper<NoesisObjectWrapper>(Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str()), TypeEnum, &NoesisObjectWrapper::GetFunctionProperty<NoesisEnumWrapper>, Setter ? &NoesisObjectWrapper::SetFunctionProperty<NoesisEnumWrapper> : nullptr, TypePropertyData(Function, Setter));
-					TypeClassBuilder->AddProperty(TypeProperty);
-				}
+				NoesisTypeProperty* TypeProperty = new NoesisTypePropertyObjectWrapper(PropertyId, PropertyType, Property);
+				TypeClass->AddProperty(TypeProperty);
 			}
 		}
 	}
 }
 
+const Noesis::Type* NoesisGetTypeForUClass(UClass* Class)
+{
+	return Noesis::TypeOf<NoesisObjectWrapper>();
+}
+
 Noesis::TypeClass* NoesisCreateTypeClassForUClass(UClass* Class)
 {
+	NoesisTypeClass** TypeClassPtr = ClassMap.Find(Class);
+	if (TypeClassPtr != nullptr)
+	{
+		return *TypeClassPtr;
+	}
+
 	FString ClassName;
 	if (Class->ClassGeneratedBy)
 	{
@@ -2377,10 +2477,129 @@ Noesis::TypeClass* NoesisCreateTypeClassForUClass(UClass* Class)
 	{
 		ClassName = Class->GetPathName();
 	}
-	FString AnsiClassName(TCHARToNsString(*RegisterNameFromPath(ClassName)).Str());
-	const char* PersistentClassName = GetPersistentName(AnsiClassName);
-	Noesis::Type* Type = (Noesis::Type*)Noesis::Reflection::GetType(Noesis::Symbol(PersistentClassName));
-	Noesis::TypeClass* TypeClass = Noesis::DynamicCast<Noesis::TypeClass*>(Type);
+	FString RegisterClassName = RegisterNameFromPath(ClassName);
+	NoesisTypeClass* TypeClass = new NoesisTypeClass(Noesis::Symbol(TCHAR_TO_UTF8(*RegisterClassName)));
+
+	NoesisFillTypeClassForUClass(TypeClass, Class);
+
+	ClassMap.Add(Class, TypeClass);
+	return TypeClass;
+}
+
+Noesis::BaseComponent* CallbackCreateMaterialWrapper(Noesis::Symbol Name)
+{
+	NoesisTypeClass* TypeClass = (NoesisTypeClass*)Noesis::Reflection::GetType(Name);
+	UMaterialInterface* Material = TypeClass->Material;
+	UMaterial* BaseMaterial = Material->GetBaseMaterial();
+	if (BaseMaterial->MaterialDomain == MD_UI)
+	{
+		return new NoesisUIMaterialWrapper(Material);
+	}
+	else if (BaseMaterial->MaterialDomain == MD_PostProcess)
+	{
+		return new NoesisPostProcessMaterialWrapper(Material);
+	}
+	return nullptr;
+}
+
+Noesis::TypeClass* NoesisCreateTypeClassForUMaterial(UMaterialInterface* Material)
+{
+	NoesisTypeClass** TypeClassPtr = MaterialMap.Find(Material);
+	if (TypeClassPtr != nullptr)
+	{
+		return *TypeClassPtr;
+	}
+
+	FString RegisterClassName = RegisterNameFromPath(Material->GetPathName());
+	NoesisTypeClass* TypeClass = new NoesisTypeClass(Noesis::Symbol(TCHAR_TO_UTF8(*RegisterClassName)));
+
+	TypeClass->Material = Material;
+
+	UMaterial* BaseMaterial = Material->GetBaseMaterial();
+	const Noesis::TypeClass* Parent = BaseMaterial->MaterialDomain == MD_UI ? Noesis::TypeOf<Noesis::BrushShader>() : Noesis::TypeOf<Noesis::ShaderEffect>();
+	TypeClass->AddBase(Parent);
+
+	Noesis::Ptr<Noesis::UIElementData> Data = *new Noesis::UIElementData(TypeClass);
+	TypeClass->AddMeta(Data);
+	{
+		TArray<FMaterialParameterInfo> ParamInfo;
+		TArray<FGuid> ParamGuid;
+		Material->GetAllScalarParameterInfo(ParamInfo, ParamGuid);
+
+		for (auto& Param : ParamInfo)
+		{
+			float Value;
+			Material->GetScalarParameterDefaultValue(Param, Value);
+			
+			const Noesis::DependencyProperty* DependencyProperty = nullptr;
+
+			if (BaseMaterial->MaterialDomain == MD_UI)
+			{
+				Data->RegisterProperty<float>(DependencyProperty, TCHAR_TO_UTF8(*Param.Name.ToString()),
+					Noesis::FrameworkPropertyMetadata::Create(Value,
+						Noesis::FrameworkPropertyMetadataOptions_None, Noesis::PropertyChangedCallback(
+							[ParamName = Param.Name](Noesis::DependencyObject* Object, const Noesis::DependencyPropertyChangedEventArgs& Args)
+							{
+								NoesisUIMaterialWrapper* Wrapper = (NoesisUIMaterialWrapper*)Object;
+								Wrapper->SetScalarParameterValue(ParamName, Args.NewValue<float>());
+							})));
+			}
+			else
+			{
+				Data->RegisterProperty<float>(DependencyProperty, TCHAR_TO_UTF8(*Param.Name.ToString()),
+					Noesis::FrameworkPropertyMetadata::Create(Value,
+						Noesis::FrameworkPropertyMetadataOptions_None, Noesis::PropertyChangedCallback(
+							[ParamName = Param.Name](Noesis::DependencyObject* Object, const Noesis::DependencyPropertyChangedEventArgs& Args)
+				{
+					NoesisPostProcessMaterialWrapper* Wrapper = (NoesisPostProcessMaterialWrapper*)Object;
+					Wrapper->SetScalarParameterValue(ParamName, Args.NewValue<float>());
+				})));
+			}
+		}
+	}
+
+	{
+		TArray<FMaterialParameterInfo> ParamInfo;
+		TArray<FGuid> ParamGuid;
+		Material->GetAllVectorParameterInfo(ParamInfo, ParamGuid);
+
+		for (auto& Param : ParamInfo)
+		{
+			FLinearColor Value;
+			Material->GetVectorParameterDefaultValue(Param, Value);
+
+			const Noesis::DependencyProperty* DependencyProperty = nullptr;
+
+			if (BaseMaterial->MaterialDomain == MD_UI)
+			{
+				Data->RegisterProperty<Noesis::Color>(DependencyProperty, TCHAR_TO_UTF8(*Param.Name.ToString()),
+					Noesis::FrameworkPropertyMetadata::Create(Noesis::Color(Value.R, Value.G, Value.B, Value.A),
+						Noesis::FrameworkPropertyMetadataOptions_None, Noesis::PropertyChangedCallback(
+							[ParamName = Param.Name](Noesis::DependencyObject* Object, const Noesis::DependencyPropertyChangedEventArgs& Args)
+				{
+					NoesisUIMaterialWrapper* Wrapper = (NoesisUIMaterialWrapper*)Object;
+					Noesis::Color Color = Args.NewValue<Noesis::Color>();
+					Wrapper->SetVectorParameterValue(ParamName, FLinearColor(Color.r, Color.g, Color.b, Color.a));
+				})));
+			}
+			else
+			{
+				Data->RegisterProperty<Noesis::Color>(DependencyProperty, TCHAR_TO_UTF8(*Param.Name.ToString()),
+					Noesis::FrameworkPropertyMetadata::Create(Noesis::Color(Value.R, Value.G, Value.B, Value.A),
+						Noesis::FrameworkPropertyMetadataOptions_None, Noesis::PropertyChangedCallback(
+							[ParamName = Param.Name](Noesis::DependencyObject* Object, const Noesis::DependencyPropertyChangedEventArgs& Args)
+				{
+					NoesisPostProcessMaterialWrapper* Wrapper = (NoesisPostProcessMaterialWrapper*)Object;
+					Noesis::Color Color = Args.NewValue<Noesis::Color>();
+					Wrapper->SetVectorParameterValue(ParamName, FLinearColor(Color.r, Color.g, Color.b, Color.a));
+				})));
+			}
+		}
+	}
+
+	Noesis::RegisterComponent(TypeClass, &CallbackCreateMaterialWrapper);
+
+	MaterialMap.Add(Material, TypeClass);
 	return TypeClass;
 }
 
@@ -2430,8 +2649,7 @@ void UEnumTypeFiller(Noesis::Type* Type)
 	{
 		const FString EnumValueName = Enum->GetDisplayNameTextByIndex(Index).ToString();
 		FString AnsiEnumValueName(TCHARToNsString(*EnumValueName).Str());
-		const char* PersistentEnumValueName = GetPersistentName(AnsiEnumValueName);
-		TypeEnum->AddValue(Noesis::Symbol(PersistentEnumValueName), (int)Enum->GetValueByIndex(Index));
+		TypeEnum->AddValue(Noesis::Symbol(TCHAR_TO_UTF8(*AnsiEnumValueName)), (int)Enum->GetValueByIndex(Index));
 	}
 }
 
@@ -2442,7 +2660,7 @@ Noesis::BaseComponent* CallbackCreateEnumConverter(Noesis::Symbol Id)
 	Noesis::String EnumName = Noesis::String(ConverterName + 10, FCStringAnsi::Strlen(ConverterName) - 11);
 
 	Noesis::Type* Type = (Noesis::Type*)Noesis::Reflection::GetType(Noesis::Symbol(EnumName.Str()));
-	Noesis::TypeEnum* TypeEnum = Noesis::DynamicCast<Noesis::TypeEnum*>(Type);
+	NoesisTypeEnum* TypeEnum = Noesis::DynamicCast<NoesisTypeEnum*>(Type);
 	if (TypeEnum != nullptr)
 	{
 		return new NoesisEnumConverter(TypeEnum);
@@ -2450,49 +2668,49 @@ Noesis::BaseComponent* CallbackCreateEnumConverter(Noesis::Symbol Id)
 	return nullptr;
 }
 
+void NoesisFillTypeEnumForUEnum(NoesisTypeEnum* TypeEnum, UEnum* Enum)
+{
+	for (int32 Index = 0; Index != Enum->NumEnums(); ++Index)
+	{
+		const FString EnumValueName = Enum->GetDisplayNameTextByIndex(Index).ToString();
+		TypeEnum->AddValue(Noesis::Symbol(TCHAR_TO_UTF8(*EnumValueName)), (int)Enum->GetValueByIndex(Index));
+	}
+}
+
 Noesis::TypeEnum* NoesisCreateTypeEnumForUEnum(UEnum* Enum)
 {
+	NoesisTypeEnum** TypeEnumPtr = EnumMap.Find(Enum);
+	if (TypeEnumPtr != nullptr)
+	{
+		return *TypeEnumPtr;
+	}
+
 	FString EnumName = Enum->GetPathName();
-	FString AnsiEnumName(TCHARToNsString(*RegisterNameFromPath(EnumName)).Str());
-	const char* PersistentEnumName = GetPersistentName(AnsiEnumName);
-	Noesis::Type* Type = (Noesis::Type*)Noesis::Reflection::GetType(Noesis::Symbol(PersistentEnumName));
-	Noesis::TypeEnum* TypeEnum = Noesis::DynamicCast<Noesis::TypeEnum*>(Type);
+	FString RegisterEnumName = RegisterNameFromPath(EnumName);
+	Noesis::String PersistentEnumName = TCHAR_TO_UTF8(*RegisterEnumName);
+	NoesisTypeEnum* TypeEnum = new NoesisTypeEnum(Enum, Noesis::Symbol(PersistentEnumName.Str()));
+	check(TypeEnum);
+
+	NoesisFillTypeEnumForUEnum(TypeEnum, Enum);
+
+	Noesis::Symbol EnumConverterId = Noesis::IdOf("Converter<", PersistentEnumName.Str(), ">");
+	if (!Noesis::Factory::IsComponentRegistered(EnumConverterId))
+	{
+		Noesis::Factory::RegisterComponent(EnumConverterId, Noesis::Symbol::Null(), &CallbackCreateEnumConverter);
+	}
+
+	EnumMap.Add(Enum, TypeEnum);
 	return TypeEnum;
 }
 
 #if WITH_EDITOR
-void NoesisDestroyTypeClassForBlueprint(const UBlueprint* Blueprint)
-{
-	NoesisDestroyTypeClass(Blueprint->GetPathName());
-}
-
-void NoesisDestroyTypeClassForStruct(const UStruct* Struct)
-{
-	NoesisDestroyTypeClass(Struct->GetPathName());
-}
-
-void NoesisDestroyTypeClassForEnum(const UEnum* Enum)
-{
-	NoesisDestroyTypeClass(Enum->GetPathName());
-}
-
-void NoesisDestroyTypeClass(FString Path)
-{
-	// Check if the modified type has been registered.
-	// We can't use Noesis::Reflection::GetType because that would create the type.
-	if (RegisteredTypes.Contains(TCHAR_TO_UTF8(*RegisterNameFromPath(Path))))
-	{
-		NoesisDestroyTypeClass();
-	}
-}
-
-void NoesisDestroyTypeClass()
+void NoesisDestroyViews()
 {
 	// The types may be in use. We have to destroy all Views.
 	// We simply get rid of all the thumbnails
 	for (TObjectIterator<UNoesisXaml> It; It; ++It)
 	{
-		UNoesisXaml * Xaml = *It;
+		UNoesisXaml* Xaml = *It;
 		Xaml->DestroyThumbnailRenderData();
 	}
 
@@ -2510,22 +2728,6 @@ void NoesisDestroyTypeClass()
 		}
 	}
 
-	// If it has we have to get rid of all the registered types, because class properties may have references to the
-	// unregistered types.
-	for (auto TypeName : RegisteredTypes)
-	{
-		Noesis::Type* Type = (Noesis::Type*)Noesis::Reflection::GetType(Noesis::Symbol(TCHAR_TO_UTF8(*TypeName)));
-		NoesisTypeClass* TypeClass = Noesis::DynamicCast<NoesisTypeClass*>(Type);
-
-		if (TypeClass != nullptr)
-		{
-			TypeClass->InvalidateProperties();
-		}
-		DeletedTypes.Add(Type);
-		Noesis::Reflection::UnregisterNoDelete(Type);
-	}
-	RegisteredTypes.Empty();
-
 	// Reinitialize the Views that are in game
 	auto It = DataContexts.Begin();
 	for (auto Instance : InstancesToRecreate)
@@ -2534,27 +2736,308 @@ void NoesisDestroyTypeClass()
 		Instance->Xaml->SetDataContext(*It++);
 	}
 }
+
+static void OnBlueprintCompiled(UBlueprint* Blueprint);
+
+auto OnBlueprintCompiledDelegate = TDelegate<void(UBlueprint*), FDefaultDelegateUserPolicy>::CreateStatic(OnBlueprintCompiled);
+
+void OnClassChanged(UClass* Class)
+{
+	NoesisTypeClass* TypeClass = nullptr;
+	if (ClassMap.RemoveAndCopyValue(Class, TypeClass))
+	{
+		ReplaceTypeClass(TypeClass, nullptr);
+	}
+}
+
+static void OnBlueprintCompiled(UBlueprint* Blueprint)
+{
+	Blueprint->OnCompiled().Remove(OnBlueprintCompiledDelegate.GetHandle());
+	NoesisDestroyViews();
+}
+
+void NoesisDestroyTypeClassForBlueprint(UBlueprint* Blueprint)
+{
+	UClass* Class = Blueprint->GeneratedClass;
+	if (!Blueprint->bIsRegeneratingOnLoad && ClassMap.Contains(Class))
+	{
+		Blueprint->OnCompiled().Add(OnBlueprintCompiledDelegate);
+		OnClassChanged(Class);
+	}
+}
+
+void OnStructChanged(UUserDefinedStruct* OriginalStruct)
+{
+	for (TObjectIterator<UUserDefinedStruct> StructIt; StructIt; ++StructIt)
+	{
+		UUserDefinedStruct* Struct = *StructIt;
+		if (Struct->PrimaryStruct.IsValid() && Struct->PrimaryStruct == OriginalStruct)
+		{
+			NoesisTypeClass* TypeClass = nullptr;
+			if (StructMap.RemoveAndCopyValue(OriginalStruct, TypeClass))
+			{
+				check(TypeClass->Class == OriginalStruct);
+				TypeClass->Class = Struct;
+				NoesisTypeClass* NewClass = (NoesisTypeClass*)NoesisCreateTypeClassForUStruct(Struct);
+				ReplaceTypeClass(TypeClass, NewClass);
+
+				NoesisDestroyViews();
+			}
+		}
+	}
+}
+
+void NoesisDestroyTypeClassForStruct(UUserDefinedStruct* BaseStruct)
+{
+	OnStructChanged(BaseStruct);
+
+	/*for (TAllFieldsIterator<FStructProperty> FieldIt(RF_NoFlags, EInternalObjectFlags::PendingKill); FieldIt; ++FieldIt)
+	{
+		FStructProperty* StructProperty = *FieldIt;
+		if ((StructProperty != nullptr) && (StructProperty->Struct != nullptr))
+		{
+			UUserDefinedStruct* PropertyStruct = Cast<UUserDefinedStruct>(StructProperty->Struct);
+			if ((PropertyStruct != nullptr) && PropertyStruct->PrimaryStruct.IsValid() && PropertyStruct->PrimaryStruct->IsChildOf(BaseStruct))
+			{
+				FField* Field = StructProperty;
+				FFieldVariant Owner = Field->GetOwnerVariant();
+				while (!Owner.IsUObject())
+				{
+					Field = Owner.ToField();
+					Owner = Field->GetOwnerVariant();
+				}
+
+				if (UClass* OwnerClass = Cast<UClass>(Owner.ToUObject()))
+				{
+					for (auto It = ObjectMap.CreateIterator(); It; ++It)
+					{
+						auto& ObjectComponentPair = *It;
+						UObject* Object = ObjectComponentPair.Key;
+						if (!Object->IsPendingKill() && !Object->IsUnreachable())
+						{
+							if (Object->GetClass() == OwnerClass)
+							{
+								NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)ObjectComponentPair.Value;
+								auto PropertySymbol = Noesis::Symbol(TCHARToNsString(*Field->GetName()).Str());
+								Wrapper->NotifyPropertyChanged(PropertySymbol);
+							}
+						}
+					}
+				}
+			}
+		}
+	}*/
+}
+
+void OnEnumChanged(UEnum* Enum)
+{
+	NoesisTypeEnum* TypeEnum = nullptr;
+	if (EnumMap.RemoveAndCopyValue(Enum, TypeEnum))
+	{
+		NoesisTypeEnum* NewEnum = (NoesisTypeEnum*)NoesisCreateTypeEnumForUEnum(Enum);
+		ReplaceType(TypeEnum, NewEnum);
+
+		NoesisDestroyViews();
+	}
+}
+
+void NoesisDestroyTypeClassForEnum(UEnum* Enum)
+{
+	OnEnumChanged(Enum);
+
+	/*for (TAllFieldsIterator<FEnumProperty> FieldIt(RF_NoFlags, EInternalObjectFlags::PendingKill); FieldIt; ++FieldIt)
+	{
+		FEnumProperty* EnumProperty = *FieldIt;
+		if ((EnumProperty != nullptr) && (EnumProperty->GetEnum() != nullptr))
+		{
+			UEnum* PropertyEnum = EnumProperty->GetEnum();
+			if ((PropertyEnum != nullptr) && (PropertyEnum == Enum))
+			{
+				FField* Field = EnumProperty;
+				FFieldVariant Owner = Field->GetOwnerVariant();
+				while (!Owner.IsUObject())
+				{
+					Field = Owner.ToField();
+					Owner = Field->GetOwnerVariant();
+				}
+
+				if (UClass* OwnerClass = Cast<UClass>(Owner.ToUObject()))
+				{
+					for (auto It = ObjectMap.CreateIterator(); It; ++It)
+					{
+						auto& ObjectComponentPair = *It;
+						UObject* Object = ObjectComponentPair.Key;
+						if (!Object->IsPendingKill() && !Object->IsUnreachable())
+						{
+							if (Object->GetClass() == OwnerClass)
+							{
+								NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)ObjectComponentPair.Value;
+								auto PropertySymbol = Noesis::Symbol(TCHARToNsString(*Field->GetName()).Str());
+								Wrapper->NotifyPropertyChanged(PropertySymbol);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	for (TAllFieldsIterator<FByteProperty> FieldIt(RF_NoFlags, EInternalObjectFlags::PendingKill); FieldIt; ++FieldIt)
+	{
+		FByteProperty* ByteProperty = *FieldIt;
+		if ((ByteProperty != nullptr) && (ByteProperty->Enum != nullptr))
+		{
+			UEnum* PropertyEnum = ByteProperty->Enum;
+			if ((PropertyEnum != nullptr) && (PropertyEnum == Enum))
+			{
+				FField* Field = ByteProperty;
+				FFieldVariant Owner = Field->GetOwnerVariant();
+				while (!Owner.IsUObject())
+				{
+					Field = Owner.ToField();
+					Owner = Field->GetOwnerVariant();
+				}
+
+				if (UClass* OwnerClass = Cast<UClass>(Owner.ToUObject()))
+				{
+					for (auto It = ObjectMap.CreateIterator(); It; ++It)
+					{
+						auto& ObjectComponentPair = *It;
+						UObject* Object = ObjectComponentPair.Key;
+						if (!Object->IsPendingKill() && !Object->IsUnreachable())
+						{
+							if (Object->GetClass() == OwnerClass)
+							{
+								NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)ObjectComponentPair.Value;
+								auto PropertySymbol = Noesis::Symbol(TCHARToNsString(*Field->GetName()).Str());
+								Wrapper->NotifyPropertyChanged(PropertySymbol);
+							}
+						}
+					}
+				}
+			}
+		}
+	}*/
+}
+
+void OnMaterialChanged(class UMaterialInterface* Material)
+{
+	NoesisTypeClass* TypeClass = nullptr;
+	if (MaterialMap.RemoveAndCopyValue(Material, TypeClass))
+	{
+		NoesisTypeClass* NewClass = (NoesisTypeClass*)NoesisCreateTypeClassForUMaterial(Material);
+		ReplaceTypeClass(TypeClass, NewClass);
+
+		NoesisDestroyViews();
+	}
+}
+
+void NoesisDestroyTypeClassForMaterial(class UMaterialInterface* Material)
+{
+	OnMaterialChanged(Material);
+}
+
+void NoesisAssetRenamed(UObject* Object, FString OldPath)
+{
+	if (UBlueprint* Blueprint = Cast<UBlueprint>(Object))
+	{
+		UClass* Class = Blueprint->GeneratedClass;
+		NoesisTypeClass** TypeClassPtr = ClassMap.Find(Class);
+		if (TypeClassPtr != nullptr)
+		{
+			NoesisTypeClass* TypeClass = *TypeClassPtr;
+			bool IsRegistered = IsTypeRegistered(TypeClass);
+			if (IsRegistered)
+			{
+				Noesis::Reflection::UnregisterNoDelete(TypeClass);
+			}
+			FString ClassName = Class->GetPathName();
+			FString RegisterClassName = RegisterNameFromPath(ClassName);
+			TypeClass->ChangeName(Noesis::Symbol(TCHAR_TO_UTF8(*RegisterClassName)));
+			if (IsRegistered)
+			{
+				Noesis::Reflection::RegisterType(TypeClass);
+			}
+		}
+	}
+	else if (UUserDefinedEnum* Enum = Cast<UUserDefinedEnum>(Object))
+	{
+		NoesisTypeEnum** TypeEnumPtr = EnumMap.Find(Enum);
+		if (TypeEnumPtr != nullptr)
+		{
+			NoesisTypeEnum* TypeEnum = *TypeEnumPtr;
+			bool IsRegistered = IsTypeRegistered(TypeEnum);
+			if (IsRegistered)
+			{
+				Noesis::Reflection::UnregisterNoDelete(TypeEnum);
+			}
+			FString EnumName = Enum->GetPathName();
+			FString RegisterEnumName = RegisterNameFromPath(EnumName);
+			TypeEnum->ChangeName(Noesis::Symbol(TCHAR_TO_UTF8(*RegisterEnumName)));
+			if (IsRegistered)
+			{
+				Noesis::Reflection::RegisterType(TypeEnum);
+			}
+		}
+	}
+	else if (UUserDefinedStruct* Struct = Cast<UUserDefinedStruct>(Object))
+	{
+		NoesisTypeClass** TypeClassPtr = StructMap.Find(Struct);
+		if (TypeClassPtr != nullptr)
+		{
+			NoesisTypeClass* TypeClass = *TypeClassPtr;
+			bool IsRegistered = IsTypeRegistered(TypeClass);
+			if (IsRegistered)
+			{
+				Noesis::Reflection::UnregisterNoDelete(TypeClass);
+			}
+			FString ClassName = Struct->GetPathName();
+			FString RegisterClassName = RegisterNameFromPath(ClassName);
+			TypeClass->ChangeName(Noesis::Symbol(TCHAR_TO_UTF8(*RegisterClassName)));
+			if (IsRegistered)
+			{
+				Noesis::Reflection::RegisterType(TypeClass);
+			}
+		}
+	}
+}
 #endif
 
-void AssignStruct(void* BasePointer, FStructProperty* StructProperty, Noesis::BaseComponent* Value)
+bool AssignStruct(void* Dest, UScriptStruct* Struct, Noesis::BaseComponent* Value)
 {
 	check(Value->GetClassType()->IsDescendantOf(NoesisStructWrapper::StaticGetClassType(nullptr)));
 	check(Noesis::DynamicCast<const NoesisTypeClass*>(Value->GetClassType()));
-	if (((NoesisTypeClass*)Value->GetClassType())->Class == StructProperty->Struct)
+	if (((NoesisTypeClass*)Value->GetClassType())->Class == Struct)
 	{
-		void* Dest = StructProperty->ContainerPtrToValuePtr<void>(BasePointer);
 		NoesisStructWrapper* Wrapper = ((NoesisStructWrapper*)Value);
-		StructProperty->Struct->CopyScriptStruct(Dest, Wrapper->GetStructPtr(), 1);
+		bool Changed = !Struct->CompareScriptStruct(Dest, Wrapper->GetStructPtr(), PPF_None);
+		Struct->CopyScriptStruct(Dest, Wrapper->GetStructPtr(), 1);
+		return Changed;
 	}
+
+	return false;
+}
+
+const Noesis::Type* NoesisGetTypeForUStruct(UStruct* Class)
+{
+	return Noesis::TypeOf<NoesisStructWrapper>();
 }
 
 Noesis::TypeClass* NoesisCreateTypeClassForUStruct(UScriptStruct* Class)
 {
+	NoesisTypeClass** TypeClassPtr = StructMap.Find(Class);
+	if (TypeClassPtr != nullptr)
+	{
+		return *TypeClassPtr;
+	}
+
 	FString ClassName = Class->GetPathName();
-	FString AnsiClassName(TCHARToNsString(*RegisterNameFromPath(ClassName)).Str());
-	const char* PersistentClassName = GetPersistentName(AnsiClassName);
-	Noesis::Type* Type = (Noesis::Type*)Noesis::Reflection::GetType(Noesis::Symbol(PersistentClassName));
-	Noesis::TypeClass* TypeClass = Noesis::DynamicCast<Noesis::TypeClass*>(Type);
+	FString RegisterClassName = RegisterNameFromPath(ClassName);
+	NoesisTypeClass* TypeClass = new NoesisTypeClass(Noesis::Symbol(TCHAR_TO_UTF8(*RegisterClassName)));
+
+	NoesisFillTypeClassForUStruct(TypeClass, Class);
+
+	StructMap.Add(Class, TypeClass);
 	return TypeClass;
 }
 
@@ -2565,10 +3048,8 @@ Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUStruct(UScriptStruct
 		return nullptr;
 	}
 
-	SIZE_T AllocSize = sizeof(NoesisStructWrapper) + Struct->GetStructureSize();
-	void* Memory = NoesisAlloc(NoesisAllocationCallbackUserData, AllocSize);
-	FMemory::Memzero(Memory, AllocSize);
-	Noesis::Ptr<NoesisStructWrapper> Wrapper = *new NoesisStructWrapper(Struct);
+	NoesisTypeClass* TypeClass = (NoesisTypeClass*)NoesisCreateTypeClassForUStruct(Struct);
+	Noesis::Ptr<NoesisStructWrapper> Wrapper = *new NoesisStructWrapper(TypeClass);
 	Struct->CopyScriptStruct(Wrapper->GetStructPtr(), Src, 1);
 
 	return Wrapper;
@@ -2590,7 +3071,7 @@ NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisFindComponentForUObje
 	UClass* Class = Object->GetClass();
 	if (Class == UTexture2D::StaticClass() || Class == UTextureRenderTarget2D::StaticClass())
 	{
-		Noesis::TextureSource** WrapperPtr = TextureMap.Find(Object);
+		NoesisTextureWrapper** WrapperPtr = TextureMap.Find(Object);
 		if (WrapperPtr)
 		{
 			return Noesis::Ptr<Noesis::BaseComponent>(*WrapperPtr);
@@ -2629,11 +3110,54 @@ NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUOb
 
 	UClass* Class = Object->GetClass();
 	Noesis::Ptr<Noesis::BaseComponent> Wrapper;
-	if (Class == UTexture2D::StaticClass() || Class == UTextureRenderTarget2D::StaticClass())
+	ISlateTextureAtlasInterface* SlateAtlas = Cast<ISlateTextureAtlasInterface>(Object);
+	if (SlateAtlas != nullptr)
 	{
-		Noesis::TextureSource* TextureSource = new Noesis::TextureSource(NoesisCreateTexture((UTexture*)Object).GetPtr());
-		TextureMap.Add(Object, TextureSource);
-		Wrapper = *TextureSource;
+		FSlateAtlasData AtlasData = SlateAtlas->GetSlateAtlasData();
+		UTexture2D* Texture = Cast<UTexture2D>(AtlasData.AtlasTexture);
+		if (Texture != nullptr)
+		{
+			Noesis::Ptr<NoesisTextureWrapper> TextureSource;
+			NoesisTextureWrapper** TextureSourcePtr = TextureMap.Find(Texture);
+			if (TextureSourcePtr != nullptr)
+			{
+				TextureSource.Reset(*TextureSourcePtr);
+			}
+			else
+			{
+				TextureSource = *new NoesisTextureWrapper(Texture);
+				TextureMap.Add(Texture, TextureSource);
+			}
+
+			Wrapper = *new Noesis::CroppedBitmap(TextureSource, Noesis::Int32Rect(AtlasData.StartUV.X * Texture->GetSizeX(), AtlasData.StartUV.Y * Texture->GetSizeY(), AtlasData.SizeUV.X * Texture->GetSizeX(), AtlasData.SizeUV.Y * Texture->GetSizeY()));
+		}
+	}
+	else if (Class->IsChildOf(UMaterialInterface::StaticClass()))
+	{
+		UMaterialInterface* Material = (UMaterialInterface*)Object;
+		UMaterial* BaseMaterial = Material->GetBaseMaterial();
+		if (BaseMaterial->MaterialDomain == MD_UI)
+		{
+			Wrapper = *new NoesisUIMaterialWrapper(Material);
+		}
+		else if (BaseMaterial->MaterialDomain == MD_PostProcess)
+		{
+			Wrapper = *new NoesisPostProcessMaterialWrapper(Material);
+		}
+	}
+	else if (Class->IsChildOf(UTexture2D::StaticClass()) || Class->IsChildOf(UTextureRenderTarget2D::StaticClass()))
+	{
+		NoesisTextureWrapper** TextureSourcePtr = TextureMap.Find(Object);
+		if (TextureSourcePtr != nullptr)
+		{
+			Wrapper = Noesis::Ptr<Noesis::BaseComponent>(*TextureSourcePtr);
+		}
+		else
+		{
+			NoesisTextureWrapper* TextureSource = new NoesisTextureWrapper((UTexture*)Object);
+			TextureMap.Add(Object, TextureSource);
+			Wrapper = *TextureSource;
+		}
 	}
 	else
 	{
@@ -2704,7 +3228,7 @@ void NoesisNotifyArrayPropertyChanged(UObject* Owner, FName ArrayPropertyName)
 		const Noesis::TypeProperty* ArrayTypeProperty = ClassProperty.property;
 		if (ArrayTypeProperty != nullptr)
 		{
-			NoesisArrayWrapperBase* Array = (NoesisArrayWrapperBase*)(ArrayTypeProperty->GetComponent(Wrapper).GetPtr());
+			NoesisArrayWrapper* Array = (NoesisArrayWrapper*)(ArrayTypeProperty->GetComponent(Wrapper).GetPtr());
 			if (Array)
 			{
 				Array->NotifyPostChanged();
@@ -2722,10 +3246,10 @@ void NoesisNotifyArrayPropertyChanged(UObject* Owner, FName ArrayPropertyName)
 void NoesisNotifyArrayPropertyPostAdd(void* ArrayPointer)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyAdd);
-	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
+	NoesisArrayWrapper** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
-		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
+		NoesisArrayWrapper* Array = *ArrayWrapperPtr;
 		Array->NotifyPostAdd();
 	}
 }
@@ -2733,10 +3257,10 @@ void NoesisNotifyArrayPropertyPostAdd(void* ArrayPointer)
 void NoesisNotifyArrayPropertyPostChanged(void* ArrayPointer)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyChanged);
-	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
+	NoesisArrayWrapper** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
-		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
+		NoesisArrayWrapper* Array = *ArrayWrapperPtr;
 		Array->NotifyPostChanged();
 	}
 }
@@ -2744,10 +3268,10 @@ void NoesisNotifyArrayPropertyPostChanged(void* ArrayPointer)
 void NoesisNotifyArrayPropertyPreAppend(void* ArrayPointer)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyAppend);
-	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
+	NoesisArrayWrapper** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
-		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
+		NoesisArrayWrapper* Array = *ArrayWrapperPtr;
 		Array->NotifyPreAppend();
 	}
 }
@@ -2755,10 +3279,10 @@ void NoesisNotifyArrayPropertyPreAppend(void* ArrayPointer)
 void NoesisNotifyArrayPropertyPostAppend(void* ArrayPointer)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyAppend);
-	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
+	NoesisArrayWrapper** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
-		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
+		NoesisArrayWrapper* Array = *ArrayWrapperPtr;
 		Array->NotifyPostAppend();
 	}
 }
@@ -2766,10 +3290,10 @@ void NoesisNotifyArrayPropertyPostAppend(void* ArrayPointer)
 void NoesisNotifyArrayPropertyPostInsert(void* ArrayPointer, int32 Index)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyInsert);
-	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
+	NoesisArrayWrapper** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
-		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
+		NoesisArrayWrapper* Array = *ArrayWrapperPtr;
 		Array->NotifyPostInsert(Index);
 	}
 }
@@ -2777,10 +3301,10 @@ void NoesisNotifyArrayPropertyPostInsert(void* ArrayPointer, int32 Index)
 void NoesisNotifyArrayPropertyPreRemove(void* ArrayPointer, int32 Index)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyRemove);
-	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
+	NoesisArrayWrapper** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
-		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
+		NoesisArrayWrapper* Array = *ArrayWrapperPtr;
 		Array->NotifyPreRemoveAt(Index);
 	}
 }
@@ -2788,10 +3312,10 @@ void NoesisNotifyArrayPropertyPreRemove(void* ArrayPointer, int32 Index)
 void NoesisNotifyArrayPropertyPostRemove(void* ArrayPointer, int32 Index)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyRemove);
-	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
+	NoesisArrayWrapper** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
-		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
+		NoesisArrayWrapper* Array = *ArrayWrapperPtr;
 		Array->NotifyPostRemoveAt(Index);
 	}
 }
@@ -2799,10 +3323,10 @@ void NoesisNotifyArrayPropertyPostRemove(void* ArrayPointer, int32 Index)
 void NoesisNotifyArrayPropertyPostClear(void* ArrayPointer)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyClear);
-	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
+	NoesisArrayWrapper** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
-		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
+		NoesisArrayWrapper* Array = *ArrayWrapperPtr;
 		Array->NotifyPostClear();
 	}
 }
@@ -2810,10 +3334,10 @@ void NoesisNotifyArrayPropertyPostClear(void* ArrayPointer)
 void NoesisNotifyArrayPropertyPreSet(void* ArrayPointer, int32 Index)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertySet);
-	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
+	NoesisArrayWrapper** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
-		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
+		NoesisArrayWrapper* Array = *ArrayWrapperPtr;
 		Array->NotifyPreSet(Index);
 	}
 }
@@ -2821,18 +3345,85 @@ void NoesisNotifyArrayPropertyPreSet(void* ArrayPointer, int32 Index)
 void NoesisNotifyArrayPropertyPostSet(void* ArrayPointer, int32 Index)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertySet);
-	NoesisArrayWrapperBase** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
+	NoesisArrayWrapper** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
 	if (ArrayWrapperPtr)
 	{
-		NoesisArrayWrapperBase* Array = *ArrayWrapperPtr;
+		NoesisArrayWrapper* Array = *ArrayWrapperPtr;
 		Array->NotifyPostSet(Index);
+	}
+}
+
+void NoesisNotifyMapPropertyPostAdd(void* MapPointer, const FString& Key)
+{
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyMapPropertyAdd);
+	NoesisMapWrapper** MapWrapperPtr = MapMap.Find(MapPointer);
+	if (MapWrapperPtr)
+	{
+		NoesisMapWrapper* Map = *MapWrapperPtr;
+		Map->NotifyPostAdd(TCHAR_TO_UTF8(*Key));
+	}
+}
+
+void NoesisNotifyMapPropertyPostChanged(void* MapPointer)
+{
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyMapPropertyChanged);
+	NoesisMapWrapper** MapWrapperPtr = MapMap.Find(MapPointer);
+	if (MapWrapperPtr)
+	{
+		NoesisMapWrapper* Map = *MapWrapperPtr;
+		Map->NotifyPostChanged();
+	}
+}
+
+void NoesisNotifyMapPropertyPreRemove(void* MapPointer, const FString& Key)
+{
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyMapPropertyRemove);
+	NoesisMapWrapper** MapWrapperPtr = MapMap.Find(MapPointer);
+	if (MapWrapperPtr)
+	{
+		NoesisMapWrapper* Map = *MapWrapperPtr;
+		Map->NotifyPreRemove(TCHAR_TO_UTF8(*Key));
+	}
+}
+
+void NoesisNotifyMapPropertyPostRemove(void* MapPointer, const FString& Key)
+{
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyMapPropertyRemove);
+	NoesisMapWrapper** MapWrapperPtr = MapMap.Find(MapPointer);
+	if (MapWrapperPtr)
+	{
+		NoesisMapWrapper* Map = *MapWrapperPtr;
+		Map->NotifyPostRemove(TCHAR_TO_UTF8(*Key));
 	}
 }
 
 void NoesisDeleteMaps()
 {
 	NoesisIsShuttingDown = true;
-	ObjectMap.Reset();
+
+	for (auto Pair : ClassMap)
+	{
+		ReplaceTypeClass(Pair.Value, nullptr);
+	}
+	ClassMap.Empty();
+
+	for (auto Pair : StructMap)
+	{
+		ReplaceTypeClass(Pair.Value, nullptr);
+	}
+	StructMap.Empty();
+
+	for (auto Pair : EnumMap)
+	{
+		ReplaceType(Pair.Value, nullptr);
+	}
+	EnumMap.Empty();
+
+	for (auto Pair : MaterialMap)
+	{
+		ReplaceType(Pair.Value, nullptr);
+	}
+	MaterialMap.Empty();
 
 	for (auto TypeClass : DeletedTypes)
 	{
@@ -2910,75 +3501,45 @@ void NoesisGarbageCollected()
 			UObject* Object = ObjectComponentPair.Key;
 			if (Object->IsUnreachable())
 			{
+				NoesisTextureWrapper* Wrapper = ObjectComponentPair.Value;
+				Wrapper->Texture = nullptr;
 				It.RemoveCurrent();
 			}
 		}
 
-		for (TObjectIterator<UClass> It; It; ++It)
+		for (auto It = ClassMap.CreateIterator(); It; ++It)
 		{
-			if (It->IsUnreachable())
+			auto& ObjectComponentPair = *It;
+			UClass* Class = ObjectComponentPair.Key;
+			if (Class->IsUnreachable())
 			{
-				FString ClassName;
-				if (It->ClassGeneratedBy)
-				{
-					ClassName = It->ClassGeneratedBy->GetPathName();
-				}
-				else
-				{
-					ClassName = It->GetPathName();
-				}
-				FString AnsiClassName(TCHARToNsString(*RegisterNameFromPath(ClassName)).Str());
-				const char* PersistentClassName = GetPersistentName(AnsiClassName);
-				if (Noesis::Reflection::IsTypeRegistered(Noesis::Symbol(PersistentClassName)))
-				{
-					Noesis::Type* Type = (Noesis::Type*)Noesis::Reflection::GetType(Noesis::Symbol(PersistentClassName));
-					NoesisTypeClass* TypeClass = Noesis::DynamicCast<NoesisTypeClass*>(Type);
-
-					if (TypeClass != nullptr)
-					{
-						TypeClass->InvalidateProperties();
-					}
-					DeletedTypes.Add(Type);
-					Noesis::Reflection::UnregisterNoDelete(Type);
-				}
+				NoesisTypeClass* Type = ObjectComponentPair.Value;
+				ReplaceTypeClass(Type, nullptr);
+				It.RemoveCurrent();
 			}
 		}
 
-		for (TObjectIterator<UStruct> It; It; ++It)
+		for (auto It = StructMap.CreateIterator(); It; ++It)
 		{
-			if (It->IsUnreachable())
+			auto& ObjectComponentPair = *It;
+			UStruct* Class = ObjectComponentPair.Key;
+			if (Class->IsUnreachable())
 			{
-				FString ClassName = It->GetPathName();
-				FString AnsiClassName(TCHARToNsString(*RegisterNameFromPath(ClassName)).Str());
-				const char* PersistentClassName = GetPersistentName(AnsiClassName);
-				if (Noesis::Reflection::IsTypeRegistered(Noesis::Symbol(PersistentClassName)))
-				{
-					Noesis::Type* Type = (Noesis::Type*)Noesis::Reflection::GetType(Noesis::Symbol(PersistentClassName));
-					NoesisTypeClass* TypeClass = Noesis::DynamicCast<NoesisTypeClass*>(Type);
-
-					if (TypeClass != nullptr)
-					{
-						TypeClass->InvalidateProperties();
-					}
-					DeletedTypes.Add(Type);
-					Noesis::Reflection::UnregisterNoDelete(Type);
-				}
+				NoesisTypeClass* Type = ObjectComponentPair.Value;
+				ReplaceTypeClass(Type, nullptr);
+				It.RemoveCurrent();
 			}
 		}
 
-		for (TObjectIterator<UEnum> It; It; ++It)
+		for (auto It = EnumMap.CreateIterator(); It; ++It)
 		{
-			if (It->IsUnreachable())
+			auto& ObjectComponentPair = *It;
+			UEnum* Enum = ObjectComponentPair.Key;
+			if (Enum->IsUnreachable())
 			{
-				FString EnumName = It->GetPathName();
-				FString AnsiEnumName(TCHARToNsString(*RegisterNameFromPath(EnumName)).Str());
-				const char* PersistentEnumName = GetPersistentName(AnsiEnumName);
-				if (Noesis::Reflection::IsTypeRegistered(Noesis::Symbol(PersistentEnumName)))
-				{
-					Noesis::Type* Type = (Noesis::Type*)Noesis::Reflection::GetType(Noesis::Symbol(PersistentEnumName));
-					DeletedTypes.Add(Type);
-					Noesis::Reflection::UnregisterNoDelete(Type);
-				}
+				NoesisTypeEnum* Type = ObjectComponentPair.Value;
+				ReplaceType(Type, nullptr);
+				It.RemoveCurrent();
 			}
 		}
 	}
@@ -3029,28 +3590,27 @@ void NoesisReflectionRegistryCallback(Noesis::Symbol Name)
 
 	if (Object->IsA<UBlueprint>())
 	{
-		Noesis::DynamicCast<Noesis::TypeClass*>(Noesis::Reflection::RegisterType(Name.Str(), &UClassTypeCreator, &UClassTypeFiller));
-		RegisteredTypes.Add(UTF8_TO_TCHAR(Name.Str()));
+		Noesis::TypeClass* Type = NoesisCreateTypeClassForUClass(((UBlueprint*)Object)->GeneratedClass);
+		Noesis::Reflection::RegisterType(Type);
 	}
 	else if (Object->IsA<UClass>())
 	{
-		Noesis::DynamicCast<Noesis::TypeClass*>(Noesis::Reflection::RegisterType(Name.Str(), &UClassTypeCreator, &UClassTypeFiller));
-		RegisteredTypes.Add(UTF8_TO_TCHAR(Name.Str()));
+		Noesis::TypeClass* Type = NoesisCreateTypeClassForUClass((UClass*)Object);
+		Noesis::Reflection::RegisterType(Type);
 	}
 	else if (Object->IsA<UScriptStruct>())
 	{
-		Noesis::DynamicCast<Noesis::TypeClass*>(Noesis::Reflection::RegisterType(Name.Str(), &UClassTypeCreator, &UStructTypeFiller));
-		RegisteredTypes.Add(UTF8_TO_TCHAR(Name.Str()));
+		Noesis::TypeClass* Type = NoesisCreateTypeClassForUStruct((UScriptStruct*)Object);
+		Noesis::Reflection::RegisterType(Type);
 	}
 	else if (Object->IsA<UEnum>())
 	{
-		Noesis::DynamicCast<Noesis::TypeEnum*>(Noesis::Reflection::RegisterType(Name.Str(), &UEnumTypeCreator, &UEnumTypeFiller));
-
-		Noesis::Symbol EnumConverterId = Noesis::IdOf("Converter<", Name.Str(), ">");
-		if (!Noesis::Factory::IsComponentRegistered(EnumConverterId))
-		{
-			Noesis::Factory::RegisterComponent(EnumConverterId, Noesis::Symbol::Null(), &CallbackCreateEnumConverter);
-		}
-		RegisteredTypes.Add(UTF8_TO_TCHAR(Name.Str()));
+		Noesis::TypeEnum* Type = NoesisCreateTypeEnumForUEnum((UEnum*)Object);
+		Noesis::Reflection::RegisterType(Type);
+	}
+	else if (Object->IsA<UMaterialInterface>())
+	{
+		Noesis::TypeClass* Type = NoesisCreateTypeClassForUMaterial((UMaterialInterface*)Object);
+		Noesis::Reflection::RegisterType(Type);
 	}
 }

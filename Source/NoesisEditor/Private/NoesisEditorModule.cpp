@@ -86,6 +86,9 @@ void PremultiplyAlpha(UTexture2D* Texture)
 
 void OnObjectImported(UFactory* ImportFactory, UObject* InObject)
 {
+	if (!IsValid(InObject))
+		return;
+
 	for (TObjectIterator<UNoesisXaml> It; It; ++It)
 	{
 		UNoesisXaml* Xaml = *It;
@@ -158,6 +161,11 @@ void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Even
 				TextureSource->SetTexture(NoesisCreateTexture(Texture).GetPtr());
 			}
 			INoesisRuntimeModuleInterface::Get().OnTextureChanged(Texture);
+		}
+
+		if (Object->IsA<UMaterialInterface>())
+		{
+			NoesisDestroyTypeClassForMaterial((UMaterialInterface*)Object);
 		}
 		ReentryGuard = 0;
 	}

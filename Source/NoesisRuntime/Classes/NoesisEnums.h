@@ -66,7 +66,7 @@ enum class ENoesisRoutingStrategy : uint8
 	Direct
 };
 
-UENUM()
+UENUM(BlueprintType)
 enum class ENoesisDurationType : uint8
 {
 	Automatic,

@@ -41,6 +41,9 @@ class NOESISRUNTIME_API UNoesisXaml : public UObject
 	TArray<class UMediaSource*> Videos;
 
 	UPROPERTY()
+	TArray<class UMaterialInterface*> Materials;
+
+	UPROPERTY()
 	TArray<FText> Texts;
 
 	Noesis::Ptr<Noesis::BaseComponent> LoadXaml();

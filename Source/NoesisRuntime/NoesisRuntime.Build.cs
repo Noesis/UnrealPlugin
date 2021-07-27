@@ -31,6 +31,7 @@ public class NoesisRuntime : ModuleRules
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				"NoesisRuntime/Private",
+				EngineDirectory + "/Source/Runtime/Renderer/Private",
 			}
 			);
 
@@ -52,7 +53,8 @@ public class NoesisRuntime : ModuleRules
 				"Projects",
 				"FreeType2",
 				"zlib",
-				"UElibPNG"
+				"UElibPNG",
+				"Renderer"
 			}
 			);
 

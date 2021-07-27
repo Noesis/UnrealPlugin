@@ -18,8 +18,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-NoesisMediaPlayer::NoesisMediaPlayer(NoesisApp::MediaElement* Owner, const char* Uri, void*):
-	MediaPlayer(nullptr), MediaTexture(nullptr), SoundComponent(nullptr),
+NoesisMediaPlayer::NoesisMediaPlayer(NoesisApp::MediaElement* Owner, const Noesis::Uri& Uri, void*):
+	MediaPlayer(nullptr), MediaTexture(nullptr), MediaTextureRHI(nullptr), SoundComponent(nullptr),
 	TextureSource(*new Noesis::TextureSource()), View(nullptr), Volume(0.5f),
 	Opened(false), Ended(false), KeepPlaying(false), IsBuffering(false)
 {
@@ -49,7 +49,9 @@ NoesisMediaPlayer::NoesisMediaPlayer(NoesisApp::MediaElement* Owner, const char*
 		SoundComponent->AddToRoot();
 	}
 
-	FString VideoPath = FString(TEXT("/Game/")) + NsProviderPathToAssetPath(Uri);
+	Noesis::String Path;
+	Uri.GetPath(Path);
+	FString VideoPath = FString(TEXT("/Game/")) + NsProviderPathToAssetPath(Path.Str());
 	UMediaSource* MediaSource = LoadObject<UMediaSource>(nullptr, *VideoPath, nullptr, LOAD_NoWarn);
 	if (MediaSource != nullptr && MediaPlayer->OpenSource(MediaSource))
 	{
@@ -132,7 +134,11 @@ double NoesisMediaPlayer::GetPosition() const
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void NoesisMediaPlayer::SetPosition(double value)
 {
-	MediaPlayer->Seek(FTimespan::FromSeconds(value));
+	Position = value;
+	if (MediaOpenedSent)
+	{
+		MediaPlayer->Seek(FTimespan::FromSeconds(value));
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -146,7 +152,10 @@ void NoesisMediaPlayer::SetSpeedRatio(float value)
 {
 	// setting rate before media is opened does nothing, so we have to store the value for later
 	Rate = value;
-	MediaPlayer->SetRate(value);
+	if (MediaOpenedSent)
+	{
+		MediaPlayer->SetRate(value);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -226,20 +235,40 @@ void NoesisMediaPlayer::CheckKeepPlaying()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+static FRHITexture2D* GetMediaTextureRHI(UMediaTexture* MediaTexture)
+{
+	FTextureResource* Resource = (FTextureResource*)MediaTexture->Resource;
+	FTextureRHIRef TextureRHI = Resource->TextureRHI;
+	return TextureRHI ? TextureRHI->GetTexture2D() : nullptr;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 void NoesisMediaPlayer::OnRendering(Noesis::IView*)
 {
-	if (!Opened)
+	// Each time the MediaPlayer finishes a loop, it updates the MediaTexture internal texture,
+	// so we have to update our TextureSource too
+	FRHITexture2D* texRHI = GetMediaTextureRHI(MediaTexture);
+	if (MediaTextureRHI != texRHI && MediaTexture->GetWidth() > 2 && MediaTexture->GetHeight() > 2)
+	{
+		MediaTextureRHI = texRHI;
+		TextureSource->SetTexture(FNoesisRenderDevice::CreateTexture(MediaTexture));
+	}
+
+	if (Opened)
 	{
 		if (MediaTexture->GetWidth() > 2 && MediaTexture->GetHeight() > 2)
 		{
 			MediaPlayer->SetRate(Rate);
 
-			TextureSource->SetTexture(FNoesisRenderDevice::CreateTexture(MediaTexture));
+			if (!MediaOpenedSent)
+			{
+				mMediaOpened();
+				MediaOpenedSent = true;
+			}
 
-			mMediaOpened();
-
-			Opened = true;
 			CheckKeepPlaying();
+
+			Opened = false;
 		}
 	}
 
@@ -276,6 +305,7 @@ void NoesisMediaPlayer::OnMediaEvent(EMediaEvent Event)
 		}
 		case EMediaEvent::MediaOpened:
 		{
+			Opened = true;
 			break;
 		}
 		case EMediaEvent::MediaOpenFailed:
@@ -308,6 +338,7 @@ void NoesisMediaPlayer::OnMediaEvent(EMediaEvent Event)
 			{
 				SoundComponent->Stop();
 			}
+			MediaPlayer->SetRate(Rate);
 			break;
 		}
 		case EMediaEvent::SeekCompleted:

@@ -49,11 +49,11 @@ class NOESISRUNTIME_API UNoesisSettings : public UObject
 	GENERATED_UCLASS_BODY()
 
 	/** Fill with the Name value your were given when purchasing your Noesis license */
-	UPROPERTY(EditAnywhere, Config, Category = "License", meta = (ConfigRestartRequired = true))
+	UPROPERTY(EditAnywhere, Config, Category = "License")
 	FString LicenseName;
 
 	/** Fill with the Key value your were given when purchasing your Noesis license */
-	UPROPERTY(EditAnywhere, Config, Category = "License", meta = (ConfigRestartRequired = true))
+	UPROPERTY(EditAnywhere, Config, Category = "License")
 	FString LicenseKey;
 
 	/** Sets a collection of application-scope resources, such as styles and brushes. Provides a simple way to support a consistent theme across your application */

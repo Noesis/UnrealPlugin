@@ -255,8 +255,9 @@ static Noesis::BaseComponent* CreateLocTable(Noesis::Symbol)
 
 UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject* Context, const TCHAR* Type, const uint8*& Buffer, const uint8* BufferEnd, FFeedbackContext* Warn)
 {
-	// This needs to go first, before we invoke other factories, since it's stored in a static.
+	// This needs to go first, before we invoke other factories, since they're stored in UFactory statics.
 	FString FullFilePath = GetCurrentFilename();
+	FMD5Hash CurrentFileHash = FileHash;
 
 	// This function is invoked for first time imports as well as for reimports.
 	// Reimports can be caused by a change in content, via auto-reimport, or manually by the user.
@@ -285,7 +286,16 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 	}
 
 	UNoesisXaml* ExistingXaml = LoadObject<UNoesisXaml>(Parent, *Name.ToString());
-	bool HasChanged = (ExistingXaml == nullptr) || (ExistingXaml->AssetImportData->GetSourceData().SourceFiles[0].FileHash != FileHash);
+	bool HasChanged = true;
+	
+	if (ExistingXaml != nullptr && ExistingXaml->AssetImportData != nullptr)
+	{
+		const FAssetImportInfo& ImportInfo = ExistingXaml->AssetImportData->GetSourceData();
+		if (ImportInfo.SourceFiles.Num() > 0 && ImportInfo.SourceFiles[0].FileHash == CurrentFileHash)
+		{
+			HasChanged = false;
+		}
+	}
 
 	UNoesisXaml* NoesisXaml = nullptr;
 	if (!Recursive || HasChanged)
@@ -320,9 +330,15 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 		UAutomatedAssetImportData* AutomatedAssetImportData = NewObject<UAutomatedAssetImportData>();
 		AutomatedAssetImportData->bReplaceExisting = true;
 		IFileManager& FileManager = IFileManager::Get();
-		auto DependencyCallback = [&](void* UserData, const char* URI, Noesis::XamlDependencyType Type)
+		auto DependencyCallback = [&](void* UserData, const Noesis::Uri& Uri, Noesis::XamlDependencyType Type)
 		{
-			FString Dependency = NsStringToFString(URI);
+			if (Type == Noesis::XamlDependencyType_Root) return;
+			
+			Noesis::String UriPath;
+			Uri.GetPath(UriPath);
+			FString Dependency = Uri.IsAbsolute() && UriPath.StartsWith("Game/") ? "/" : "";
+			Dependency += UTF8_TO_TCHAR(UriPath.Str());
+
 			if (Type == Noesis::XamlDependencyType_Font)
 			{
 				int32 HashPos = INDEX_NONE;
@@ -403,6 +419,10 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 						{
 							NoesisXaml->Videos.Add(Video);
 						}
+						else if (UMaterialInterface* Material = Cast<UMaterialInterface>(Asset))
+						{
+							NoesisXaml->Materials.Add(Material);
+						}
 					}
 					return;
 				}
@@ -453,16 +473,20 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 					{
 						NoesisXaml->Videos.Add(Video);
 					}
+					else if (UMaterialInterface* Material = Cast<UMaterialInterface>(Asset))
+					{
+						NoesisXaml->Materials.Add(Material);
+					}
 				}
 			}
 		};
-		auto DependencyCallbackAdaptor = [](void* UserData, const char* URI, Noesis::XamlDependencyType Type)
+		auto DependencyCallbackAdaptor = [](void* UserData, const Noesis::Uri& Uri, Noesis::XamlDependencyType Type)
 		{
 			auto Callback = (decltype(DependencyCallback)*)UserData;
-			return (*Callback)(nullptr, URI, Type);
+			return (*Callback)(nullptr, Uri, Type);
 		};
-		FString XamlPackagePath = FPackageName::GetLongPackagePath(NoesisXaml->GetPathName());
-		Noesis::GUI::GetXamlDependencies(&XamlStream, TCHARToNsString(*XamlPackagePath).Str(), &DependencyCallback, DependencyCallbackAdaptor);
+		Noesis::Uri Uri(TCHAR_TO_UTF8(*NoesisXaml->GetPathName()));
+		Noesis::GUI::GetXamlDependencies(&XamlStream, Uri, &DependencyCallback, DependencyCallbackAdaptor);
 
 		NoesisXaml->XamlText.Insert((uint8*)Text.Str(), Text.Size(), 0);
 

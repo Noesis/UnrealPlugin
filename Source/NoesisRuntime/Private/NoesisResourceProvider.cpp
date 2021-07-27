@@ -28,9 +28,11 @@ void FNoesisXamlProvider::OnXamlChanged(UNoesisXaml* Xaml)
 #endif
 }
 
-Noesis::Ptr<Noesis::Stream> FNoesisXamlProvider::LoadXaml(const char* Path)
+Noesis::Ptr<Noesis::Stream> FNoesisXamlProvider::LoadXaml(const Noesis::Uri& Uri)
 {
-	FString XamlPath = NsProviderPathToAssetPath(Path);
+	Noesis::String Path;
+	Uri.GetPath(Path);
+	FString XamlPath = NsProviderPathToAssetPath(Path.Str());
 	UNoesisXaml* Xaml = LoadObject<UNoesisXaml>(nullptr, *(FString("/Game/") + XamlPath), nullptr, LOAD_NoWarn);
 	if (Xaml)
 	{
@@ -38,7 +40,7 @@ Noesis::Ptr<Noesis::Stream> FNoesisXamlProvider::LoadXaml(const char* Path)
 		Xaml->RegisterDependencies();
 
 #if WITH_EDITOR
-		NameMap.Add(Xaml, Path);
+		NameMap.Add(Xaml, Path.Str());
 #endif
 
 		return Noesis::Ptr<Noesis::Stream>(*new Noesis::MemoryStream(Xaml->XamlText.GetData(), (uint32)Xaml->XamlText.Num()));
@@ -57,14 +59,16 @@ void FNoesisTextureProvider::OnTextureChanged(UTexture2D* Texture)
 #endif
 }
 
-Noesis::TextureInfo FNoesisTextureProvider::GetTextureInfo(const char* Path)
+Noesis::TextureInfo FNoesisTextureProvider::GetTextureInfo(const Noesis::Uri& Uri)
 {
-	FString TexturePath = NsProviderPathToAssetPath(Path);
+	Noesis::String Path;
+	Uri.GetPath(Path);
+	FString TexturePath = NsProviderPathToAssetPath(Path.Str());
 	UTexture2D* Texture = LoadObject<UTexture2D>(nullptr, *(FString("/Game/") + TexturePath), nullptr, LOAD_NoWarn);
 	if (Texture)
 	{
 #if WITH_EDITOR
-		NameMap.Add(Texture, Path);
+		NameMap.Add(Texture, Path.Str());
 #endif
 		return Noesis::TextureInfo { (uint32)Texture->GetSizeX(), (uint32)Texture->GetSizeY() };
 	}
@@ -72,9 +76,11 @@ Noesis::TextureInfo FNoesisTextureProvider::GetTextureInfo(const char* Path)
 	return Noesis::TextureInfo {};
 }
 
-Noesis::Ptr<Noesis::Texture> FNoesisTextureProvider::LoadTexture(const char* Path, Noesis::RenderDevice* RenderDevice)
+Noesis::Ptr<Noesis::Texture> FNoesisTextureProvider::LoadTexture(const Noesis::Uri& Uri, Noesis::RenderDevice* RenderDevice)
 {
-	FString TexturePath = NsProviderPathToAssetPath(Path);
+	Noesis::String Path;
+	Uri.GetPath(Path);
+	FString TexturePath = NsProviderPathToAssetPath(Path.Str());
 	FString TextureObjectPath = TexturePath + TEXT(".") + FPackageName::GetShortName(TexturePath);
 	UTexture2D* Texture = FindObject<UTexture2D>(nullptr, *(FString("/Game/") + TextureObjectPath));
 	if (Texture)
@@ -100,26 +106,32 @@ void FNoesisFontProvider::RegisterFont(const UFontFace* FontFace)
 	}
 }
 
-Noesis::FontSource FNoesisFontProvider::MatchFont(const char* BaseUri, const char* FamilyName, Noesis::FontWeight& Weight,
+Noesis::FontSource FNoesisFontProvider::MatchFont(const Noesis::Uri& BaseUri, const char* FamilyName, Noesis::FontWeight& Weight,
 	Noesis::FontStretch& Stretch, Noesis::FontStyle& Style)
 {
-	FString PackagePath = NsProviderPathToAssetPath(BaseUri);
+	Noesis::String Path;
+	BaseUri.GetPath(Path);
+	FString PackagePath = NsProviderPathToAssetPath(Path.Str());
 
-	return Noesis::CachedFontProvider::MatchFont(TCHAR_TO_UTF8(*PackagePath), FamilyName, Weight, Stretch, Style);
+	Noesis::Uri Uri(TCHAR_TO_UTF8(*PackagePath));
+	return Noesis::CachedFontProvider::MatchFont(Uri, FamilyName, Weight, Stretch, Style);
 }
 
-bool FNoesisFontProvider::FamilyExists(const char* BaseUri, const char* FamilyName)
+bool FNoesisFontProvider::FamilyExists(const Noesis::Uri& BaseUri, const char* FamilyName)
 {
-	FString PackagePath = NsProviderPathToAssetPath(BaseUri);
+	Noesis::String Path;
+	BaseUri.GetPath(Path);
+	FString PackagePath = NsProviderPathToAssetPath(Path.Str());
 
-	return Noesis::CachedFontProvider::FamilyExists(TCHAR_TO_UTF8(*PackagePath), FamilyName);
+	Noesis::Uri Uri(TCHAR_TO_UTF8(*PackagePath));
+	return Noesis::CachedFontProvider::FamilyExists(Uri, FamilyName);
 }
 
-void FNoesisFontProvider::ScanFolder(const char* InFolder)
+void FNoesisFontProvider::ScanFolder(const Noesis::Uri& InFolder)
 {
 }
 
-Noesis::Ptr<Noesis::Stream> FNoesisFontProvider::OpenFont(const char* InFolder, const char* InFilename) const
+Noesis::Ptr<Noesis::Stream> FNoesisFontProvider::OpenFont(const Noesis::Uri& InFolder, const char* InFilename) const
 {
 	FString Filename = NsStringToFString(InFilename);
 	const UFontFace* FontFace = LoadObject<UFontFace>(nullptr, *(FString("/Game/") + Filename), nullptr, LOAD_NoWarn);

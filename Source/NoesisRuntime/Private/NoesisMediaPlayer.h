@@ -10,7 +10,6 @@
 
 // Noesis includes
 #include "NoesisSDK.h"
-#include "NsApp/MediaPlayer.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -22,7 +21,6 @@ namespace NoesisApp
 {
 class MediaElement;
 }
-class NoesisMediaPlayer;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Implementatation of Noesis MediaPlayer for Unreal
@@ -30,7 +28,7 @@ class NoesisMediaPlayer;
 class NoesisMediaPlayer final: public NoesisApp::MediaPlayer
 {
 public:
-	NoesisMediaPlayer(NoesisApp::MediaElement* Owner, const char* Uri, void* User);
+	NoesisMediaPlayer(NoesisApp::MediaElement* Owner, const Noesis::Uri& Uri, void* User);
 	~NoesisMediaPlayer();
 
 	uint32_t GetWidth() const override;
@@ -60,13 +58,16 @@ private:
 private:
 	UMediaPlayer* MediaPlayer;
 	UMediaTexture* MediaTexture;
+	FRHITexture2D* MediaTextureRHI;
 	UMediaSoundComponent* SoundComponent;
 
 	Noesis::Ptr<Noesis::TextureSource> TextureSource;
 	Noesis::IView* View;
 	float Rate;
 	float Volume;
+	float Position;
 	bool Opened;
+	bool MediaOpenedSent = false;
 	bool Ended;
 	bool KeepPlaying;
 	bool IsBuffering;

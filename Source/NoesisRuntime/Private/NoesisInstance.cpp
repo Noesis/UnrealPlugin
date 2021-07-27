@@ -69,6 +69,9 @@ public:
 	float Top;
 	float Right;
 	float Bottom;
+	float WorldTimeSeconds;
+	float WorldDeltaSeconds;
+	float WorldRealTimeSeconds;
 	bool FlipYAxis;
 };
 
@@ -93,23 +96,28 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 			uint32 NumSamples = ColorTarget->GetNumSamples();
 			ETextureCreateFlags TargetableTextureFlags = TexCreate_DepthStencilTargetable;
 			ERHIAccess Access = ERHIAccess::DSVWrite;
-			FRHIResourceCreateInfo CreateInfo;
+			FRHIResourceCreateInfo CreateInfo(TEXT("Noesis.RenderTarget"));
 			CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
 			DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, Access, CreateInfo);
 		}
+
 		// Clear the stencil buffer
+		SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
+		SCOPED_DRAW_EVENT(RHICmdList, Noesis);
+		SCOPED_GPU_STAT(RHICmdList, NoesisDraw);
 		FRHIRenderPassInfo RPInfo(ColorTarget, ERenderTargetActions::Load_Store, DepthStencilTarget,
 			MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::Clear_DontStore), FExclusiveDepthStencil::DepthNop_StencilWrite);
 
 		check(RHICmdList.IsOutsideRenderPass());
 		RHICmdList.BeginRenderPass(RPInfo, TEXT("NoesisOnScreen"));
 		RHICmdList.SetViewport((int32)Left, (int32)Top, 0.0f, (int32)Right, (int32)Bottom, 1.0f);
-		SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
-		SCOPED_DRAW_EVENT(RHICmdList, Noesis);
-		SCOPED_GPU_STAT(RHICmdList, NoesisDraw);
-		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
+		FNoesisRenderDevice* RenderDevice = FNoesisRenderDevice::Get();
+		RenderDevice->SetWorldTimes(WorldTimeSeconds, WorldDeltaSeconds, WorldRealTimeSeconds);
+		RenderDevice->SetRHICmdList(&RHICmdList);
+		RenderDevice->CreateView(Left, Top, Right, Bottom);
 		Renderer->Render(FlipYAxis);
-		FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
+		RenderDevice->DestroyView();
+		RenderDevice->SetRHICmdList(nullptr);
 
 		RHICmdList.EndRenderPass();
 	}
@@ -328,22 +336,34 @@ UObject* UNoesisInstance::FindResource(FString Name)
 
 float UNoesisInstance::GetTimeSeconds() const
 {
-	APlayerController* OwningPlayer = GetOwningPlayer();
-	if (OwningPlayer)
+	UWorld* World = GetWorld();
+	if (World)
 	{
-		UWorld* World = OwningPlayer->GetWorld();
-		if (World)
-		{
-			return World->GetTimeSeconds();
-		}
+		return World->GetTimeSeconds();
 	}
-
-	if (GWorld)
+	else if (GWorld)
 	{
 		return GWorld->GetTimeSeconds();
 	}
 
 	return -1.f;
+}
+
+void UNoesisInstance::UpdateWorldTimes()
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		WorldTimeSeconds = World->GetTimeSeconds();
+		WorldDeltaSeconds = World->GetDeltaSeconds();
+		WorldRealTimeSeconds = World->GetRealTimeSeconds();
+	}
+	else if (GWorld)
+	{
+		WorldTimeSeconds = GWorld->GetTimeSeconds();
+		WorldDeltaSeconds = GWorld->GetDeltaSeconds();
+		WorldRealTimeSeconds = GWorld->GetRealTimeSeconds();
+	}
 }
 
 void UNoesisInstance::ExecuteConsoleCommand(FString Command, class APlayerController* SpecificPlayer)
@@ -403,6 +423,7 @@ void UNoesisInstance::Update(float InLeft, float InTop, float InWidth, float InH
 		}
 		XamlView->SetFlags(Flags);
 		XamlView->Update(CurrentTime);
+		UpdateWorldTimes();
 	}
 }
 
@@ -506,7 +527,9 @@ struct NoesisHitTestVisibleTester
 bool UNoesisInstance::HitTest(FVector2D Position)
 {
 	NoesisHitTestVisibleTester HitTester;
-	Noesis::VisualTreeHelper::HitTest(Noesis::VisualTreeHelper::GetRoot(Xaml.GetPtr()), Noesis::Point(Position.X, Position.Y), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::Filter), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::Result));
+	Noesis::Visual* root = Noesis::VisualTreeHelper::GetRoot(Xaml);
+	Noesis::Point p = root->PointFromScreen(Noesis::Point(Position.X, Position.Y));
+	Noesis::VisualTreeHelper::HitTest(root, p, MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::Filter), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::Result));
 
 	return HitTester.Hit != nullptr;
 }
@@ -538,24 +561,6 @@ void UNoesisInstance::TermInstance()
 			TextInputMethodSystem->UnregisterContext(TextInputMethodContextPair.Value.ToSharedRef());
 		}
 	}
-}
-
-class UWorld* UNoesisInstance::GetWorld() const
-{
-	UObject* Outer = GetOuter();
-
-	while (Outer)
-	{
-		UWorld* World = Outer->GetWorld();
-		if (World)
-		{
-			return World;
-		}
-
-		Outer = Outer->GetOuter();
-	}
-
-	return 0;
 }
 
 void UNoesisInstance::BeginDestroy()
@@ -591,9 +596,16 @@ void UNoesisInstance::DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRe
 	{
 		ENQUEUE_RENDER_COMMAND(FNoesisXamlThumbnailRendererDrawCommand)
 		(
-			[Renderer, FlipYAxis = FlipYAxis, BackBuffer](FRHICommandListImmediate& RHICmdList)
+			[Renderer, FlipYAxis = FlipYAxis, BackBuffer,
+			WorldTimeSeconds = WorldTimeSeconds, WorldDeltaSeconds = WorldDeltaSeconds,
+			WorldRealTimeSeconds = WorldRealTimeSeconds](FRHICommandListImmediate& RHICmdList)
 			{
-				FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
+				// Make sure dynamic material cached uniform expressions are up to date before doing any rendering
+				FMaterialRenderProxy::UpdateDeferredCachedUniformExpressions();
+
+				FNoesisRenderDevice* RenderDevice = FNoesisRenderDevice::Get();
+				RenderDevice->SetWorldTimes(WorldTimeSeconds, WorldDeltaSeconds, WorldRealTimeSeconds);
+				RenderDevice->SetRHICmdList(&RHICmdList);
 				Renderer->UpdateRenderTree();
 				Renderer->RenderOffscreen();
 
@@ -604,7 +616,7 @@ void UNoesisInstance::DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRe
 				uint32 NumSamples = BackBuffer->GetNumSamples();
 				ETextureCreateFlags TargetableTextureFlags = TexCreate_DepthStencilTargetable;
 				ERHIAccess Access = ERHIAccess::DSVWrite;
-				FRHIResourceCreateInfo CreateInfo;
+				FRHIResourceCreateInfo CreateInfo(TEXT("Noesis.RenderTarget"));
 				CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
 				FTexture2DRHIRef ColorTarget = BackBuffer;
 				FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, Access, CreateInfo);
@@ -614,8 +626,10 @@ void UNoesisInstance::DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRe
 				check(RHICmdList.IsOutsideRenderPass());
 				RHICmdList.BeginRenderPass(RPInfo, TEXT("NoesisThumbnail"));
 
+				RenderDevice->CreateView(0, 0, SizeX, SizeY);
 				Renderer->Render(FlipYAxis);
-				FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
+				RenderDevice->DestroyView();
+				RenderDevice->SetRHICmdList(nullptr);
 
 				RHICmdList.EndRenderPass();
 			}
@@ -646,8 +660,13 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 
 		ENQUEUE_RENDER_COMMAND(FNoesisInstance_DrawOffscreen)
 		(
-			[Renderer](FRHICommandListImmediate& RHICmdList)
+			[Renderer,
+			WorldTimeSeconds = WorldTimeSeconds, WorldDeltaSeconds = WorldDeltaSeconds,
+			WorldRealTimeSeconds = WorldRealTimeSeconds](FRHICommandListImmediate& RHICmdList)
 			{
+				// Make sure dynamic material cached uniform expressions are up to date before doing any rendering
+				FMaterialRenderProxy::UpdateDeferredCachedUniformExpressions();
+
 				{
 					SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_UpdateRenderTree);
 					Renderer->UpdateRenderTree();
@@ -656,9 +675,11 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 					SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_DrawOffscreen);
 					SCOPED_DRAW_EVENT(RHICmdList, Noesis_Offscreen);
 					SCOPED_GPU_STAT(RHICmdList, NoesisDraw);
-					FNoesisRenderDevice::ThreadLocal_SetRHICmdList(&RHICmdList);
+					FNoesisRenderDevice* RenderDevice = FNoesisRenderDevice::Get();
+					RenderDevice->SetWorldTimes(WorldTimeSeconds, WorldDeltaSeconds, WorldRealTimeSeconds);
+					RenderDevice->SetRHICmdList(&RHICmdList);
 					Renderer->RenderOffscreen();
-					FNoesisRenderDevice::ThreadLocal_SetRHICmdList(nullptr);
+					RenderDevice->SetRHICmdList(nullptr);
 				}
 			}
 		);
@@ -669,6 +690,9 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 		NoesisSlateElement->Top = MyClippingRect.Top;
 		NoesisSlateElement->Right = MyClippingRect.Right;
 		NoesisSlateElement->Bottom = MyClippingRect.Bottom;
+		NoesisSlateElement->WorldTimeSeconds = WorldTimeSeconds;
+		NoesisSlateElement->WorldDeltaSeconds = WorldDeltaSeconds;
+		NoesisSlateElement->WorldRealTimeSeconds = WorldRealTimeSeconds;
 		NoesisSlateElement->FlipYAxis = FlipYAxis;
 		FSlateDrawElement::MakeCustom(OutDrawElements, LayerId, NoesisSlateElement);
 

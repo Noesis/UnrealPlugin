@@ -76,6 +76,10 @@ struct FNoesisWrapper
 
 NOESISRUNTIME_API Noesis::Ptr<Noesis::Texture> NoesisCreateTexture(class UTexture* Texture);
 
+NOESISRUNTIME_API void* NoesisCreateMaterial(UMaterialInterface* Material);
+
+NOESISRUNTIME_API void NoesisDestroyMaterial(void* Material);
+
 NOESISRUNTIME_API void CollectElements(Noesis::FrameworkElement* Element, TArray<Noesis::FrameworkElement*>& Elements);
 
 bool NOESISRUNTIME_API NoesisIsViewportHovered(class UGameViewportClient* ViewportClient);

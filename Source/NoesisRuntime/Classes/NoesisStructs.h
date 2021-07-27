@@ -22,10 +22,10 @@ struct FNoesisSize
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NoesisGUI")
 	float Width;
 
-	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NoesisGUI")
 	float Height;
 
 	FNoesisSize() : Width(0.f), Height(0.f) {}
@@ -40,16 +40,16 @@ struct FNoesisCornerRadius
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NoesisGUI")
 	float TopLeft;
 
-	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NoesisGUI")
 	float TopRight;
 
-	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NoesisGUI")
 	float BottomRight;
 
-	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NoesisGUI")
 	float BottomLeft;
 
 	FNoesisCornerRadius() : TopLeft(0.f), TopRight(0.f), BottomRight(0.f), BottomLeft(0.f) {}
@@ -64,16 +64,16 @@ struct FNoesisThickness
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NoesisGUI")
 	float Left;
 
-	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NoesisGUI")
 	float Top;
 
-	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NoesisGUI")
 	float Right;
 
-	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NoesisGUI")
 	float Bottom;
 
 	FNoesisThickness() : Left(0.f), Top(0.f), Right(0.f), Bottom(0.f) {}
@@ -88,10 +88,10 @@ struct FNoesisDuration
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NoesisGUI")
 	ENoesisDurationType DurationType;
 
-	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NoesisGUI")
 	int32 Milliseconds;
 
 	FNoesisDuration() : DurationType(ENoesisDurationType::Automatic), Milliseconds(0) {}
@@ -106,13 +106,12 @@ struct FNoesisKeyTime
 {
 	GENERATED_USTRUCT_BODY();
 
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	FString TextForm;
+
 	FNoesisKeyTime() {}
 
 	FNoesisKeyTime(const Noesis::KeyTime& KeyTime);
 
 	Noesis::KeyTime ToNoesis() const;
-
-private:
-
-	FString TextForm;
 };

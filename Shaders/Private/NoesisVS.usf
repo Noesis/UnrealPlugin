@@ -16,19 +16,29 @@ struct In
     float2 uv1: ATTRIBUTE3;
 #endif
 
-#if HAS_UV2
-    float4 uv2: ATTRIBUTE4;
+#if HAS_COVERAGE
+    half coverage: ATTRIBUTE4;
 #endif
 
-#if HAS_COVERAGE
-    half coverage: ATTRIBUTE5;
+#if HAS_RECT
+    float4 rect: ATTRIBUTE5;
+#endif
+
+#if HAS_TILE
+    float4 tile: ATTRIBUTE6;
+#endif
+
+#if HAS_IMAGE_POSITION
+    float4 imagePos: ATTRIBUTE7;
 #endif
 };
 
 struct Out
 {
+    float4 position: SV_POSITION;
+
 #if HAS_COLOR
-    half4 color: COLOR;
+    nointerpolation half4 color: COLOR;
 #endif
 
 #if HAS_UV0
@@ -39,45 +49,72 @@ struct Out
     float2 uv1: TEXCOORD1;
 #endif
 
-#if HAS_UV2
-    float4 uv2: TEXCOORD2;
+#if DOWNSAMPLE
+    float2 uv2: TEXCOORD2;
+    float2 uv3: TEXCOORD3;
+#endif
+
+#if SDF
+    float4 st1: TEXCOORD2;
 #endif
 
 #if HAS_COVERAGE
-    half coverage: TEXCOORD3;
+    half coverage: COVERAGE;
 #endif
 
-#if GEN_ST1
-    float2 st1: TEXCOORD4;
+#if HAS_RECT
+    nointerpolation float4 rect: RECT;
+#endif
+
+#if HAS_TILE
+    nointerpolation float4 tile: TILE;
+#endif
+
+#if HAS_IMAGE_POSITION
+    float4 imagePos: IMAGE_POSITION;
 #endif
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NoesisVS(in In i, out Out o, out float4 out_position: SV_POSITION)
+void NoesisVS(in In i, out Out o)
 {
-    out_position = mul(float4(i.position, 0, 1), NoesisVSConstants.projectionMtx);
+    o.position = mul(NoesisVSConstants.projectionMtx, float4(i.position, 0, 1));
 
 #if HAS_COLOR
     o.color FCOLOR_COMPONENT_SWIZZLE = i.color.bgra;
 #endif
 
-#if HAS_UV0
-    o.uv0 = i.uv0;
+#if DOWNSAMPLE
+    o.uv0 = i.uv0 + float2(i.uv1.x, i.uv1.y);
+    o.uv1 = i.uv0 + float2(i.uv1.x, -i.uv1.y);
+    o.uv2 = i.uv0 + float2(-i.uv1.x, i.uv1.y);
+    o.uv3 = i.uv0 + float2(-i.uv1.x, -i.uv1.y);
+#else
+    #if HAS_UV0
+      o.uv0 = i.uv0;
+    #endif
+    #if HAS_UV1
+      o.uv1 = i.uv1;
+    #endif
 #endif
 
-#if HAS_UV1
-    o.uv1 = i.uv1;
-#endif
-
-#if HAS_UV2
-    o.uv2 = i.uv2;
+#if SDF
+    o.st1 = float4(i.uv1 * NoesisTextureSize.textureSize.xy, 1.0 / (3.0 * NoesisTextureSize.textureSize.xy));
 #endif
 
 #if HAS_COVERAGE
     o.coverage = i.coverage;
 #endif
 
-#if GEN_ST1
-    o.st1 = i.uv1 * NoesisTextureSize.textureSize.xy;
+#if HAS_RECT
+    o.rect = i.rect;
+#endif
+
+#if HAS_TILE
+    o.tile = i.tile;
+#endif
+
+#if HAS_IMAGE_POSITION
+    o.imagePos = i.imagePos;
 #endif
 }

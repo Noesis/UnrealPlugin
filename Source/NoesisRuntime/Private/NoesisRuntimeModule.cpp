@@ -51,7 +51,12 @@ static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* De
 {
 	if (Fatal)
 	{
+#if ENGINE_MAJOR_VERSION >= 5
+		FDebug::FFailureInfo LlfeInfo = { "NoesisErrorHandler", Filename, (int32)Line, PLATFORM_RETURN_ADDRESS() };
+		LowLevelFatalErrorHandler(LlfeInfo, TEXT("%s"), *NsStringToFString(Desc));
+#else
 		LowLevelFatalErrorHandler(Filename, Line, TEXT("%s"), *NsStringToFString(Desc));
+#endif
 	}
 	UE_LOG(LogNoesis, Warning, TEXT("%s"), *NsStringToFString(Desc));
 }
@@ -120,26 +125,20 @@ static void NoesisLogHandler(const char* File, uint32_t Line, uint32_t Level, co
 class NotifyEnumChanged : public FEnumEditorUtils::INotifyOnEnumChanged
 {
 public:
-	virtual void PreChange(const UUserDefinedEnum* Changed, FEnumEditorUtils::EEnumEditorChangeInfo ChangedType) override
-	{
-
-	}
+	virtual void PreChange(const UUserDefinedEnum* Changed, FEnumEditorUtils::EEnumEditorChangeInfo ChangedType) override { }
 	virtual void PostChange(const UUserDefinedEnum* Changed, FEnumEditorUtils::EEnumEditorChangeInfo ChangedType) override
 	{
-		NoesisDestroyTypeClassForEnum(Changed);
+		NoesisDestroyTypeClassForEnum((UUserDefinedEnum*)Changed);
 	}
 };
 
 class NotifyStructChanged : public FStructureEditorUtils::INotifyOnStructChanged
 {
 public:
-	virtual void PreChange(const UUserDefinedStruct* Changed, FStructureEditorUtils::EStructureEditorChangeInfo ChangedType) override
-	{
-
-	}
+	virtual void PreChange(const UUserDefinedStruct* Changed, FStructureEditorUtils::EStructureEditorChangeInfo ChangedType) override { }
 	virtual void PostChange(const UUserDefinedStruct* Changed, FStructureEditorUtils::EStructureEditorChangeInfo ChangedType) override
 	{
-		NoesisDestroyTypeClassForStruct(Changed);
+		NoesisDestroyTypeClassForStruct((UUserDefinedStruct*)Changed);
 	}
 };
 
@@ -148,19 +147,17 @@ void OnBlueprintPreCompile(UBlueprint* Blueprint)
 	NoesisDestroyTypeClassForBlueprint(Blueprint);
 }
 
-void OnBlueprintCompiled()
+void OnAssetRenamed(const FAssetData& AssetData, const FString& OldPath)
 {
-	NoesisDestroyTypeClass();
-}
-
-void OnAssetRenamed(const FAssetData&, const FString& OldPath)
-{
-	NoesisDestroyTypeClass(OldPath);
+	UObject* NewObject = AssetData.GetAsset();
+	NoesisAssetRenamed(NewObject, OldPath);
 }
 #endif
 
 void OnPostEngineInit()
 {
+	NoesisInitTypeTables();
+
 	const UNoesisSettings* Settings = GetDefault<UNoesisSettings>();
 	Settings->SetLicense();
 	Settings->SetApplicationResources();
@@ -171,7 +168,6 @@ void OnPostEngineInit()
 	if (GEditor)
 	{
 		GEditor->OnBlueprintPreCompile().AddStatic(OnBlueprintPreCompile);
-		GEditor->OnBlueprintCompiled().AddStatic(OnBlueprintCompiled);
 		FEnumEditorUtils::FEnumEditorManager::Get().AddListener(new NotifyEnumChanged);
 		FStructureEditorUtils::FStructEditorManager::Get().AddListener(new NotifyStructChanged);
 
@@ -215,7 +211,7 @@ public:
 		: TextBox(InTextBox)
 	{
 		TextBox->SelectAll();
-		InitialText = NsStringToFString(TextBox->GetSelectedText());
+		InitialText = FText::FromString(NsStringToFString(TextBox->GetSelectedText()));
 		IsMultiline = TextBox->GetMaxLines() > 1;
 		BeginIndex = TextBox->GetSelectionStart();
 	}
@@ -224,8 +220,8 @@ public:
 	{
 		if (TextEntryType == ETextEntryType::TextEntryCanceled || TextEntryType == ETextEntryType::TextEntryAccepted)
 		{
-			int32 Length = InitialText.Len();
-			FString CurrentText = InitialText;
+			FString CurrentText = InitialText.ToString();
+			int32 Length = CurrentText.Len();
 			FString NewString = InNewText.ToString();
 			FString NewText = CurrentText.Left(BeginIndex) + NewString + CurrentText.RightChop(BeginIndex + Length);
 			TextBox->SetText(TCHARToNsString(*NewText).Str());
@@ -235,8 +231,8 @@ public:
 		}
 		else if (TextEntryType == ETextEntryType::TextEntryUpdated)
 		{
-			int32 Length = InitialText.Len();
-			FString CurrentText = InitialText;
+			FString CurrentText = InitialText.ToString();
+			int32 Length = CurrentText.Len();
 			FString NewString = InNewText.ToString();
 			FString NewText = CurrentText.Left(BeginIndex) + NewString + CurrentText.RightChop(BeginIndex + Length);
 			TextBox->SetText(TCHARToNsString(*NewText).Str());
@@ -260,7 +256,7 @@ public:
 
 	virtual FText GetText() const override
 	{
-		return FText::FromString(InitialText);
+		return InitialText;
 	}
 
 	virtual FText GetHintText() const override
@@ -292,7 +288,7 @@ public:
 
 private:
 	Noesis::TextBox* TextBox;
-	FString InitialText;
+	FText InitialText;
 	int32 BeginIndex;
 	bool IsMultiline;
 };
@@ -303,7 +299,7 @@ public:
 	NoesisPasswordBoxVirtualKeyboardEntry(Noesis::PasswordBox* InPasswordBox)
 		: PasswordBox(InPasswordBox)
 	{
-		InitialText = NsStringToFString(PasswordBox->GetPassword());
+		InitialText = FText::FromString(NsStringToFString(PasswordBox->GetPassword()));
 	}
 
 	virtual void SetTextFromVirtualKeyboard(const FText& InNewText, ETextEntryType TextEntryType) override
@@ -324,7 +320,7 @@ public:
 
 	virtual FText GetText() const override
 	{
-		return FText::FromString(InitialText);
+		return InitialText;
 	}
 
 	virtual FText GetHintText() const override
@@ -355,7 +351,7 @@ public:
 
 private:
 	Noesis::PasswordBox* PasswordBox;
-	FString InitialText;
+	FText InitialText;
 };
 
 TSharedPtr<NoesisTextBoxVirtualKeyboardEntry> TextBoxVirtualKeyboardEntry;
@@ -420,7 +416,7 @@ void NoesisSoftwareKeyboardCallback(void* UserData, Noesis::UIElement* FocusedEl
 	}
 }
 
-void NoesisPlaySoundCallback(void* UserData, const char* Filename, float Volume)
+void NoesisPlaySoundCallback(void* UserData, const Noesis::Uri& Uri, float Volume)
 {
 #if WITH_EDITOR
 	if (GIsEditor)
@@ -439,7 +435,9 @@ void NoesisPlaySoundCallback(void* UserData, const char* Filename, float Volume)
 	}
 #endif
 
-	FString SoundPath = NsProviderPathToAssetPath(Filename);
+	Noesis::String Filename;
+	Uri.GetPath(Filename);
+	FString SoundPath = NsProviderPathToAssetPath(Filename.Str());
 	USoundWave* Sound = LoadObject<USoundWave>(nullptr, *(FString(TEXT("/Game/")) + SoundPath), nullptr, LOAD_NoWarn);
 
 	if (!Sound)
@@ -462,7 +460,7 @@ void NoesisPlaySoundCallback(void* UserData, const char* Filename, float Volume)
 	}
 }
 
-static Noesis::Ptr<NoesisApp::MediaPlayer> NoesisCreateMediaPlayerCallback(NoesisApp::MediaElement* Owner, const char* Uri, void* User)
+static Noesis::Ptr<NoesisApp::MediaPlayer> NoesisCreateMediaPlayerCallback(NoesisApp::MediaElement* Owner, const Noesis::Uri& Uri, void* User)
 {
 	return *new NoesisMediaPlayer(Owner, Uri, User);
 }
@@ -479,7 +477,7 @@ public:
 		Noesis::GUI::SetLogHandler(&NoesisLogHandler);
 		Noesis::MemoryCallbacks MemoryCallbacks{ NoesisAllocationCallbackUserData, &NoesisAlloc, &NoesisRealloc, &NoesisDealloc, &NoesisAllocSize };
 		Noesis::GUI::SetMemoryCallbacks(MemoryCallbacks);
-		Noesis::GUI::Init("", "");
+		Noesis::GUI::Init();
 		NsRegisterReflectionAppInteractivity();
 		NsRegisterReflectionAppMediaElement();
 		Noesis::RegisterComponent<LocTextExtension>();

@@ -19,7 +19,7 @@ public:
 	class UNoesisXaml* GetXaml(FString XamlProviderPath) const;
 
 	// XamlProvider interface
-	virtual Noesis::Ptr<Noesis::Stream> LoadXaml(const char* Filename) override;
+	virtual Noesis::Ptr<Noesis::Stream> LoadXaml(const Noesis::Uri& Uri) override;
 	// End of XamlProvider interface
 
 #if WITH_EDITOR
@@ -34,8 +34,8 @@ public:
 
 private:
 	// TextureProvider interface
-	virtual Noesis::TextureInfo GetTextureInfo(const char* Path) override;
-	virtual Noesis::Ptr<Noesis::Texture> LoadTexture(const char* Path, Noesis::RenderDevice* RenderDevice) override;
+	virtual Noesis::TextureInfo GetTextureInfo(const Noesis::Uri& Uri) override;
+	virtual Noesis::Ptr<Noesis::Texture> LoadTexture(const Noesis::Uri& Uri, Noesis::RenderDevice* RenderDevice) override;
 	// End of TextureProvider interface
 
 #if WITH_EDITOR
@@ -51,13 +51,13 @@ public:
 private:
 
 	// FontProvider interface
-	virtual Noesis::FontSource MatchFont(const char* BaseUri, const char* FamilyName, Noesis::FontWeight& Weight,
+	virtual Noesis::FontSource MatchFont(const Noesis::Uri& BaseUri, const char* FamilyName, Noesis::FontWeight& Weight,
 		Noesis::FontStretch& Stretch, Noesis::FontStyle& Style) override;
-	virtual bool FamilyExists(const char* BaseUri, const char* FamilyName) override;
+	virtual bool FamilyExists(const Noesis::Uri& BaseUri, const char* FamilyName) override;
 	// End of FontProvider interface
 
 	// CachedFontProvider interface
-	virtual void ScanFolder(const char* Folder) override;
-	virtual Noesis::Ptr<Noesis::Stream> OpenFont(const char* Folder, const char* Filename) const override;
+	virtual void ScanFolder(const Noesis::Uri& Folder) override;
+	virtual Noesis::Ptr<Noesis::Stream> OpenFont(const Noesis::Uri& Folder, const char* Filename) const override;
 	// End of CachedFontProvider interface
 };

@@ -86,4 +86,19 @@ class NOESISRUNTIME_API UNoesisFunctionLibrary : public UBlueprintFunctionLibrar
 	static void NoesisArray_Set(const TArray<int32>& TargetArray, int32 Index, const int32& Item, bool bSizeToFit);
 
 	DECLARE_FUNCTION(execNoesisArray_Set);
+
+	UFUNCTION(BlueprintCallable, CustomThunk, meta=(DisplayName = "Add w/ NotifyMapChanged", CompactNodeTitle = "ADD\nw/ NotifyMapChanged", MapParam = "TargetMap", MapKeyParam = "Key", MapValueParam = "Value", AutoCreateRefTerm = "Key, Value"), Category = "Utilities|Map")
+	static void NoesisMap_Add(const TMap<int32, int32>& TargetMap, const int32& Key, const int32& Value);
+
+	DECLARE_FUNCTION(execNoesisMap_Add);
+
+	UFUNCTION(BlueprintCallable, CustomThunk, meta=(DisplayName = "Remove w/ NotifyMapChanged", CompactNodeTitle = "REMOVE\nw/ NotifyMapChanged", MapParam = "TargetMap", MapKeyParam = "Key",  AutoCreateRefTerm = "Key"), Category = "Utilities|Map")
+	static bool NoesisMap_Remove(const TMap<int32, int32>& TargetMap, const int32& Key);
+
+	DECLARE_FUNCTION(execNoesisMap_Remove);
+
+	UFUNCTION(BlueprintCallable, CustomThunk, meta=(DisplayName = "Clear w/ NotifyMapChanged", CompactNodeTitle = "CLEAR\nw/ NotifyMapChanged", MapParam = "TargetMap" ), Category = "Utilities|Map")
+	static void NoesisMap_Clear(const TMap<int32, int32>& TargetMap);
+
+	DECLARE_FUNCTION(execNoesisMap_Clear);
 };
