@@ -1013,6 +1013,9 @@ bool SetFunctionProperty(void* BasePointer, UFunction* Setter, Noesis::BaseCompo
 	return false;
 }
 
+// Macro for preserving Noesis::BaseComponent objects when external code is invoked, since external code may cause the objects to be deleted
+#define LOCAL_PRESERVE(var) auto PRESERVE_##var = Noesis::Ptr<const Noesis::BaseComponent>(var)
+
 class NoesisValueArrayWrapper : public Noesis::BaseComponent, public Noesis::IList
 {
 public:
@@ -1241,6 +1244,8 @@ public:
 	{
 		Noesis::Ptr<Noesis::BaseComponent> Item = NativeGet(Index);
 
+		// Preserve this in case it is deleted in the event handler
+		LOCAL_PRESERVE(this);
 		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs = { Noesis::NotifyCollectionChangedAction_Add, -1, (int32)Index, nullptr, Item.GetPtr() };
 		CollectionChangedHandler(this, CollectionChangedArgs);
 	}
@@ -1256,6 +1261,8 @@ public:
 		check(ItemToDelete != nullptr);
 		Noesis::Ptr<Noesis::BaseComponent> NewItem = NativeGet(Index);
 
+		// Preserve this in case it is deleted in the event handler
+		LOCAL_PRESERVE(this);
 		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs = { Noesis::NotifyCollectionChangedAction_Replace, (int32)Index, (int32)Index, ItemToDelete.GetPtr(), NewItem.GetPtr() };
 		CollectionChangedHandler(this, CollectionChangedArgs);
 		ItemToDelete.Reset();
@@ -1275,6 +1282,8 @@ public:
 	void NotifyPostRemoveAt(int32 Index)
 	{
 		check(ItemToDelete != nullptr);
+		// Preserve this in case it is deleted in the event handler
+		LOCAL_PRESERVE(this);
 		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs = { Noesis::NotifyCollectionChangedAction_Remove, Index, -1, ItemToDelete.GetPtr(), nullptr };
 		CollectionChangedHandler(this, CollectionChangedArgs);
 		ItemToDelete.Reset();
@@ -1441,6 +1450,8 @@ public:
 	void NotifyPostRemove(const char* Key)
 	{
 		check(ItemToDelete != nullptr);
+		// Preserve this in case it is deleted in the event handler
+		LOCAL_PRESERVE(this);
 		Noesis::NotifyDictionaryChangedEventArgs DictionaryChangedArgs = { Noesis::NotifyDictionaryChangedAction_Add, Key, ItemToDelete.GetPtr(), nullptr };
 		DictionaryChangedHandler(this, DictionaryChangedArgs);
 		ItemToDelete = nullptr;
@@ -1496,6 +1507,8 @@ public:
 		{
 			if (CanExecuteFunction->NumParms == 1)
 			{
+				// Preserve this in case it is deleted in ProcessEvent
+				LOCAL_PRESERVE(this);
 				void* Params = FMemory_Alloca(CanExecuteFunction->GetStructureSize());
 				InitializeFunctionParams(CanExecuteFunction, Params);
 				Object->ProcessEvent(CanExecuteFunction, Params);
@@ -1506,6 +1519,8 @@ public:
 			}
 			else
 			{
+				// Preserve this in case it is deleted in ProcessEvent
+				LOCAL_PRESERVE(this);
 				check(CanExecuteFunction->NumParms == 2);
 				void* Params = FMemory_Alloca(CanExecuteFunction->GetStructureSize());
 				InitializeFunctionParams(CanExecuteFunction, Params);
@@ -1532,6 +1547,8 @@ public:
 			}
 			else
 			{
+				// Preserve this in case it is deleted in ProcessEvent
+				LOCAL_PRESERVE(this);
 				void* Params = FMemory_Alloca(Function->GetStructureSize());
 				InitializeFunctionParams(Function, Params);
 				FProperty* InputProperty = (FProperty*)Function->ChildProperties;
@@ -2223,6 +2240,8 @@ Noesis::Ptr<Noesis::BaseComponent> NoesisTypePropertyObjectWrapperGetterSetter::
 		return nullptr;
 	}
 
+	// Preserve Wrapper in case it is deleted in ProcessEvent in GetFunctionProperty
+	LOCAL_PRESERVE(Wrapper);
 	return GetFunctionProperty(Wrapper->Object, Getter);
 }
 
@@ -2243,6 +2262,8 @@ void NoesisTypePropertyObjectWrapperGetterSetter::SetComponent(void* Ptr, Noesis
 		return;
 	}
 
+	// Preserve Wrapper in case it is deleted in ProcessEvents in SetFunctionProperty
+	LOCAL_PRESERVE(Wrapper);
 	if (SetFunctionProperty(Wrapper->Object, Setter, Value))
 	{
 		Wrapper->NotifyPropertyChanged(GetName());
@@ -2550,10 +2571,10 @@ Noesis::TypeClass* NoesisCreateTypeClassForUMaterial(UMaterialInterface* Materia
 					Noesis::FrameworkPropertyMetadata::Create(Value,
 						Noesis::FrameworkPropertyMetadataOptions_None, Noesis::PropertyChangedCallback(
 							[ParamName = Param.Name](Noesis::DependencyObject* Object, const Noesis::DependencyPropertyChangedEventArgs& Args)
-				{
-					NoesisPostProcessMaterialWrapper* Wrapper = (NoesisPostProcessMaterialWrapper*)Object;
-					Wrapper->SetScalarParameterValue(ParamName, Args.NewValue<float>());
-				})));
+							{
+								NoesisPostProcessMaterialWrapper* Wrapper = (NoesisPostProcessMaterialWrapper*)Object;
+								Wrapper->SetScalarParameterValue(ParamName, Args.NewValue<float>());
+							})));
 			}
 		}
 	}
@@ -2576,11 +2597,11 @@ Noesis::TypeClass* NoesisCreateTypeClassForUMaterial(UMaterialInterface* Materia
 					Noesis::FrameworkPropertyMetadata::Create(Noesis::Color(Value.R, Value.G, Value.B, Value.A),
 						Noesis::FrameworkPropertyMetadataOptions_None, Noesis::PropertyChangedCallback(
 							[ParamName = Param.Name](Noesis::DependencyObject* Object, const Noesis::DependencyPropertyChangedEventArgs& Args)
-				{
-					NoesisUIMaterialWrapper* Wrapper = (NoesisUIMaterialWrapper*)Object;
-					Noesis::Color Color = Args.NewValue<Noesis::Color>();
-					Wrapper->SetVectorParameterValue(ParamName, FLinearColor(Color.r, Color.g, Color.b, Color.a));
-				})));
+							{
+								NoesisUIMaterialWrapper* Wrapper = (NoesisUIMaterialWrapper*)Object;
+								Noesis::Color Color = Args.NewValue<Noesis::Color>();
+								Wrapper->SetVectorParameterValue(ParamName, FLinearColor(Color.r, Color.g, Color.b, Color.a));
+							})));
 			}
 			else
 			{
@@ -2588,11 +2609,11 @@ Noesis::TypeClass* NoesisCreateTypeClassForUMaterial(UMaterialInterface* Materia
 					Noesis::FrameworkPropertyMetadata::Create(Noesis::Color(Value.R, Value.G, Value.B, Value.A),
 						Noesis::FrameworkPropertyMetadataOptions_None, Noesis::PropertyChangedCallback(
 							[ParamName = Param.Name](Noesis::DependencyObject* Object, const Noesis::DependencyPropertyChangedEventArgs& Args)
-				{
-					NoesisPostProcessMaterialWrapper* Wrapper = (NoesisPostProcessMaterialWrapper*)Object;
-					Noesis::Color Color = Args.NewValue<Noesis::Color>();
-					Wrapper->SetVectorParameterValue(ParamName, FLinearColor(Color.r, Color.g, Color.b, Color.a));
-				})));
+							{
+								NoesisPostProcessMaterialWrapper* Wrapper = (NoesisPostProcessMaterialWrapper*)Object;
+								Noesis::Color Color = Args.NewValue<Noesis::Color>();
+								Wrapper->SetVectorParameterValue(ParamName, FLinearColor(Color.r, Color.g, Color.b, Color.a));
+							})));
 			}
 		}
 	}

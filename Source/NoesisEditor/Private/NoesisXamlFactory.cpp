@@ -333,6 +333,10 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 		auto DependencyCallback = [&](void* UserData, const Noesis::Uri& Uri, Noesis::XamlDependencyType Type)
 		{
 			if (Type == Noesis::XamlDependencyType_Root) return;
+
+			// If the URI is invalid, ImportAssetsAutomated will try to reimport the whole directory
+			// causing infinite recursion.
+			if (!Uri.IsValid()) return;
 			
 			Noesis::String UriPath;
 			Uri.GetPath(UriPath);

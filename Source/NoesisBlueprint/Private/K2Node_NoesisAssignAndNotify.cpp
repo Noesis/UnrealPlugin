@@ -241,7 +241,7 @@ FText UK2Node_NoesisAssignAndNotify::GetTooltipText() const
 void UK2Node_NoesisAssignAndNotify::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
 	const UBlueprint* Blueprint = Cast<UBlueprint>(ActionRegistrar.GetActionKeyFilter());
-	if (Blueprint && ActionRegistrar.IsOpenForRegistration(Blueprint))
+	if (Blueprint && ActionRegistrar.IsOpenForRegistration(Blueprint->SkeletonGeneratedClass))
 	{
 		for (TFieldIterator<FProperty> PropertyIt(Blueprint->SkeletonGeneratedClass, EFieldIteratorFlags::ExcludeSuper); PropertyIt; ++PropertyIt)
 		{
@@ -254,7 +254,7 @@ void UK2Node_NoesisAssignAndNotify::GetMenuActions(FBlueprintActionDatabaseRegis
 			if (IsPropertyBlueprintVisible)
 			{
 				UBlueprintNodeSpawner* SetterSpawner = CreateSpawnerFromMemberOrParam(UK2Node_NoesisAssignAndNotify::StaticClass(), Property);
-				ActionRegistrar.AddBlueprintAction(Blueprint, SetterSpawner);
+				ActionRegistrar.AddBlueprintAction(Blueprint->SkeletonGeneratedClass, SetterSpawner);
 			}
 		}
 	}

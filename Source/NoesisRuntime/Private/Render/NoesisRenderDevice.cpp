@@ -871,15 +871,16 @@ static void SetTextureFormat(FNoesisTexture* Texture, EPixelFormat Format)
 
 Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InTexture)
 {
-	if (!InTexture || !InTexture->Resource)
+	if (!InTexture || !InTexture->GetResource())
 		return nullptr;
 
+	FTextureResource* TextureResource = InTexture->GetResource();
 	Noesis::Ptr<FNoesisTexture> Texture;
 	if (InTexture->IsA<UTexture2D>())
 	{
 		UTexture2D* Texture2D = (UTexture2D*)InTexture;
 		Texture = *new FNoesisTexture(Texture2D);
-		FTexture2DResource* Resource = (FTexture2DResource*)InTexture->Resource;
+		FTexture2DResource* Resource = (FTexture2DResource*)TextureResource;
 		// Usually the RHI resource is ready when we create the texture.
 		// However, when we are hot-reloading a texture, UE4 enqueues the
 		// creation to the render thread, so we must do the same.
@@ -901,7 +902,7 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 	}
 	else if (InTexture->IsA<UTextureRenderTarget2D>())
 	{
-		FTexture2DRHIRef TextureRef = ((FTextureRenderTarget2DResource*)InTexture->Resource)->GetTextureRHI();
+		FTexture2DRHIRef TextureRef = ((FTextureRenderTarget2DResource*)TextureResource)->GetTextureRHI();
 		if (!TextureRef)
 		{
 			return nullptr;
@@ -916,7 +917,7 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 	}
 	else if (InTexture->IsA<UMediaTexture>())
 	{
-		FTextureResource* Resource = (FTextureResource*)InTexture->Resource;
+		FTextureResource* Resource = (FTextureResource*)TextureResource;
 		FTextureRHIRef TextureRHI = Resource->TextureRHI;
 		if (!TextureRHI)
 		{
@@ -989,14 +990,13 @@ static void NoesisCreateTargetableShaderResource2D(
 )
 {
 	// Ensure none of the usage flags are passed in.
-	check(!(Flags & TexCreate_RenderTargetable));
-	check(!(Flags & TexCreate_ResolveTargetable));
+	check(!EnumHasAnyFlags(Flags, TexCreate_RenderTargetable | TexCreate_ResolveTargetable));
 
 	// Ensure we aren't forcing separate and shared textures at the same time.
 	check(!(bForceSeparateTargetAndShaderResource && bForceSharedTargetAndShaderResource));
 
 	// Ensure that the targetable texture is either render or depth-stencil targetable.
-	check(TargetableTextureFlags & (TexCreate_RenderTargetable | TexCreate_DepthStencilTargetable | TexCreate_UAV));
+	check(EnumHasAnyFlags(TargetableTextureFlags, TexCreate_RenderTargetable | TexCreate_DepthStencilTargetable | TexCreate_UAV));
 
 	if (NumSamples > 1 && !bForceSharedTargetAndShaderResource)
 	{
@@ -1011,7 +1011,7 @@ static void NoesisCreateTargetableShaderResource2D(
 	else
 	{
 		ETextureCreateFlags ResolveTargetableTextureFlags = TexCreate_ResolveTargetable;
-		if (TargetableTextureFlags & TexCreate_DepthStencilTargetable)
+		if (EnumHasAnyFlags(TargetableTextureFlags, TexCreate_DepthStencilTargetable))
 		{
 			ResolveTargetableTextureFlags |= TexCreate_DepthStencilResolveTarget;
 		}
@@ -1286,7 +1286,7 @@ template<>
 void FNoesisRenderDevice::SetPatternMaterialParameters<FNoesisMaterialPSBase>(const Noesis::Batch& Batch, TShaderRef<FNoesisMaterialPSBase>& PixelShader)
 {
 	FMaterialRenderProxy* MaterialProxy = ((FNoesisMaterial*)Batch.pixelShader)->MaterialProxy;
-#if ENGINE_MAJOR_VERSION >= 5
+#if (ENGINE_MAJOR_VERSION >= 5) || ((ENGINE_MAJOR_VERSION == 4) && (ENGINE_MINOR_VERSION >= 27))
 	const FMaterial* Material = &MaterialProxy->GetIncompleteMaterialWithFallback(GMaxRHIFeatureLevel);
 #else
 	const FMaterial* Material = MaterialProxy->GetMaterial(GMaxRHIFeatureLevel);
@@ -1349,7 +1349,7 @@ template<>
 void FNoesisRenderDevice::SetPixelShaderParameters<FNoesisCustomEffectPS>(const Noesis::Batch& Batch, TShaderRef<FNoesisCustomEffectPS>& PixelShader, FUniformBufferRHIRef& PSUniformBuffer0, FUniformBufferRHIRef& PSUniformBuffer1)
 {
 	FMaterialRenderProxy* MaterialProxy = ((FNoesisMaterial*)Batch.pixelShader)->MaterialProxy;
-#if ENGINE_MAJOR_VERSION >= 5
+#if (ENGINE_MAJOR_VERSION >= 5) || ((ENGINE_MAJOR_VERSION == 4) && (ENGINE_MINOR_VERSION >= 27))
 	const FMaterial* Material = &MaterialProxy->GetIncompleteMaterialWithFallback(GMaxRHIFeatureLevel);
 #else
 	const FMaterial* Material = MaterialProxy->GetMaterial(GMaxRHIFeatureLevel);
@@ -1454,7 +1454,7 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 		FMaterialRenderProxy* MaterialProxy = ((FNoesisMaterial*)Batch.pixelShader)->MaterialProxy;
 		if (MaterialProxy != nullptr)
 		{
-#if ENGINE_MAJOR_VERSION >= 5
+#if (ENGINE_MAJOR_VERSION >= 5) || ((ENGINE_MAJOR_VERSION == 4) && (ENGINE_MINOR_VERSION >= 27))
 			const FMaterial* Material = &MaterialProxy->GetIncompleteMaterialWithFallback(GMaxRHIFeatureLevel);
 #else
 			const FMaterial* Material = MaterialProxy->GetMaterial(GMaxRHIFeatureLevel);
@@ -1477,7 +1477,7 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 	{
 		FNoesisTexture* Texture = (FNoesisTexture*)(Batch.pattern);
 		FRHITexture* PatternTexture = Texture->ShaderResourceTexture;
-		if (PatternTexture != nullptr && (PatternTexture->GetFlags() & TexCreate_SRGB) != 0)
+		if (PatternTexture != nullptr && EnumHasAnyFlags(PatternTexture->GetFlags(), TexCreate_SRGB))
 		{
 			// Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
 			PatternSRGB = true;

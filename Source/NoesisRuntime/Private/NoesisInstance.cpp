@@ -558,7 +558,12 @@ void UNoesisInstance::TermInstance()
 	{
 		for (auto TextInputMethodContextPair : TextInputMethodContexts)
 		{
-			TextInputMethodSystem->UnregisterContext(TextInputMethodContextPair.Value.ToSharedRef());
+			auto TextInputMethodContext = TextInputMethodContextPair.Value;
+			if (TextInputMethodSystem->IsActiveContext(TextInputMethodContext.ToSharedRef()))
+			{
+				TextInputMethodSystem->DeactivateContext(TextInputMethodContext.ToSharedRef());
+			}
+			TextInputMethodSystem->UnregisterContext(TextInputMethodContext.ToSharedRef());
 		}
 	}
 }

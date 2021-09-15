@@ -266,7 +266,34 @@ public:
 
 	virtual EKeyboardType GetVirtualKeyboardType() const override
 	{
-		return Keyboard_Default;
+		Noesis::InputScope InputScope = TextBox->GetInputScope();
+		switch (InputScope)
+		{
+		case Noesis::InputScope_Number:
+		case Noesis::InputScope_DateMonth:
+		case Noesis::InputScope_DateDay:
+		case Noesis::InputScope_DateYear:
+		case Noesis::InputScope_Digits:
+		case Noesis::InputScope_TelephoneNumber:
+		case Noesis::InputScope_TelephoneCountryCode:
+		case Noesis::InputScope_TelephoneAreaCode:
+		case Noesis::InputScope_TelephoneLocalNumber:
+		case Noesis::InputScope_TimeHour:
+		case Noesis::InputScope_TimeMinorSec:
+			return Keyboard_Number;
+		case Noesis::InputScope_Url:
+		case Noesis::InputScope_EmailSmtpAddress:
+			return Keyboard_Web;
+		case Noesis::InputScope_EmailUserName:
+			return Keyboard_Email;
+		case Noesis::InputScope_Password:
+			return Keyboard_Password;
+		case Noesis::InputScope_AlphanumericHalfWidth:
+		case Noesis::InputScope_AlphanumericFullWidth:
+			return Keyboard_AlphaNumeric;
+		default:
+			return Keyboard_Default;
+		}
 	}
 
 	virtual FVirtualKeyboardOptions GetVirtualKeyboardOptions() const

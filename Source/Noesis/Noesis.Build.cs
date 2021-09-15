@@ -89,7 +89,7 @@ public class Noesis : ModuleRules
 		{
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "wasm", "Noesis.bc"));
 		}
-		else if (UnrealTargetPlatform.TryParse("XboxOne", out Platform) && Target.Platform == Platform)
+		else if (UnrealTargetPlatform.TryParse("XboxOneGDK", out Platform) && Target.Platform == Platform)
 		{
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "xbox_one", "Noesis.lib"));
 
