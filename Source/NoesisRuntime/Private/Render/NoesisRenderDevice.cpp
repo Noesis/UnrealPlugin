@@ -871,10 +871,18 @@ static void SetTextureFormat(FNoesisTexture* Texture, EPixelFormat Format)
 
 Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InTexture)
 {
+#if (ENGINE_MAJOR_VERSION >= 5) || ((ENGINE_MAJOR_VERSION == 4) && (ENGINE_MINOR_VERSION >= 27))
 	if (!InTexture || !InTexture->GetResource())
 		return nullptr;
 
 	FTextureResource* TextureResource = InTexture->GetResource();
+#else
+	if (!InTexture || !InTexture->Resource)
+		return nullptr;
+
+	FTextureResource* TextureResource = InTexture->Resource;
+#endif
+
 	Noesis::Ptr<FNoesisTexture> Texture;
 	if (InTexture->IsA<UTexture2D>())
 	{

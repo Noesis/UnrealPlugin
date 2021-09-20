@@ -237,7 +237,11 @@ void NoesisMediaPlayer::CheckKeepPlaying()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 static FRHITexture2D* GetMediaTextureRHI(UMediaTexture* MediaTexture)
 {
+#if (ENGINE_MAJOR_VERSION >= 5) || ((ENGINE_MAJOR_VERSION == 4) && (ENGINE_MINOR_VERSION >= 27))
 	FTextureResource* Resource = (FTextureResource*)MediaTexture->GetResource();
+#else
+	FTextureResource* Resource = (FTextureResource*)MediaTexture->Resource;
+#endif
 	FTextureRHIRef TextureRHI = Resource->TextureRHI;
 	return TextureRHI ? TextureRHI->GetTexture2D() : nullptr;
 }
