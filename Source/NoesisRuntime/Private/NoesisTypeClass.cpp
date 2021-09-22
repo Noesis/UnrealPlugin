@@ -3239,29 +3239,24 @@ void NoesisNotifyPropertyChanged(UObject* Owner, FName PropertyName)
 void NoesisNotifyArrayPropertyChanged(UObject* Owner, FName ArrayPropertyName)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyChanged);
-	NoesisObjectWrapper** WrapperPtr = ObjectMap.Find(Owner);
-	if (WrapperPtr)
+	if (!IsValid(Owner))
+		return;
+
+	// NoesisArrayWrappers can only come from properties of the class, not from Getters, so this is equivalent to the
+	// previous code, except that we don't create a temporary wrapper if one didn't already exist.
+	UClass* OwnerClass = Owner->GetClass();
+	FProperty* ArrayProperty = OwnerClass->FindPropertyByName(ArrayPropertyName);
+	if (ArrayProperty != nullptr)
 	{
-		NoesisObjectWrapper* Wrapper = *WrapperPtr;
-		const Noesis::TypeClass* WrapperTypeClass = Wrapper->GetClassType();
-		auto PropertySymbol = Noesis::Symbol(TCHARToNsString(*ArrayPropertyName.ToString()).Str());
-		Noesis::TypeClassProperty ClassProperty = Noesis::FindProperty(WrapperTypeClass, PropertySymbol);
-		const Noesis::TypeProperty* ArrayTypeProperty = ClassProperty.property;
-		if (ArrayTypeProperty != nullptr)
-		{
-			NoesisArrayWrapper* Array = (NoesisArrayWrapper*)(ArrayTypeProperty->GetComponent(Wrapper).GetPtr());
-			if (Array)
-			{
-				Array->NotifyPostChanged();
-			}
-		}
-#if DO_CHECK // Skip in shipping build
-		else
-		{
-			UE_LOG(LogNoesis, Warning, TEXT("Couldn't resolve property %s::%s"), *Owner->GetClass()->GetFName().ToString(), *ArrayPropertyName.ToString());
-		}
-#endif
+		void* ArrayPointer = ArrayProperty->template ContainerPtrToValuePtr<void>(Owner);
+		NoesisNotifyArrayPropertyPostChanged(ArrayPointer);
 	}
+#if DO_CHECK // Skip in shipping build
+	else
+	{
+		UE_LOG(LogNoesis, Warning, TEXT("Couldn't resolve property %s::%s"), *Owner->GetClass()->GetFName().ToString(), *ArrayPropertyName.ToString());
+	}
+#endif
 }
 
 void NoesisNotifyArrayPropertyPostAdd(void* ArrayPointer)
