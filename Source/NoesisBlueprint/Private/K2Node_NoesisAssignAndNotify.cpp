@@ -241,9 +241,14 @@ FText UK2Node_NoesisAssignAndNotify::GetTooltipText() const
 void UK2Node_NoesisAssignAndNotify::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
 	const UBlueprint* Blueprint = Cast<UBlueprint>(ActionRegistrar.GetActionKeyFilter());
-	if (Blueprint && ActionRegistrar.IsOpenForRegistration(Blueprint->SkeletonGeneratedClass))
+	if (Blueprint && Blueprint->SkeletonGeneratedClass && ActionRegistrar.IsOpenForRegistration(Blueprint->SkeletonGeneratedClass))
 	{
-		for (TFieldIterator<FProperty> PropertyIt(Blueprint->SkeletonGeneratedClass, EFieldIteratorFlags::ExcludeSuper); PropertyIt; ++PropertyIt)
+		// If the SuperClass is a Blueprint we don't want to include its properties, or they will appear duplicated.
+		// But if the SuperClass is a native class we want to add those.
+		UClass* SuperClass = Blueprint->SkeletonGeneratedClass->GetSuperClass();
+		bool bIsSuperBlueprint = SuperClass->ClassGeneratedBy && SuperClass->ClassGeneratedBy->IsA<UBlueprint>();
+		EFieldIteratorFlags::SuperClassFlags IteratorFlags = bIsSuperBlueprint ? EFieldIteratorFlags::ExcludeSuper : EFieldIteratorFlags::IncludeSuper;
+		for (TFieldIterator<FProperty> PropertyIt(Blueprint->SkeletonGeneratedClass, IteratorFlags); PropertyIt; ++PropertyIt)
 		{
 			FProperty* Property = *PropertyIt;
 
@@ -279,7 +284,7 @@ bool UK2Node_NoesisAssignAndNotify::IsActionFilteredOut(const FBlueprintActionFi
 		{
 			UClass* BlueprintClass = Blueprint->GeneratedClass;
 			UClass* VariableSourceClass = GetVariableSourceClass();
-			if (BlueprintClass != VariableSourceClass)
+			if (!BlueprintClass->IsChildOf(VariableSourceClass))
 			{
 				FilteredOut = true;
 			}
