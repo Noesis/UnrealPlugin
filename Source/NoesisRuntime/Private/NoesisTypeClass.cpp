@@ -59,6 +59,7 @@ Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForTMap(void* MapPtr, FM
 Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForTMapStruct(void* MapPtr, FMapProperty* MapProperty, void* StructPtr);
 const Noesis::Type* NoesisCreateTypeForTMap(FMapProperty* MapProperty);
 bool AssignStruct(void*, UScriptStruct*, Noesis::BaseComponent*);
+bool AssignEnum(void*, UEnum*, FNumericProperty*, Noesis::BaseComponent*);
 const Noesis::Type* NoesisGetTypeForUClass(UClass*);
 const Noesis::Type* NoesisGetTypeForUStruct(UStruct*);
 Noesis::TypeClass* NoesisCreateTypeClassForUMaterial(UMaterialInterface* Material);
@@ -339,6 +340,10 @@ Noesis::Ptr<Noesis::BaseComponent> GenericGetter(void* BasePointer, FProperty* P
 template<class T>
 bool GenericSetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)
 {
+	auto Boxed = Noesis::DynamicCast<Noesis::Boxed<typename NoesisTypeTraits<T>::NoesisType>*>(Input);
+	if (Boxed == nullptr)
+		return false;
+
 	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
 	T TInput = NoesisTypeTraits<T>::ToUnreal(Noesis::Boxing::Unbox<typename NoesisTypeTraits<T>::NoesisType>(Input));
 	T& TValue = *(T*)Value;
@@ -351,31 +356,6 @@ template<class T>
 const Noesis::Type* GenericGetType(FProperty*)
 {
 	return Noesis::TypeOf<typename NoesisTypeTraits<T>::NoesisType>();
-}
-
-template<class T>
-Noesis::Ptr<Noesis::BaseComponent> GenericGetterPtr(void* BasePointer, FProperty* Property)
-{
-	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
-	T& TValue = *(T*)Value;
-	return Noesis::Ptr<Noesis::RemovePointer<typename NoesisTypeTraits<T>::NoesisType>>(*NoesisTypeTraits<T>::ToNoesis(TValue));
-}
-
-template<class T>
-bool GenericSetterPtr(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)
-{
-	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
-	T TInput = NoesisTypeTraits<T>::ToUnreal((typename NoesisTypeTraits<T>::NoesisType)Input);
-	T& TValue = *(T*)Value;
-	bool Changed = !NoesisTypeTraits<T>::Equals(TInput, TValue);
-	TValue = TInput;
-	return Changed;
-}
-
-template<class T>
-const Noesis::Type* GenericGetTypePtr(FProperty*)
-{
-	return Noesis::TypeOf< Noesis::RemovePointer<typename NoesisTypeTraits<T>::NoesisType>>();
 }
 
 typedef Noesis::Ptr<Noesis::BaseComponent>(*GetterFn)(void*, FProperty*);
@@ -424,9 +404,9 @@ const Noesis::Type* StructGetType(FProperty* Property)
 
 Noesis::Ptr<Noesis::BaseComponent> EnumGetter(void* BasePointer, FProperty* Property)
 {
-	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
 	check(Property->IsA<FEnumProperty>());
 	FEnumProperty* EnumProperty = (FEnumProperty*)Property;
+	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
 	FNumericProperty* UnderlyingProperty = EnumProperty->GetUnderlyingProperty();
 	check(UnderlyingProperty->IsInteger());
 	int64 IntValue = UnderlyingProperty->GetSignedIntPropertyValue(Value);
@@ -435,16 +415,12 @@ Noesis::Ptr<Noesis::BaseComponent> EnumGetter(void* BasePointer, FProperty* Prop
 
 bool EnumSetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)
 {
-	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
 	check(Property->IsA<FEnumProperty>());
-	int32 EnumInput = Noesis::Boxing::Unbox<int32>(Input);
 	FEnumProperty* EnumProperty = (FEnumProperty*)Property;
+	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
 	FNumericProperty* UnderlyingProperty = EnumProperty->GetUnderlyingProperty();
 	check(UnderlyingProperty->IsInteger());
-	int64 IntValue = UnderlyingProperty->GetSignedIntPropertyValue(Value);
-	bool Changed = ((int64)EnumInput != IntValue);
-	UnderlyingProperty->SetIntPropertyValue(Value, (int64)EnumInput);
-	return Changed;
+	return AssignEnum(Value, EnumProperty->GetEnum(), UnderlyingProperty, Input);
 }
 
 const Noesis::Type* EnumGetType(FProperty* Property)
@@ -458,9 +434,8 @@ Noesis::Ptr<Noesis::BaseComponent> ByteGetter(void* BasePointer, FProperty* Prop
 {
 	check(Property->IsA<FByteProperty>());
 	FByteProperty* ByteProperty = (FByteProperty*)Property;
-	if (ByteProperty->Enum)
+	if (ByteProperty->Enum != nullptr)
 	{
-		//Noesis::TypeEnum* TypeEnum = NoesisCreateTypeEnumForUEnum(ByteProperty->Enum);
 		void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
 		uint8& ByteValue = *(uint8*)Value;
 		return NoesisCreateComponentForUEnum(ByteProperty->Enum, (int64)ByteValue);
@@ -473,21 +448,24 @@ Noesis::Ptr<Noesis::BaseComponent> ByteGetter(void* BasePointer, FProperty* Prop
 
 bool ByteSetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)
 {
-	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
 	check(Property->IsA<FByteProperty>());
-	int32 EnumInput = Noesis::Boxing::Unbox<int32>(Input);
 	FByteProperty* ByteProperty = (FByteProperty*)Property;
-	int64 IntValue = ByteProperty->GetSignedIntPropertyValue(Value);
-	bool Changed = ((int64)EnumInput != IntValue);
-	ByteProperty->SetIntPropertyValue(Value, (int64)EnumInput);
-	return Changed;
+	if (ByteProperty->Enum != nullptr)
+	{
+		void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
+		return AssignEnum(Value, ByteProperty->Enum, ByteProperty, Input);
+	}
+	else
+	{
+		return GenericSetter<uint8>(Input, BasePointer, Property);
+	}
 }
 
 const Noesis::Type* ByteGetType(FProperty* Property)
 {
 	check(Property->IsA<FByteProperty>());
 	FByteProperty* ByteProperty = (FByteProperty*)Property;
-	if (ByteProperty->Enum)
+	if (ByteProperty->Enum != nullptr)
 	{
 		return NoesisCreateTypeEnumForUEnum(ByteProperty->Enum);
 	}
@@ -593,7 +571,7 @@ Noesis::Ptr<Noesis::BaseComponent> ArrayGetter(void* BasePointer, FProperty* Pro
 bool ArraySetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)
 {
 	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
-	check(false);
+	UE_LOG(LogNoesis, Warning, TEXT("Setting TArrays is not supported"));
 	return false;
 }
 
@@ -634,7 +612,7 @@ Noesis::Ptr<Noesis::BaseComponent> MapGetter(void* BasePointer, FProperty* Prope
 bool MapSetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)
 {
 	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
-	check(false);
+	UE_LOG(LogNoesis, Warning, TEXT("Setting TMaps is not supported"));
 	return false;
 }
 
@@ -930,7 +908,15 @@ Noesis::Ptr<Noesis::BaseComponent> GetPropertyByRef(void* BasePointer, FProperty
 
 bool SetPropertyByRef(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Input)
 {
+	check(BasePointer != nullptr);
+	check(Property != nullptr);
+
 	FFieldClass* PropertyClass = Property->GetClass();
+
+	// Setting non object properties to null is invalid.
+	if (Input == nullptr && PropertyClass != FObjectProperty::StaticClass())
+		return false;
+
 	if (PropertyClass == FStructProperty::StaticClass())
 	{
 		FStructProperty* StructProperty = (FStructProperty*)Property;
@@ -1246,7 +1232,7 @@ public:
 
 		// Preserve this in case it is deleted in the event handler
 		LOCAL_PRESERVE(this);
-		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs = { Noesis::NotifyCollectionChangedAction_Add, -1, (int32)Index, nullptr, Item.GetPtr() };
+		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs = { Noesis::NotifyCollectionChangedAction_Add, -1, (int32)Index, nullptr, Item };
 		CollectionChangedHandler(this, CollectionChangedArgs);
 	}
 
@@ -1263,7 +1249,7 @@ public:
 
 		// Preserve this in case it is deleted in the event handler
 		LOCAL_PRESERVE(this);
-		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs = { Noesis::NotifyCollectionChangedAction_Replace, (int32)Index, (int32)Index, ItemToDelete.GetPtr(), NewItem.GetPtr() };
+		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs = { Noesis::NotifyCollectionChangedAction_Replace, (int32)Index, (int32)Index, ItemToDelete, NewItem };
 		CollectionChangedHandler(this, CollectionChangedArgs);
 		ItemToDelete.Reset();
 	}
@@ -1284,7 +1270,7 @@ public:
 		check(ItemToDelete != nullptr);
 		// Preserve this in case it is deleted in the event handler
 		LOCAL_PRESERVE(this);
-		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs = { Noesis::NotifyCollectionChangedAction_Remove, Index, -1, ItemToDelete.GetPtr(), nullptr };
+		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs = { Noesis::NotifyCollectionChangedAction_Remove, Index, -1, ItemToDelete, nullptr };
 		CollectionChangedHandler(this, CollectionChangedArgs);
 		ItemToDelete.Reset();
 	}
@@ -1431,7 +1417,7 @@ public:
 	{
 		Noesis::Ptr<Noesis::BaseComponent> Item;
 		NativeFind(Key, Item);
-		Noesis::NotifyDictionaryChangedEventArgs DictionaryChangedArgs = { Noesis::NotifyDictionaryChangedAction_Add, Key, nullptr, Item.GetPtr() };
+		Noesis::NotifyDictionaryChangedEventArgs DictionaryChangedArgs = { Noesis::NotifyDictionaryChangedAction_Add, Key, nullptr, Item };
 		DictionaryChangedHandler(this, DictionaryChangedArgs);
 	}
 
@@ -1452,7 +1438,7 @@ public:
 		check(ItemToDelete != nullptr);
 		// Preserve this in case it is deleted in the event handler
 		LOCAL_PRESERVE(this);
-		Noesis::NotifyDictionaryChangedEventArgs DictionaryChangedArgs = { Noesis::NotifyDictionaryChangedAction_Add, Key, ItemToDelete.GetPtr(), nullptr };
+		Noesis::NotifyDictionaryChangedEventArgs DictionaryChangedArgs = { Noesis::NotifyDictionaryChangedAction_Add, Key, ItemToDelete, nullptr };
 		DictionaryChangedHandler(this, DictionaryChangedArgs);
 		ItemToDelete = nullptr;
 	}
@@ -3024,19 +3010,37 @@ void NoesisAssetRenamed(UObject* Object, FString OldPath)
 }
 #endif
 
-bool AssignStruct(void* Dest, UScriptStruct* Struct, Noesis::BaseComponent* Value)
+bool AssignStruct(void* Value, UScriptStruct* Struct, Noesis::BaseComponent* Input)
 {
-	check(Value->GetClassType()->IsDescendantOf(NoesisStructWrapper::StaticGetClassType(nullptr)));
-	check(Noesis::DynamicCast<const NoesisTypeClass*>(Value->GetClassType()));
-	if (((NoesisTypeClass*)Value->GetClassType())->Class == Struct)
-	{
-		NoesisStructWrapper* Wrapper = ((NoesisStructWrapper*)Value);
-		bool Changed = !Struct->CompareScriptStruct(Dest, Wrapper->GetStructPtr(), PPF_None);
-		Struct->CopyScriptStruct(Dest, Wrapper->GetStructPtr(), 1);
-		return Changed;
-	}
+	if (!Input->GetClassType()->IsDescendantOf(NoesisStructWrapper::StaticGetClassType(nullptr)))
+		return false;
 
-	return false;
+	check(Noesis::DynamicCast<const NoesisTypeClass*>(Input->GetClassType()));
+	if (((NoesisTypeClass*)Input->GetClassType())->Class != Struct)
+		return false;
+	
+	NoesisStructWrapper* Wrapper = ((NoesisStructWrapper*)Input);
+	bool Changed = !Struct->CompareScriptStruct(Value, Wrapper->GetStructPtr(), PPF_None);
+	Struct->CopyScriptStruct(Value, Wrapper->GetStructPtr(), 1);
+	return Changed;
+}
+
+bool AssignEnum(void* Value, UEnum* Enum, FNumericProperty* ValueProperty, Noesis::BaseComponent* Input)
+{
+	NoesisEnumWrapper* Wrapper = Noesis::DynamicCast<NoesisEnumWrapper*>(Input);
+	if (Wrapper == nullptr)
+		return false;
+
+	const Noesis::Type* TypeEnum = Wrapper->GetValueType();
+	check(Noesis::DynamicCast<const NoesisTypeEnum*>(TypeEnum));
+	if (((NoesisTypeEnum*)TypeEnum)->Enum != Enum)
+		return false;
+
+	int64 InputValue = (int64)Noesis::Boxing::Unbox<int32>(Input);
+	int64 IntValue = ValueProperty->GetSignedIntPropertyValue(Value);
+	bool Changed = (InputValue != IntValue);
+	ValueProperty->SetIntPropertyValue(Value, InputValue);
+	return Changed;
 }
 
 const Noesis::Type* NoesisGetTypeForUStruct(UStruct* Class)
@@ -3190,6 +3194,10 @@ NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUOb
 
 NOESISRUNTIME_API UObject* NoesisCreateUObjectForComponent(Noesis::BaseComponent* Component)
 {
+	// Don't create a UNoesisBaseComponent for null Components
+	if (Component == nullptr)
+		return nullptr;
+
 	NoesisObjectWrapper* Wrapper = Noesis::DynamicCast<NoesisObjectWrapper*>(Component);
 	if (Wrapper != nullptr)
 	{

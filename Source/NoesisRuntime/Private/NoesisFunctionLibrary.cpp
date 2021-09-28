@@ -39,7 +39,8 @@ void UNoesisFunctionLibrary::TrySetDataContext(UObject* Element, UObject* DataCo
 	UNoesisBaseComponent* BaseComponent = Cast<UNoesisBaseComponent>(Element);
 	if (BaseComponent)
 	{
-		Noesis::FrameworkElement* NoesisElement = Noesis::DynamicCast<Noesis::FrameworkElement*>(BaseComponent->NoesisComponent.GetPtr());
+		// OK to demote Ptr to *. The reference is kept by the UNoesisBaseComponent.
+		Noesis::FrameworkElement* NoesisElement = Noesis::DynamicPtrCast<Noesis::FrameworkElement>(BaseComponent->NoesisComponent);
 
 		if (NoesisElement)
 		{
@@ -53,7 +54,7 @@ UObject* UNoesisFunctionLibrary::LoadXaml(class UNoesisXaml* Xaml)
 {
 	if (Xaml != nullptr)
 	{
-		return NoesisCreateUObjectForComponent(Xaml->LoadXaml().GetPtr());
+		return NoesisCreateUObjectForComponent(Xaml->LoadXaml());
 	}
 	return nullptr;
 }

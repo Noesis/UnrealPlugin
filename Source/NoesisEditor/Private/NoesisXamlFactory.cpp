@@ -536,8 +536,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 		Noesis::Factory::RegisterComponent(LocTableType->GetTypeId(), Noesis::Symbol::Null(), CreateLocTable);
 
 		// Show parsing errors in the console
-		Noesis::Ptr<Noesis::BaseComponent> Ptr = NoesisXaml->LoadXaml();
-		Noesis::IUITreeNode* Root = Noesis::DynamicCast<Noesis::IUITreeNode*>(Ptr.GetPtr());
+		Noesis::Ptr<Noesis::IUITreeNode> Root = Noesis::DynamicPtrCast<Noesis::IUITreeNode>(NoesisXaml->LoadXaml());
 
 		NoesisXaml->Texts.Empty();
 		for (auto Text : UnrealTexts.FindOrAdd(Root))

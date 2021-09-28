@@ -280,15 +280,15 @@ void UNoesisInstance::InitInstance()
 
 	Noesis::Ptr<Noesis::BaseComponent> DataContext = Noesis::Ptr<Noesis::BaseComponent>(NoesisCreateComponentForUObject(this));
 
-	Xaml.Reset(Noesis::DynamicCast<Noesis::FrameworkElement*>(BaseXaml->LoadXaml().GetPtr()));
+	Xaml = Noesis::DynamicPtrCast<Noesis::FrameworkElement>(BaseXaml->LoadXaml());
 
 	if (Xaml)
 	{
-		Xaml->SetDataContext(DataContext.GetPtr());
+		Xaml->SetDataContext(DataContext);
 
 		XamlLoaded();
 
-		XamlView = Noesis::GUI::CreateView(Xaml.GetPtr());
+		XamlView = Noesis::GUI::CreateView(Xaml);
 
 		if (XamlView)
 		{
@@ -318,7 +318,7 @@ void UNoesisInstance::SetDataContext(UObject* InDataContext)
 	{
 		Noesis::Ptr<Noesis::BaseComponent> DataContext = Noesis::Ptr<Noesis::BaseComponent>(NoesisCreateComponentForUObject(InDataContext));
 
-		Xaml->SetDataContext(DataContext.GetPtr());
+		Xaml->SetDataContext(DataContext);
 	}
 }
 

@@ -142,7 +142,7 @@ public:
 	// RenderTarget interface
 	virtual Noesis::Texture* GetTexture() override
 	{
-		return Texture.GetPtr();
+		return Texture;
 	}
 	// End of RenderTarget interface
 

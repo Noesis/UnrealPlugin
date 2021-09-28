@@ -192,7 +192,7 @@ void OnTouchUpShowTextBoxVirtualKeyboard(Noesis::BaseComponent*, const Noesis::T
 {
 	if (LastSelectedTextBox)
 	{
-		ShowTextBoxVirtualKeyboard(LastSelectedTextBox.GetPtr());
+		ShowTextBoxVirtualKeyboard(LastSelectedTextBox);
 	}
 }
 
@@ -200,7 +200,7 @@ void OnTouchUpShowPasswordBoxVirtualKeyboard(Noesis::BaseComponent*, const Noesi
 {
 	if (LastSelectedPasswordBox)
 	{
-		ShowPasswordBoxVirtualKeyboard(LastSelectedPasswordBox.GetPtr());
+		ShowPasswordBoxVirtualKeyboard(LastSelectedPasswordBox);
 	}
 }
 

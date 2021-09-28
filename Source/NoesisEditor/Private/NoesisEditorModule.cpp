@@ -112,11 +112,10 @@ void OnObjectImported(UFactory* ImportFactory, UObject* InObject)
 				PremultiplyAlpha(Texture);
 			}
 		}
-		Noesis::Ptr<Noesis::BaseComponent> Component = NoesisFindComponentForUObject(Texture);
-		if (Component != nullptr)
+		Noesis::Ptr<Noesis::TextureSource> TextureSource = Noesis::StaticPtrCast<Noesis::TextureSource>(NoesisFindComponentForUObject(Texture));
+		if (TextureSource != nullptr)
 		{
-			Noesis::TextureSource* TextureSource = (Noesis::TextureSource*)Component.GetPtr();
-			TextureSource->SetTexture(NoesisCreateTexture(Texture).GetPtr());
+			TextureSource->SetTexture(NoesisCreateTexture(Texture));
 		}
 		INoesisRuntimeModuleInterface::Get().OnTextureChanged(Texture);
 	}
@@ -124,6 +123,9 @@ void OnObjectImported(UFactory* ImportFactory, UObject* InObject)
 
 void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Event)
 {
+	if (!IsValid(Object)) // Don't think this is possible, but better safe than sorry
+		return;
+
 	static uint32 ReentryGuard = 0;
 	if (!ReentryGuard)
 	{
@@ -154,11 +156,10 @@ void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Even
 					}
 				}
 			}
-			Noesis::Ptr<Noesis::BaseComponent> Component = NoesisFindComponentForUObject(Texture);
-			if (Component != nullptr)
+			Noesis::Ptr<Noesis::TextureSource> TextureSource = Noesis::StaticPtrCast<Noesis::TextureSource>(NoesisFindComponentForUObject(Texture));
+			if (TextureSource != nullptr)
 			{
-				Noesis::TextureSource* TextureSource = (Noesis::TextureSource*)Component.GetPtr();
-				TextureSource->SetTexture(NoesisCreateTexture(Texture).GetPtr());
+				TextureSource->SetTexture(NoesisCreateTexture(Texture));
 			}
 			INoesisRuntimeModuleInterface::Get().OnTextureChanged(Texture);
 		}
