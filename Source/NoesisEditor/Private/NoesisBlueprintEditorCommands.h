@@ -5,6 +5,9 @@
 
 #pragma once
 
+// Slate includes
+#include "Framework/Commands/Commands.h"
+
 class FNoesisBlueprintEditorCommands : public TCommands<FNoesisBlueprintEditorCommands>
 {
 public:

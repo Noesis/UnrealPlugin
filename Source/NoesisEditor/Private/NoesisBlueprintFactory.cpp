@@ -5,8 +5,19 @@
 
 #include "NoesisBlueprintFactory.h"
 
+// Core includes
+#include "Misc/MessageDialog.h"
+
 // NoesisEditor includes
 #include "NoesisEditorModule.h"
+
+// NoesisRuntime includes
+#include "NoesisBlueprint.h"
+#include "NoesisBlueprintGeneratedClass.h"
+#include "NoesisInstance.h"
+
+// UnrealEd includes
+#include "Kismet2/KismetEditorUtilities.h"
 
 #define LOCTEXT_NAMESPACE "NoesisEditorModule"
 

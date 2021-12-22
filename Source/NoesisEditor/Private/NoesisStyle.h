@@ -5,6 +5,9 @@
 
 #pragma once
 
+// Core includes
+#include "CoreMinimal.h"
+
 class FNoesisStyle
 {
 public:

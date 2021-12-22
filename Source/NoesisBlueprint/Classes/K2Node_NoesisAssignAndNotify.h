@@ -5,6 +5,9 @@
 
 #pragma once
 
+// BlueprintGraph includes
+#include "K2Node_Variable.h"
+
 // Generated header include
 #include "K2Node_NoesisAssignAndNotify.generated.h"
 

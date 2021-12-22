@@ -5,6 +5,9 @@
 
 #include "NoesisBlueprintPreviewApplicationMode.h"
 
+// Kismet includes
+#include "SBlueprintEditorToolbar.h"
+
 // NoesisEditor includes
 #include "NoesisBlueprintEditor.h"
 #include "NoesisBlueprintApplicationModes.h"

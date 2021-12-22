@@ -268,14 +268,8 @@ void UNoesisInstance::InitInstance()
 
 	if (!BaseXaml)
 	{
-		UNoesisBlueprintGeneratedClass* NoesisBlueprintGeneratedClass = CastChecked<UNoesisBlueprintGeneratedClass>(GetClass());
-		check(NoesisBlueprintGeneratedClass);
-		BaseXaml = NoesisBlueprintGeneratedClass->BaseXaml;
-		EnablePPAA = NoesisBlueprintGeneratedClass->EnablePPAA;
-		TessellationQuality = NoesisBlueprintGeneratedClass->TessellationQuality;
-
-		if (!BaseXaml)
-			return;
+		NS_LOG("Noesis View %s doesn't have a valid XAML. Please recompile.", TCHAR_TO_UTF8(*GetPathName()));
+		return;
 	}
 
 	Noesis::Ptr<Noesis::BaseComponent> DataContext = Noesis::Ptr<Noesis::BaseComponent>(NoesisCreateComponentForUObject(this));
@@ -933,7 +927,7 @@ FReply UNoesisInstance::NativeOnMouseButtonDown(const FGeometry& MyGeometry, con
 
 		if (HitTest(Position))
 		{
-			return FReply::Handled();
+			return FReply::Handled().PreventThrottling();
 		}
 	}
 
@@ -973,7 +967,7 @@ FReply UNoesisInstance::NativeOnMouseButtonUp(const FGeometry& MyGeometry, const
 
 		if (HitTest(Position))
 		{
-			return FReply::Handled();
+			return FReply::Handled().PreventThrottling();
 		}
 	}
 
@@ -991,7 +985,7 @@ FReply UNoesisInstance::NativeOnMouseMove(const FGeometry& MyGeometry, const FPo
 
 		if (HitTest(Position))
 		{
-			return FReply::Handled();
+			return FReply::Handled().PreventThrottling();
 		}
 	}
 
@@ -1010,7 +1004,7 @@ FReply UNoesisInstance::NativeOnMouseWheel(const FGeometry& MyGeometry, const FP
 
 		if (HitTest(Position))
 		{
-			return FReply::Handled();
+			return FReply::Handled().PreventThrottling();
 		}
 	}
 
@@ -1029,7 +1023,7 @@ FReply UNoesisInstance::NativeOnTouchStarted(const FGeometry& MyGeometry, const 
 
 		if (HitTest(Position))
 		{
-			return FReply::Handled();
+			return FReply::Handled().PreventThrottling();
 		}
 	}
 
@@ -1048,7 +1042,7 @@ FReply UNoesisInstance::NativeOnTouchMoved(const FGeometry& MyGeometry, const FP
 
 		if (HitTest(Position))
 		{
-			return FReply::Handled();
+			return FReply::Handled().PreventThrottling();
 		}
 	}
 
@@ -1067,7 +1061,7 @@ FReply UNoesisInstance::NativeOnTouchEnded(const FGeometry& MyGeometry, const FP
 
 		if (HitTest(Position))
 		{
-			return FReply::Handled();
+			return FReply::Handled().PreventThrottling();
 		}
 	}
 
@@ -1112,7 +1106,7 @@ FReply UNoesisInstance::NativeOnMouseButtonDoubleClick(const FGeometry& MyGeomet
 
 		if (HitTest(Position))
 		{
-			return FReply::Handled();
+			return FReply::Handled().PreventThrottling();
 		}
 	}
 

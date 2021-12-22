@@ -7,6 +7,9 @@
 
 #include "NoesisBlueprintApplicationMode.h"
 
+// Core includes
+#include "CoreMinimal.h"
+
 class FNoesisBlueprintPreviewApplicationMode : public FNoesisBlueprintApplicationMode
 {
 public:

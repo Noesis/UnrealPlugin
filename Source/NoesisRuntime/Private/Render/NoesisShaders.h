@@ -15,6 +15,9 @@
 #include "Runtime/Renderer/Private/ScreenPass.h"
 #include "Runtime/Renderer/Private/PostProcess/PostProcessMaterial.h"
 
+// Noesis includes
+#include "NoesisSDK.h"
+
 template<Noesis::Shader::Vertex::Format::Enum VertexFormat>
 class FNoesisVertexDeclaration : public FRenderResource
 {

@@ -40,8 +40,6 @@
 #include "KismetCompiler.h"
 
 
-DECLARE_LOG_CATEGORY_EXTERN(LogNoesisBlueprint, Verbose, All);
-
 #include "NoesisRuntime.h"
 
 #include "NoesisBlueprintClasses.h"

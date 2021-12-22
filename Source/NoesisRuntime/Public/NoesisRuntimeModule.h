@@ -11,6 +11,9 @@
 #include "Stats/Stats.h"
 #include "Stats/Stats2.h"
 
+// Noesis includes
+#include "NsCore/Log.h"
+
 DECLARE_LOG_CATEGORY_EXTERN(LogNoesis, VeryVerbose, All);
 
 DECLARE_STATS_GROUP(TEXT("Noesis"), STATGROUP_Noesis, STATCAT_Advanced);
@@ -22,6 +25,13 @@ NOESISRUNTIME_API void* NoesisAlloc(void* UserData, size_t Size);
 NOESISRUNTIME_API void* NoesisRealloc(void* UserData, void* Ptr, size_t Size);
 NOESISRUNTIME_API void NoesisDealloc(void* UserData, void* Ptr);
 NOESISRUNTIME_API size_t NoesisAllocSize(void* UserData, void* Ptr);
+
+#if UE_BUILD_SHIPPING + UE_BUILD_SHIPPING_WITH_EDITOR == 0
+	NOESISRUNTIME_API void NoesisLog(const char* File, uint32_t Line, uint32_t Level, const char* Channel, const char* Format, ...);
+	#define NS_LOG(...) NoesisLog(__FILE__, __LINE__, NS_LOG_LEVEL_WARNING, "", __VA_ARGS__)
+#else
+	#define NS_LOG(...)
+#endif
 
 class NOESISRUNTIME_API INoesisRuntimeModuleInterface : public IModuleInterface
 {

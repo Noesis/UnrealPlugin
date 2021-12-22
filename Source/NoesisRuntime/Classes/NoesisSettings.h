@@ -38,9 +38,11 @@ enum class ENoesisGlyphCacheDimensions : uint8
 UENUM()
 enum class ENoesisLoggingSettings : uint8
 {
-	Quiet,
-	Normal,
-	Bindings
+	Off,
+	Error,
+	Warning,
+	Information,
+	Debug
 };
 
 UCLASS(Config = Engine, DefaultConfig)
@@ -48,11 +50,11 @@ class NOESISRUNTIME_API UNoesisSettings : public UObject
 {
 	GENERATED_UCLASS_BODY()
 
-	/** Fill with the Name value your were given when purchasing your Noesis license */
+	/** Fill with the Name value your were given when purchasing your Noesis license or get a trial from https://www.noesisengine.com/trial */
 	UPROPERTY(EditAnywhere, Config, Category = "License")
 	FString LicenseName;
 
-	/** Fill with the Key value your were given when purchasing your Noesis license */
+	/** Fill with the Key value your were given when purchasing your Noesis license or get a trial from https://www.noesisengine.com/trial */
 	UPROPERTY(EditAnywhere, Config, Category = "License")
 	FString LicenseKey;
 
@@ -63,6 +65,10 @@ class NOESISRUNTIME_API UNoesisSettings : public UObject
 	/** Default value for FontFamily when it is not specified in a control or text element */
 	UPROPERTY(EditAnywhere, Config, Category = "XAML", meta = (AllowedClasses = "FontFace"))
 	TArray<FSoftObjectPath> DefaultFonts;
+
+	/** Loads platform specific font fallbacks to be able to render a wide range of unicode characters like chinese, korean, japanese or emojis */
+	UPROPERTY(EditAnywhere, Config, Category = "XAML")
+	bool LoadPlatformFonts;
 
 	/** Default value for FontSize when it is not specified in a control or text element */
 	UPROPERTY(EditAnywhere, Config, Category = "XAML", meta = (ClampMin = 0, UIMin = 0))
@@ -80,35 +86,39 @@ class NOESISRUNTIME_API UNoesisSettings : public UObject
 	UPROPERTY(EditAnywhere, Config, Category = "XAML")
 	ENoesisFontStyle DefaultFontStyle;
 
-	/** Dimensions of texture used to cache glyphs. */
+	/** Dimensions of texture used to cache glyphs */
 	UPROPERTY(EditAnywhere, Config, Category = "Rendering", meta = (ConfigRestartRequired = true))
 	ENoesisGlyphCacheDimensions GlyphTextureSize;
 
-	/** Multisampling of offscreen textures. */
+	/** Multisampling of offscreen textures */
 	UPROPERTY(EditAnywhere, Config, Category = "Rendering", DisplayName="Offscreen Sample Count", meta = (ConfigRestartRequired = true))
 	ENoesisOffscreenSampleCount OffscreenTextureSampleCount;
 
-	/** Number of offscreen textures created at startup. */
+	/** Number of offscreen textures created at startup */
 	UPROPERTY(EditAnywhere, Config, Category = "Rendering", meta = (ConfigRestartRequired = true, ClampMin = 0, UIMin = 0))
 	int32 OffscreenInitSurfaces;
 
-	/** Maximum number of offscreen textures (0 = unlimited). */
+	/** Maximum number of offscreen textures (0 = unlimited) */
 	UPROPERTY(EditAnywhere, Config, Category = "Rendering", meta = (ConfigRestartRequired = true, ClampMin = 0, UIMin = 0))
 	int32 OffscreenMaxSurfaces;
 
-	/** Width of offscreen textures (0 = automatic). */
+	/** Width of offscreen textures (0 = automatic) */
 	UPROPERTY(EditAnywhere, Config, Category = "Rendering", meta = (ConfigRestartRequired = true, ClampMin = 0, UIMin = 0))
 	int32 OffscreenTextureWidth;
 
-	/** Height of offscreen textures (0 = automatic). */
+	/** Height of offscreen textures (0 = automatic) */
 	UPROPERTY(EditAnywhere, Config, Category = "Rendering", meta = (ConfigRestartRequired = true, ClampMin = 0, UIMin = 0))
 	int32 OffscreenTextureHeight;
 
-	/** Maximum number of offscreen textures (0 = unlimited). */
+	/** Sets the logging level for general messages */
 	UPROPERTY(EditAnywhere, Config, Category = "Editor Settings")
-	ENoesisLoggingSettings LogVerbosity;
+	ENoesisLoggingSettings GeneralLogLevel;
 
-	/** Premultiplies the color channels of UI textures with the value of the alpha channel. */
+	/** Sets the logging level for data binding */
+	UPROPERTY(EditAnywhere, Config, Category = "Editor Settings")
+	ENoesisLoggingSettings BindingLogLevel;
+
+	/** Premultiplies the color channels of UI textures with the value of the alpha channel */
 	UPROPERTY(EditAnywhere, Config, Category = "Editor Settings")
 	bool PremultiplyAlpha;
 

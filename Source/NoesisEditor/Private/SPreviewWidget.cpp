@@ -8,6 +8,10 @@
 // NoesisEditor includes
 #include "NoesisBlueprintEditor.h"
 
+// NoesisRuntime includes
+#include "NoesisBlueprint.h"
+#include "NoesisInstance.h"
+
 void SPreviewWidget::Construct(const FArguments& InArg, TSharedPtr<class FNoesisBlueprintEditor> InBlueprintEditor)
 {
 	BlueprintEditor = InBlueprintEditor;

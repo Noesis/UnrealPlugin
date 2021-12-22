@@ -76,7 +76,7 @@ struct FNoesisWrapper
 
 NOESISRUNTIME_API Noesis::Ptr<Noesis::Texture> NoesisCreateTexture(class UTexture* Texture);
 
-NOESISRUNTIME_API void* NoesisCreateMaterial(UMaterialInterface* Material);
+NOESISRUNTIME_API void* NoesisCreateMaterial(class UMaterialInterface* Material);
 
 NOESISRUNTIME_API void NoesisDestroyMaterial(void* Material);
 

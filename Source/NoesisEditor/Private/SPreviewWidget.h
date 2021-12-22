@@ -5,6 +5,13 @@
 
 #pragma once
 
+// Core includes
+#include "CoreMinimal.h"
+
+// SlateCore includes
+#include "Widgets/DeclarativeSyntaxSupport.h"
+#include "Widgets/SCompoundWidget.h"
+
 class SPreviewWidget : public SCompoundWidget
 {
 	SLATE_BEGIN_ARGS(SPreviewWidget) {}
@@ -20,8 +27,8 @@ class SPreviewWidget : public SCompoundWidget
 	void InvalidatePreviewWidget();
 
 	TWeakPtr<class FNoesisBlueprintEditor> BlueprintEditor;
-	TSharedPtr<SBox> PreviewBox;
-	UNoesisBlueprint* PreviewBlueprint;
-	UNoesisInstance* PreviewInstance;
-	TWeakPtr<SWidget> PreviewSlateWidget;
+	TSharedPtr<class SBox> PreviewBox;
+	class UNoesisBlueprint* PreviewBlueprint;
+	class UNoesisInstance* PreviewInstance;
+	TWeakPtr<class SWidget> PreviewSlateWidget;
 };

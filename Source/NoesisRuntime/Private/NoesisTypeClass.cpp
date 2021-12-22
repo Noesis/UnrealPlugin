@@ -29,6 +29,7 @@
 #include "IAssetRegistry.h"
 
 // NoesisRuntime includes
+#include "NoesisInstance.h"
 #include "NoesisSupport.h"
 #include "NoesisStructs.h"
 #include "NoesisRuntimeModule.h"
@@ -41,6 +42,7 @@
 DECLARE_CYCLE_STAT(TEXT("NoesisNotifyPropertyChanged"), STAT_NoesisNotifyPropertyChanged, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertyAdd"), STAT_NoesisNotifyArrayPropertyAdd, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertyChanged"), STAT_NoesisNotifyArrayPropertyChanged, STATGROUP_Noesis);
+DECLARE_CYCLE_STAT(TEXT("NoesisNotifyCanExecuteFunctionChanged"), STAT_NoesisNotifyCanExecuteFunctionChanged, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertyAppend"), STAT_NoesisNotifyArrayPropertyAppend, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertyInsert"), STAT_NoesisNotifyArrayPropertyInsert, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertyRemove"), STAT_NoesisNotifyArrayPropertyRemove, STATGROUP_Noesis);
@@ -571,7 +573,7 @@ Noesis::Ptr<Noesis::BaseComponent> ArrayGetter(void* BasePointer, FProperty* Pro
 bool ArraySetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)
 {
 	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
-	UE_LOG(LogNoesis, Warning, TEXT("Setting TArrays is not supported"));
+	NS_LOG("Setting TArrays is not supported");
 	return false;
 }
 
@@ -612,7 +614,7 @@ Noesis::Ptr<Noesis::BaseComponent> MapGetter(void* BasePointer, FProperty* Prope
 bool MapSetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)
 {
 	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
-	UE_LOG(LogNoesis, Warning, TEXT("Setting TMaps is not supported"));
+	NS_LOG("Setting TMaps is not supported");
 	return false;
 }
 
@@ -1277,6 +1279,8 @@ public:
 
 	void NotifyPostChanged()
 	{
+		// Preserve this in case it is deleted in the event handler
+		LOCAL_PRESERVE(this);
 		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs = { Noesis::NotifyCollectionChangedAction_Reset, -1, -1, nullptr, nullptr };
 		CollectionChangedHandler(this, CollectionChangedArgs);
 	}
@@ -1417,12 +1421,16 @@ public:
 	{
 		Noesis::Ptr<Noesis::BaseComponent> Item;
 		NativeFind(Key, Item);
+		// Preserve this in case it is deleted in the event handler
+		LOCAL_PRESERVE(this);
 		Noesis::NotifyDictionaryChangedEventArgs DictionaryChangedArgs = { Noesis::NotifyDictionaryChangedAction_Add, Key, nullptr, Item };
 		DictionaryChangedHandler(this, DictionaryChangedArgs);
 	}
 
 	void NotifyPostChanged()
 	{
+		// Preserve this in case it is deleted in the event handler
+		LOCAL_PRESERVE(this);
 		Noesis::NotifyDictionaryChangedEventArgs DictionaryChangedArgs = { Noesis::NotifyDictionaryChangedAction_Reset, "", nullptr, nullptr };
 		DictionaryChangedHandler(this, DictionaryChangedArgs);
 	}
@@ -1438,7 +1446,7 @@ public:
 		check(ItemToDelete != nullptr);
 		// Preserve this in case it is deleted in the event handler
 		LOCAL_PRESERVE(this);
-		Noesis::NotifyDictionaryChangedEventArgs DictionaryChangedArgs = { Noesis::NotifyDictionaryChangedAction_Add, Key, ItemToDelete, nullptr };
+		Noesis::NotifyDictionaryChangedEventArgs DictionaryChangedArgs = { Noesis::NotifyDictionaryChangedAction_Remove, Key, ItemToDelete, nullptr };
 		DictionaryChangedHandler(this, DictionaryChangedArgs);
 		ItemToDelete = nullptr;
 	}
@@ -1478,80 +1486,6 @@ const Noesis::Type* NoesisCreateTypeForTMap(FMapProperty* MapProperty)
 {
 	return Noesis::TypeOf<Noesis::BaseComponent>();
 }
-
-class NoesisFunctionWrapper : public Noesis::BaseCommand
-{
-public:
-	NoesisFunctionWrapper(UObject* InObject, UFunction* InFunction, UFunction* InCanExecuteFunction)
-		: Object(InObject), Function(InFunction), CanExecuteFunction(InCanExecuteFunction)
-	{
-	}
-
-	bool CanExecute(Noesis::BaseComponent* Param) const override
-	{
-		if (!Object->IsPendingKill() && !Object->IsUnreachable() && CanExecuteFunction)
-		{
-			if (CanExecuteFunction->NumParms == 1)
-			{
-				// Preserve this in case it is deleted in ProcessEvent
-				LOCAL_PRESERVE(this);
-				void* Params = FMemory_Alloca(CanExecuteFunction->GetStructureSize());
-				InitializeFunctionParams(CanExecuteFunction, Params);
-				Object->ProcessEvent(CanExecuteFunction, Params);
-				FBoolProperty* OutputProperty = (FBoolProperty*)(CanExecuteFunction->ChildProperties);
-				bool Ret = OutputProperty->GetPropertyValue(OutputProperty->ContainerPtrToValuePtr<bool>(Params));
-				DestroyFunctionParams(CanExecuteFunction, Params);
-				return Ret;
-			}
-			else
-			{
-				// Preserve this in case it is deleted in ProcessEvent
-				LOCAL_PRESERVE(this);
-				check(CanExecuteFunction->NumParms == 2);
-				void* Params = FMemory_Alloca(CanExecuteFunction->GetStructureSize());
-				InitializeFunctionParams(CanExecuteFunction, Params);
-				FProperty* InputProperty = (FProperty*)CanExecuteFunction->ChildProperties;
-				SetPropertyByRef(Params, InputProperty, Param);
-				Object->ProcessEvent(CanExecuteFunction, Params);
-				FBoolProperty* OutputProperty = (FBoolProperty*)(CanExecuteFunction->ChildProperties->Next);
-				bool Ret = OutputProperty->GetPropertyValue(OutputProperty->ContainerPtrToValuePtr<bool>(Params));
-				DestroyFunctionParams(CanExecuteFunction, Params);
-				return Ret;
-			}
-		}
-
-		return true;
-	}
-
-	void Execute(Noesis::BaseComponent* Param) const override
-	{
-		if (!Object->IsPendingKill() && !Object->IsUnreachable())
-		{
-			if (Function->NumParms == 0)
-			{
-				Object->ProcessEvent(Function, nullptr);
-			}
-			else
-			{
-				// Preserve this in case it is deleted in ProcessEvent
-				LOCAL_PRESERVE(this);
-				void* Params = FMemory_Alloca(Function->GetStructureSize());
-				InitializeFunctionParams(Function, Params);
-				FProperty* InputProperty = (FProperty*)Function->ChildProperties;
-				SetPropertyByRef(Params, InputProperty, Param);
-				Object->ProcessEvent(Function, Params);
-				DestroyFunctionParams(Function, Params);
-			}
-		}
-	}
-
-	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisFunctionWrapper, Noesis::BaseCommand)
-
-protected:
-	UObject* Object;
-	UFunction* Function;
-	UFunction* CanExecuteFunction;
-};
 
 class NoesisTypeProperty : public Noesis::TypeProperty
 {
@@ -1811,13 +1745,7 @@ public:
 		ObjectMap.Add(Object, this);
 	}
 
-	~NoesisObjectWrapper()
-	{
-		if (Object != nullptr)
-		{
-			ObjectMap.Remove(Object);
-		}
-	}
+	~NoesisObjectWrapper();
 
 	virtual Noesis::BaseComponent* GetBaseObject() const override
 	{
@@ -1849,7 +1777,7 @@ public:
 		// Can't return null. Just pretend it's a BaseComponent
 		if (Object == nullptr)
 		{
-			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
+			NS_LOG("A wrapper of a deleted object is still referenced");
 			return Noesis::BaseComponent::StaticGetClassType(nullptr);
 		}
 
@@ -1866,7 +1794,7 @@ public:
 	{
 		if (Object == nullptr)
 		{
-			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
+			NS_LOG("A wrapper of a deleted object is still referenced");
 			return "";
 		}
 
@@ -1881,7 +1809,7 @@ public:
 	{
 		if (Object == nullptr)
 		{
-			UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
+			NS_LOG("A wrapper of a deleted object is still referenced");
 			return false;
 		}
 
@@ -1911,6 +1839,8 @@ public:
 
 	void NotifyPropertyChanged(Noesis::Symbol PropertyId)
 	{
+		// Preserve this in case it is deleted in the event handler
+		LOCAL_PRESERVE(this);
 		Noesis::PropertyChangedEventArgs ChangedEventArgs(PropertyId);
 		PropertyChangedHandler(this, ChangedEventArgs);
 	}
@@ -1918,7 +1848,113 @@ public:
 public:
 	Noesis::PropertyChangedEventHandler PropertyChangedHandler;
 	UObject* Object;
+	TMap<UFunction*, Noesis::Ptr<class NoesisFunctionWrapper>> CommandMap;
 };
+
+class NoesisFunctionWrapper : public Noesis::BaseCommand
+{
+public:
+	NoesisFunctionWrapper(NoesisObjectWrapper* InWrapper, UFunction* InFunction, UFunction* InCanExecuteFunction)
+		: Wrapper(InWrapper), Function(InFunction), CanExecuteFunction(InCanExecuteFunction)
+	{
+		Wrapper->CommandMap.Add(Function, Noesis::Ptr<NoesisFunctionWrapper>(this));
+	}
+
+	~NoesisFunctionWrapper()
+	{
+		if (Wrapper != nullptr)
+		{
+			Wrapper->CommandMap.Remove(Function);
+		}
+	}
+
+	bool CanExecute(Noesis::BaseComponent* Param) const override
+	{
+		if (Wrapper == nullptr || Wrapper->Object == nullptr)
+			return false;
+
+		UObject* Object = Wrapper->Object;
+		if (!Object->IsPendingKill() && !Object->IsUnreachable() && CanExecuteFunction)
+		{
+			if (CanExecuteFunction->NumParms == 1)
+			{
+				// Preserve this in case it is deleted in ProcessEvent
+				LOCAL_PRESERVE(this);
+				void* Params = FMemory_Alloca(CanExecuteFunction->GetStructureSize());
+				InitializeFunctionParams(CanExecuteFunction, Params);
+				Object->ProcessEvent(CanExecuteFunction, Params);
+				FBoolProperty* OutputProperty = (FBoolProperty*)(CanExecuteFunction->ChildProperties);
+				bool Ret = OutputProperty->GetPropertyValue(OutputProperty->ContainerPtrToValuePtr<bool>(Params));
+				DestroyFunctionParams(CanExecuteFunction, Params);
+				return Ret;
+			}
+			else
+			{
+				// Preserve this in case it is deleted in ProcessEvent
+				LOCAL_PRESERVE(this);
+				check(CanExecuteFunction->NumParms == 2);
+				void* Params = FMemory_Alloca(CanExecuteFunction->GetStructureSize());
+				InitializeFunctionParams(CanExecuteFunction, Params);
+				FProperty* InputProperty = (FProperty*)CanExecuteFunction->ChildProperties;
+				SetPropertyByRef(Params, InputProperty, Param);
+				Object->ProcessEvent(CanExecuteFunction, Params);
+				FBoolProperty* OutputProperty = (FBoolProperty*)(CanExecuteFunction->ChildProperties->Next);
+				bool Ret = OutputProperty->GetPropertyValue(OutputProperty->ContainerPtrToValuePtr<bool>(Params));
+				DestroyFunctionParams(CanExecuteFunction, Params);
+				return Ret;
+			}
+		}
+
+		return true;
+	}
+
+	void Execute(Noesis::BaseComponent* Param) const override
+	{
+		if (Wrapper == nullptr || Wrapper->Object == nullptr)
+			return;
+
+		UObject* Object = Wrapper->Object;
+		if (!Object->IsPendingKill() && !Object->IsUnreachable())
+		{
+			if (Function->NumParms == 0)
+			{
+				Object->ProcessEvent(Function, nullptr);
+			}
+			else
+			{
+				// Preserve this in case it is deleted in ProcessEvent
+				LOCAL_PRESERVE(this);
+				void* Params = FMemory_Alloca(Function->GetStructureSize());
+				InitializeFunctionParams(Function, Params);
+				FProperty* InputProperty = (FProperty*)Function->ChildProperties;
+				SetPropertyByRef(Params, InputProperty, Param);
+				Object->ProcessEvent(Function, Params);
+				DestroyFunctionParams(Function, Params);
+			}
+		}
+	}
+
+	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisFunctionWrapper, Noesis::BaseCommand)
+
+public:
+	NoesisObjectWrapper* Wrapper;
+	UFunction* Function;
+	UFunction* CanExecuteFunction;
+};
+
+NoesisObjectWrapper::~NoesisObjectWrapper()
+{
+	for (auto CommandPair : CommandMap)
+	{
+		CommandPair.Value->Wrapper = nullptr;
+	}
+	CommandMap.Empty();
+
+	if (Object != nullptr)
+	{
+		ObjectMap.Remove(Object);
+	}
+}
 
 class NoesisMaterialWrapper
 {
@@ -2069,7 +2105,7 @@ Noesis::Ptr<Noesis::BaseComponent> NoesisTypePropertyStructWrapper::GetComponent
 #if WITH_EDITOR
 	if (Property == nullptr)
 	{
-		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted struct is still referenced"));
+		NS_LOG("A property of a deleted struct is still referenced");
 		return nullptr;
 	}
 #endif
@@ -2116,7 +2152,7 @@ Noesis::Ptr<Noesis::BaseComponent> NoesisTypePropertyObjectWrapper::GetComponent
 #if WITH_EDITOR
 	if (Property == nullptr)
 	{
-		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted class is still referenced"));
+		NS_LOG("A property of a deleted class is still referenced");
 		return nullptr;
 	}
 #endif
@@ -2124,7 +2160,7 @@ Noesis::Ptr<Noesis::BaseComponent> NoesisTypePropertyObjectWrapper::GetComponent
 	NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)Ptr;
 	if (Wrapper->Object == nullptr)
 	{
-		UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
+		NS_LOG("A wrapper of a deleted object is still referenced");
 		return nullptr;
 	}
 
@@ -2136,7 +2172,7 @@ void NoesisTypePropertyObjectWrapper::SetComponent(void* Ptr, Noesis::BaseCompon
 #if WITH_EDITOR
 	if (Property == nullptr)
 	{
-		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted class is still referenced"));
+		NS_LOG("A property of a deleted class is still referenced");
 		return;
 	}
 #endif
@@ -2144,7 +2180,7 @@ void NoesisTypePropertyObjectWrapper::SetComponent(void* Ptr, Noesis::BaseCompon
 	NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)Ptr;
 	if (Wrapper->Object == nullptr)
 	{
-		UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
+		NS_LOG("A wrapper of a deleted object is still referenced");
 		return;
 	}
 
@@ -2172,7 +2208,7 @@ bool NoesisTypePropertyObjectWrapper::IsReadOnly() const
 #if WITH_EDITOR
 	if (Property == nullptr)
 	{
-		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted class is still referenced"));
+		NS_LOG("A property of a deleted class is still referenced");
 		return true;
 	}
 #endif
@@ -2214,7 +2250,7 @@ Noesis::Ptr<Noesis::BaseComponent> NoesisTypePropertyObjectWrapperGetterSetter::
 #if WITH_EDITOR
 	if (Getter == nullptr)
 	{
-		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted class is still referenced"));
+		NS_LOG("A property of a deleted class is still referenced");
 		return nullptr;
 	}
 #endif
@@ -2222,7 +2258,7 @@ Noesis::Ptr<Noesis::BaseComponent> NoesisTypePropertyObjectWrapperGetterSetter::
 	NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)Ptr;
 	if (Wrapper->Object == nullptr)
 	{
-		UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
+		NS_LOG("A wrapper of a deleted object is still referenced");
 		return nullptr;
 	}
 
@@ -2236,7 +2272,7 @@ void NoesisTypePropertyObjectWrapperGetterSetter::SetComponent(void* Ptr, Noesis
 #if WITH_EDITOR
 	if (Getter == nullptr)
 	{
-		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted class is still referenced"));
+		NS_LOG("A property of a deleted class is still referenced");
 		return;
 	}
 #endif
@@ -2244,7 +2280,7 @@ void NoesisTypePropertyObjectWrapperGetterSetter::SetComponent(void* Ptr, Noesis
 	NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)Ptr;
 	if (Wrapper->Object == nullptr)
 	{
-		UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
+		NS_LOG("A wrapper of a deleted object is still referenced");
 		return;
 	}
 
@@ -2266,7 +2302,7 @@ bool NoesisTypePropertyObjectWrapperGetterSetter::IsReadOnly() const
 #if WITH_EDITOR
 	if (Getter == nullptr)
 	{
-		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted class is still referenced"));
+		NS_LOG("A property of a deleted class is still referenced");
 		return true;
 	}
 #endif
@@ -2301,7 +2337,7 @@ Noesis::Ptr<Noesis::BaseComponent> NoesisTypePropertyObjectWrapperCommand::GetCo
 #if WITH_EDITOR
 	if (Command == nullptr)
 	{
-		UE_LOG(LogNoesis, Warning, TEXT("A property of a deleted class is still referenced"));
+		NS_LOG("A property of a deleted class is still referenced");
 		return nullptr;
 	}
 #endif
@@ -2309,11 +2345,15 @@ Noesis::Ptr<Noesis::BaseComponent> NoesisTypePropertyObjectWrapperCommand::GetCo
 	NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)Ptr;
 	if (Wrapper->Object == nullptr)
 	{
-		UE_LOG(LogNoesis, Warning, TEXT("A wrapper of a deleted object is still referenced"));
+		NS_LOG("A wrapper of a deleted object is still referenced");
 		return nullptr;
 	}
 
-	return *new NoesisFunctionWrapper(Wrapper->Object, Command, CanExecute);
+	auto CommandPtr = Wrapper->CommandMap.Find(Command);
+	if (CommandPtr != nullptr)
+		return *CommandPtr;
+
+	return *new NoesisFunctionWrapper(Wrapper, Command, CanExecute);
 }
 
 void NoesisTypePropertyObjectWrapperCommand::Invalidate()
@@ -2610,56 +2650,6 @@ Noesis::TypeClass* NoesisCreateTypeClassForUMaterial(UMaterialInterface* Materia
 	return TypeClass;
 }
 
-Noesis::Type* UEnumTypeCreator(Noesis::Symbol Name)
-{
-	const char* EnumName = Name.Str();
-	FString UnrealEnumName = NsStringToFString(EnumName);
-	UEnum* Enum = LoadObject<UEnum>(nullptr, *PathFromRegisterName_GameAsset(UnrealEnumName), nullptr, LOAD_NoWarn);
-	if (Enum == nullptr)
-	{
-		Enum = LoadObject<UEnum>(nullptr, *PathFromRegisterName_Native(UnrealEnumName), nullptr, LOAD_NoWarn);
-		if (Enum == nullptr)
-		{
-			FString ModulePath = PathFromRegisterName_ModuleAsset(UnrealEnumName);
-			if (!ModulePath.IsEmpty())
-			{
-				Enum = LoadObject<UEnum>(nullptr, *ModulePath, nullptr, LOAD_NoWarn);
-			}
-		}
-	}
-	check(Enum);
-	return new NoesisTypeEnum(Enum, Name);
-}
-
-void UEnumTypeFiller(Noesis::Type* Type)
-{
-	const char* EnumName = Type->GetName();
-	FString UnrealEnumName = NsStringToFString(EnumName);
-	UEnum* Enum = LoadObject<UEnum>(nullptr, *PathFromRegisterName_GameAsset(UnrealEnumName), nullptr, LOAD_NoWarn);
-	if (Enum == nullptr)
-	{
-		Enum = LoadObject<UEnum>(nullptr, *PathFromRegisterName_Native(UnrealEnumName), nullptr, LOAD_NoWarn);
-		if (Enum == nullptr)
-		{
-			FString ModulePath = PathFromRegisterName_ModuleAsset(UnrealEnumName);
-			if (!ModulePath.IsEmpty())
-			{
-				Enum = LoadObject<UEnum>(nullptr, *ModulePath, nullptr, LOAD_NoWarn);
-			}
-		}
-	}
-
-	Noesis::TypeEnum* TypeEnum = Noesis::DynamicCast<Noesis::TypeEnum*>(Type);
-	check(TypeEnum);
-
-	for (int32 Index = 0; Index != Enum->NumEnums(); ++Index)
-	{
-		const FString EnumValueName = Enum->GetDisplayNameTextByIndex(Index).ToString();
-		FString AnsiEnumValueName(TCHARToNsString(*EnumValueName).Str());
-		TypeEnum->AddValue(Noesis::Symbol(TCHAR_TO_UTF8(*AnsiEnumValueName)), (int)Enum->GetValueByIndex(Index));
-	}
-}
-
 Noesis::BaseComponent* CallbackCreateEnumConverter(Noesis::Symbol Id)
 {
 	const char* ConverterName = Id.Str();
@@ -2679,7 +2669,16 @@ void NoesisFillTypeEnumForUEnum(NoesisTypeEnum* TypeEnum, UEnum* Enum)
 {
 	for (int32 Index = 0; Index != Enum->NumEnums(); ++Index)
 	{
-		const FString EnumValueName = Enum->GetDisplayNameTextByIndex(Index).ToString();
+		FText EnumValueText = Enum->GetDisplayNameTextByIndex(Index);
+		FString EnumValueName;
+		if (const FString* SourceString = FTextInspector::GetSourceString(EnumValueText))
+		{
+			EnumValueName = *SourceString;
+		}
+		else
+		{
+			EnumValueName = EnumValueText.ToString();
+		}
 		TypeEnum->AddValue(Noesis::Symbol(TCHAR_TO_UTF8(*EnumValueName)), (int)Enum->GetValueByIndex(Index));
 	}
 }
@@ -3018,7 +3017,7 @@ bool AssignStruct(void* Value, UScriptStruct* Struct, Noesis::BaseComponent* Inp
 	check(Noesis::DynamicCast<const NoesisTypeClass*>(Input->GetClassType()));
 	if (((NoesisTypeClass*)Input->GetClassType())->Class != Struct)
 		return false;
-	
+
 	NoesisStructWrapper* Wrapper = ((NoesisStructWrapper*)Input);
 	bool Changed = !Struct->CompareScriptStruct(Value, Wrapper->GetStructPtr(), PPF_None);
 	Struct->CopyScriptStruct(Value, Wrapper->GetStructPtr(), 1);
@@ -3237,7 +3236,9 @@ void NoesisNotifyPropertyChanged(UObject* Owner, FName PropertyName)
 		const Noesis::TypeProperty* TypeProperty = ClassProperty.property;
 		if (TypeProperty == nullptr)
 		{
-			UE_LOG(LogNoesis, Warning, TEXT("Couldn't resolve property %s::%s"), *Owner->GetClass()->GetFName().ToString(), *PropertyName.ToString());
+			NS_LOG("Couldn't resolve property %s::%s",
+				TCHAR_TO_UTF8(*Owner->GetClass()->GetFName().ToString()),
+				TCHAR_TO_UTF8(*PropertyName.ToString()));
 		}
 #endif
 		Wrapper->NotifyPropertyChanged(PropertySymbol);
@@ -3262,9 +3263,48 @@ void NoesisNotifyArrayPropertyChanged(UObject* Owner, FName ArrayPropertyName)
 #if DO_CHECK // Skip in shipping build
 	else
 	{
-		UE_LOG(LogNoesis, Warning, TEXT("Couldn't resolve property %s::%s"), *Owner->GetClass()->GetFName().ToString(), *ArrayPropertyName.ToString());
+		NS_LOG("Couldn't resolve property %s::%s",
+			TCHAR_TO_UTF8(*Owner->GetClass()->GetFName().ToString()),
+			TCHAR_TO_UTF8(*ArrayPropertyName.ToString()));
 	}
 #endif
+}
+
+void NoesisNotifyCanExecuteFunctionChanged(UObject* Owner, FName FunctionName)
+{
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyCanExecuteFunctionChanged);
+	if (!IsValid(Owner))
+		return;
+
+	// NoesisArrayWrappers can only come from properties of the class, not from Getters, so this is equivalent to the
+	// previous code, except that we don't create a temporary wrapper if one didn't already exist.
+	UClass* OwnerClass = Owner->GetClass();
+	UFunction* Function = OwnerClass->FindFunctionByName(FunctionName);
+	if (Function != nullptr)
+	{
+		NoesisNotifyCanExecuteFunctionChanged(Owner, Function);
+	}
+#if DO_CHECK // Skip in shipping build
+	else
+	{
+		UE_LOG(LogNoesis, Warning, TEXT("Couldn't resolve function %s::%s"), *Owner->GetClass()->GetFName().ToString(), *FunctionName.ToString());
+	}
+#endif
+}
+
+void NoesisNotifyCanExecuteFunctionChanged(class UObject* Owner, class UFunction* Function)
+{
+	NoesisObjectWrapper** WrapperPtr = ObjectMap.Find(Owner);
+	if (WrapperPtr)
+	{
+		NoesisObjectWrapper* Wrapper = *WrapperPtr;
+		auto CommandPtr = Wrapper->CommandMap.Find(Function);
+		if (CommandPtr != nullptr)
+		{
+			NoesisFunctionWrapper* CommandWrapper = *CommandPtr;
+			CommandWrapper->RaiseCanExecuteChanged();
+		}
+	}
 }
 
 void NoesisNotifyArrayPropertyPostAdd(void* ArrayPointer)

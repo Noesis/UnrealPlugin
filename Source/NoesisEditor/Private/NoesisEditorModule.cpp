@@ -13,8 +13,13 @@
 
 // UnrealEd includes
 #include "Editor.h"
+#include "EditorReimportHandler.h"
 
 // NoesisRuntime includes
+#include "NoesisRuntimeModule.h"
+#include "NoesisSettings.h"
+#include "NoesisSupport.h"
+#include "NoesisTypeClass.h"
 #include "NoesisXaml.h"
 #include "NoesisBlueprint.h"
 
@@ -28,6 +33,17 @@
 
 // KismetCompiler includes
 #include "KismetCompiler.h"
+
+// LevelEditor includes
+#include "LevelEditor.h"
+
+// Settings includes
+#include "ISettingsModule.h"
+
+// Slate includes
+#include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "Widgets/Input/SButton.h"
+#include "Widgets/Images/SImage.h"
 
 #define LOCTEXT_NAMESPACE "NoesisEditorModule"
 

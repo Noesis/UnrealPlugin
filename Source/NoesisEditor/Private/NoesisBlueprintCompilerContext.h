@@ -5,6 +5,9 @@
 
 #pragma once
 
+// KismetCompiler includes
+#include "KismetCompiler.h"
+
 class FNoesisBlueprintCompilerContext : public FKismetCompilerContext
 {
 protected:
@@ -12,16 +15,12 @@ protected:
 	typedef FKismetCompilerContext Super;
 
 public:
-	FNoesisBlueprintCompilerContext(UNoesisBlueprint* SourceSketch, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompilerOptions);
+	FNoesisBlueprintCompilerContext(class UNoesisBlueprint* SourceSketch, FCompilerResultsLog& InMessageLog, const FKismetCompilerOptions& InCompilerOptions);
 	virtual ~FNoesisBlueprintCompilerContext();
 
 	// FKismetCompilerContext interface
 	virtual void SpawnNewClass(const FString& NewClassName) override;
-	virtual void CleanAndSanitizeClass(UBlueprintGeneratedClass* ClassToClean, UObject*& OldCDO) override;
 	virtual void EnsureProperGeneratedClass(UClass*& TargetClass) override;
-	virtual void CreateClassVariablesFromBlueprint() override;
-	virtual void CreateFunctionList() override;
-	virtual void FinishCompilingClass(UClass* Class) override;
-	virtual bool ValidateGeneratedClass(UBlueprintGeneratedClass* Class) override;
+	virtual void CopyTermDefaultsToDefaultObject(UObject* DefaultObject) override;
 	// End of FKismetCompilerContext interface
 };

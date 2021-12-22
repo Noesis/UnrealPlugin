@@ -21,13 +21,4 @@ UCLASS()
 class NOESISRUNTIME_API UNoesisBlueprintGeneratedClass : public UBlueprintGeneratedClass
 {
 	GENERATED_UCLASS_BODY()
-
-	UPROPERTY()
-	class UNoesisXaml* BaseXaml;
-
-	UPROPERTY()
-	bool EnablePPAA;
-
-	UPROPERTY()
-	ENoesisTessellationQuality TessellationQuality;
 };

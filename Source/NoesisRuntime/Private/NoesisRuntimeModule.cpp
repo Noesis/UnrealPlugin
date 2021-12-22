@@ -44,8 +44,65 @@
 #include "NoesisSDK.h"
 #include "NsApp/MediaElement.h"
 
+#if WITH_EDITOR
+// AssetRegistry includes
+#include "AssetRegistryModule.h"
+
+// UnrealEd includes
+#include "Editor.h"
+#include "Kismet2/EnumEditorUtils.h"
+#include "Kismet2/StructureEditorUtils.h"
+#endif
+
 extern "C" void NsRegisterReflectionAppInteractivity();
 extern "C" void NsRegisterReflectionAppMediaElement();
+
+#if UE_BUILD_SHIPPING + UE_BUILD_SHIPPING_WITH_EDITOR == 0
+static void NoesisLogHandler(const char* File, uint32_t Line, uint32_t Level, const char* Channel, const char* Message)
+{
+	if (UObjectInitialized())
+	{
+		// LEVEL: [0=Off] [1=Error] [2=Warning] [3==Information] [4=Debug]
+		ENoesisLoggingSettings refLevel = FCStringAnsi::Strcmp(Channel, "Binding") == 0 ?
+			GetDefault<UNoesisSettings>()->BindingLogLevel :
+			GetDefault<UNoesisSettings>()->GeneralLogLevel;
+
+		bool filter = true;
+		switch (refLevel)
+		{
+			case ENoesisLoggingSettings::Off: filter = true; break;
+			case ENoesisLoggingSettings::Error: filter = Level < NS_LOG_LEVEL_ERROR; break;
+			case ENoesisLoggingSettings::Warning: filter = Level < NS_LOG_LEVEL_WARNING; break;
+			case ENoesisLoggingSettings::Information: filter = Level < NS_LOG_LEVEL_INFO; break;
+			case ENoesisLoggingSettings::Debug: filter = false; break;
+		}
+
+		if (!filter)
+		{
+			switch (Level)
+			{
+				case 0: UE_LOG(LogNoesis, VeryVerbose, TEXT("%s"), *NsStringToFString(Message)); break;
+				case 1: UE_LOG(LogNoesis, Verbose, TEXT("%s"), *NsStringToFString(Message)); break;
+				case 2: UE_LOG(LogNoesis, Log, TEXT("%s"), *NsStringToFString(Message)); break;
+				case 3: UE_LOG(LogNoesis, Warning, TEXT("%s"), *NsStringToFString(Message)); break;
+				case 4: UE_LOG(LogNoesis, Error, TEXT("%s"), *NsStringToFString(Message)); break;
+			}
+		}
+	}
+}
+
+void NoesisLog(const char* File, uint32_t Line, uint32_t Level, const char* Channel, const char* Format, ...)
+{
+	char Message[1024];
+
+	va_list Args;
+	va_start(Args, Format);
+	vsnprintf(Message, sizeof(Message), Format, Args);
+	va_end(Args);
+
+	NoesisLogHandler(File, Line, Level, Channel, Message);
+}
+#endif
 
 static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* Desc, bool Fatal)
 {
@@ -58,7 +115,8 @@ static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* De
 		LowLevelFatalErrorHandler(Filename, Line, TEXT("%s"), *NsStringToFString(Desc));
 #endif
 	}
-	UE_LOG(LogNoesis, Warning, TEXT("%s"), *NsStringToFString(Desc));
+
+	NS_LOG("%s", Desc);
 }
 
 DECLARE_MEMORY_STAT(TEXT("CPU Memory"), STAT_NoesisMemory, STATGROUP_Noesis);
@@ -86,39 +144,6 @@ void NoesisDealloc(void* UserData, void* Ptr)
 size_t NoesisAllocSize(void* UserData, void* Ptr)
 {
 	return FMemory::GetAllocSize(Ptr);
-}
-
-static void NoesisLogHandler(const char* File, uint32_t Line, uint32_t Level, const char* Channel, const char* Message)
-{
-	if (UObjectInitialized())
-	{
-		ENoesisLoggingSettings LogVerbosity = GetDefault<UNoesisSettings>()->LogVerbosity;
-		if (Level == NS_LOG_LEVEL_ERROR || (int)LogVerbosity > 0)
-		{
-			if (FCStringAnsi::Strcmp(Channel, "") == 0 || (
-				FCStringAnsi::Strcmp(Channel, "Binding") == 0 && (int)LogVerbosity > 1))
-			{
-				switch (Level)
-				{
-					case 0:
-						UE_LOG(LogNoesis, VeryVerbose, TEXT("%s"), *NsStringToFString(Message));
-						break;
-					case 1:
-						UE_LOG(LogNoesis, Verbose, TEXT("%s"), *NsStringToFString(Message));
-						break;
-					case 2:
-						UE_LOG(LogNoesis, Log, TEXT("%s"), *NsStringToFString(Message));
-						break;
-					case 3:
-						UE_LOG(LogNoesis, Warning, TEXT("%s"), *NsStringToFString(Message));
-						break;
-					case 4:
-						UE_LOG(LogNoesis, Error, TEXT("%s"), *NsStringToFString(Message));
-						break;
-				}
-			}
-		}
-	}
 }
 
 #if WITH_EDITOR
@@ -163,6 +188,12 @@ void OnPostEngineInit()
 	Settings->SetApplicationResources();
 	Settings->SetFontFallbacks();
 	Settings->SetFontDefaultProperties();
+
+	// This check is not done inside SetLicense because that is also invoked when user is typing the license and would spam the console
+	if (Settings->LicenseName == "" || Settings->LicenseKey == "")
+	{
+		UE_LOG(LogNoesis, Warning, TEXT("License not set. Get one at https://www.noesisengine.com/trial"));
+	}
 
 #if WITH_EDITOR
 	if (GEditor)
@@ -445,6 +476,9 @@ void NoesisSoftwareKeyboardCallback(void* UserData, Noesis::UIElement* FocusedEl
 
 void NoesisPlaySoundCallback(void* UserData, const Noesis::Uri& Uri, float Volume)
 {
+	if (!GIsRunning)
+		return;
+
 #if WITH_EDITOR
 	if (GIsEditor)
 	{
@@ -501,7 +535,11 @@ public:
 		NoesisRuntimeModuleInterface = this;
 
 		Noesis::GUI::SetErrorHandler(&NoesisErrorHandler);
+#if UE_BUILD_SHIPPING + UE_BUILD_SHIPPING_WITH_EDITOR == 0
 		Noesis::GUI::SetLogHandler(&NoesisLogHandler);
+#else
+		Noesis::GUI::DisableInspector();
+#endif
 		Noesis::MemoryCallbacks MemoryCallbacks{ NoesisAllocationCallbackUserData, &NoesisAlloc, &NoesisRealloc, &NoesisDealloc, &NoesisAllocSize };
 		Noesis::GUI::SetMemoryCallbacks(MemoryCallbacks);
 		Noesis::GUI::Init();

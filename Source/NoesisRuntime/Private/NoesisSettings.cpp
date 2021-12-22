@@ -5,6 +5,16 @@
 
 #include "NoesisSettings.h"
 
+// Core includes
+#include "Misc/FileHelper.h"
+
+// CoreUObject includes
+#include "Misc/PackageName.h"
+#include "UObject/Package.h"
+
+// Engine includes
+#include "Engine/FontFace.h"
+
 // FreeType2 includes
 #if PLATFORM_COMPILER_HAS_GENERIC_KEYWORD
 #define generic __identifier(generic)
@@ -18,6 +28,10 @@ THIRD_PARTY_INCLUDES_END
 // Noesis includes
 #include "NoesisSDK.h"
 
+// NoesisRuntime includes
+#include "NoesisRuntimeModule.h"
+#include "NoesisXaml.h"
+
 UNoesisSettings::UNoesisSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -26,10 +40,13 @@ UNoesisSettings::UNoesisSettings(const FObjectInitializer& ObjectInitializer)
 	ApplicationResources = FSoftObjectPath("/Game/Theme/NoesisTheme_DarkBlue.NoesisTheme_DarkBlue");
 	DefaultFonts.Add(FSoftObjectPath("/Game/Theme/Fonts/PT_Root_UI_Regular.PT_Root_UI_Regular"));
 	DefaultFonts.Add(FSoftObjectPath("/Game/Theme/Fonts/PT_Root_UI_Bold.PT_Root_UI_Bold"));
+	LoadPlatformFonts = true;
 	DefaultFontSize = 15.f;
 	DefaultFontWeight = ENoesisFontWeight::Normal;
 	DefaultFontStretch = ENoesisFontStretch::Normal;
 	DefaultFontStyle = ENoesisFontStyle::Normal;
+	GeneralLogLevel = ENoesisLoggingSettings::Warning;
+	BindingLogLevel = ENoesisLoggingSettings::Warning;
 	PremultiplyAlpha = true;
 }
 
@@ -153,7 +170,7 @@ void UNoesisSettings::SetFontFallbacks() const
 						FString PackagePath;
 						FString PackageName;
 						FPackageName::SplitLongPackageName(Package->GetPathName(), PackageRoot, PackagePath, PackageName, false);
-						FamilyNamesStr.AddUnique(TCHARToNsString(*(PackagePath / "#" + Name)));
+						FamilyNamesStr.AddUnique(TCHAR_TO_UTF8(*(PackagePath / "#" + Name)));
 					}
 				}
 				else
@@ -172,16 +189,48 @@ void UNoesisSettings::SetFontFallbacks() const
 						FString PackagePath;
 						FString PackageName;
 						FPackageName::SplitLongPackageName(Package->GetPathName(), PackageRoot, PackagePath, PackageName, false);
-						FamilyNamesStr.AddUnique(TCHARToNsString(*(PackagePath / "#" + Name)));
+						FamilyNamesStr.AddUnique(TCHAR_TO_UTF8(*(PackagePath / "#" + Name)));
 					}
 				}
 			}
 		}
+
+		// Add user font fallbacks
 		TArray<const ANSICHAR*> FamilyNames;
 		for (auto& Name : FamilyNamesStr)
 		{
 			FamilyNames.Add(Name.Str());
 		}
+
+		// Add platform specific font fallbacks
+		if (LoadPlatformFonts)
+		{
+#if PLATFORM_WINDOWS
+			FamilyNames.Add("Arial");
+			FamilyNames.Add("Segoe UI Emoji");			// Windows 10 Emojis
+			FamilyNames.Add("Arial Unicode MS");		// Almost everything (but part of MS Office, not Windows)
+			FamilyNames.Add("Microsoft Sans Serif");	// Unicode scripts excluding Asian scripts
+			FamilyNames.Add("Microsoft YaHei");			// Chinese
+			FamilyNames.Add("Gulim");					// Korean
+			FamilyNames.Add("MS Gothic");				// Japanese
+#elif PLATFORM_MAC
+			FamilyNames.Add("Arial");
+			FamilyNames.Add("Arial Unicode MS");		// MacOS 10.5+
+#elif PLATFORM_IOS
+			FamilyNames.Add("PingFang SC");				// Simplified Chinese (iOS 9+)
+			FamilyNames.Add("Apple SD Gothic Neo");		// Korean (iOS 7+)
+			FamilyNames.Add("Hiragino Sans");			// Japanese (iOS 9+)
+#elif PLATFORM_ANDROID
+			FamilyNames.Add("Noto Sans CJK SC");		// Simplified Chinese
+			FamilyNames.Add("Noto Sans CJK KR");		// Korean
+			FamilyNames.Add("Noto Sans CJK JP");		// Japanese
+#elif PLATFORM_LINUX
+			FamilyNames.Add("Noto Sans CJK SC");		// Simplified Chinese
+			FamilyNames.Add("Noto Sans CJK KR");		// Korean
+			FamilyNames.Add("Noto Sans CJK JP");		// Japanese
+#endif
+		}
+
 		Noesis::GUI::SetFontFallbacks(FamilyNames.GetData(), FamilyNames.Num());
 		FT_Done_FreeType(Library);
 	}

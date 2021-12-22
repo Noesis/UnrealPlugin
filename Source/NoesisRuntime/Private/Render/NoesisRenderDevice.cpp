@@ -18,6 +18,9 @@
 #include "RHIStaticStates.h"
 #include "PipelineStateCache.h"
 
+// MediaAsset includes
+#include "MediaTexture.h"
+
 // RenderCore includes
 #include "ClearQuad.h"
 

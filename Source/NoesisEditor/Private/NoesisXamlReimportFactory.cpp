@@ -5,6 +5,15 @@
 
 #include "NoesisXamlReimportFactory.h"
 
+// Core includes
+#include "HAL/FileManager.h"
+
+// Engine includes
+#include "EditorFramework/AssetImportData.h"
+
+// NoesisRuntime includes
+#include "NoesisXaml.h"
+
 UNoesisXamlReimportFactory::UNoesisXamlReimportFactory(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {

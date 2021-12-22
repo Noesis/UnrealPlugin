@@ -8,6 +8,9 @@
 // NoesisEditor includes
 #include "NoesisBlueprintCompilerContext.h"
 
+// NoesisRuntime includes
+#include "NoesisBlueprint.h"
+
 bool FNoesisBlueprintCompiler::CanCompile(const UBlueprint* Blueprint)
 {
 	return Blueprint->IsA(UNoesisBlueprint::StaticClass());

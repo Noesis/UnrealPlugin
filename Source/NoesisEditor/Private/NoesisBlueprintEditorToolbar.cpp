@@ -5,11 +5,25 @@
 
 #include "NoesisBlueprintEditorToolbar.h"
 
+// Kismet includes
+#include "BlueprintEditorContext.h"
+#include "WorkflowOrientedApp/SModeWidget.h"
+
 // NoesisEditor includes
 #include "NoesisBlueprintEditor.h"
 #include "NoesisBlueprintApplicationModes.h"
 #include "SBlueprintModeSeparator.h"
 #include "NoesisBlueprintEditorCommands.h"
+
+// Slate includes
+#include "Widgets/Layout/SSpacer.h"
+
+// ToolMenus includes
+#include "ToolMenuSection.h"
+#include "ToolMenu.h"
+
+// UnrealEd includes
+#include "Kismet2/BlueprintEditorUtils.h"
 
 #define LOCTEXT_NAMESPACE "NoesisEditorModule"
 

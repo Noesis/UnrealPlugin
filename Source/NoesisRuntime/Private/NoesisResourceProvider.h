@@ -14,7 +14,7 @@
 class FNoesisXamlProvider : public Noesis::XamlProvider
 {
 public:
-	void OnXamlChanged(UNoesisXaml* Xaml);
+	void OnXamlChanged(class UNoesisXaml* Xaml);
 
 	class UNoesisXaml* GetXaml(FString XamlProviderPath) const;
 
@@ -23,14 +23,14 @@ public:
 	// End of XamlProvider interface
 
 #if WITH_EDITOR
-	mutable TMap<UNoesisXaml*, FString> NameMap;
+	mutable TMap<class UNoesisXaml*, FString> NameMap;
 #endif
 };
 
 class FNoesisTextureProvider : public Noesis::TextureProvider
 {
 public:
-	void OnTextureChanged(UTexture2D* Texture);
+	void OnTextureChanged(class UTexture2D* Texture);
 
 private:
 	// TextureProvider interface
@@ -39,7 +39,7 @@ private:
 	// End of TextureProvider interface
 
 #if WITH_EDITOR
-	mutable TMap<UTexture2D*, FString> NameMap;
+	mutable TMap<class UTexture2D*, FString> NameMap;
 #endif
 };
 

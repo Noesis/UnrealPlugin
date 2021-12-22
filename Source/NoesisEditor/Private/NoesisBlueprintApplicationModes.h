@@ -5,6 +5,9 @@
 
 #pragma once
 
+// Core includes
+#include "CoreMinimal.h"
+
 struct FNoesisBlueprintApplicationModes
 {
 	static const FName PreviewMode;

@@ -5,6 +5,12 @@
 
 #pragma once
 
+// Slate includes
+#include "Widgets/Layout/SBorder.h"
+
+// SlateCore includes
+#include "Widgets/DeclarativeSyntaxSupport.h"
+
 class SBlueprintModeSeparator : public SBorder
 {
 public:

@@ -5,8 +5,14 @@
 
 #include "NoesisBlueprintAssetTypeActions.h"
 
+// Core includes
+#include "Misc/MessageDialog.h"
+
 // NoesisEditor includes
 #include "NoesisBlueprintEditor.h"
+
+// NoesisRuntime includes
+#include "NoesisBlueprint.h"
 
 #define LOCTEXT_NAMESPACE "NoesisEditorModule"
 

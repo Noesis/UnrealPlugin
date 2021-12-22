@@ -47,6 +47,8 @@ StructType NoesisGetUStructFromComponent(Noesis::BaseComponent* Component)
 
 NOESISRUNTIME_API void NoesisNotifyPropertyChanged(class UObject*, FName);
 NOESISRUNTIME_API void NoesisNotifyArrayPropertyChanged(class UObject*, FName);
+NOESISRUNTIME_API void NoesisNotifyCanExecuteFunctionChanged(class UObject*, FName);
+NOESISRUNTIME_API void NoesisNotifyCanExecuteFunctionChanged(class UObject*, class UFunction*);
 NOESISRUNTIME_API void NoesisNotifyArrayPropertyPostAdd(void*);
 NOESISRUNTIME_API void NoesisNotifyArrayPropertyPostChanged(void*);
 NOESISRUNTIME_API void NoesisNotifyArrayPropertyPreAppend(void*);

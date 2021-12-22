@@ -5,6 +5,12 @@
 
 #pragma once
 
+// UnrealEd includes
+#include "EditorReimportHandler.h"
+
+// NoesisEditor includes
+#include "NoesisXamlFactory.h"
+
 // Generated header include
 #include "NoesisXamlReimportFactory.generated.h"
 

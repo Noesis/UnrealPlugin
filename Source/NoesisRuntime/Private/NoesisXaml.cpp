@@ -5,6 +5,18 @@
 
 #include "NoesisXaml.h"
 
+// CoreUObject includes
+#include "Misc/PackageName.h"
+
+// Engine includes
+#include "EditorFramework/AssetImportData.h"
+#include "Engine/Font.h"
+#include "Engine/FontFace.h"
+
+// NoesisRuntime includes
+#include "NoesisInstance.h"
+#include "NoesisRuntimeModule.h"
+
 UNoesisXaml::UNoesisXaml(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -19,7 +31,7 @@ Noesis::Ptr<Noesis::BaseComponent> UNoesisXaml::LoadXaml()
 	FString PackagePath;
 	FString PackageName;
 	FPackageName::SplitLongPackageName(Package->GetPathName(), PackageRoot, PackagePath, PackageName, false);
-	return Noesis::GUI::LoadXaml(TCHARToNsString(*(PackagePath + PackageName + TEXT(".xaml"))).Str());
+	return Noesis::GUI::LoadXaml(TCHAR_TO_UTF8(*(PackagePath + PackageName + TEXT(".xaml"))));
 }
 
 void UNoesisXaml::LoadComponent(Noesis::BaseComponent* Component)
@@ -29,7 +41,7 @@ void UNoesisXaml::LoadComponent(Noesis::BaseComponent* Component)
 	FString PackagePath;
 	FString PackageName;
 	FPackageName::SplitLongPackageName(Package->GetPathName(), PackageRoot, PackagePath, PackageName, false);
-	Noesis::GUI::LoadComponent(Component, TCHARToNsString(*(PackagePath + PackageName + TEXT(".xaml"))).Str());
+	Noesis::GUI::LoadComponent(Component, TCHAR_TO_UTF8(*(PackagePath + PackageName + TEXT(".xaml"))));
 }
 
 uint32 UNoesisXaml::GetContentHash() const
@@ -38,7 +50,10 @@ uint32 UNoesisXaml::GetContentHash() const
 
 	for (auto Xaml : Xamls)
 	{
-		Hash ^= Xaml->GetContentHash();
+		if (Xaml != nullptr)
+		{
+			Hash ^= Xaml->GetContentHash();
+		}
 	}
 
 	return Hash;
@@ -95,7 +110,7 @@ bool UNoesisXaml::CanRenderThumbnail()
 		ThumbnailRenderInstance->InitInstance();
 	}
 
-	return ThumbnailRenderInstance->XamlView != nullptr;
+	return ThumbnailRenderInstance ? ThumbnailRenderInstance->XamlView != nullptr : false;
 }
 
 void UNoesisXaml::RenderThumbnail(FIntRect ViewportRect, const FTexture2DRHIRef& BackBuffer)

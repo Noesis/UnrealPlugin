@@ -5,6 +5,9 @@
 
 #pragma once
 
+// UnrealEd includes
+#include "Factories/Factory.h"
+
 // Generated header include
 #include "NoesisXamlFactory.generated.h"
 

@@ -5,6 +5,12 @@
 
 #pragma once
 
+// Core includes
+#include "CoreMinimal.h"
+
+// Slate includes
+#include "Framework/MultiBox/MultiBoxExtender.h"
+
 class FNoesisBlueprintEditorToolbar : public TSharedFromThis<FNoesisBlueprintEditorToolbar>
 {
 
@@ -13,7 +19,7 @@ public:
 
 	void AddNoesisBlueprintEditorModesToolbar(TSharedPtr<FExtender> Extender);
 
-	void AddNoesisControls(UToolMenu* InMenu);
+	void AddNoesisControls(class UToolMenu* InMenu);
 
 public:
 	/**  */

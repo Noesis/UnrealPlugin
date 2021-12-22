@@ -112,8 +112,6 @@ THIRD_PARTY_INCLUDES_END
 
 
 
-DECLARE_LOG_CATEGORY_EXTERN(LogNoesisEditor, Verbose, All);
-
 #include "NoesisRuntime.h"
 
 #include "NoesisEditorClasses.h"

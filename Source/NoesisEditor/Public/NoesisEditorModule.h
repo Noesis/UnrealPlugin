@@ -5,6 +5,12 @@
 
 #pragma once
 
+// Core includes
+#include "CoreMinimal.h"
+#include "Modules/ModuleInterface.h"
+
+DECLARE_LOG_CATEGORY_EXTERN(LogNoesisEditor, Verbose, All);
+
 #define NOESISEDITOR_MODULE_NAME "NoesisEditor"
 
 class NOESISEDITOR_API INoesisEditorModuleInterface : public IModuleInterface

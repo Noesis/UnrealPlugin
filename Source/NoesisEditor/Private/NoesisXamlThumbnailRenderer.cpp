@@ -5,6 +5,12 @@
 
 #include "NoesisXamlThumbnailRenderer.h"
 
+// Engine includes
+#include "UnrealClient.h"
+
+// NoesisRuntime includes
+#include "NoesisXaml.h"
+
 UNoesisXamlThumbnailRenderer::UNoesisXamlThumbnailRenderer(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {

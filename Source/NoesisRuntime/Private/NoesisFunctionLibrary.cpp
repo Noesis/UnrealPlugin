@@ -7,6 +7,7 @@
 
 // Core includes
 #include "UObject/PropertyPortFlags.h"
+#include "Net/Core/PushModel/PushModel.h"
 
 // Engine includes
 #include "Kismet/KismetSystemLibrary.h"
@@ -15,7 +16,6 @@
 #include "Kismet/BlueprintMapLibrary.h"
 
 // NoesisRuntime includes
-#include "NoesisTypeClass.h"
 #include "NoesisBaseComponent.h"
 #include "NoesisXaml.h"
 
@@ -32,6 +32,11 @@ void UNoesisFunctionLibrary::NotifyChanged(UObject* Owner, FName PropertyName)
 void UNoesisFunctionLibrary::NotifyArrayChanged(UObject* Owner, FName PropertyName)
 {
 	NoesisNotifyArrayPropertyChanged(Owner, PropertyName);
+}
+
+void UNoesisFunctionLibrary::NotifyCanExecuteFunctionChanged(UObject* Owner, FName FunctionName)
+{
+	NoesisNotifyCanExecuteFunctionChanged(Owner, FunctionName);
 }
 
 void UNoesisFunctionLibrary::TrySetDataContext(UObject* Element, UObject* DataContext)
@@ -101,6 +106,7 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Add)
 
 	P_FINISH;
 	P_NATIVE_BEGIN;
+	MARK_PROPERTY_DIRTY(Stack.Object, ArrayProperty);
 	*(int32*)RESULT_PARAM = UKismetArrayLibrary::GenericArray_Add(ArrayAddr, ArrayProperty, NewItemPtr);
 	NoesisNotifyArrayPropertyPostAdd(ArrayAddr);
 	P_NATIVE_END;
@@ -131,6 +137,7 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_AddUnique)
 
 	P_FINISH;
 	P_NATIVE_BEGIN;
+	MARK_PROPERTY_DIRTY(Stack.Object, ArrayProperty);
 	FScriptArrayHelper ArrayHelper = FScriptArrayHelper::CreateHelperFormInnerProperty(InnerProp, ArrayAddr);
 	int32 ArrayNum = ArrayHelper.Num();
 	*(int32*)RESULT_PARAM = UKismetArrayLibrary::GenericArray_AddUnique(ArrayAddr, ArrayProperty, NewItemPtr);
@@ -156,6 +163,7 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Shuffle)
 
 	P_FINISH;
 	P_NATIVE_BEGIN;
+	MARK_PROPERTY_DIRTY(Stack.Object, ArrayProperty);
 	UKismetArrayLibrary::GenericArray_Shuffle(ArrayAddr, ArrayProperty);
 	NoesisNotifyArrayPropertyPostChanged(ArrayAddr);
 	P_NATIVE_END;
@@ -186,6 +194,7 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Append)
 
 	P_FINISH;
 	P_NATIVE_BEGIN;
+	MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
 	NoesisNotifyArrayPropertyPreAppend(TargetArrayAddr);
 	UKismetArrayLibrary::GenericArray_Append(TargetArrayAddr, TargetArrayProperty, SourceArrayAddr, SourceArrayProperty);
 	NoesisNotifyArrayPropertyPostAppend(TargetArrayAddr);
@@ -217,6 +226,7 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Insert)
 	P_GET_PROPERTY(FIntProperty, Index);
 	P_FINISH;
 	P_NATIVE_BEGIN;
+	MARK_PROPERTY_DIRTY(Stack.Object, ArrayProperty);
 	UKismetArrayLibrary::GenericArray_Insert(ArrayAddr, ArrayProperty, NewItemPtr, Index);
 	FScriptArrayHelper ArrayHelper = FScriptArrayHelper::CreateHelperFormInnerProperty(InnerProp, ArrayAddr);
 	int32 ArrayNum = ArrayHelper.Num();
@@ -243,6 +253,7 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Remove)
 	P_GET_PROPERTY(FIntProperty, Index);
 	P_FINISH;
 	P_NATIVE_BEGIN;
+	MARK_PROPERTY_DIRTY(Stack.Object, ArrayProperty);
 	NoesisNotifyArrayPropertyPreRemove(ArrayAddr, Index);
 	UKismetArrayLibrary::GenericArray_Remove(ArrayAddr, ArrayProperty, Index);
 	NoesisNotifyArrayPropertyPostRemove(ArrayAddr, Index);
@@ -279,6 +290,7 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_RemoveItem)
 		BoolProperty->SetPropertyValue(ItemPtr, 0 != *(reinterpret_cast<uint8*>(ItemPtr)));
 	}
 	P_NATIVE_BEGIN;
+	MARK_PROPERTY_DIRTY(Stack.Object, ArrayProperty);
 	*(bool*)RESULT_PARAM = false;
 	if (ArrayAddr)
 	{
@@ -311,6 +323,7 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Clear)
 	}
 	P_FINISH;
 	P_NATIVE_BEGIN;
+	MARK_PROPERTY_DIRTY(Stack.Object, ArrayProperty);
 	UKismetArrayLibrary::GenericArray_Clear(ArrayAddr, ArrayProperty);
 	NoesisNotifyArrayPropertyPostClear(ArrayAddr);
 	P_NATIVE_END;
@@ -332,6 +345,7 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Resize)
 
 	P_FINISH;
 	P_NATIVE_BEGIN;
+	MARK_PROPERTY_DIRTY(Stack.Object, ArrayProperty);
 	const FProperty* InnerProp = ArrayProperty->Inner;
 	FScriptArrayHelper ArrayHelper = FScriptArrayHelper::CreateHelperFormInnerProperty(InnerProp, ArrayAddr);
 	int32 ArrayNum = ArrayHelper.Num();
@@ -376,6 +390,7 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Set)
 	P_GET_UBOOL(bSizeToFit);
 	P_FINISH;
 	P_NATIVE_BEGIN;
+	MARK_PROPERTY_DIRTY(Stack.Object, ArrayProperty);
 	FScriptArrayHelper ArrayHelper = FScriptArrayHelper::CreateHelperFormInnerProperty(InnerProp, ArrayAddr);
 	int32 ArrayNum = ArrayHelper.Num();
 	if (bSizeToFit && Index >= ArrayNum)

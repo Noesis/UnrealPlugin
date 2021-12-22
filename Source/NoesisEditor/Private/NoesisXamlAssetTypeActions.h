@@ -5,6 +5,9 @@
 
 #pragma once
 
+// AssetTools includes
+#include "AssetTypeActions_Base.h"
+
 class FNoesisXamlAssetTypeActions : public FAssetTypeActions_Base
 {
 public:
@@ -23,7 +26,7 @@ public:
 	// End of IAssetTypeActions interface
 
 private:
-	void AddToViewport(TArray<TWeakObjectPtr<UNoesisXaml>> Objects);
+	void AddToViewport(TArray<TWeakObjectPtr<class UNoesisXaml>> Objects);
 
 	EAssetTypeCategories::Type Categories;
 };

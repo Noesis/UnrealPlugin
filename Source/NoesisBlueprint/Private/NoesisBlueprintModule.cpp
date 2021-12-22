@@ -5,6 +5,9 @@
 
 #include "NoesisBlueprintModule.h"
 
+// Core includes
+#include "Modules/ModuleManager.h"
+
 class FNoesisBlueprintModule : public INoesisBlueprintModuleInterface
 {
 public:

@@ -11,6 +11,10 @@
 // Noesis includes
 #include "NoesisSDK.h"
 
+// RHI includes
+#include "RHI.h"
+#include "RHIResources.h"
+
 // Generated header include
 #include "NoesisXaml.generated.h"
 

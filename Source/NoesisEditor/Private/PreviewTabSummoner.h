@@ -5,6 +5,12 @@
 
 #pragma once
 
+// Core includes
+#include "CoreMinimal.h"
+
+// Kismet includes
+#include "WorkflowOrientedApp/WorkflowTabFactory.h"
+
 struct FPreviewTabSummoner : public FWorkflowTabFactory
 {
 public:

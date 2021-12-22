@@ -10,6 +10,7 @@
 
 // Noesis includes
 #include "NoesisSDK.h"
+#include "NsApp/MediaPlayer.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,13 +54,13 @@ public:
 private:
 	void CheckKeepPlaying();
 	void OnRendering(Noesis::IView* View);
-	void OnMediaEvent(EMediaEvent Event);
+	void OnMediaEvent(enum class EMediaEvent Event);
 
 private:
-	UMediaPlayer* MediaPlayer;
-	UMediaTexture* MediaTexture;
-	FRHITexture2D* MediaTextureRHI;
-	UMediaSoundComponent* SoundComponent;
+	class UMediaPlayer* MediaPlayer;
+	class UMediaTexture* MediaTexture;
+	class FRHITexture2D* MediaTextureRHI;
+	class UMediaSoundComponent* SoundComponent;
 
 	Noesis::Ptr<Noesis::TextureSource> TextureSource;
 	Noesis::IView* View;
@@ -67,7 +68,6 @@ private:
 	float Volume;
 	float Position;
 	bool Opened;
-	bool MediaOpenedSent = false;
 	bool Ended;
 	bool KeepPlaying;
 	bool IsBuffering;

@@ -5,6 +5,9 @@
 
 #pragma once
 
+// Kismet includes
+#include "BlueprintEditorModes.h"
+
 class FNoesisBlueprintApplicationMode : public FBlueprintEditorApplicationMode
 {
 public:

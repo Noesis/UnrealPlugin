@@ -54,14 +54,15 @@ public class NoesisRuntime : ModuleRules
 				"FreeType2",
 				"zlib",
 				"UElibPNG",
-				"Renderer"
+				"Renderer",
+				"NetCore",
+				"Noesis"
 			}
 			);
 
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Noesis",
 			}
 			);
 

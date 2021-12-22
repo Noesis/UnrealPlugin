@@ -5,10 +5,45 @@
 
 #include "NoesisXamlFactory.h"
 
+// AssetRegistry includes
+#include "AssetRegistryModule.h"
+
+// AssetTools includes
+#include "AssetToolsModule.h"
+
+// Core includes
+#include "CoreMinimal.h"
+#include "GenericPlatform/GenericPlatformFile.h"
+#include "HAL/PlatformFilemanager.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+
+// Engine includes
+#include "EditorFramework/AssetImportData.h"
+#include "Engine/FontFace.h"
+#include "Engine/Texture2D.h"
+#include "Sound/SoundWave.h"
+
+// FreeType2 includes
+THIRD_PARTY_INCLUDES_START
+#include "ft2build.h"
+#include FT_FREETYPE_H
+THIRD_PARTY_INCLUDES_END
+
+// MediaAssets includes
+#include "MediaSource.h"
+
 // UnrealEd includes
+#include "Editor.h"
+#include "ObjectTools.h"
+#include "Factories/FontFileImportFactory.h"
 #include "Settings/EditorLoadingSavingSettings.h"
+#include "Subsystems/ImportSubsystem.h"
 
 // NoesisRuntime includes
+#include "NoesisRuntimeModule.h"
+#include "NoesisSettings.h"
+#include "NoesisXaml.h"
 #include "Extensions/LocTableExtension.h"
 #include "Extensions/LocTextExtension.h"
 
@@ -320,8 +355,8 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 
 		NoesisXaml = NewObject<UNoesisXaml>(Parent, Class, Name, Flags);
 
-		FString XamlText = NsStringToFString((const char*)Buffer);
-		Noesis::String Text = TCHARToNsString(*XamlText);
+		FString XamlText = UTF8_TO_TCHAR((const char*)Buffer);
+		Noesis::String Text = TCHAR_TO_UTF8(*XamlText);
 		Noesis::MemoryStream XamlStream(Text.Str(), Text.Size());
 
 		INoesisRuntimeModuleInterface& NoesisRuntime = INoesisRuntimeModuleInterface::Get();
@@ -347,36 +382,38 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 			{
 				int32 HashPos = INDEX_NONE;
 				Dependency.FindChar(TEXT('#'), HashPos);
-				check(HashPos != INDEX_NONE);
-				FString PackagePath, FamilyName;
-				Dependency.Split(TEXT("#"), &PackagePath, &FamilyName);
-
-				FString Path = FPaths::GetPath(PackagePath);
-				FString Filename = FPaths::GetBaseFilename(PackagePath);
-				FString Extension = FPaths::GetExtension(PackagePath);
-				FString AssetPath = Path / ObjectTools::SanitizeInvalidChars(Filename, INVALID_LONGPACKAGE_CHARACTERS);
-				FString FilePath = PackagePath.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
-				if (!FPackageName::IsValidLongPackageName(AssetPath / "_Font"))
+				if (HashPos != INDEX_NONE) // only local fonts are set as dependencies, system fonts are ignored here
 				{
-					AssetPath = FString("/Game/") + AssetPath;
-					PackagePath = FString("/Game/") + PackagePath;
-					FilePath = PackagePath.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
-					Path = FString("/Game/") + Path;
-				}
+					FString PackagePath, FamilyName;
+					Dependency.Split(TEXT("#"), &PackagePath, &FamilyName);
 
-				TArray<UFontFace*> FontFaces = ImportFontFamily(PackagePath, FamilyName, FilePath);
-
-				if (FontFaces.Num())
-				{
-					NoesisXaml->FontFaces.Append(FontFaces);
-					for (auto FontFace : FontFaces)
+					FString Path = FPaths::GetPath(PackagePath);
+					FString Filename = FPaths::GetBaseFilename(PackagePath);
+					FString Extension = FPaths::GetExtension(PackagePath);
+					FString AssetPath = Path / ObjectTools::SanitizeInvalidChars(Filename, INVALID_LONGPACKAGE_CHARACTERS);
+					FString FilePath = PackagePath.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
+					if (!FPackageName::IsValidLongPackageName(AssetPath / "_Font"))
 					{
-						NoesisRuntime.RegisterFont(FontFace);
+						AssetPath = FString("/Game/") + AssetPath;
+						PackagePath = FString("/Game/") + PackagePath;
+						FilePath = PackagePath.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
+						Path = FString("/Game/") + Path;
 					}
-				}
-				else
-				{
-					UE_LOG(LogNoesisEditor, Error, TEXT("Failed to import font family %s from %s"), *FamilyName, *FilePath);
+
+					TArray<UFontFace*> FontFaces = ImportFontFamily(PackagePath, FamilyName, FilePath);
+
+					if (FontFaces.Num())
+					{
+						NoesisXaml->FontFaces.Append(FontFaces);
+						for (auto FontFace : FontFaces)
+						{
+							NoesisRuntime.RegisterFont(FontFace);
+						}
+					}
+					else
+					{
+						UE_LOG(LogNoesisEditor, Error, TEXT("Failed to import font family %s from %s"), *FamilyName, *FilePath);
+					}
 				}
 			}
 			else

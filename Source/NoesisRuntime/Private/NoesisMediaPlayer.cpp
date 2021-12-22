@@ -9,7 +9,21 @@
 // Core includes
 #include "Misc/CoreDelegates.h"
 
+// Engine includes
+#include "AudioDevice.h"
+#include "AudioDeviceManager.h"
+
+// Media includes
+#include "IMediaEventSink.h"
+
+// MediaAssets includes
+#include "MediaPlayer.h"
+#include "MediaSoundComponent.h"
+#include "MediaSource.h"
+#include "MediaTexture.h"
+
 // NoesisRuntime includes
+#include "NoesisRuntimeModule.h"
 #include "NoesisSupport.h"
 #include "Render/NoesisRenderDevice.h"
 
@@ -60,9 +74,16 @@ NoesisMediaPlayer::NoesisMediaPlayer(NoesisApp::MediaElement* Owner, const Noesi
 		View = Owner->GetView();
 		View->Rendering() += Noesis::MakeDelegate(this, &NoesisMediaPlayer::OnRendering);
 	}
+	else if (MediaPlayer->OpenFile(UTF8_TO_TCHAR(Path.Str())))
+	{
+		MediaPlayer->OnMediaEvent().AddRaw(this, &NoesisMediaPlayer::OnMediaEvent);
+
+		View = Owner->GetView();
+		View->Rendering() += Noesis::MakeDelegate(this, &NoesisMediaPlayer::OnRendering);
+	}
 	else
 	{
-		UE_LOG(LogNoesis, Warning, TEXT("Can't open MediaSource '%s'"), *VideoPath);
+		NS_LOG("Can't open MediaSource '%s'", TCHAR_TO_UTF8(*VideoPath));
 	}
 }
 
@@ -134,11 +155,9 @@ double NoesisMediaPlayer::GetPosition() const
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void NoesisMediaPlayer::SetPosition(double value)
 {
+	// setting position before media is opened can do nothing, so we store the value for later
 	Position = value;
-	if (MediaOpenedSent)
-	{
-		MediaPlayer->Seek(FTimespan::FromSeconds(value));
-	}
+	MediaPlayer->Seek(FTimespan::FromSeconds(value));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -152,10 +171,7 @@ void NoesisMediaPlayer::SetSpeedRatio(float value)
 {
 	// setting rate before media is opened does nothing, so we have to store the value for later
 	Rate = value;
-	if (MediaOpenedSent)
-	{
-		MediaPlayer->SetRate(value);
-	}
+	MediaPlayer->SetRate(value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -258,22 +274,15 @@ void NoesisMediaPlayer::OnRendering(Noesis::IView*)
 		TextureSource->SetTexture(FNoesisRenderDevice::CreateTexture(MediaTexture));
 	}
 
-	if (Opened)
+	if (Opened && MediaTexture->GetWidth() > 2 && MediaTexture->GetHeight() > 2)
 	{
-		if (MediaTexture->GetWidth() > 2 && MediaTexture->GetHeight() > 2)
-		{
-			MediaPlayer->SetRate(Rate);
+		MediaPlayer->SetRate(Rate);
+		MediaPlayer->Seek(FTimespan::FromSeconds(Position));
 
-			if (!MediaOpenedSent)
-			{
-				mMediaOpened();
-				MediaOpenedSent = true;
-			}
+		mMediaOpened();
 
-			CheckKeepPlaying();
-
-			Opened = false;
-		}
+		Opened = false;
+		CheckKeepPlaying();
 	}
 
 	if (Ended)
@@ -342,7 +351,6 @@ void NoesisMediaPlayer::OnMediaEvent(EMediaEvent Event)
 			{
 				SoundComponent->Stop();
 			}
-			MediaPlayer->SetRate(Rate);
 			break;
 		}
 		case EMediaEvent::SeekCompleted:

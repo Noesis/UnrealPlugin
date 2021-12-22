@@ -8,6 +8,11 @@
 // UnrealEd includes
 #include "Kismet2/KismetReinstanceUtilities.h"
 
+// NoesisRuntime includes
+#include "NoesisBlueprint.h"
+#include "NoesisBlueprintGeneratedClass.h"
+#include "NoesisInstance.h"
+
 FNoesisBlueprintCompilerContext::FNoesisBlueprintCompilerContext(UNoesisBlueprint* NoesisBlueprint, FCompilerResultsLog& Results, const FKismetCompilerOptions& CompilerOptions)
 	: Super(NoesisBlueprint, Results, CompilerOptions)
 {
@@ -33,11 +38,6 @@ void FNoesisBlueprintCompilerContext::SpawnNewClass(const FString& NewClassName)
 	NewClass = NoesisBlueprintGeneratedClass;
 }
 
-void FNoesisBlueprintCompilerContext::CleanAndSanitizeClass(UBlueprintGeneratedClass* ClassToClean, UObject*& InOutOldCDO)
-{
-	Super::CleanAndSanitizeClass(ClassToClean, InOutOldCDO);
-}
-
 void FNoesisBlueprintCompilerContext::EnsureProperGeneratedClass(UClass*& TargetUClass)
 {
 	if (TargetUClass && !((UObject*)TargetUClass)->IsA(UNoesisBlueprintGeneratedClass::StaticClass()))
@@ -47,28 +47,15 @@ void FNoesisBlueprintCompilerContext::EnsureProperGeneratedClass(UClass*& Target
 	}
 }
 
-void FNoesisBlueprintCompilerContext::CreateClassVariablesFromBlueprint()
+void FNoesisBlueprintCompilerContext::CopyTermDefaultsToDefaultObject(UObject* DefaultObject)
 {
-	Super::CreateClassVariablesFromBlueprint();
-}
+	UNoesisInstance* DefaultInstance = Cast<UNoesisInstance>(DefaultObject);
 
-void FNoesisBlueprintCompilerContext::CreateFunctionList()
-{
-	Super::CreateFunctionList();
-}
-
-void FNoesisBlueprintCompilerContext::FinishCompilingClass(UClass* Class)
-{
-	Super::FinishCompilingClass(Class);
-
-	UNoesisBlueprint* NoesisBlueprint = CastChecked<UNoesisBlueprint>(Blueprint);
-	UNoesisBlueprintGeneratedClass* NoesisBlueprintGeneratedClass = CastChecked<UNoesisBlueprintGeneratedClass>(Class);
-	NoesisBlueprintGeneratedClass->BaseXaml = NoesisBlueprint->BaseXaml;
-	NoesisBlueprintGeneratedClass->EnablePPAA = NoesisBlueprint->EnablePPAA;
-	NoesisBlueprintGeneratedClass->TessellationQuality = NoesisBlueprint->TessellationQuality;
-}
-
-bool FNoesisBlueprintCompilerContext::ValidateGeneratedClass(UBlueprintGeneratedClass* Class)
-{
-	return Super::ValidateGeneratedClass(Class);
+	if (DefaultInstance != nullptr)
+	{
+		UNoesisBlueprint* NoesisBlueprint = CastChecked<UNoesisBlueprint>(Blueprint);
+		DefaultInstance->BaseXaml = NoesisBlueprint->BaseXaml;
+		DefaultInstance->EnablePPAA = NoesisBlueprint->EnablePPAA;
+		DefaultInstance->TessellationQuality = NoesisBlueprint->TessellationQuality;
+	}
 }

@@ -5,6 +5,16 @@
 
 #include "NoesisStyle.h"
 
+// Projects includes
+#include "Interfaces/IPluginManager.h"
+
+// Slate includes
+#include "SlateOptMacros.h"
+
+// SlateCore includes
+#include "Styling/SlateStyle.h"
+#include "Styling/SlateStyleRegistry.h"
+
 #define IMAGE_PLUGIN_BRUSH( RelativePath, ... ) FSlateImageBrush( FNoesisStyle::InResources( RelativePath, ".png" ), __VA_ARGS__ )
 
 FString FNoesisStyle::InResources(const FString& RelativePath, const ANSICHAR* Extension)

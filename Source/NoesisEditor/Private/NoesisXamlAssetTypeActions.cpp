@@ -5,6 +5,44 @@
 
 #include "NoesisXamlAssetTypeActions.h"
 
+// AssetRegistry includes
+#include "AssetRegistryModule.h"
+
+// BlueprintGraph includes
+#include "BlueprintNodeTemplateCache.h"
+#include "K2Node_CallFunction.h"
+#include "K2Node_Event.h"
+
+// Engine includes
+#include "EditorFramework/AssetImportData.h"
+#include "Engine/LevelScriptBlueprint.h"
+#include "Kismet/GameplayStatics.h"
+
+// NoesisRuntime includes
+#include "NoesisBlueprint.h"
+#include "NoesisBlueprintGeneratedClass.h"
+#include "NoesisInstance.h"
+#include "NoesisXaml.h"
+
+// Slate includes
+#include "Widgets/Images/SImage.h"
+
+// SlateCore includes
+#include "Styling/SlateIconFinder.h"
+
+// ToolMenus includes
+#include "ToolMenuSection.h"
+
+// UMG includes
+#include "Blueprint/WidgetBlueprintLibrary.h"
+
+// UnrealEd includes
+#include "ObjectTools.h"
+#include "UnrealEdGlobals.h"
+#include "Editor/UnrealEdEngine.h"
+#include "Kismet2/BlueprintEditorUtils.h"
+#include "Kismet2/KismetEditorUtilities.h"
+
 #define LOCTEXT_NAMESPACE "NoesisEditorModule"
 
 FNoesisXamlAssetTypeActions::FNoesisXamlAssetTypeActions(EAssetTypeCategories::Type InCategories)

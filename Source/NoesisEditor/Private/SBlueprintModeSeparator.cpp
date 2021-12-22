@@ -5,6 +5,9 @@
 
 #include "SBlueprintModeSeparator.h"
 
+// EditorStyle includes
+#include "EditorStyleSet.h"
+
 void SBlueprintModeSeparator::Construct(const FArguments& InArg)
 {
 	SBorder::Construct(
