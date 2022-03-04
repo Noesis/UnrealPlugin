@@ -35,6 +35,7 @@
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/LoadContentAction.cpp"
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/MediaActions.cpp"
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/MouseDragElementBehavior.cpp"
+#include "NoesisSDK/Src/Packages/App/Interactivity/Src/MoveFocusAction.cpp"
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/PlaySoundAction.cpp"
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/PropertyChangedTrigger.cpp"
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/RemoveElementAction.cpp"

@@ -288,6 +288,67 @@ static Noesis::BaseComponent* CreateLocTable(Noesis::Symbol)
 	return new LocTableExtensionEditor();
 };
 
+static void AddDependency(UNoesisXaml* NoesisXaml, UObject* Asset)
+{
+	if (UTexture2D* Texture = Cast<UTexture2D>(Asset))
+	{
+		NoesisXaml->Textures.Add(Texture);
+	}
+	else if (UNoesisXaml* Xaml = Cast<UNoesisXaml>(Asset))
+	{
+		NoesisXaml->Xamls.Add(Xaml);
+	}
+	else if (USoundWave* Sound = Cast<USoundWave>(Asset))
+	{
+		NoesisXaml->Sounds.Add(Sound);
+	}
+	else if (UMediaSource* Video = Cast<UMediaSource>(Asset))
+	{
+		NoesisXaml->Videos.Add(Video);
+	}
+	else if (UMaterialInterface* Material = Cast<UMaterialInterface>(Asset))
+	{
+		NoesisXaml->Materials.Add(Material);
+	}
+}
+
+static FString GetDependencyPath(const Noesis::Uri& Uri)
+{
+	FString Dependency;
+
+	Noesis::String Assembly;
+	Uri.GetAssembly(Assembly);
+	if (!Assembly.Empty())
+	{
+		Dependency += TEXT("/");
+		Dependency += GetAssetRoot(Assembly).Str();
+		Dependency += TEXT("/");
+	}
+
+	Noesis::FixedString<512> Path;
+	Uri.GetPath(Path);
+	Dependency += Path.Str();
+
+	return Dependency;
+}
+
+template<class T>
+static void ConfigureFilter(FARFilter& Filter, bool RecursiveClasses)
+{
+	Filter.bRecursiveClasses = RecursiveClasses;
+	Filter.ClassNames.Add(::StaticClass<T>()->GetFName());
+
+	Filter.bRecursivePaths = true;
+	Filter.PackagePaths.Add(TEXT("/Game"));
+
+	TArray<TSharedRef<IPlugin>> Plugins = IPluginManager::Get().GetEnabledPluginsWithContent();
+	for (auto Plugin : Plugins)
+	{
+		FString PluginPath = TEXT("/") + Plugin->GetName();
+		Filter.PackagePaths.Add(*PluginPath);
+	}
+}
+
 UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject* Context, const TCHAR* Type, const uint8*& Buffer, const uint8* BufferEnd, FFeedbackContext* Warn)
 {
 	// This needs to go first, before we invoke other factories, since they're stored in UFactory statics.
@@ -335,19 +396,20 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 	UNoesisXaml* NoesisXaml = nullptr;
 	if (!Recursive || HasChanged)
 	{
-		FString PackageRoot;
-		FString PackagePath;
-		FString PackageName;
+		FString PackageRoot, PackagePath, PackageName;
 		FPackageName::SplitLongPackageName(Parent->GetPathName(), PackageRoot, PackagePath, PackageName, false);
+
 		TArray<FString> ProjectAssetPathRootComponents;
 		SplitPath(PackageRoot + PackagePath, ProjectAssetPathRootComponents);
 		TArray<FString> ProjectURIRootComponents;
 		SplitPath(FPaths::GetPath(FullFilePath) + TEXT("/"), ProjectURIRootComponents);
+
 		while (ProjectAssetPathRootComponents.Last() == ProjectURIRootComponents.Last())
 		{
 			ProjectAssetPathRootComponents.Pop();
 			ProjectURIRootComponents.Pop();
 		}
+
 		FString ProjectAssetPathRoot;
 		JoinPath(ProjectAssetPathRootComponents, ProjectAssetPathRoot);
 		FString ProjectURIRoot;
@@ -365,7 +427,13 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 		UAutomatedAssetImportData* AutomatedAssetImportData = NewObject<UAutomatedAssetImportData>();
 		AutomatedAssetImportData->bReplaceExisting = true;
 		IFileManager& FileManager = IFileManager::Get();
-		auto DependencyCallback = [&](void* UserData, const Noesis::Uri& Uri, Noesis::XamlDependencyType Type)
+
+		TArray<FAssetData> Xamls;
+		TArray<FAssetData> Materials;
+		bool XamlsEnumerated = false;
+		bool MaterialsEnumerated = false;
+
+		auto DependencyCallback = [&](const Noesis::Uri& Uri, Noesis::XamlDependencyType Type)
 		{
 			if (Type == Noesis::XamlDependencyType_Root) return;
 
@@ -373,10 +441,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 			// causing infinite recursion.
 			if (!Uri.IsValid()) return;
 			
-			Noesis::String UriPath;
-			Uri.GetPath(UriPath);
-			FString Dependency = Uri.IsAbsolute() && UriPath.StartsWith("Game/") ? "/" : "";
-			Dependency += UTF8_TO_TCHAR(UriPath.Str());
+			FString Dependency = GetDependencyPath(Uri);
 
 			if (Type == Noesis::XamlDependencyType_Font)
 			{
@@ -389,15 +454,12 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 
 					FString Path = FPaths::GetPath(PackagePath);
 					FString Filename = FPaths::GetBaseFilename(PackagePath);
-					FString Extension = FPaths::GetExtension(PackagePath);
 					FString AssetPath = Path / ObjectTools::SanitizeInvalidChars(Filename, INVALID_LONGPACKAGE_CHARACTERS);
 					FString FilePath = PackagePath.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
 					if (!FPackageName::IsValidLongPackageName(AssetPath / "_Font"))
 					{
-						AssetPath = FString("/Game/") + AssetPath;
-						PackagePath = FString("/Game/") + PackagePath;
+						PackagePath = TEXT("/Game/") + PackagePath;
 						FilePath = PackagePath.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
-						Path = FString("/Game/") + Path;
 					}
 
 					TArray<UFontFace*> FontFaces = ImportFontFamily(PackagePath, FamilyName, FilePath);
@@ -421,55 +483,72 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 				bool IsUserControl = Type == Noesis::XamlDependencyType_UserControl;
 				if (IsUserControl)
 				{
-					FString PackagePath = FPaths::GetPath(Parent->GetPathName());
-					Dependency = PackagePath / Dependency + TEXT(".xaml");
+					// This means we are looking for the associated xaml of a UserControl, but also for Material assets,
+					// either way, the asset can be located anywhere inside the Content folder so we need to search everywhere
+					if (!XamlsEnumerated)
+					{
+						XamlsEnumerated = true;
+
+						FARFilter Filter;
+						ConfigureFilter<UNoesisXaml>(Filter, false);
+						AssetRegistryModule.Get().GetAssets(Filter, Xamls);
+					}
+					if (!MaterialsEnumerated)
+					{
+						MaterialsEnumerated = true;
+
+						FARFilter Filter;
+						ConfigureFilter<UMaterialInterface>(Filter, true);
+						AssetRegistryModule.Get().GetAssets(Filter, Materials);
+					}
+
+					FAssetData* Asset = Xamls.FindByPredicate([&Dependency](FAssetData& Asset) { return Asset.AssetName == *Dependency; });
+					if (!Asset)
+					{
+						Asset = Materials.FindByPredicate([&Dependency](FAssetData& Asset) { return Asset.AssetName == *Dependency; });
+					}
+
+					if (Asset)
+					{
+						Dependency = Asset->PackageName.ToString();
+					}
+					else
+					{
+						// Dependency name does not correspond to any already imported Xaml or Material, try to find it
+						// next to the xaml being processed
+						FString PackagePath = FPaths::GetPath(Parent->GetPathName());
+						Dependency = PackagePath / Dependency + TEXT(".xaml");
+					}
 				}
 
 				FString Path = FPaths::GetPath(Dependency);
 				FString Filename = FPaths::GetBaseFilename(Dependency);
-				FString Extension = FPaths::GetExtension(Dependency);
 				FString AssetPath = Path / ObjectTools::SanitizeInvalidChars(Filename, INVALID_LONGPACKAGE_CHARACTERS);
 				FString FilePath = Dependency.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
 				if (!FPackageName::IsValidLongPackageName(AssetPath))
 				{
-					AssetPath = FString("/Game/") + AssetPath;
-					Dependency = FString("/Game/") + Dependency;
+					AssetPath = TEXT("/Game/") + AssetPath;
 					FilePath = Dependency.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
-					Path = FString("/Game/") + Path;
 				}
+
 				TArray<FAssetData> FoundAssets;
 				AssetRegistryModule.Get().GetAssetsByPackageName(*AssetPath, FoundAssets);
-				if (FoundAssets.Num() > 0 && FoundAssets[0].GetClass() != UNoesisXaml::StaticClass())
+				if (FoundAssets.Num() > 0)
 				{
-					for (auto FoundAsset : FoundAssets)
+					// Dependency found
+					UObject* Asset = FoundAssets[0].GetAsset();
+					AddDependency(NoesisXaml, Asset);
+
+					// For a xaml dependency we want to reimport it in case it changed
+					if (Cast<UNoesisXaml>(Asset))
 					{
-						UObject* Asset = FoundAsset.GetAsset();
-						if (UTexture2D* Texture = Cast<UTexture2D>(Asset))
-						{
-							NoesisXaml->Textures.Add(Texture);
-						}
-						else if (UNoesisXaml* Xaml = Cast<UNoesisXaml>(Asset))
-						{
-							NoesisXaml->Xamls.Add(Xaml);
-						}
-						else if (USoundWave* Sound = Cast<USoundWave>(Asset))
-						{
-							NoesisXaml->Sounds.Add(Sound);
-						}
-						else if (UMediaSource* Video = Cast<UMediaSource>(Asset))
-						{
-							NoesisXaml->Videos.Add(Video);
-						}
-						else if (UMaterialInterface* Material = Cast<UMaterialInterface>(Asset))
-						{
-							NoesisXaml->Materials.Add(Material);
-						}
+						FReimportManager::Instance()->Reimport(Asset);
 					}
-					return;
 				}
-				TArray<UObject*> Assets;
-				if (FoundAssets.Num() == 0)
+				else
 				{
+					// Dependency may not be imported yet, try to do a manual import now
+					TArray<UObject*> Assets;
 					if (!IsUserControl || FileManager.FileExists(*FilePath))
 					{
 						AutomatedAssetImportData->Filenames.Empty(1);
@@ -477,46 +556,14 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 						AutomatedAssetImportData->DestinationPath = Path;
 						Assets = AssetToolsModule.Get().ImportAssetsAutomated(AutomatedAssetImportData);
 					}
-				}
-				else
-				{
-					for (auto FoundAsset : FoundAssets)
-					{
-						UNoesisXaml* Asset = Cast<UNoesisXaml>(FoundAsset.GetAsset());
-						if (Asset != nullptr)
-						{
-							FReimportManager::Instance()->Reimport(Asset);
-						}
-						Assets.Add(Asset);
-					}
-				}
 
-				if (!IsUserControl && Assets.Num() == 0)
-				{
-					UE_LOG(LogNoesisEditor, Error, TEXT("Failed to import %s"), *FilePath);
-				}
-
-				for (auto Asset : Assets)
-				{
-					if (UTexture2D* Texture = Cast<UTexture2D>(Asset))
+					if (Assets.Num() > 0)
 					{
-						NoesisXaml->Textures.Add(Texture);
+						AddDependency(NoesisXaml, Assets[0]);
 					}
-					else if (UNoesisXaml* Xaml = Cast<UNoesisXaml>(Asset))
+					else if (!IsUserControl)
 					{
-						NoesisXaml->Xamls.Add(Xaml);
-					}
-					else if (USoundWave* Sound = Cast<USoundWave>(Asset))
-					{
-						NoesisXaml->Sounds.Add(Sound);
-					}
-					else if (UMediaSource* Video = Cast<UMediaSource>(Asset))
-					{
-						NoesisXaml->Videos.Add(Video);
-					}
-					else if (UMaterialInterface* Material = Cast<UMaterialInterface>(Asset))
-					{
-						NoesisXaml->Materials.Add(Material);
+						UE_LOG(LogNoesisEditor, Error, TEXT("Failed to import %s"), *FilePath);
 					}
 				}
 			}
@@ -524,10 +571,10 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 		auto DependencyCallbackAdaptor = [](void* UserData, const Noesis::Uri& Uri, Noesis::XamlDependencyType Type)
 		{
 			auto Callback = (decltype(DependencyCallback)*)UserData;
-			return (*Callback)(nullptr, Uri, Type);
+			return (*Callback)(Uri, Type);
 		};
-		Noesis::Uri Uri(TCHAR_TO_UTF8(*NoesisXaml->GetPathName()));
-		Noesis::GUI::GetXamlDependencies(&XamlStream, Uri, &DependencyCallback, DependencyCallbackAdaptor);
+		FString Uri = PackageRoot.LeftChop(1) + TEXT(";component/") + PackagePath + PackageName + TEXT(".xaml");
+		Noesis::GUI::GetXamlDependencies(&XamlStream, TCHAR_TO_UTF8(*Uri), &DependencyCallback, DependencyCallbackAdaptor);
 
 		NoesisXaml->XamlText.Insert((uint8*)Text.Str(), Text.Size(), 0);
 

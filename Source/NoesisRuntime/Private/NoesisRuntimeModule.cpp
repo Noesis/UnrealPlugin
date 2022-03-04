@@ -39,6 +39,7 @@
 #include "NoesisMediaPlayer.h"
 #include "Extensions/LocTableExtension.h"
 #include "Extensions/LocTextExtension.h"
+#include "Extensions/InputActionTrigger.h"
 
 // Noesis includes
 #include "NoesisSDK.h"
@@ -496,10 +497,8 @@ void NoesisPlaySoundCallback(void* UserData, const Noesis::Uri& Uri, float Volum
 	}
 #endif
 
-	Noesis::String Filename;
-	Uri.GetPath(Filename);
-	FString SoundPath = NsProviderPathToAssetPath(Filename.Str());
-	USoundWave* Sound = LoadObject<USoundWave>(nullptr, *(FString(TEXT("/Game/")) + SoundPath), nullptr, LOAD_NoWarn);
+	FString SoundPath = NsProviderUriToAssetPath(Uri);
+	USoundWave* Sound = LoadObject<USoundWave>(nullptr, *SoundPath, nullptr, LOAD_NoWarn);
 
 	if (!Sound)
 		return;
@@ -547,6 +546,8 @@ public:
 		NsRegisterReflectionAppMediaElement();
 		Noesis::RegisterComponent<LocTextExtension>();
 		Noesis::RegisterComponent<LocTableExtension>();
+		Noesis::RegisterComponent<InputActionTrigger>();
+		Noesis::RegisterComponent<Noesis::EnumConverter<InputActionType>>();
 
 		NoesisXamlProvider = *new FNoesisXamlProvider();
 		NoesisTextureProvider = *new FNoesisTextureProvider();
@@ -595,7 +596,8 @@ public:
 		NoesisTextureProvider.Reset();
 		NoesisFontProvider.Reset();
 
-
+		Noesis::UnregisterComponent<Noesis::EnumConverter<InputActionType>>();
+		Noesis::UnregisterComponent<InputActionTrigger>();
 		Noesis::UnregisterComponent<LocTextExtension>();
 		Noesis::UnregisterComponent<LocTableExtension>();
 		Noesis::GUI::Shutdown();

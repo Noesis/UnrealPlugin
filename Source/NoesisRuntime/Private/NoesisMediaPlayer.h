@@ -8,6 +8,9 @@
 // Core includes
 #include "CoreMinimal.h"
 
+// Media includes
+#include "IMediaEventSink.h"
+
 // Noesis includes
 #include "NoesisSDK.h"
 #include "NsApp/MediaPlayer.h"
@@ -54,7 +57,7 @@ public:
 private:
 	void CheckKeepPlaying();
 	void OnRendering(Noesis::IView* View);
-	void OnMediaEvent(enum class EMediaEvent Event);
+	void OnMediaEvent(EMediaEvent Event);
 
 private:
 	class UMediaPlayer* MediaPlayer;

@@ -45,7 +45,7 @@ inline FString SanitizeAssetPath(const FString& AssetPath)
 {
 	FString Result = AssetPath;
 	const TCHAR* InvalidChar = INVALID_LONGPACKAGE_CHARACTERS;
-;	while (*InvalidChar)
+	while (*InvalidChar)
 	{
 		Result.ReplaceCharInline(*InvalidChar, TCHAR('_'), ESearchCase::CaseSensitive);
 		++InvalidChar;
@@ -53,26 +53,29 @@ inline FString SanitizeAssetPath(const FString& AssetPath)
 	return Result;
 }
 
-inline FString NsProviderPathToAssetPath(const FString& FilePath)
+inline Noesis::String GetAssetRoot(const Noesis::String& Assembly)
 {
-	FString FullPath = FPaths::GetPath(FilePath);
-	FString Package = FPaths::GetBaseFilename(FilePath);
-	FString Extension = FPaths::GetExtension(FilePath);
-	FString AssetPath = Package.IsEmpty() ? FullPath : FullPath / SanitizeAssetPath(Package);
-	return AssetPath;
+	return Assembly.Empty() ? "Game" : (Assembly == "Noesis.GUI.Extensions" ? "NoesisGUI" : Assembly.Str());
 }
 
-/// Wrappers to avoid some argument dependent lookup ambiguity errors that arrise when
-/// using our types with Unreal containers
-template<class T>
-struct FNoesisWrapper
+inline FString NsProviderUriToAssetPath(const Noesis::Uri& Uri)
 {
-	T Wrapped;
+	Noesis::FixedString<512> Path;
+	Uri.GetPath(Path);
 
-	FNoesisWrapper(const T& In) {
-		Wrapped = In;
-	}
-};
+	FString FullPath = FPaths::GetPath(Path.Str());
+	FString Package = FPaths::GetBaseFilename(Path.Str());
+	FString SafePath = Package.IsEmpty() ? FullPath : FullPath / SanitizeAssetPath(Package);
+
+	Noesis::String Assembly;
+	Uri.GetAssembly(Assembly);
+
+	FString AssetPath = TEXT("/");
+	AssetPath += GetAssetRoot(Assembly).Str();
+	AssetPath += TEXT("/") + SafePath;
+
+	return AssetPath;
+}
 
 NOESISRUNTIME_API Noesis::Ptr<Noesis::Texture> NoesisCreateTexture(class UTexture* Texture);
 

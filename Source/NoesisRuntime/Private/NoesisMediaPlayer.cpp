@@ -63,9 +63,7 @@ NoesisMediaPlayer::NoesisMediaPlayer(NoesisApp::MediaElement* Owner, const Noesi
 		SoundComponent->AddToRoot();
 	}
 
-	Noesis::String Path;
-	Uri.GetPath(Path);
-	FString VideoPath = FString(TEXT("/Game/")) + NsProviderPathToAssetPath(Path.Str());
+	FString VideoPath = NsProviderUriToAssetPath(Uri);
 	UMediaSource* MediaSource = LoadObject<UMediaSource>(nullptr, *VideoPath, nullptr, LOAD_NoWarn);
 	if (MediaSource != nullptr && MediaPlayer->OpenSource(MediaSource))
 	{
@@ -74,7 +72,7 @@ NoesisMediaPlayer::NoesisMediaPlayer(NoesisApp::MediaElement* Owner, const Noesi
 		View = Owner->GetView();
 		View->Rendering() += Noesis::MakeDelegate(this, &NoesisMediaPlayer::OnRendering);
 	}
-	else if (MediaPlayer->OpenFile(UTF8_TO_TCHAR(Path.Str())))
+	else if (MediaPlayer->OpenFile(UTF8_TO_TCHAR(Uri.Str())))
 	{
 		MediaPlayer->OnMediaEvent().AddRaw(this, &NoesisMediaPlayer::OnMediaEvent);
 

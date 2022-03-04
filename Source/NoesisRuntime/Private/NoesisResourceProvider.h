@@ -49,7 +49,6 @@ public:
 	void RegisterFont(const class UFontFace* Font);
 
 private:
-
 	// FontProvider interface
 	virtual Noesis::FontSource MatchFont(const Noesis::Uri& BaseUri, const char* FamilyName, Noesis::FontWeight& Weight,
 		Noesis::FontStretch& Stretch, Noesis::FontStyle& Style) override;

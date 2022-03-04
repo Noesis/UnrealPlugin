@@ -88,6 +88,8 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	UFUNCTION(BlueprintCallable, Category = "NoesisGUI")
 	void ExecuteConsoleCommand(FString Command, class APlayerController* SpecificPlayer);
 
+	static UNoesisInstance* FromView(Noesis::IView* View);
+
 	void Update(float InLeft, float InTop, float InWidth, float InHeight);
 
 	FVector2D GetSize() const;
@@ -115,6 +117,9 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 
 	void UpdateWorldTimes();
 
+	void RegisterInputAction(FInputActionBinding Binding);
+	void UnregisterInputAction(FInputActionBinding Binding);
+
 	// UUserWidget interface
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
@@ -136,3 +141,4 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	virtual void InitializeNativeClassData() override;
 	// End of UUserWidget interface
 };
+

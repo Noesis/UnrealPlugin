@@ -77,10 +77,10 @@ public class Noesis : ModuleRules
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Android)
 		{
-			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "android_arm", "libNoesis.so"));
-			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "android_arm64", "libNoesis.so"));
-			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "android_x86", "libNoesis.so"));
-			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "android_x86_64", "libNoesis.so"));
+			AddAndroidLibrary(NoesisBasePath, "android_arm", "armeabi-v7a");
+			AddAndroidLibrary(NoesisBasePath, "android_arm64", "arm64-v8a");
+			AddAndroidLibrary(NoesisBasePath, "android_x86", "x86");
+			AddAndroidLibrary(NoesisBasePath, "android_x86_64", "x86_64");
 
 			string NoesisAplPath = "Noesis_APL.xml";
 			AdditionalPropertiesForReceipt.Add("AndroidPlugin", Path.Combine(ModuleDirectory, NoesisAplPath));
@@ -122,5 +122,29 @@ public class Noesis : ModuleRules
 			PublicDefinitions.Add("NS_STATIC_LIBRARY");
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "nx", "Noesis.a"));
 		}
+	}
+
+	private void AddAndroidLibrary(string pluginPath, string src, string arch)
+	{
+		string libDir = Path.Combine(pluginPath, "Bin", "android", arch);
+		if (!Directory.Exists(libDir))
+		{
+			System.Console.WriteLine("[" + arch + "]");
+			System.Console.WriteLine("  Library not found!");
+			string srcDir = Path.Combine(pluginPath, "Bin", src);
+			if (Directory.Exists(srcDir))
+			{
+				System.Console.WriteLine("  Moving from SDK '" + srcDir + "' to '" + libDir + "'");
+				Directory.CreateDirectory(libDir);
+				Directory.Delete(libDir);
+				Directory.Move(srcDir, libDir);
+			}
+			else
+			{
+				System.Console.WriteLine("  SDK library '" + srcDir + "'  not found");
+			}
+		}
+
+		PublicAdditionalLibraries.Add(Path.Combine(libDir, "libNoesis.so"));
 	}
 }

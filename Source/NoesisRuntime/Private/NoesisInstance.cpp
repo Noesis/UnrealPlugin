@@ -255,6 +255,18 @@ private:
 	UNoesisInstance* NoesisInstance;
 };
 
+TMap<Noesis::IView*, UNoesisInstance*> ViewInstanceMap;
+
+UNoesisInstance* UNoesisInstance::FromView(Noesis::IView* View)
+{
+	UNoesisInstance** InstancePtr = ViewInstanceMap.Find(View);
+	if (InstancePtr != nullptr)
+	{
+		return *InstancePtr;
+	}
+	return nullptr;
+}
+
 UNoesisInstance::UNoesisInstance(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -286,6 +298,8 @@ void UNoesisInstance::InitInstance()
 
 		if (XamlView)
 		{
+			ViewInstanceMap.Add(XamlView.GetPtr(), this);
+
 			Noesis::Ptr<Noesis::IRenderer> Renderer(XamlView->GetRenderer());
 
 			ENQUEUE_RENDER_COMMAND(FNoesisInstance_InitRenderer)
@@ -358,6 +372,24 @@ void UNoesisInstance::UpdateWorldTimes()
 		WorldDeltaSeconds = GWorld->GetDeltaSeconds();
 		WorldRealTimeSeconds = GWorld->GetRealTimeSeconds();
 	}
+}
+
+void UNoesisInstance::RegisterInputAction(FInputActionBinding Binding)
+{
+	if (!InputComponent)
+	{
+		InitializeInputComponent();
+	}
+
+	if (InputComponent)
+	{
+		InputComponent->AddActionBinding(Binding);
+	}
+}
+
+void UNoesisInstance::UnregisterInputAction(FInputActionBinding Binding)
+{
+	StopListeningForInputAction(Binding.GetActionName(), Binding.KeyEvent);
 }
 
 void UNoesisInstance::ExecuteConsoleCommand(FString Command, class APlayerController* SpecificPlayer)
@@ -532,6 +564,9 @@ void UNoesisInstance::TermInstance()
 {
 	if (XamlView)
 	{
+		ViewInstanceMap.Remove(XamlView.GetPtr());
+		ViewInstanceMap.Shrink();
+
 		Noesis::Ptr<Noesis::IRenderer> Renderer(XamlView->GetRenderer());
 		Xaml.Reset();
 		XamlView.Reset();

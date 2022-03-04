@@ -30,23 +30,22 @@ void FNoesisXamlProvider::OnXamlChanged(UNoesisXaml* Xaml)
 
 Noesis::Ptr<Noesis::Stream> FNoesisXamlProvider::LoadXaml(const Noesis::Uri& Uri)
 {
-	Noesis::String Path;
-	Uri.GetPath(Path);
-	FString XamlPath = NsProviderPathToAssetPath(Path.Str());
-	UNoesisXaml* Xaml = LoadObject<UNoesisXaml>(nullptr, *(FString("/Game/") + XamlPath), nullptr, LOAD_NoWarn);
+	FString XamlPath = NsProviderUriToAssetPath(Uri);
+	UNoesisXaml* Xaml = LoadObject<UNoesisXaml>(nullptr, *XamlPath, nullptr, LOAD_NoWarn);
+
 	if (Xaml)
 	{
 		// Need to register the XAML's dependencies before returning.
 		Xaml->RegisterDependencies();
 
 #if WITH_EDITOR
-		NameMap.Add(Xaml, Path.Str());
+		NameMap.Add(Xaml, Uri.Str());
 #endif
 
-		return Noesis::Ptr<Noesis::Stream>(*new Noesis::MemoryStream(Xaml->XamlText.GetData(), (uint32)Xaml->XamlText.Num()));
+		return *new Noesis::MemoryStream(Xaml->XamlText.GetData(), (uint32)Xaml->XamlText.Num());
 	}
 
-	return Noesis::Ptr<Noesis::Stream>();
+	return nullptr;
 };
 
 void FNoesisTextureProvider::OnTextureChanged(UTexture2D* Texture)
@@ -61,14 +60,13 @@ void FNoesisTextureProvider::OnTextureChanged(UTexture2D* Texture)
 
 Noesis::TextureInfo FNoesisTextureProvider::GetTextureInfo(const Noesis::Uri& Uri)
 {
-	Noesis::String Path;
-	Uri.GetPath(Path);
-	FString TexturePath = NsProviderPathToAssetPath(Path.Str());
-	UTexture2D* Texture = LoadObject<UTexture2D>(nullptr, *(FString("/Game/") + TexturePath), nullptr, LOAD_NoWarn);
+	FString TexturePath = NsProviderUriToAssetPath(Uri);
+	UTexture2D* Texture = LoadObject<UTexture2D>(nullptr, *TexturePath, nullptr, LOAD_NoWarn);
+
 	if (Texture)
 	{
 #if WITH_EDITOR
-		NameMap.Add(Texture, Path.Str());
+		NameMap.Add(Texture, Uri.Str());
 #endif
 		return Noesis::TextureInfo { (uint32)Texture->GetSizeX(), (uint32)Texture->GetSizeY() };
 	}
@@ -78,11 +76,10 @@ Noesis::TextureInfo FNoesisTextureProvider::GetTextureInfo(const Noesis::Uri& Ur
 
 Noesis::Ptr<Noesis::Texture> FNoesisTextureProvider::LoadTexture(const Noesis::Uri& Uri, Noesis::RenderDevice* RenderDevice)
 {
-	Noesis::String Path;
-	Uri.GetPath(Path);
-	FString TexturePath = NsProviderPathToAssetPath(Path.Str());
+	FString TexturePath = NsProviderUriToAssetPath(Uri);
 	FString TextureObjectPath = TexturePath + TEXT(".") + FPackageName::GetShortName(TexturePath);
-	UTexture2D* Texture = FindObject<UTexture2D>(nullptr, *(FString("/Game/") + TextureObjectPath));
+	UTexture2D* Texture = FindObject<UTexture2D>(nullptr, *TextureObjectPath);
+
 	if (Texture)
 	{
 		return NoesisCreateTexture(Texture);
@@ -95,36 +92,42 @@ void FNoesisFontProvider::RegisterFont(const UFontFace* FontFace)
 {
 	if (FontFace != nullptr)
 	{
-		FString FontFacePath = FontFace->GetPathName();
-		FString FontPackagePath = FPackageName::GetLongPackagePath(FontFacePath);
 		UObject* Package = FontFace->GetOutermost();
-		FString PackageRoot;
-		FString PackagePath;
-		FString PackageName;
+		FString PackageRoot, PackagePath, PackageName;
 		FPackageName::SplitLongPackageName(Package->GetPathName(), PackageRoot, PackagePath, PackageName, false);
-		Noesis::CachedFontProvider::RegisterFont(TCHARToNsString(*PackagePath).Str(), TCHARToNsString(*(PackagePath + PackageName + TEXT(".") + FontFace->GetName())).Str());
+
+		FString Folder = PackageRoot.LeftChop(1) + TEXT(";component/") + PackagePath;
+
+		Noesis::CachedFontProvider::RegisterFont(TCHARToNsString(*Folder).Str(), TCHARToNsString(*PackageName).Str());
 	}
+}
+
+static Noesis::Uri GetUnrealUri(const Noesis::Uri& Uri)
+{
+	Noesis::FixedString<512> Path;
+	Uri.GetPath(Path);
+
+	Noesis::String Assembly;
+	Uri.GetAssembly(Assembly);
+
+	Noesis::FixedString<512> UnrealUri;
+	UnrealUri += "/";
+	UnrealUri += GetAssetRoot(Assembly).Str();
+	UnrealUri += ";component/";
+	UnrealUri += Path.Str();
+
+	return UnrealUri.Str();
 }
 
 Noesis::FontSource FNoesisFontProvider::MatchFont(const Noesis::Uri& BaseUri, const char* FamilyName, Noesis::FontWeight& Weight,
 	Noesis::FontStretch& Stretch, Noesis::FontStyle& Style)
 {
-	Noesis::String Path;
-	BaseUri.GetPath(Path);
-	FString PackagePath = NsProviderPathToAssetPath(Path.Str());
-
-	Noesis::Uri Uri(TCHAR_TO_UTF8(*PackagePath));
-	return Noesis::CachedFontProvider::MatchFont(Uri, FamilyName, Weight, Stretch, Style);
+	return Noesis::CachedFontProvider::MatchFont(GetUnrealUri(BaseUri), FamilyName, Weight, Stretch, Style);
 }
 
 bool FNoesisFontProvider::FamilyExists(const Noesis::Uri& BaseUri, const char* FamilyName)
 {
-	Noesis::String Path;
-	BaseUri.GetPath(Path);
-	FString PackagePath = NsProviderPathToAssetPath(Path.Str());
-
-	Noesis::Uri Uri(TCHAR_TO_UTF8(*PackagePath));
-	return Noesis::CachedFontProvider::FamilyExists(Uri, FamilyName);
+	return Noesis::CachedFontProvider::FamilyExists(GetUnrealUri(BaseUri), FamilyName);
 }
 
 void FNoesisFontProvider::ScanFolder(const Noesis::Uri& InFolder)
@@ -133,8 +136,13 @@ void FNoesisFontProvider::ScanFolder(const Noesis::Uri& InFolder)
 
 Noesis::Ptr<Noesis::Stream> FNoesisFontProvider::OpenFont(const Noesis::Uri& InFolder, const char* InFilename) const
 {
-	FString Filename = NsStringToFString(InFilename);
-	const UFontFace* FontFace = LoadObject<UFontFace>(nullptr, *(FString("/Game/") + Filename), nullptr, LOAD_NoWarn);
+	Noesis::FixedString<512> Uri = InFolder.Str();
+	Uri += "/";
+	Uri += InFilename;
+
+	FString FontPath = NsProviderUriToAssetPath(Uri.Str());
+	const UFontFace* FontFace = LoadObject<UFontFace>(nullptr, *FontPath, nullptr, LOAD_NoWarn);
+
 	if (FontFace != nullptr)
 	{
 		class FontArrayMemoryStream : public Noesis::MemoryStream
@@ -154,7 +162,7 @@ Noesis::Ptr<Noesis::Stream> FNoesisFontProvider::OpenFont(const Noesis::Uri& InF
 		{
 			TArray<uint8> FileData;
 			FFileHelper::LoadFileToArray(FileData, *FontFace->GetFontFilename());
-			return Noesis::Ptr<Noesis::Stream>(*new FontArrayMemoryStream(MoveTemp(FileData)));
+			return *new FontArrayMemoryStream(MoveTemp(FileData));
 		}
 		else
 #endif
@@ -162,8 +170,9 @@ Noesis::Ptr<Noesis::Stream> FNoesisFontProvider::OpenFont(const Noesis::Uri& InF
 			const FFontFaceDataRef FontFaceDataRef = FontFace->FontFaceData;
 			const FFontFaceData& FontFaceData = FontFaceDataRef.Get();
 			const TArray<uint8>& FontFaceDataArray = FontFaceData.GetData();
-			return Noesis::Ptr<Noesis::Stream>(*new FontArrayMemoryStream(CopyTemp(FontFaceDataArray)));
+			return *new FontArrayMemoryStream(CopyTemp(FontFaceDataArray));
 		}
 	}
-	return Noesis::Ptr<Noesis::Stream>();
+
+	return nullptr;
 }

@@ -842,6 +842,12 @@ public:
 		return TypeEnum;
 	}
 
+	virtual Noesis::String ToString() const override
+	{
+		Noesis::Symbol Name;
+		return TypeEnum->HasValue(mValue, Name) ? Noesis::String(Name.Str()) : Noesis::ToString(mValue);
+	}
+
 	const NoesisTypeEnum* TypeEnum;
 
 	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisEnumWrapper, Noesis::Boxed<int32>)
@@ -2382,7 +2388,7 @@ void NoesisFillTypeClassForUStruct(NoesisTypeClass* TypeClass, UScriptStruct* Cl
 			ensure(PropertyName.FindLastChar(TEXT('_'), UnderscorePosition));
 			PropertyName = PropertyName.LeftChop(PropertyName.Len() - UnderscorePosition);
 		}
-		Noesis::Symbol PropertyId = Noesis::Symbol(TCHARToNsString(*PropertyName).Str());
+		Noesis::Symbol PropertyId = Noesis::Symbol(TCHAR_TO_UTF8(*PropertyName));
 
 		const Noesis::Type* PropertyType = GetPropertyType(Property);
 		if (PropertyType != nullptr)
@@ -2440,7 +2446,7 @@ void NoesisFillTypeClassForUClass(NoesisTypeClass* TypeClass, UClass* Class)
 
 			if (!Param)
 			{
-				NoesisTypeProperty* TypeProperty = new NoesisTypePropertyObjectWrapperCommand(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), Function, CanExecuteFunction);
+				NoesisTypeProperty* TypeProperty = new NoesisTypePropertyObjectWrapperCommand(Noesis::Symbol(TCHAR_TO_UTF8(*Function->GetName())), Noesis::TypeOf<NoesisFunctionWrapper>(), Function, CanExecuteFunction);
 				TypeClass->AddProperty(TypeProperty);
 			}
 			else
@@ -2448,7 +2454,7 @@ void NoesisFillTypeClassForUClass(NoesisTypeClass* TypeClass, UClass* Class)
 				const Noesis::Type* ParamType = GetPropertyType(Param);
 				if (ParamType != nullptr)
 				{
-					NoesisTypeProperty* TypeProperty = new NoesisTypePropertyObjectWrapperCommand(Noesis::Symbol(TCHARToNsString(*Function->GetName()).Str()), Noesis::TypeOf<NoesisFunctionWrapper>(), Function, CanExecuteFunction);
+					NoesisTypeProperty* TypeProperty = new NoesisTypePropertyObjectWrapperCommand(Noesis::Symbol(TCHAR_TO_UTF8(*Function->GetName())), Noesis::TypeOf<NoesisFunctionWrapper>(), Function, CanExecuteFunction);
 					TypeClass->AddProperty(TypeProperty);
 				}
 			}
@@ -2456,7 +2462,7 @@ void NoesisFillTypeClassForUClass(NoesisTypeClass* TypeClass, UClass* Class)
 
 		if (Function->GetName().StartsWith(TEXT("Get")))
 		{
-			Noesis::Symbol PropertyId = Noesis::Symbol(TCHARToNsString(*Function->GetName().RightChop(3)).Str());
+			Noesis::Symbol PropertyId = Noesis::Symbol(TCHAR_TO_UTF8(*Function->GetName().RightChop(3)));
 			FProperty* OutParam = CastField<FProperty>(Function->ChildProperties);
 			if (Function->NumParms == 1 && (OutParam != nullptr) && ((OutParam->PropertyFlags & CPF_OutParm) != 0))
 			{
@@ -2488,7 +2494,7 @@ void NoesisFillTypeClassForUClass(NoesisTypeClass* TypeClass, UClass* Class)
 	{
 		FProperty* Property = *PropertyIt;
 		FString PropertyName = Property->GetName();
-		Noesis::Symbol PropertyId = Noesis::Symbol(TCHARToNsString(*PropertyName).Str());
+		Noesis::Symbol PropertyId = Noesis::Symbol(TCHAR_TO_UTF8(*PropertyName));
 
 		if (TypeClass->FindProperty(PropertyId) == nullptr)
 		{
@@ -2515,16 +2521,7 @@ Noesis::TypeClass* NoesisCreateTypeClassForUClass(UClass* Class)
 		return *TypeClassPtr;
 	}
 
-	FString ClassName;
-	if (Class->ClassGeneratedBy)
-	{
-		ClassName = Class->ClassGeneratedBy->GetPathName();
-	}
-	else
-	{
-		ClassName = Class->GetPathName();
-	}
-	FString RegisterClassName = RegisterNameFromPath(ClassName);
+	FString RegisterClassName = RegisterNameFromPath(Class->GetPathName());
 	NoesisTypeClass* TypeClass = new NoesisTypeClass(Noesis::Symbol(TCHAR_TO_UTF8(*RegisterClassName)));
 
 	NoesisFillTypeClassForUClass(TypeClass, Class);
@@ -2669,16 +2666,7 @@ void NoesisFillTypeEnumForUEnum(NoesisTypeEnum* TypeEnum, UEnum* Enum)
 {
 	for (int32 Index = 0; Index != Enum->NumEnums(); ++Index)
 	{
-		FText EnumValueText = Enum->GetDisplayNameTextByIndex(Index);
-		FString EnumValueName;
-		if (const FString* SourceString = FTextInspector::GetSourceString(EnumValueText))
-		{
-			EnumValueName = *SourceString;
-		}
-		else
-		{
-			EnumValueName = EnumValueText.ToString();
-		}
+		FString EnumValueName = Enum->GetAuthoredNameStringByIndex(Index);
 		TypeEnum->AddValue(Noesis::Symbol(TCHAR_TO_UTF8(*EnumValueName)), (int)Enum->GetValueByIndex(Index));
 	}
 }
@@ -2691,8 +2679,7 @@ Noesis::TypeEnum* NoesisCreateTypeEnumForUEnum(UEnum* Enum)
 		return *TypeEnumPtr;
 	}
 
-	FString EnumName = Enum->GetPathName();
-	FString RegisterEnumName = RegisterNameFromPath(EnumName);
+	FString RegisterEnumName = RegisterNameFromPath(Enum->GetPathName());
 	Noesis::String PersistentEnumName = TCHAR_TO_UTF8(*RegisterEnumName);
 	NoesisTypeEnum* TypeEnum = new NoesisTypeEnum(Enum, Noesis::Symbol(PersistentEnumName.Str()));
 	check(TypeEnum);
@@ -2824,7 +2811,7 @@ void NoesisDestroyTypeClassForStruct(UUserDefinedStruct* BaseStruct)
 							if (Object->GetClass() == OwnerClass)
 							{
 								NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)ObjectComponentPair.Value;
-								auto PropertySymbol = Noesis::Symbol(TCHARToNsString(*Field->GetName()).Str());
+								auto PropertySymbol = Noesis::Symbol(TCHAR_TO_UTF8(*Field->GetName()));
 								Wrapper->NotifyPropertyChanged(PropertySymbol);
 							}
 						}
@@ -2878,7 +2865,7 @@ void NoesisDestroyTypeClassForEnum(UEnum* Enum)
 							if (Object->GetClass() == OwnerClass)
 							{
 								NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)ObjectComponentPair.Value;
-								auto PropertySymbol = Noesis::Symbol(TCHARToNsString(*Field->GetName()).Str());
+								auto PropertySymbol = Noesis::Symbol(TCHAR_TO_UTF8(*Field->GetName()));
 								Wrapper->NotifyPropertyChanged(PropertySymbol);
 							}
 						}
@@ -2915,7 +2902,7 @@ void NoesisDestroyTypeClassForEnum(UEnum* Enum)
 							if (Object->GetClass() == OwnerClass)
 							{
 								NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)ObjectComponentPair.Value;
-								auto PropertySymbol = Noesis::Symbol(TCHARToNsString(*Field->GetName()).Str());
+								auto PropertySymbol = Noesis::Symbol(TCHAR_TO_UTF8(*Field->GetName()));
 								Wrapper->NotifyPropertyChanged(PropertySymbol);
 							}
 						}
@@ -2957,8 +2944,7 @@ void NoesisAssetRenamed(UObject* Object, FString OldPath)
 			{
 				Noesis::Reflection::UnregisterNoDelete(TypeClass);
 			}
-			FString ClassName = Class->GetPathName();
-			FString RegisterClassName = RegisterNameFromPath(ClassName);
+			FString RegisterClassName = RegisterNameFromPath(Class->GetPathName());
 			TypeClass->ChangeName(Noesis::Symbol(TCHAR_TO_UTF8(*RegisterClassName)));
 			if (IsRegistered)
 			{
@@ -2977,8 +2963,7 @@ void NoesisAssetRenamed(UObject* Object, FString OldPath)
 			{
 				Noesis::Reflection::UnregisterNoDelete(TypeEnum);
 			}
-			FString EnumName = Enum->GetPathName();
-			FString RegisterEnumName = RegisterNameFromPath(EnumName);
+			FString RegisterEnumName = RegisterNameFromPath(Enum->GetPathName());
 			TypeEnum->ChangeName(Noesis::Symbol(TCHAR_TO_UTF8(*RegisterEnumName)));
 			if (IsRegistered)
 			{
@@ -2997,8 +2982,7 @@ void NoesisAssetRenamed(UObject* Object, FString OldPath)
 			{
 				Noesis::Reflection::UnregisterNoDelete(TypeClass);
 			}
-			FString ClassName = Struct->GetPathName();
-			FString RegisterClassName = RegisterNameFromPath(ClassName);
+			FString RegisterClassName = RegisterNameFromPath(Struct->GetPathName());
 			TypeClass->ChangeName(Noesis::Symbol(TCHAR_TO_UTF8(*RegisterClassName)));
 			if (IsRegistered)
 			{
@@ -3055,8 +3039,7 @@ Noesis::TypeClass* NoesisCreateTypeClassForUStruct(UScriptStruct* Class)
 		return *TypeClassPtr;
 	}
 
-	FString ClassName = Class->GetPathName();
-	FString RegisterClassName = RegisterNameFromPath(ClassName);
+	FString RegisterClassName = RegisterNameFromPath(Class->GetPathName());
 	NoesisTypeClass* TypeClass = new NoesisTypeClass(Noesis::Symbol(TCHAR_TO_UTF8(*RegisterClassName)));
 
 	NoesisFillTypeClassForUStruct(TypeClass, Class);
@@ -3229,7 +3212,7 @@ void NoesisNotifyPropertyChanged(UObject* Owner, FName PropertyName)
 	if (WrapperPtr)
 	{
 		NoesisObjectWrapper* Wrapper = *WrapperPtr;
-		auto PropertySymbol = Noesis::Symbol(TCHARToNsString(*PropertyName.ToString()).Str());
+		auto PropertySymbol = Noesis::Symbol(TCHAR_TO_UTF8(*PropertyName.ToString()));
 #if DO_CHECK // Skip in shipping build
 		const Noesis::TypeClass* WrapperTypeClass = Wrapper->GetClassType();
 		Noesis::TypeClassProperty ClassProperty = Noesis::FindProperty(WrapperTypeClass, PropertySymbol);
@@ -3237,8 +3220,8 @@ void NoesisNotifyPropertyChanged(UObject* Owner, FName PropertyName)
 		if (TypeProperty == nullptr)
 		{
 			NS_LOG("Couldn't resolve property %s::%s",
-				TCHAR_TO_UTF8(*Owner->GetClass()->GetFName().ToString()),
-				TCHAR_TO_UTF8(*PropertyName.ToString()));
+				TCHARToNsString(*Owner->GetClass()->GetFName().ToString()).Str(),
+				TCHARToNsString(*PropertyName.ToString()).Str());
 		}
 #endif
 		Wrapper->NotifyPropertyChanged(PropertySymbol);
@@ -3264,8 +3247,8 @@ void NoesisNotifyArrayPropertyChanged(UObject* Owner, FName ArrayPropertyName)
 	else
 	{
 		NS_LOG("Couldn't resolve property %s::%s",
-			TCHAR_TO_UTF8(*Owner->GetClass()->GetFName().ToString()),
-			TCHAR_TO_UTF8(*ArrayPropertyName.ToString()));
+			TCHARToNsString(*Owner->GetClass()->GetFName().ToString()).Str(),
+			TCHARToNsString(*ArrayPropertyName.ToString()).Str());
 	}
 #endif
 }
@@ -3287,7 +3270,9 @@ void NoesisNotifyCanExecuteFunctionChanged(UObject* Owner, FName FunctionName)
 #if DO_CHECK // Skip in shipping build
 	else
 	{
-		UE_LOG(LogNoesis, Warning, TEXT("Couldn't resolve function %s::%s"), *Owner->GetClass()->GetFName().ToString(), *FunctionName.ToString());
+		NS_LOG("Couldn't resolve function %s::%s",
+			TCHARToNsString(*Owner->GetClass()->GetFName().ToString()).Str(),
+			TCHARToNsString(*FunctionName.ToString()).Str());
 	}
 #endif
 }
@@ -3611,21 +3596,33 @@ void NoesisGarbageCollected()
 
 void NoesisReflectionRegistryCallback(Noesis::Symbol Name)
 {
-	// Can't load objects in these circunstances
+	// Can't load objects in these circumstances
 	if (GIsSavingPackage || (IsInGameThread() && IsGarbageCollecting()))
 		return;
 
-	const char* TypeName = Name.Str();
-	FString UnrealTypeName = NsStringToFString(TypeName);
-
 	// Make sure the name doesn't have invalid charaters to avoid errors in LoadObject
+	FString UnrealTypeName = UTF8_TO_TCHAR(Name.Str());
 	if (UnrealTypeName.Contains(TEXT("<")))
 		return;
 
-	UObject* Object = LoadObject<UObject>(nullptr, *PathFromRegisterName_GameAsset(UnrealTypeName), nullptr, LOAD_NoWarn);
+	// Warn users about unsupported types in Unreal
+	if (UnrealTypeName == "Application")
+	{
+		NS_LOG("Application not supported in Unreal, please set Application Resources in NoesisGUI settings.");
+		return;
+	}
+	if (UnrealTypeName == "Window")
+	{
+		NS_LOG("Window not supported in Unreal, please use Page or UserControl instead.");
+		return;
+	}
+
+	// Find asset from type name
+	FString GamePath = PathFromRegisterName_GameAsset(UnrealTypeName);
+	UObject* Object = LoadObject<UObject>(nullptr, *GamePath, nullptr, LOAD_NoWarn);
 	if (Object == nullptr)
 	{
-		Object = LoadObject<UObject>(nullptr, *(PathFromRegisterName_GameAsset(UnrealTypeName) + TEXT("_C")), nullptr, LOAD_NoWarn);
+		Object = LoadObject<UObject>(nullptr, *(GamePath + TEXT("_C")), nullptr, LOAD_NoWarn);
 		if (Object == nullptr)
 		{
 			Object = LoadObject<UObject>(nullptr, *PathFromRegisterName_Native(UnrealTypeName), nullptr, LOAD_NoWarn);

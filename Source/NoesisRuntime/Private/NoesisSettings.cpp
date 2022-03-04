@@ -37,9 +37,9 @@ UNoesisSettings::UNoesisSettings(const FObjectInitializer& ObjectInitializer)
 {
 	OffscreenTextureSampleCount = ENoesisOffscreenSampleCount::One;
 	GlyphTextureSize = ENoesisGlyphCacheDimensions::x1024;
-	ApplicationResources = FSoftObjectPath("/Game/Theme/NoesisTheme_DarkBlue.NoesisTheme_DarkBlue");
-	DefaultFonts.Add(FSoftObjectPath("/Game/Theme/Fonts/PT_Root_UI_Regular.PT_Root_UI_Regular"));
-	DefaultFonts.Add(FSoftObjectPath("/Game/Theme/Fonts/PT_Root_UI_Bold.PT_Root_UI_Bold"));
+	ApplicationResources = FSoftObjectPath("/NoesisGUI/Theme/NoesisTheme_DarkBlue.NoesisTheme_DarkBlue");
+	DefaultFonts.Add(FSoftObjectPath("/NoesisGUI/Theme/Fonts/PT_Root_UI_Regular.PT_Root_UI_Regular"));
+	DefaultFonts.Add(FSoftObjectPath("/NoesisGUI/Theme/Fonts/PT_Root_UI_Bold.PT_Root_UI_Bold"));
 	LoadPlatformFonts = true;
 	DefaultFontSize = 15.f;
 	DefaultFontWeight = ENoesisFontWeight::Normal;
@@ -132,6 +132,14 @@ static TArray<FString> GetFamilyNames(FT_Library Library, const TArray<uint8>& F
 	return FamilyNames;
 }
 
+static FString GetFamilyName(UFontFace* FontFace, const FString& Name)
+{
+	UPackage* Package = FontFace->GetOutermost();
+	FString PackageRoot, PackagePath, PackageName;
+	FPackageName::SplitLongPackageName(Package->GetPathName(), PackageRoot, PackagePath, PackageName, false);
+	return PackageRoot.LeftChop(1) + ";component" / PackagePath / "#" + Name;
+}
+
 static TArray<UFontFace*> DefaultFontRefs;
 void UNoesisSettings::SetFontFallbacks() const
 {
@@ -164,13 +172,7 @@ void UNoesisSettings::SetFontFallbacks() const
 					TArray<FString> Names = GetFamilyNames(Library, FileData);
 					for (auto& Name : Names)
 					{
-						FString FontPackagePath = FPackageName::GetLongPackagePath(FontFace->GetPathName());
-						UPackage* Package = FontFace->GetOutermost();
-						FString PackageRoot;
-						FString PackagePath;
-						FString PackageName;
-						FPackageName::SplitLongPackageName(Package->GetPathName(), PackageRoot, PackagePath, PackageName, false);
-						FamilyNamesStr.AddUnique(TCHAR_TO_UTF8(*(PackagePath / "#" + Name)));
+						FamilyNamesStr.AddUnique(TCHAR_TO_UTF8(*GetFamilyName(FontFace, Name)));
 					}
 				}
 				else
@@ -183,13 +185,7 @@ void UNoesisSettings::SetFontFallbacks() const
 					TArray<FString> Names = GetFamilyNames(Library, FontFaceDataArray);
 					for (auto& Name : Names)
 					{
-						FString FontPackagePath = FPackageName::GetLongPackagePath(FontFace->GetPathName());
-						UPackage* Package = FontFace->GetOutermost();
-						FString PackageRoot;
-						FString PackagePath;
-						FString PackageName;
-						FPackageName::SplitLongPackageName(Package->GetPathName(), PackageRoot, PackagePath, PackageName, false);
-						FamilyNamesStr.AddUnique(TCHAR_TO_UTF8(*(PackagePath / "#" + Name)));
+						FamilyNamesStr.AddUnique(TCHAR_TO_UTF8(*GetFamilyName(FontFace, Name)));
 					}
 				}
 			}

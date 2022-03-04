@@ -22,26 +22,26 @@ UNoesisXaml::UNoesisXaml(const FObjectInitializer& ObjectInitializer)
 {
 }
 
+static FString GetXamlUri(UObject* Package)
+{
+	FString PackageRoot, PackagePath, PackageName;
+	FPackageName::SplitLongPackageName(Package->GetPathName(), PackageRoot, PackagePath, PackageName, false);
+	return PackageRoot.LeftChop(1) + TEXT(";component/") + PackagePath + PackageName + TEXT(".xaml");
+}
+
 Noesis::Ptr<Noesis::BaseComponent> UNoesisXaml::LoadXaml()
 {
 	if (HasAnyFlags(RF_ClassDefaultObject))
 		return nullptr;
-	UObject* Package = GetOutermost();
-	FString PackageRoot;
-	FString PackagePath;
-	FString PackageName;
-	FPackageName::SplitLongPackageName(Package->GetPathName(), PackageRoot, PackagePath, PackageName, false);
-	return Noesis::GUI::LoadXaml(TCHAR_TO_UTF8(*(PackagePath + PackageName + TEXT(".xaml"))));
+
+	FString Uri = GetXamlUri(GetOutermost());
+	return Noesis::GUI::LoadXaml(TCHAR_TO_UTF8(*Uri));
 }
 
 void UNoesisXaml::LoadComponent(Noesis::BaseComponent* Component)
 {
-	UObject* Package = GetOutermost();
-	FString PackageRoot;
-	FString PackagePath;
-	FString PackageName;
-	FPackageName::SplitLongPackageName(Package->GetPathName(), PackageRoot, PackagePath, PackageName, false);
-	Noesis::GUI::LoadComponent(Component, TCHAR_TO_UTF8(*(PackagePath + PackageName + TEXT(".xaml"))));
+	FString Uri = GetXamlUri(GetOutermost());
+	Noesis::GUI::LoadComponent(Component, TCHAR_TO_UTF8(*Uri));
 }
 
 uint32 UNoesisXaml::GetContentHash() const
