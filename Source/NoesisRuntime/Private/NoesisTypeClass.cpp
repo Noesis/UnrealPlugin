@@ -299,7 +299,7 @@ struct NoesisTypeTraits<UTexture2D*>
 	typedef Noesis::TextureSource* NoesisType;
 	static Noesis::Ptr<Noesis::BaseComponent> ToNoesis(UObject* Value)
 	{
-		check(Value->IsA<UTexture2D>());
+		check(Value == nullptr || Value->IsA<UTexture2D>());
 		return NoesisCreateComponentForUTexture((UTexture2D*)Value);
 	}
 	static UObject* ToUnreal(Noesis::BaseComponent* Value)
@@ -318,7 +318,7 @@ struct NoesisTypeTraits<UTextureRenderTarget2D*>
 	typedef Noesis::TextureSource* NoesisType;
 	static Noesis::Ptr<Noesis::BaseComponent> ToNoesis(UObject* Value)
 	{
-		check(Value->IsA<UTextureRenderTarget2D>());
+		check(Value == nullptr || Value->IsA<UTextureRenderTarget2D>());
 		return NoesisCreateComponentForUTexture((UTextureRenderTarget2D*)Value);
 	}
 	static UObject* ToUnreal(Noesis::BaseComponent* Value)
@@ -674,6 +674,7 @@ void NoesisInitTypeTables()
 	{
 		{FIntProperty::StaticClass(), { &GenericGetter<int32>, &GenericSetter<int32>, &GenericGetType<int32> }},
 		{FFloatProperty::StaticClass(),{  &GenericGetter<float>, &GenericSetter<float>, &GenericGetType<float> }},
+		{FDoubleProperty::StaticClass(),{  &GenericGetter<double>, &GenericSetter<double>, &GenericGetType<double> }},
 		{FBoolProperty::StaticClass(), { &GenericGetter<bool>, &GenericSetter<bool>, &GenericGetType<bool> }},
 		{FStrProperty::StaticClass(), { &GenericGetter<FString>, &GenericSetter<FString>, &GenericGetType<Noesis::String> }},
 		{FTextProperty::StaticClass(), { &GenericGetter<FText>, &GenericSetter<FText>, &GenericGetType<Noesis::String> }},
@@ -977,7 +978,7 @@ static void DestroyFunctionParams(UFunction* Function, void* Params)
 Noesis::Ptr<Noesis::BaseComponent> GetFunctionProperty(void* BasePointer, UFunction* Getter)
 {
 	UObject* Object = (UObject*)BasePointer;
-	if (!Object->IsPendingKill() && !Object->IsUnreachable())
+	if (IsValid(Object) && !Object->IsUnreachable())
 	{
 		void* Params = FMemory_Alloca(Getter->GetStructureSize());
 		InitializeFunctionParams(Getter, Params);
@@ -993,7 +994,7 @@ Noesis::Ptr<Noesis::BaseComponent> GetFunctionProperty(void* BasePointer, UFunct
 bool SetFunctionProperty(void* BasePointer, UFunction* Setter, Noesis::BaseComponent* Value)
 {
 	UObject* Object = (UObject*)BasePointer;
-	if (!Object->IsPendingKill() && !Object->IsUnreachable())
+	if (IsValid(Object) && !Object->IsUnreachable())
 	{
 		void* Params = FMemory_Alloca(Setter->GetStructureSize());
 		InitializeFunctionParams(Setter, Params);
@@ -1787,7 +1788,7 @@ public:
 			return Noesis::BaseComponent::StaticGetClassType(nullptr);
 		}
 
-		if (!Object->IsPendingKill() && !Object->IsUnreachable())
+		if (IsValid(Object) && !Object->IsUnreachable())
 		{
 			UClass* Class = Object->GetClass();
 			const Noesis::TypeClass* TypeClass = NoesisCreateTypeClassForUClass(Class);
@@ -1804,7 +1805,7 @@ public:
 			return "";
 		}
 
-		if (!Object->IsPendingKill() && !Object->IsUnreachable())
+		if (IsValid(Object) && !Object->IsUnreachable())
 		{
 			return TCHARToNsString(*Object->GetPathName());
 		}
@@ -1880,7 +1881,7 @@ public:
 			return false;
 
 		UObject* Object = Wrapper->Object;
-		if (!Object->IsPendingKill() && !Object->IsUnreachable() && CanExecuteFunction)
+		if (IsValid(Object) && !Object->IsUnreachable() && CanExecuteFunction)
 		{
 			if (CanExecuteFunction->NumParms == 1)
 			{
@@ -1920,7 +1921,7 @@ public:
 			return;
 
 		UObject* Object = Wrapper->Object;
-		if (!Object->IsPendingKill() && !Object->IsUnreachable())
+		if (IsValid(Object) && !Object->IsUnreachable())
 		{
 			if (Function->NumParms == 0)
 			{
@@ -2806,7 +2807,7 @@ void NoesisDestroyTypeClassForStruct(UUserDefinedStruct* BaseStruct)
 					{
 						auto& ObjectComponentPair = *It;
 						UObject* Object = ObjectComponentPair.Key;
-						if (!Object->IsPendingKill() && !Object->IsUnreachable())
+						if (IsValid(Object) && !Object->IsUnreachable())
 						{
 							if (Object->GetClass() == OwnerClass)
 							{
@@ -2860,7 +2861,7 @@ void NoesisDestroyTypeClassForEnum(UEnum* Enum)
 					{
 						auto& ObjectComponentPair = *It;
 						UObject* Object = ObjectComponentPair.Key;
-						if (!Object->IsPendingKill() && !Object->IsUnreachable())
+						if (IsValid(Object) && !Object->IsUnreachable())
 						{
 							if (Object->GetClass() == OwnerClass)
 							{
@@ -2897,7 +2898,7 @@ void NoesisDestroyTypeClassForEnum(UEnum* Enum)
 					{
 						auto& ObjectComponentPair = *It;
 						UObject* Object = ObjectComponentPair.Key;
-						if (!Object->IsPendingKill() && !Object->IsUnreachable())
+						if (IsValid(Object) && !Object->IsUnreachable())
 						{
 							if (Object->GetClass() == OwnerClass)
 							{
@@ -3489,7 +3490,7 @@ void NoesisCultureChanged()
 		{
 			auto& ObjectComponentPair = *It;
 			UObject* Object = ObjectComponentPair.Key;
-			if (!Object->IsPendingKill() && !Object->IsUnreachable())
+			if (IsValid(Object) && !Object->IsUnreachable())
 			{
 				NoesisObjectWrapper* Wrapper = ObjectComponentPair.Value;
 				UClass* Class = Object->GetClass();

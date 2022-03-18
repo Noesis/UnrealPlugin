@@ -26,4 +26,6 @@ public:
 	TSharedPtr<class FNoesisBlueprintEditorToolbar> NoesisToolbar;
 
 	FOnBlueprintPreviewUpdated OnBlueprintPreviewUpdated;
+
+	static const FName PreviewTabID;
 };

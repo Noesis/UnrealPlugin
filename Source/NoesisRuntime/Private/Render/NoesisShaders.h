@@ -100,16 +100,22 @@ extern TGlobalResource<FNoesisPosColorTex0Tex1VertexDeclaration> GNoesisPosColor
 extern TGlobalResource<FNoesisPosColorTex1RectVertexDeclaration> GNoesisPosColorTex1RectVertexDeclaration;
 extern TGlobalResource<FNoesisPosColorTex0RectImagePosVertexDeclaration> GNoesisPosColorTex0RectImagePosVertexDeclaration;
 
+#if (ENGINE_MAJOR_VERSION < 5)
+typedef FMatrix FMatrix44f;
+typedef FVector2D FVector2f;
+typedef FVector4 FVector4f;
+#endif
+
 BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisVSConstants, )
-SHADER_PARAMETER(FMatrix, projectionMtx)
+SHADER_PARAMETER(FMatrix44f, projectionMtx)
 END_GLOBAL_SHADER_PARAMETER_STRUCT()
 
 BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisTextureSize, )
-SHADER_PARAMETER(FVector2D, textureSize)
+SHADER_PARAMETER(FVector2f, textureSize)
 END_GLOBAL_SHADER_PARAMETER_STRUCT()
 
 BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisPSRgbaConstants, )
-SHADER_PARAMETER(FVector4, rgba)
+SHADER_PARAMETER(FVector4f, rgba)
 END_GLOBAL_SHADER_PARAMETER_STRUCT()
 
 BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisPSOpacityConstants, )
@@ -117,7 +123,7 @@ SHADER_PARAMETER(float, opacity)
 END_GLOBAL_SHADER_PARAMETER_STRUCT()
 
 BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisPSRadialGradConstants, )
-SHADER_PARAMETER_ARRAY(FVector4, radialGrad, [2])
+SHADER_PARAMETER_ARRAY(FVector4f, radialGrad, [2])
 END_GLOBAL_SHADER_PARAMETER_STRUCT()
 
 BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisBlurConstants, )
@@ -125,8 +131,8 @@ SHADER_PARAMETER(float, blend)
 END_GLOBAL_SHADER_PARAMETER_STRUCT()
 
 BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisShadowConstants, )
-SHADER_PARAMETER(FVector4, shadowColor)
-SHADER_PARAMETER(FVector2D, shadowOffset)
+SHADER_PARAMETER(FVector4f, shadowColor)
+SHADER_PARAMETER(FVector2f, shadowOffset)
 SHADER_PARAMETER(float, blend)
 END_GLOBAL_SHADER_PARAMETER_STRUCT()
 

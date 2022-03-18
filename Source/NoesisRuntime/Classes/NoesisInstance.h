@@ -32,6 +32,88 @@ enum class NoesisInstanceRenderFlags : uint8
 	Overdraw = 4
 };
 
+#if (ENGINE_MAJOR_VERSION < 5)
+struct FGameTime
+{
+	using FTimeType = float;
+
+	FORCEINLINE_DEBUGGABLE FGameTime()
+		: RealTimeSeconds(FTimeType(0))
+		, WorldTimeSeconds(FTimeType(0))
+		, DeltaRealTimeSeconds(FTimeType(0))
+		, DeltaWorldTimeSeconds(FTimeType(0))
+	{ }
+
+	FGameTime(const FGameTime&) = default;
+	FGameTime& operator = (const FGameTime&) = default;
+
+	// Returns the game time since GStartTime.
+	static FGameTime GetTimeSinceAppStart();
+
+	static FORCEINLINE_DEBUGGABLE FGameTime CreateUndilated(FTimeType InRealTimeSeconds, FTimeType InDeltaRealTimeSeconds)
+	{
+		return FGameTime::CreateDilated(InRealTimeSeconds, InDeltaRealTimeSeconds, InRealTimeSeconds, InDeltaRealTimeSeconds);
+	}
+
+	static FORCEINLINE_DEBUGGABLE FGameTime CreateDilated(FTimeType InRealTimeSeconds, FTimeType InDeltaRealTimeSeconds, FTimeType InWorldTimeSeconds, FTimeType InDeltaWorldTimeSeconds)
+	{
+		return FGameTime(InRealTimeSeconds, InDeltaRealTimeSeconds, InWorldTimeSeconds, InDeltaWorldTimeSeconds);
+	}
+
+	/** Returns time in seconds since level began play, but IS NOT paused when the game is paused, and IS NOT dilated/clamped. */
+	FORCEINLINE_DEBUGGABLE FTimeType GetRealTimeSeconds() const
+	{
+		return RealTimeSeconds;
+	}
+
+	/** Returns frame delta time in seconds with no adjustment for time dilation and pause. */
+	FORCEINLINE_DEBUGGABLE FTimeType GetDeltaRealTimeSeconds() const
+	{
+		return DeltaRealTimeSeconds;
+	}
+
+	/** Returns time in seconds since level began play, but IS paused when the game is paused, and IS dilated/clamped. */
+	FORCEINLINE_DEBUGGABLE FTimeType GetWorldTimeSeconds() const
+	{
+		return WorldTimeSeconds;
+	}
+
+	/** Returns frame delta time in seconds adjusted by e.g. time dilation. */
+	FORCEINLINE_DEBUGGABLE FTimeType GetDeltaWorldTimeSeconds() const
+	{
+		return DeltaWorldTimeSeconds;
+	}
+
+	/** Returns how much world time is slowed compared to real time. */
+	FORCEINLINE_DEBUGGABLE float GetTimeDilation() const
+	{
+		ensure(DeltaRealTimeSeconds > FTimeType(0));
+		return float(DeltaWorldTimeSeconds / DeltaRealTimeSeconds);
+	}
+
+	/** Returns whether the world time is paused. */
+	FORCEINLINE_DEBUGGABLE bool IsPaused() const
+	{
+		return DeltaWorldTimeSeconds == FTimeType(0);
+	}
+
+private:
+	FTimeType RealTimeSeconds;
+	FTimeType WorldTimeSeconds;
+
+	FTimeType DeltaRealTimeSeconds;
+	FTimeType DeltaWorldTimeSeconds;
+
+	FORCEINLINE_DEBUGGABLE FGameTime(FTimeType InRealTimeSeconds, FTimeType InDeltaRealTimeSeconds, FTimeType InWorldTimeSeconds, FTimeType InDeltaWorldTimeSeconds)
+		: RealTimeSeconds(InRealTimeSeconds)
+		, WorldTimeSeconds(InWorldTimeSeconds)
+		, DeltaRealTimeSeconds(InDeltaRealTimeSeconds)
+		, DeltaWorldTimeSeconds(InDeltaWorldTimeSeconds)
+	{ }
+
+};
+#endif
+
 UCLASS(Blueprintable)
 class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 {
@@ -44,9 +126,7 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	float Width;
 	float Height;
 	float CurrentTime;
-	float WorldTimeSeconds;
-	float WorldDeltaSeconds;
-	float WorldRealTimeSeconds;
+	FGameTime WorldTime;
 	bool FlipYAxis;
 
 	typedef TSharedPtr<class FNoesisSlateElement, ESPMode::ThreadSafe> FNoesisSlateElementPtr;
@@ -115,7 +195,7 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	void DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRef& BackBuffer);
 #endif // WITH_EDITOR
 
-	void UpdateWorldTimes();
+	void UpdateWorldTime();
 
 	void RegisterInputAction(FInputActionBinding Binding);
 	void UnregisterInputAction(FInputActionBinding Binding);

@@ -3,16 +3,16 @@
 	<init/>
 	<resourceCopies>
 		<isArch arch="armeabi-v7a">
-			<copyFile src="$S(PluginDir)/NoesisSDK/Bin/android_arm/libNoesis.so" dst="$S(BuildDir)/libs/armeabi-v7a/libNoesis.so"/>
+			<copyFile src="$S(PluginDir)/NoesisSDK/Bin/android/armeabi-v7a/libNoesis.so" dst="$S(BuildDir)/libs/armeabi-v7a/libNoesis.so"/>
 		</isArch>
 		<isArch arch="arm64-v8a">
-			<copyFile src="$S(PluginDir)/NoesisSDK/Bin/android_arm64/libNoesis.so" dst="$S(BuildDir)/libs/arm64-v8a/libNoesis.so"/>
+			<copyFile src="$S(PluginDir)/NoesisSDK/Bin/android/arm64-v8a/libNoesis.so" dst="$S(BuildDir)/libs/arm64-v8a/libNoesis.so"/>
 		</isArch>
 		<isArch arch="x86">
-			<copyFile src="$S(PluginDir)/NoesisSDK/Bin/android_x86/libNoesis.so" dst="$S(BuildDir)/libs/x86/libNoesis.so"/>
+			<copyFile src="$S(PluginDir)/NoesisSDK/Bin/android/x86/libNoesis.so" dst="$S(BuildDir)/libs/x86/libNoesis.so"/>
 		</isArch>
 		<isArch arch="x86_64">
-			<copyFile src="$S(PluginDir)/NoesisSDK/Bin/android_x86_64/libNoesis.so" dst="$S(BuildDir)/libs/x86_64/libNoesis.so"/>
+			<copyFile src="$S(PluginDir)/NoesisSDK/Bin/android/x86_64/libNoesis.so" dst="$S(BuildDir)/libs/x86_64/libNoesis.so"/>
 		</isArch>
 	</resourceCopies>
 	<soLoadLibrary>

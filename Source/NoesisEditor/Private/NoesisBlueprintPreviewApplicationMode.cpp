@@ -37,7 +37,7 @@ FNoesisBlueprintPreviewApplicationMode::FNoesisBlueprintPreviewApplicationMode(T
 				FTabManager::NewStack()
 				->SetSizeCoefficient(0.2f)
 				->SetHideTabWell(true)
-				->AddTab(InNoesisBlueprintEditor->GetToolbarTabId(), ETabState::OpenedTab)
+				->AddTab(FNoesisBlueprintEditor::PreviewTabID, ETabState::OpenedTab)
 			)
 			->Split
 			(

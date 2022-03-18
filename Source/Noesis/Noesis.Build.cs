@@ -107,7 +107,7 @@ public class Noesis : ModuleRules
 
 			RuntimeDependencies.Add(NoesisDllTargetPath, NoesisDllPath, StagedFileType.NonUFS);
 		}
-		else if (Target.Platform == UnrealTargetPlatform.PS4)
+		else if (UnrealTargetPlatform.TryParse("PS4", out Platform) && Target.Platform == Platform)
 		{
 			PublicDefinitions.Add("NS_STATIC_LIBRARY");
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "ps4", "Noesis.a"));
@@ -117,7 +117,7 @@ public class Noesis : ModuleRules
 			PublicDefinitions.Add("NS_STATIC_LIBRARY");
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "ps5", "Noesis.a"));
 		}
-		else if (Target.Platform == UnrealTargetPlatform.Switch)
+		else if (UnrealTargetPlatform.TryParse("Switch", out Platform) && Target.Platform == Platform)
 		{
 			PublicDefinitions.Add("NS_STATIC_LIBRARY");
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "nx", "Noesis.a"));

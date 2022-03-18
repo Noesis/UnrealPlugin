@@ -194,6 +194,10 @@ TSharedPtr<FKismetCompilerContext> GetCompilerForNoesisBlueprint(UBlueprint* Blu
 	return TSharedPtr<FKismetCompilerContext>(new FNoesisBlueprintCompilerContext(NoesisBlueprint, Results, CompilerOptions));
 }
 
+#if (ENGINE_MAJOR_VERSION < 5)
+typedef FTicker FTSTicker;
+#endif
+
 class FNoesisEditorModule : public INoesisEditorModuleInterface
 {
 public:
@@ -255,7 +259,7 @@ public:
 		LevelEditorModule.GetMenuExtensibilityManager()->AddExtender(MenuExtender);
 
 		// Register ticker
-		TickerHandle = FTicker::GetCoreTicker().AddTicker(TEXT("NoesisEditor"), 0.0f, [this](float DeltaTime)
+		TickerHandle = FTSTicker::GetCoreTicker().AddTicker(TEXT("NoesisEditor"), 0.0f, [this](float DeltaTime)
 		{
 			Noesis::GUI::UpdateInspector();
 			return true;
@@ -307,7 +311,7 @@ public:
 		}
 
 		// Unregister ticker
-		FTicker::GetCoreTicker().RemoveTicker(TickerHandle);
+		FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
 	}
 	// End of IModuleInterface interface
 
@@ -504,7 +508,11 @@ private:
 	TSharedPtr<FNoesisBlueprintCompiler> NoesisBlueprintCompiler;
 	FDelegateHandle AssetImportHandle;
 	FDelegateHandle ObjectPropertyChangedHandle;
+#if (ENGINE_MAJOR_VERSION < 5)
 	FDelegateHandle TickerHandle;
+#else
+	FTSTicker::FDelegateHandle TickerHandle;
+#endif
 };
 
 INoesisEditorModuleInterface* FNoesisEditorModule::NoesisEditorModuleInterface = 0;

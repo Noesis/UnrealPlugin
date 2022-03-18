@@ -10,6 +10,7 @@
 #include "RHIResources.h"
 
 // NoesisRuntime includes
+#include "NoesisInstance.h"
 #include "NoesisShaders.h"
 
 // Noesis includes
@@ -50,9 +51,7 @@ class FNoesisRenderDevice : public Noesis::RenderDevice
 	virtual ~FNoesisRenderDevice();
 
 public:
-	float WorldTimeSeconds;
-	float WorldDeltaSeconds;
-	float WorldRealTimeSeconds;
+	FGameTime WorldTime;
 	FRHICommandList* RHICmdList;
 	FSceneView* View;
 	uint32 ViewLeft, ViewTop, ViewRight, ViewBottom;
@@ -75,7 +74,7 @@ public:
 	static void DestroyMaterial(void* Material);
 
 	void SetRHICmdList(class FRHICommandList* RHICmdList);
-	void SetWorldTimes(float InWorldTimeSeconds, float InWorldDeltaSeconds, float InWorldRealTimeSeconds);
+	void SetWorldTime(FGameTime InWorldTime);
 
 	void CreateView(uint32 Left, uint32 Top, uint32 Right, uint32 Bottom);
 	void DestroyView();

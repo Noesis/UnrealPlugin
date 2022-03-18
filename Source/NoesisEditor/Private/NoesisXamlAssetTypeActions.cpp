@@ -136,7 +136,11 @@ static bool ShouldRender(const FAssetData& AssetData)
 
 	// Unloaded blueprint or asset that may have a custom thumbnail, check to see if there is a thumbnail in the package to render
 	FString PackageFilename;
+#if (ENGINE_MAJOR_VERSION < 5)
 	if (FPackageName::DoesPackageExist(AssetData.PackageName.ToString(), NULL, &PackageFilename))
+#else
+	if (FPackageName::DoesPackageExist(AssetData.PackageName.ToString(), &PackageFilename))
+#endif
 	{
 		TSet<FName> ObjectFullNames;
 		FThumbnailMap ThumbnailMap;
@@ -356,7 +360,7 @@ void FNoesisXamlAssetTypeActions::AddToViewport(TArray<TWeakObjectPtr<UNoesisXam
 		UEdGraphPin* AddToViewportNodeThenLink = AddToViewportNodeThenLinks[0];
 		UK2Node_CallFunction* AddToViewportNodeThenNode = Cast< UK2Node_CallFunction>(AddToViewportNodeThenLink->GetOuter());
 		if (AddToViewportNodeThenNode != nullptr &&
-			AddToViewportNodeThenNode->FunctionReference.GetMemberName() == TEXT("SetInputMode_UIOnlyEx") &&
+			AddToViewportNodeThenNode->FunctionReference.GetMemberName() == TEXT("SetInputMode_GameAndUIEx") &&
 			AddToViewportNodeThenNode->FunctionReference.GetMemberParentClass() == UWidgetBlueprintLibrary::StaticClass())
 		{
 			SetInputModeNode = AddToViewportNodeThenNode;
@@ -373,7 +377,7 @@ void FNoesisXamlAssetTypeActions::AddToViewport(TArray<TWeakObjectPtr<UNoesisXam
 		check(SetInputModeNode != nullptr);
 		SetInputModeNode->CreateNewGuid();
 
-		SetInputModeNode->FunctionReference.SetExternalMember(TEXT("SetInputMode_UIOnlyEx"), UWidgetBlueprintLibrary::StaticClass());
+		SetInputModeNode->FunctionReference.SetExternalMember(TEXT("SetInputMode_GameAndUIEx"), UWidgetBlueprintLibrary::StaticClass());
 
 		SetInputModeNode->NodePosX = 900;
 		SetInputModeNode->NodePosY = 0;

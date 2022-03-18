@@ -99,6 +99,10 @@ public:
 	bool Alpha;
 };
 
+#if (ENGINE_MAJOR_VERSION < 5)
+typedef FTicker FTSTicker;
+#endif
+
 class FNoesisMaterial
 {
 public:
@@ -108,7 +112,7 @@ public:
 		MaterialProxy = InMaterial->GetRenderProxy();
 #if WITH_EDITOR
 		// We need this in the editor to account for material recompilations, which destroy the proxy.
-		TickerHandle = FTicker::GetCoreTicker().AddTicker(TEXT("NoesisMaterial"), 0.0f, [this](float DeltaTime)
+		TickerHandle = FTSTicker::GetCoreTicker().AddTicker(TEXT("NoesisMaterial"), 0.0f, [this](float DeltaTime)
 		{
 			UMaterialInterface* Material = MaterialPtr.Get();
 			if (Material != nullptr)
@@ -127,14 +131,19 @@ public:
 	~FNoesisMaterial()
 	{
 #if WITH_EDITOR
-		FTicker::GetCoreTicker().RemoveTicker(TickerHandle);
+		FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
 #endif
 	}
 
 	TWeakObjectPtr<UMaterialInterface> MaterialPtr;
 	FMaterialRenderProxy* MaterialProxy;
 #if WITH_EDITOR
+#if (ENGINE_MAJOR_VERSION < 5)
 	FDelegateHandle TickerHandle;
+#else
+	FTSTicker::FDelegateHandle TickerHandle;
+#endif
+
 #endif
 };
 
@@ -751,11 +760,9 @@ void FNoesisRenderDevice::SetRHICmdList(FRHICommandList* InRHICmdList)
 	RHICmdList = InRHICmdList;
 }
 
-void FNoesisRenderDevice::SetWorldTimes(float InWorldTimeSeconds, float InWorldDeltaSeconds, float InWorldRealTimeSeconds)
+void FNoesisRenderDevice::SetWorldTime(FGameTime InWorldTime)
 {
-	WorldTimeSeconds = InWorldTimeSeconds;
-	WorldDeltaSeconds = InWorldDeltaSeconds;
-	WorldRealTimeSeconds = InWorldRealTimeSeconds;
+	WorldTime = InWorldTime;
 }
 
 void FNoesisRenderDevice::CreateView(uint32 Left, uint32 Top, uint32 Right, uint32 Bottom)
@@ -784,7 +791,12 @@ void FNoesisRenderDevice::CreateView(uint32 Left, uint32 Top, uint32 Right, uint
 		nullptr,
 		FEngineShowFlags(ESFIM_Game)
 	);
-	ViewFamilyConstruction.SetWorldTimes(WorldTimeSeconds, WorldDeltaSeconds, WorldRealTimeSeconds);
+
+#if (ENGINE_MAJOR_VERSION < 5)
+	ViewFamilyConstruction.SetWorldTimes(WorldTime.GetWorldTimeSeconds(), WorldTime.GetDeltaWorldTimeSeconds(), WorldTime.GetRealTimeSeconds());
+#else
+	ViewFamilyConstruction.SetTime(WorldTime);
+#endif
 	/*.SetGammaCorrection(DisplayGamma)
 	.SetRealtimeUpdate(true)*/
 	FSceneViewFamilyContext Family(ViewFamilyConstruction);
@@ -807,7 +819,11 @@ void FNoesisRenderDevice::CreateView(uint32 Left, uint32 Top, uint32 Right, uint
 		FViewMatrices()
 	);
 
+#if (ENGINE_MAJOR_VERSION < 5)
 	ViewUniformShaderParameters.WorldViewOrigin = View->ViewMatrices.GetViewOrigin();
+#else
+	ViewUniformShaderParameters.RelativeWorldViewOrigin = (FVector3f)View->ViewMatrices.GetViewOrigin();
+#endif
 
 
 	ERHIFeatureLevel::Type RHIFeatureLevel = View->GetFeatureLevel();
@@ -895,21 +911,33 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 		// Usually the RHI resource is ready when we create the texture.
 		// However, when we are hot-reloading a texture, UE4 enqueues the
 		// creation to the render thread, so we must do the same.
-		ENQUEUE_RENDER_COMMAND(FNoesisInstance_InitRenderer)
-		(
-			[Texture, Resource](FRHICommandListImmediate&)
-			{
-				FTexture2DRHIRef TextureRef = Resource->GetTexture2DRHI();
-				if (TextureRef)
+		FTexture2DRHIRef TextureRef = Resource->GetTexture2DRHI();
+		if (TextureRef)
+		{
+			check(Texture->Width == TextureRef->GetSizeX());
+			check(Texture->Height == TextureRef->GetSizeY());
+			check(Texture->NumMipMaps == TextureRef->GetNumMips());
+			Texture->ShaderResourceTexture = TextureRef;
+			SetTextureFormat(Texture, TextureRef->GetFormat());
+		}
+		else
+		{
+			ENQUEUE_RENDER_COMMAND(FNoesisInstance_InitRenderer)
+			(
+				[Texture, Resource](FRHICommandListImmediate&)
 				{
-					check(Texture->Width == TextureRef->GetSizeX());
-					check(Texture->Height == TextureRef->GetSizeY());
-					check(Texture->NumMipMaps == TextureRef->GetNumMips());
-					Texture->ShaderResourceTexture = TextureRef;
-					SetTextureFormat(Texture, TextureRef->GetFormat());
+					FTexture2DRHIRef TextureRef = Resource->GetTexture2DRHI();
+					if (TextureRef)
+					{
+						check(Texture->Width == TextureRef->GetSizeX());
+						check(Texture->Height == TextureRef->GetSizeY());
+						check(Texture->NumMipMaps == TextureRef->GetNumMips());
+						Texture->ShaderResourceTexture = TextureRef;
+						SetTextureFormat(Texture, TextureRef->GetFormat());
+					}
 				}
-			}
-		);
+			);
+		}
 	}
 	else if (InTexture->IsA<UTextureRenderTarget2D>())
 	{
@@ -1288,8 +1316,11 @@ void FNoesisRenderDevice::SetPatternMaterialParameters<FNoesisPSBase>(const Noes
 	{
 		FNoesisTexture* Texture = (FNoesisTexture*)(Batch.pattern);
 		FRHITexture* PatternTexture = Texture->ShaderResourceTexture;
-		FRHISamplerState* PatternSamplerState = SamplerStates[Batch.patternSampler.v];
-		PixelShader->SetPatternTexture(*RHICmdList, PatternTexture, PatternSamplerState);
+		if (PatternTexture != nullptr)
+		{
+			FRHISamplerState* PatternSamplerState = SamplerStates[Batch.patternSampler.v];
+			PixelShader->SetPatternTexture(*RHICmdList, PatternTexture, PatternSamplerState);
+		}
 	}
 }
 
@@ -1379,60 +1410,60 @@ void FNoesisRenderDevice::SetPixelShaderParameters<FNoesisCustomEffectPS>(const 
 	Params.PostProcessInput_0_Sampler = PatternSamplerState;
 	// Texture extent in pixels.
 	{
-		const FVector2D Extent(Texture->GetWidth(), Texture->GetHeight());
-		const FVector2D ViewportMin(0.0f, 0.0f);
-		const FVector2D ViewportMax(Texture->GetWidth(), Texture->GetHeight());
-		const FVector2D ViewportSize = ViewportMax - ViewportMin;
+		const FVector2f Extent(Texture->GetWidth(), Texture->GetHeight());
+		const FVector2f ViewportMin(0.0f, 0.0f);
+		const FVector2f ViewportMax(Texture->GetWidth(), Texture->GetHeight());
+		const FVector2f ViewportSize = ViewportMax - ViewportMin;
 
 		FScreenPassTextureViewportParameters& Viewport = Params.PostProcessInput_1.Viewport;
 
 		Viewport.Extent = Extent;
-		Viewport.ExtentInverse = FVector2D(1.0f / Extent.X, 1.0f / Extent.Y);
+		Viewport.ExtentInverse = FVector2f(1.0f / Extent.X, 1.0f / Extent.Y);
 
-		Viewport.ScreenPosToViewportScale = FVector2D(0.5f, -0.5f) * ViewportSize;
+		Viewport.ScreenPosToViewportScale = FVector2f(0.5f, -0.5f) * ViewportSize;
 		Viewport.ScreenPosToViewportBias = (0.5f * ViewportSize) + ViewportMin;
 
 		Viewport.ViewportMin = FIntPoint(0, 0);
 		Viewport.ViewportMax = FIntPoint(Texture->GetWidth(), Texture->GetHeight());
 
 		Viewport.ViewportSize = ViewportSize;
-		Viewport.ViewportSizeInverse = FVector2D(1.0f / Viewport.ViewportSize.X, 1.0f / Viewport.ViewportSize.Y);
+		Viewport.ViewportSizeInverse = FVector2f(1.0f / Viewport.ViewportSize.X, 1.0f / Viewport.ViewportSize.Y);
 
 		Viewport.UVViewportMin = ViewportMin * Viewport.ExtentInverse;
 		Viewport.UVViewportMax = ViewportMax * Viewport.ExtentInverse;
 
 		Viewport.UVViewportSize = Viewport.UVViewportMax - Viewport.UVViewportMin;
-		Viewport.UVViewportSizeInverse = FVector2D(1.0f / Viewport.UVViewportSize.X, 1.0f / Viewport.UVViewportSize.Y);
+		Viewport.UVViewportSizeInverse = FVector2f(1.0f / Viewport.UVViewportSize.X, 1.0f / Viewport.UVViewportSize.Y);
 
 		Viewport.UVViewportBilinearMin = Viewport.UVViewportMin + 0.5f * Viewport.ExtentInverse;
 		Viewport.UVViewportBilinearMax = Viewport.UVViewportMax - 0.5f * Viewport.ExtentInverse;
 	}
 
 	{
-		const FVector2D Extent(ViewRight - ViewLeft, ViewBottom - ViewTop);
-		const FVector2D ViewportMin(ViewLeft, ViewTop);
-		const FVector2D ViewportMax(ViewRight, ViewBottom);
-		const FVector2D ViewportSize = ViewportMax - ViewportMin;
+		const FVector2f Extent(ViewRight - ViewLeft, ViewBottom - ViewTop);
+		const FVector2f ViewportMin(ViewLeft, ViewTop);
+		const FVector2f ViewportMax(ViewRight, ViewBottom);
+		const FVector2f ViewportSize = ViewportMax - ViewportMin;
 
 		FScreenPassTextureViewportParameters& Viewport = Params.PostProcessOutput;
 
 		Viewport.Extent = Extent;
-		Viewport.ExtentInverse = FVector2D(1.0f / Extent.X, 1.0f / Extent.Y);
+		Viewport.ExtentInverse = FVector2f(1.0f / Extent.X, 1.0f / Extent.Y);
 
-		Viewport.ScreenPosToViewportScale = FVector2D(0.5f, -0.5f) * ViewportSize;
+		Viewport.ScreenPosToViewportScale = FVector2f(0.5f, -0.5f) * ViewportSize;
 		Viewport.ScreenPosToViewportBias = (0.5f * ViewportSize) + ViewportMin;
 
 		Viewport.ViewportMin = FIntPoint(ViewLeft, ViewTop);
 		Viewport.ViewportMax = FIntPoint(ViewRight, ViewBottom);
 
 		Viewport.ViewportSize = ViewportSize;
-		Viewport.ViewportSizeInverse = FVector2D(1.0f / Viewport.ViewportSize.X, 1.0f / Viewport.ViewportSize.Y);
+		Viewport.ViewportSizeInverse = FVector2f(1.0f / Viewport.ViewportSize.X, 1.0f / Viewport.ViewportSize.Y);
 
 		Viewport.UVViewportMin = ViewportMin * Viewport.ExtentInverse;
 		Viewport.UVViewportMax = ViewportMax * Viewport.ExtentInverse;
 
 		Viewport.UVViewportSize = Viewport.UVViewportMax - Viewport.UVViewportMin;
-		Viewport.UVViewportSizeInverse = FVector2D(1.0f / Viewport.UVViewportSize.X, 1.0f / Viewport.UVViewportSize.Y);
+		Viewport.UVViewportSizeInverse = FVector2f(1.0f / Viewport.UVViewportSize.X, 1.0f / Viewport.UVViewportSize.Y);
 
 		Viewport.UVViewportBilinearMin = Viewport.UVViewportMin + 0.5f * Viewport.ExtentInverse;
 		Viewport.UVViewportBilinearMax = Viewport.UVViewportMax - 0.5f * Viewport.ExtentInverse;
@@ -1516,7 +1547,11 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 	else if (!UsingCustomEffect && !UsingMaterialShader && !PixelShader.IsValid())
 		return;
 
+#if (ENGINE_MAJOR_VERSION < 5)
 	SetGraphicsPipelineState(*RHICmdList, GraphicsPSOInit);
+#else
+	SetGraphicsPipelineState(*RHICmdList, GraphicsPSOInit, Batch.stencilRef);
+#endif
 
 	// Update the uniform buffers
 	if (VSConstantsHash != Batch.vertexUniforms[0].hash)

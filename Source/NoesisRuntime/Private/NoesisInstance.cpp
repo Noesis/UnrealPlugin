@@ -69,9 +69,7 @@ public:
 	float Top;
 	float Right;
 	float Bottom;
-	float WorldTimeSeconds;
-	float WorldDeltaSeconds;
-	float WorldRealTimeSeconds;
+	FGameTime WorldTime;
 	bool FlipYAxis;
 };
 
@@ -112,7 +110,7 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 		RHICmdList.BeginRenderPass(RPInfo, TEXT("NoesisOnScreen"));
 		RHICmdList.SetViewport((int32)Left, (int32)Top, 0.0f, (int32)Right, (int32)Bottom, 1.0f);
 		FNoesisRenderDevice* RenderDevice = FNoesisRenderDevice::Get();
-		RenderDevice->SetWorldTimes(WorldTimeSeconds, WorldDeltaSeconds, WorldRealTimeSeconds);
+		RenderDevice->SetWorldTime(WorldTime);
 		RenderDevice->SetRHICmdList(&RHICmdList);
 		RenderDevice->CreateView(Left, Top, Right, Bottom);
 		Renderer->Render(FlipYAxis);
@@ -357,20 +355,24 @@ float UNoesisInstance::GetTimeSeconds() const
 	return -1.f;
 }
 
-void UNoesisInstance::UpdateWorldTimes()
+void UNoesisInstance::UpdateWorldTime()
 {
 	UWorld* World = GetWorld();
 	if (World)
 	{
-		WorldTimeSeconds = World->GetTimeSeconds();
-		WorldDeltaSeconds = World->GetDeltaSeconds();
-		WorldRealTimeSeconds = World->GetRealTimeSeconds();
+#if (ENGINE_MAJOR_VERSION < 5)
+		WorldTime = FGameTime::CreateDilated(World->GetRealTimeSeconds(), 0.0f, World->GetTimeSeconds(), World->GetDeltaSeconds());
+#else
+		WorldTime = World->GetTime();
+#endif
 	}
 	else if (GWorld)
 	{
-		WorldTimeSeconds = GWorld->GetTimeSeconds();
-		WorldDeltaSeconds = GWorld->GetDeltaSeconds();
-		WorldRealTimeSeconds = GWorld->GetRealTimeSeconds();
+#if (ENGINE_MAJOR_VERSION < 5)
+		WorldTime = FGameTime::CreateDilated(GWorld->GetRealTimeSeconds(), 0.0f, GWorld->GetTimeSeconds(), GWorld->GetDeltaSeconds());
+#else
+		WorldTime = GWorld->GetTime();
+#endif
 	}
 }
 
@@ -449,7 +451,7 @@ void UNoesisInstance::Update(float InLeft, float InTop, float InWidth, float InH
 		}
 		XamlView->SetFlags(Flags);
 		XamlView->Update(CurrentTime);
-		UpdateWorldTimes();
+		UpdateWorldTime();
 	}
 }
 
@@ -631,14 +633,13 @@ void UNoesisInstance::DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRe
 		ENQUEUE_RENDER_COMMAND(FNoesisXamlThumbnailRendererDrawCommand)
 		(
 			[Renderer, FlipYAxis = FlipYAxis, BackBuffer,
-			WorldTimeSeconds = WorldTimeSeconds, WorldDeltaSeconds = WorldDeltaSeconds,
-			WorldRealTimeSeconds = WorldRealTimeSeconds](FRHICommandListImmediate& RHICmdList)
+			WorldTime = WorldTime](FRHICommandListImmediate& RHICmdList)
 			{
 				// Make sure dynamic material cached uniform expressions are up to date before doing any rendering
 				FMaterialRenderProxy::UpdateDeferredCachedUniformExpressions();
 
 				FNoesisRenderDevice* RenderDevice = FNoesisRenderDevice::Get();
-				RenderDevice->SetWorldTimes(WorldTimeSeconds, WorldDeltaSeconds, WorldRealTimeSeconds);
+				RenderDevice->SetWorldTime(WorldTime);
 				RenderDevice->SetRHICmdList(&RHICmdList);
 				Renderer->UpdateRenderTree();
 				Renderer->RenderOffscreen();
@@ -695,8 +696,7 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 		ENQUEUE_RENDER_COMMAND(FNoesisInstance_DrawOffscreen)
 		(
 			[Renderer,
-			WorldTimeSeconds = WorldTimeSeconds, WorldDeltaSeconds = WorldDeltaSeconds,
-			WorldRealTimeSeconds = WorldRealTimeSeconds](FRHICommandListImmediate& RHICmdList)
+			WorldTime = WorldTime](FRHICommandListImmediate& RHICmdList)
 			{
 				// Make sure dynamic material cached uniform expressions are up to date before doing any rendering
 				FMaterialRenderProxy::UpdateDeferredCachedUniformExpressions();
@@ -710,7 +710,7 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 					SCOPED_DRAW_EVENT(RHICmdList, Noesis_Offscreen);
 					SCOPED_GPU_STAT(RHICmdList, NoesisDraw);
 					FNoesisRenderDevice* RenderDevice = FNoesisRenderDevice::Get();
-					RenderDevice->SetWorldTimes(WorldTimeSeconds, WorldDeltaSeconds, WorldRealTimeSeconds);
+					RenderDevice->SetWorldTime(WorldTime);
 					RenderDevice->SetRHICmdList(&RHICmdList);
 					Renderer->RenderOffscreen();
 					RenderDevice->SetRHICmdList(nullptr);
@@ -724,9 +724,7 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 		NoesisSlateElement->Top = MyClippingRect.Top;
 		NoesisSlateElement->Right = MyClippingRect.Right;
 		NoesisSlateElement->Bottom = MyClippingRect.Bottom;
-		NoesisSlateElement->WorldTimeSeconds = WorldTimeSeconds;
-		NoesisSlateElement->WorldDeltaSeconds = WorldDeltaSeconds;
-		NoesisSlateElement->WorldRealTimeSeconds = WorldRealTimeSeconds;
+		NoesisSlateElement->WorldTime = WorldTime;
 		NoesisSlateElement->FlipYAxis = FlipYAxis;
 		FSlateDrawElement::MakeCustom(OutDrawElements, LayerId, NoesisSlateElement);
 

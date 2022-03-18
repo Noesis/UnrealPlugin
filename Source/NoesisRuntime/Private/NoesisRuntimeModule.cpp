@@ -110,8 +110,7 @@ static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* De
 	if (Fatal)
 	{
 #if ENGINE_MAJOR_VERSION >= 5
-		FDebug::FFailureInfo LlfeInfo = { "NoesisErrorHandler", Filename, (int32)Line, PLATFORM_RETURN_ADDRESS() };
-		LowLevelFatalErrorHandler(LlfeInfo, TEXT("%s"), *NsStringToFString(Desc));
+		LowLevelFatalErrorHandler(Filename, (int32)Line, PLATFORM_RETURN_ADDRESS(), TEXT("%s"), *NsStringToFString(Desc));
 #else
 		LowLevelFatalErrorHandler(Filename, Line, TEXT("%s"), *NsStringToFString(Desc));
 #endif
