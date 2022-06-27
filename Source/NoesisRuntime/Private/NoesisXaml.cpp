@@ -22,25 +22,18 @@ UNoesisXaml::UNoesisXaml(const FObjectInitializer& ObjectInitializer)
 {
 }
 
-static FString GetXamlUri(UObject* Package)
-{
-	FString PackageRoot, PackagePath, PackageName;
-	FPackageName::SplitLongPackageName(Package->GetPathName(), PackageRoot, PackagePath, PackageName, false);
-	return PackageRoot.LeftChop(1) + TEXT(";component/") + PackagePath + PackageName + TEXT(".xaml");
-}
-
 Noesis::Ptr<Noesis::BaseComponent> UNoesisXaml::LoadXaml()
 {
 	if (HasAnyFlags(RF_ClassDefaultObject))
 		return nullptr;
 
-	FString Uri = GetXamlUri(GetOutermost());
+	FString Uri = GetXamlUri();
 	return Noesis::GUI::LoadXaml(TCHAR_TO_UTF8(*Uri));
 }
 
 void UNoesisXaml::LoadComponent(Noesis::BaseComponent* Component)
 {
-	FString Uri = GetXamlUri(GetOutermost());
+	FString Uri = GetXamlUri();
 	Noesis::GUI::LoadComponent(Component, TCHAR_TO_UTF8(*Uri));
 }
 
@@ -98,6 +91,14 @@ void UNoesisXaml::RegisterDependencies()
 	{
 		NoesisRuntime.RegisterFont(FontFace);
 	}
+}
+
+FString UNoesisXaml::GetXamlUri() const
+{
+	UObject* Package = GetOutermost();
+	FString PackageRoot, PackagePath, PackageName;
+	FPackageName::SplitLongPackageName(Package->GetPathName(), PackageRoot, PackagePath, PackageName, false);
+	return PackageRoot.LeftChop(1) + TEXT(";component/") + PackagePath + PackageName + TEXT(".xaml");
 }
 
 #if WITH_EDITOR

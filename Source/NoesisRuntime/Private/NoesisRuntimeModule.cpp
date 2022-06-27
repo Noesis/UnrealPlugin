@@ -12,6 +12,7 @@
 #include "Stats/Stats.h"
 #include "Stats/Stats2.h"
 #include "UObject/UObjectBaseUtility.h"
+#include "Misc/EngineVersionComparison.h"
 
 // RenderCore includes
 #include "ShaderCore.h"
@@ -57,6 +58,12 @@
 
 extern "C" void NsRegisterReflectionAppInteractivity();
 extern "C" void NsRegisterReflectionAppMediaElement();
+
+void NoesisInitTypeTables();
+void NoesisGarbageCollected();
+void NoesisCultureChanged();
+void NoesisReflectionRegistryCallback(Noesis::Symbol TypeId);
+
 
 #if UE_BUILD_SHIPPING + UE_BUILD_SHIPPING_WITH_EDITOR == 0
 static void NoesisLogHandler(const char* File, uint32_t Line, uint32_t Level, const char* Channel, const char* Message)
@@ -109,10 +116,10 @@ static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* De
 {
 	if (Fatal)
 	{
-#if ENGINE_MAJOR_VERSION >= 5
-		LowLevelFatalErrorHandler(Filename, (int32)Line, PLATFORM_RETURN_ADDRESS(), TEXT("%s"), *NsStringToFString(Desc));
-#else
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 		LowLevelFatalErrorHandler(Filename, Line, TEXT("%s"), *NsStringToFString(Desc));
+#else
+		LowLevelFatalErrorHandler(Filename, (int32)Line, PLATFORM_RETURN_ADDRESS(), TEXT("%s"), *NsStringToFString(Desc));
 #endif
 	}
 
@@ -177,6 +184,31 @@ void OnAssetRenamed(const FAssetData& AssetData, const FString& OldPath)
 	UObject* NewObject = AssetData.GetAsset();
 	NoesisAssetRenamed(NewObject, OldPath);
 }
+
+void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Event)
+{
+	if (!IsValid(Object)) // Don't think this is possible, but better safe than sorry
+		return;
+
+	static uint32 ReentryGuard = 0;
+	if (!ReentryGuard)
+	{
+		ReentryGuard = 1;
+		if (Object->IsA<UTexture2D>())
+		{
+			UTexture2D* Texture = (UTexture2D*)Object;
+			Noesis::Ptr<Noesis::TextureSource> TextureSource = Noesis::StaticPtrCast<Noesis::TextureSource>(NoesisFindComponentForUObject(Texture));
+			if (TextureSource != nullptr)
+			{
+				TextureSource->SetTexture(NoesisCreateTexture(Texture));
+			}
+			INoesisRuntimeModuleInterface::Get().OnTextureChanged(Texture);
+		}
+
+		ReentryGuard = 0;
+	}
+}
+
 #endif
 
 void OnPostEngineInit()
@@ -207,9 +239,7 @@ void OnPostEngineInit()
 		AssetRegistry.OnAssetRenamed().AddStatic(&OnAssetRenamed);
 	}
 
-	// https://answers.unrealengine.com/questions/526745/413-plugin-custom-kismet-bp-node-standalone-game-c.html
-	// Workaround: Standalone mode doesn't load the editor modules, so blueprints that use the set and notify don't work correctly.
-	FModuleManager::Get().LoadModule("NoesisEditor");
+	FCoreUObjectDelegates::OnObjectPropertyChanged.AddStatic(&OnObjectPropertyChanged);
 #endif
 }
 

@@ -5,6 +5,10 @@
 
 #pragma once
 
+// Core includes
+#include "CoreMinimal.h"
+#include "Misc/EngineVersionComparison.h"
+
 // RenderCore includes
 #include "RenderResource.h"
 #include "GlobalShader.h"
@@ -100,7 +104,7 @@ extern TGlobalResource<FNoesisPosColorTex0Tex1VertexDeclaration> GNoesisPosColor
 extern TGlobalResource<FNoesisPosColorTex1RectVertexDeclaration> GNoesisPosColorTex1RectVertexDeclaration;
 extern TGlobalResource<FNoesisPosColorTex0RectImagePosVertexDeclaration> GNoesisPosColorTex0RectImagePosVertexDeclaration;
 
-#if (ENGINE_MAJOR_VERSION < 5)
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 typedef FMatrix FMatrix44f;
 typedef FVector2D FVector2f;
 typedef FVector4 FVector4f;
@@ -733,10 +737,10 @@ public:
 	{
 		FMaterialShader* MaterialShader = Shader.GetShader();
 		FRHIPixelShader* ShaderRHI = Shader.GetPixelShader();
-#if (ENGINE_MAJOR_VERSION >= 5) || ((ENGINE_MAJOR_VERSION == 4) && (ENGINE_MINOR_VERSION >= 27))
-		const FMaterial* Material = &Proxy->GetIncompleteMaterialWithFallback(View.GetFeatureLevel());
-#else
+#if UE_VERSION_OLDER_THAN(4, 27, 0)
 		const FMaterial* Material = Proxy->GetMaterial(View.GetFeatureLevel());
+#else
+		const FMaterial* Material = &Proxy->GetIncompleteMaterialWithFallback(View.GetFeatureLevel());
 #endif
 		MaterialShader->SetParameters(RHICmdList, ShaderRHI, Proxy, *Material, View);
 		SetShaderParameters(RHICmdList, Shader, ShaderRHI, Parameters);

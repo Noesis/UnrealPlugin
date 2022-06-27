@@ -1263,11 +1263,6 @@ public:
 		ItemToDelete.Reset();
 	}
 
-	void NotifyPostClear()
-	{
-		NotifyPostChanged();
-	}
-
 	void NotifyPreRemoveAt(int32 Index)
 	{
 		check(ItemToDelete == nullptr);
@@ -1284,7 +1279,7 @@ public:
 		ItemToDelete.Reset();
 	}
 
-	void NotifyPostChanged()
+	void NotifyPostReset()
 	{
 		// Preserve this in case it is deleted in the event handler
 		LOCAL_PRESERVE(this);
@@ -1434,14 +1429,6 @@ public:
 		DictionaryChangedHandler(this, DictionaryChangedArgs);
 	}
 
-	void NotifyPostChanged()
-	{
-		// Preserve this in case it is deleted in the event handler
-		LOCAL_PRESERVE(this);
-		Noesis::NotifyDictionaryChangedEventArgs DictionaryChangedArgs = { Noesis::NotifyDictionaryChangedAction_Reset, "", nullptr, nullptr };
-		DictionaryChangedHandler(this, DictionaryChangedArgs);
-	}
-
 	void NotifyPreRemove(const char* Key)
 	{
 		check(ItemToDelete == nullptr);
@@ -1456,6 +1443,14 @@ public:
 		Noesis::NotifyDictionaryChangedEventArgs DictionaryChangedArgs = { Noesis::NotifyDictionaryChangedAction_Remove, Key, ItemToDelete, nullptr };
 		DictionaryChangedHandler(this, DictionaryChangedArgs);
 		ItemToDelete = nullptr;
+	}
+
+	void NotifyPostReset()
+	{
+		// Preserve this in case it is deleted in the event handler
+		LOCAL_PRESERVE(this);
+		Noesis::NotifyDictionaryChangedEventArgs DictionaryChangedArgs = { Noesis::NotifyDictionaryChangedAction_Reset, "", nullptr, nullptr };
+		DictionaryChangedHandler(this, DictionaryChangedArgs);
 	}
 
 	NS_IMPLEMENT_INLINE_REFLECTION(NoesisMapWrapper, Noesis::BaseComponent)
@@ -3242,7 +3237,7 @@ void NoesisNotifyArrayPropertyChanged(UObject* Owner, FName ArrayPropertyName)
 	if (ArrayProperty != nullptr)
 	{
 		void* ArrayPointer = ArrayProperty->template ContainerPtrToValuePtr<void>(Owner);
-		NoesisNotifyArrayPropertyPostChanged(ArrayPointer);
+		NoesisNotifyArrayPropertyPostReset(ArrayPointer);
 	}
 #if DO_CHECK // Skip in shipping build
 	else
@@ -3306,13 +3301,7 @@ void NoesisNotifyArrayPropertyPostAdd(void* ArrayPointer)
 
 void NoesisNotifyArrayPropertyPostChanged(void* ArrayPointer)
 {
-	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyChanged);
-	NoesisArrayWrapper** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
-	if (ArrayWrapperPtr)
-	{
-		NoesisArrayWrapper* Array = *ArrayWrapperPtr;
-		Array->NotifyPostChanged();
-	}
+	NoesisNotifyArrayPropertyPostReset(ArrayPointer);
 }
 
 void NoesisNotifyArrayPropertyPreAppend(void* ArrayPointer)
@@ -3377,7 +3366,7 @@ void NoesisNotifyArrayPropertyPostClear(void* ArrayPointer)
 	if (ArrayWrapperPtr)
 	{
 		NoesisArrayWrapper* Array = *ArrayWrapperPtr;
-		Array->NotifyPostClear();
+		Array->NotifyPostReset();
 	}
 }
 
@@ -3403,6 +3392,17 @@ void NoesisNotifyArrayPropertyPostSet(void* ArrayPointer, int32 Index)
 	}
 }
 
+void NoesisNotifyArrayPropertyPostReset(void* ArrayPointer)
+{
+	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyChanged);
+	NoesisArrayWrapper** ArrayWrapperPtr = ArrayMap.Find(ArrayPointer);
+	if (ArrayWrapperPtr)
+	{
+		NoesisArrayWrapper* Array = *ArrayWrapperPtr;
+		Array->NotifyPostReset();
+	}
+}
+
 void NoesisNotifyMapPropertyPostAdd(void* MapPointer, const FString& Key)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyMapPropertyAdd);
@@ -3416,12 +3416,17 @@ void NoesisNotifyMapPropertyPostAdd(void* MapPointer, const FString& Key)
 
 void NoesisNotifyMapPropertyPostChanged(void* MapPointer)
 {
+	NoesisNotifyMapPropertyPostReset(MapPointer);
+}
+
+void NoesisNotifyMapPropertyPostReset(void* MapPointer)
+{
 	SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyMapPropertyChanged);
 	NoesisMapWrapper** MapWrapperPtr = MapMap.Find(MapPointer);
 	if (MapWrapperPtr)
 	{
 		NoesisMapWrapper* Map = *MapWrapperPtr;
-		Map->NotifyPostChanged();
+		Map->NotifyPostReset();
 	}
 }
 

@@ -51,7 +51,6 @@ public class NoesisRuntime : ModuleRules
 				"ApplicationCore",
 				"Slate",
 				"Projects",
-				"FreeType2",
 				"zlib",
 				"UElibPNG",
 				"Renderer",

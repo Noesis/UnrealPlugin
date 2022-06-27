@@ -30,6 +30,9 @@ class NOESISRUNTIME_API UNoesisFunctionLibrary : public UBlueprintFunctionLibrar
 	static void NotifyArrayChanged(UObject* Owner, FName PropertyName);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGUI", meta = (HidePin = "Target"))
+	static void NotifyMapChanged(UObject* Owner, FName PropertyName);
+
+	UFUNCTION(BlueprintCallable, Category = "NoesisGUI", meta = (HidePin = "Target"))
 	static void NotifyCanExecuteFunctionChanged(UObject* Owner, FName FunctionName);
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGUI", meta = (HidePin = "Target"))

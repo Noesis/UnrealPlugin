@@ -43,12 +43,16 @@ THIRD_PARTY_INCLUDES_END
 // NoesisRuntime includes
 #include "NoesisRuntimeModule.h"
 #include "NoesisSettings.h"
+#include "NoesisSupport.h"
 #include "NoesisXaml.h"
 #include "Extensions/LocTableExtension.h"
 #include "Extensions/LocTextExtension.h"
 
 // NoesisEditor includes
 #include "NoesisEditorModule.h"
+
+// Projects includes
+#include "Interfaces/IPluginManager.h"
 
 UNoesisXamlFactory::UNoesisXamlFactory(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -312,7 +316,7 @@ static void AddDependency(UNoesisXaml* NoesisXaml, UObject* Asset)
 	}
 }
 
-static FString GetDependencyPath(const Noesis::Uri& Uri)
+FString GetDependencyPath(const Noesis::Uri& Uri)
 {
 	FString Dependency;
 
@@ -332,11 +336,10 @@ static FString GetDependencyPath(const Noesis::Uri& Uri)
 	return Dependency;
 }
 
-template<class T>
-static void ConfigureFilter(FARFilter& Filter, bool RecursiveClasses)
+void ConfigureFilter(FARFilter& Filter, UClass* Class, bool RecursiveClasses)
 {
 	Filter.bRecursiveClasses = RecursiveClasses;
-	Filter.ClassNames.Add(::StaticClass<T>()->GetFName());
+	Filter.ClassNames.Add(Class->GetFName());
 
 	Filter.bRecursivePaths = true;
 	Filter.PackagePaths.Add(TEXT("/Game"));
@@ -490,7 +493,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 						XamlsEnumerated = true;
 
 						FARFilter Filter;
-						ConfigureFilter<UNoesisXaml>(Filter, false);
+						ConfigureFilter(Filter, UNoesisXaml::StaticClass(), false);
 						AssetRegistryModule.Get().GetAssets(Filter, Xamls);
 					}
 					if (!MaterialsEnumerated)
@@ -498,7 +501,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 						MaterialsEnumerated = true;
 
 						FARFilter Filter;
-						ConfigureFilter<UMaterialInterface>(Filter, true);
+						ConfigureFilter(Filter, UMaterialInterface::StaticClass(), true);
 						AssetRegistryModule.Get().GetAssets(Filter, Materials);
 					}
 

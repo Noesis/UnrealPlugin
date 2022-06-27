@@ -27,6 +27,7 @@
 #include "Framework/Application/SlateApplication.h"
 
 // NoesisRuntime includes
+#include "NoesisCustomVersion.h"
 #include "NoesisRuntimeModule.h"
 #include "NoesisBlueprintGeneratedClass.h"
 #include "Render/NoesisRenderDevice.h"
@@ -69,6 +70,7 @@ public:
 	float Top;
 	float Right;
 	float Bottom;
+	FSceneInterface* Scene;
 	FGameTime WorldTime;
 	bool FlipYAxis;
 };
@@ -111,6 +113,7 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 		RHICmdList.SetViewport((int32)Left, (int32)Top, 0.0f, (int32)Right, (int32)Bottom, 1.0f);
 		FNoesisRenderDevice* RenderDevice = FNoesisRenderDevice::Get();
 		RenderDevice->SetWorldTime(WorldTime);
+		RenderDevice->SetScene(Scene);
 		RenderDevice->SetRHICmdList(&RHICmdList);
 		RenderDevice->CreateView(Left, Top, Right, Bottom);
 		Renderer->Render(FlipYAxis);
@@ -266,7 +269,7 @@ UNoesisInstance* UNoesisInstance::FromView(Noesis::IView* View)
 }
 
 UNoesisInstance::UNoesisInstance(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+	: Super(ObjectInitializer), Scene(nullptr)
 {
 	Visibility = ESlateVisibility::Visible;
 }
@@ -360,19 +363,21 @@ void UNoesisInstance::UpdateWorldTime()
 	UWorld* World = GetWorld();
 	if (World)
 	{
-#if (ENGINE_MAJOR_VERSION < 5)
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 		WorldTime = FGameTime::CreateDilated(World->GetRealTimeSeconds(), 0.0f, World->GetTimeSeconds(), World->GetDeltaSeconds());
 #else
 		WorldTime = World->GetTime();
 #endif
+		Scene = World->Scene;
 	}
 	else if (GWorld)
 	{
-#if (ENGINE_MAJOR_VERSION < 5)
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 		WorldTime = FGameTime::CreateDilated(GWorld->GetRealTimeSeconds(), 0.0f, GWorld->GetTimeSeconds(), GWorld->GetDeltaSeconds());
 #else
 		WorldTime = GWorld->GetTime();
 #endif
+		Scene = GWorld->Scene;
 	}
 }
 
@@ -527,10 +532,7 @@ void UNoesisInstance::OnPreviewLostKeyboardFocus(Noesis::BaseComponent* Componen
 
 struct NoesisHitTestVisibleTester
 {
-	NoesisHitTestVisibleTester()
-		: Hit(nullptr)
-	{
-	}
+	NoesisHitTestVisibleTester(): Hit(nullptr) { }
 
 	Noesis::HitTestFilterBehavior Filter(Noesis::Visual*)
 	{
@@ -555,9 +557,15 @@ struct NoesisHitTestVisibleTester
 bool UNoesisInstance::HitTest(FVector2D Position)
 {
 	NoesisHitTestVisibleTester HitTester;
-	Noesis::Visual* root = Noesis::VisualTreeHelper::GetRoot(Xaml);
-	Noesis::Point p = root->PointFromScreen(Noesis::Point(Position.X, Position.Y));
-	Noesis::VisualTreeHelper::HitTest(root, p, MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::Filter), MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::Result));
+
+	if (Xaml)
+	{
+		Noesis::Visual* root = Noesis::VisualTreeHelper::GetRoot(Xaml);
+		Noesis::Point p = root->PointFromScreen(Noesis::Point(Position.X, Position.Y));
+		Noesis::VisualTreeHelper::HitTest(root, p,
+			MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::Filter),
+			MakeDelegate(&HitTester, &NoesisHitTestVisibleTester::Result));
+	}
 
 	return HitTester.Hit != nullptr;
 }
@@ -606,6 +614,33 @@ void UNoesisInstance::BeginDestroy()
 	TermInstance();
 }
 
+void UNoesisInstance::Serialize(FArchive& Ar)
+{
+	Super::Serialize(Ar);
+
+	Ar.UsingCustomVersion(FNoesisCustomVersion::GUID);
+}
+
+void UNoesisInstance::PostLoad()
+{
+	Super::PostLoad();
+
+#if WITH_EDITOR
+	const int32 NoesisVer = GetLinkerCustomVersion(FNoesisCustomVersion::GUID);
+	if (NoesisVer < FNoesisCustomVersion::BeforeCustomVersionWasAdded)
+	{
+		UClass* Class = GetClass();
+		UNoesisBlueprint* NoesisBlueprint = Cast<UNoesisBlueprint>(Class->ClassGeneratedBy);
+		if (NoesisBlueprint != nullptr)
+		{
+			BaseXaml = NoesisBlueprint->BaseXaml;
+			EnablePPAA = NoesisBlueprint->EnablePPAA;
+			TessellationQuality = NoesisBlueprint->TessellationQuality;
+		}
+	}
+#endif
+}
+
 #if WITH_EDITOR
 void UNoesisInstance::SetDesignerFlags(EWidgetDesignFlags NewFlags)
 {
@@ -633,13 +668,14 @@ void UNoesisInstance::DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRe
 		ENQUEUE_RENDER_COMMAND(FNoesisXamlThumbnailRendererDrawCommand)
 		(
 			[Renderer, FlipYAxis = FlipYAxis, BackBuffer,
-			WorldTime = WorldTime](FRHICommandListImmediate& RHICmdList)
+			WorldTime = WorldTime, Scene = Scene](FRHICommandListImmediate& RHICmdList)
 			{
 				// Make sure dynamic material cached uniform expressions are up to date before doing any rendering
 				FMaterialRenderProxy::UpdateDeferredCachedUniformExpressions();
 
 				FNoesisRenderDevice* RenderDevice = FNoesisRenderDevice::Get();
 				RenderDevice->SetWorldTime(WorldTime);
+				RenderDevice->SetScene(Scene);
 				RenderDevice->SetRHICmdList(&RHICmdList);
 				Renderer->UpdateRenderTree();
 				Renderer->RenderOffscreen();
@@ -696,7 +732,7 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 		ENQUEUE_RENDER_COMMAND(FNoesisInstance_DrawOffscreen)
 		(
 			[Renderer,
-			WorldTime = WorldTime](FRHICommandListImmediate& RHICmdList)
+			WorldTime = WorldTime, Scene = Scene](FRHICommandListImmediate& RHICmdList)
 			{
 				// Make sure dynamic material cached uniform expressions are up to date before doing any rendering
 				FMaterialRenderProxy::UpdateDeferredCachedUniformExpressions();
@@ -711,6 +747,7 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 					SCOPED_GPU_STAT(RHICmdList, NoesisDraw);
 					FNoesisRenderDevice* RenderDevice = FNoesisRenderDevice::Get();
 					RenderDevice->SetWorldTime(WorldTime);
+					RenderDevice->SetScene(Scene);
 					RenderDevice->SetRHICmdList(&RHICmdList);
 					Renderer->RenderOffscreen();
 					RenderDevice->SetRHICmdList(nullptr);
@@ -724,6 +761,7 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 		NoesisSlateElement->Top = MyClippingRect.Top;
 		NoesisSlateElement->Right = MyClippingRect.Right;
 		NoesisSlateElement->Bottom = MyClippingRect.Bottom;
+		NoesisSlateElement->Scene = Scene;
 		NoesisSlateElement->WorldTime = WorldTime;
 		NoesisSlateElement->FlipYAxis = FlipYAxis;
 		FSlateDrawElement::MakeCustom(OutDrawElements, LayerId, NoesisSlateElement);
@@ -927,38 +965,27 @@ FReply UNoesisInstance::NativeOnAnalogValueChanged(const FGeometry& MyGeometry, 
 	return Super::NativeOnAnalogValueChanged(MyGeometry, InAnalogEvent);
 }
 
+static Noesis::MouseButton GetNoesisMouseButton(FKey Button)
+{
+	if (Button == EKeys::LeftMouseButton) return Noesis::MouseButton_Left;
+	if (Button == EKeys::RightMouseButton) return Noesis::MouseButton_Right;
+	if (Button == EKeys::MiddleMouseButton) return Noesis::MouseButton_Middle;
+	if (Button == EKeys::ThumbMouseButton) return Noesis::MouseButton_XButton1;
+	return Noesis::MouseButton_XButton2;
+}
+
 FReply UNoesisInstance::NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_OnMouseButtonDown);
 	if (XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
-		FKey Button = MouseEvent.GetEffectingButton();
+		bool hit = HitTest(Position);
 
-		Noesis::MouseButton MouseButton;
-		if (Button == EKeys::LeftMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Left;
-		}
-		else if (Button == EKeys::RightMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Right;
-		}
-		else if (Button == EKeys::MiddleMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Middle;
-		}
-		else if (Button == EKeys::ThumbMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_XButton1;
-		}
-		else
-		{
-			MouseButton = Noesis::MouseButton_XButton2;
-		}
+		Noesis::MouseButton MouseButton = GetNoesisMouseButton(MouseEvent.GetEffectingButton());
 		XamlView->MouseButtonDown(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
 
-		if (HitTest(Position))
+		if (hit)
 		{
 			return FReply::Handled().PreventThrottling();
 		}
@@ -973,32 +1000,12 @@ FReply UNoesisInstance::NativeOnMouseButtonUp(const FGeometry& MyGeometry, const
 	if (XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
-		FKey Button = MouseEvent.GetEffectingButton();
+		bool hit = HitTest(Position);
 
-		Noesis::MouseButton MouseButton;
-		if (Button == EKeys::LeftMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Left;
-		}
-		else if (Button == EKeys::RightMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Right;
-		}
-		else if (Button == EKeys::MiddleMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Middle;
-		}
-		else if (Button == EKeys::ThumbMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_XButton1;
-		}
-		else
-		{
-			MouseButton = Noesis::MouseButton_XButton2;
-		}
+		Noesis::MouseButton MouseButton = GetNoesisMouseButton(MouseEvent.GetEffectingButton());
 		XamlView->MouseButtonUp(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
 
-		if (HitTest(Position))
+		if (hit)
 		{
 			return FReply::Handled().PreventThrottling();
 		}
@@ -1013,10 +1020,11 @@ FReply UNoesisInstance::NativeOnMouseMove(const FGeometry& MyGeometry, const FPo
 	if (XamlView && !MouseEvent.GetCursorDelta().IsZero()) // Ignore synthetic events that are messing with the tooltip code.
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
+		bool hit = HitTest(Position);
 
 		XamlView->MouseMove(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y));
 
-		if (HitTest(Position))
+		if (hit)
 		{
 			return FReply::Handled().PreventThrottling();
 		}
@@ -1031,11 +1039,12 @@ FReply UNoesisInstance::NativeOnMouseWheel(const FGeometry& MyGeometry, const FP
 	if (XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
-		float WheelDelta = MouseEvent.GetWheelDelta();
+		bool hit = HitTest(Position);
 
+		float WheelDelta = MouseEvent.GetWheelDelta();
 		XamlView->MouseWheel(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), FPlatformMath::RoundToInt(WheelDelta * 120.f));
 
-		if (HitTest(Position))
+		if (hit)
 		{
 			return FReply::Handled().PreventThrottling();
 		}
@@ -1050,11 +1059,12 @@ FReply UNoesisInstance::NativeOnTouchStarted(const FGeometry& MyGeometry, const 
 	if (XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(TouchEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
-		uint32 PointerIndex = TouchEvent.GetPointerIndex();
+		bool hit = HitTest(Position);
 
+		uint32 PointerIndex = TouchEvent.GetPointerIndex();
 		XamlView->TouchDown(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
 
-		if (HitTest(Position))
+		if (hit)
 		{
 			return FReply::Handled().PreventThrottling();
 		}
@@ -1069,11 +1079,12 @@ FReply UNoesisInstance::NativeOnTouchMoved(const FGeometry& MyGeometry, const FP
 	if (XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(TouchEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
-		uint32 PointerIndex = TouchEvent.GetPointerIndex();
+		bool hit = HitTest(Position);
 
+		uint32 PointerIndex = TouchEvent.GetPointerIndex();
 		XamlView->TouchMove(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
 
-		if (HitTest(Position))
+		if (hit)
 		{
 			return FReply::Handled().PreventThrottling();
 		}
@@ -1088,11 +1099,12 @@ FReply UNoesisInstance::NativeOnTouchEnded(const FGeometry& MyGeometry, const FP
 	if (XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(TouchEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
-		uint32 PointerIndex = TouchEvent.GetPointerIndex();
+		bool hit = HitTest(Position);
 
+		uint32 PointerIndex = TouchEvent.GetPointerIndex();
 		XamlView->TouchUp(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
 
-		if (HitTest(Position))
+		if (hit)
 		{
 			return FReply::Handled().PreventThrottling();
 		}
@@ -1112,32 +1124,12 @@ FReply UNoesisInstance::NativeOnMouseButtonDoubleClick(const FGeometry& MyGeomet
 	if (XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
-		FKey Button = MouseEvent.GetEffectingButton();
+		bool hit = HitTest(Position);
 
-		Noesis::MouseButton MouseButton;
-		if (Button == EKeys::LeftMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Left;
-		}
-		else if (Button == EKeys::RightMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Right;
-		}
-		else if (Button == EKeys::MiddleMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_Middle;
-		}
-		else if (Button == EKeys::ThumbMouseButton)
-		{
-			MouseButton = Noesis::MouseButton_XButton1;
-		}
-		else
-		{
-			MouseButton = Noesis::MouseButton_XButton2;
-		}
+		Noesis::MouseButton MouseButton = GetNoesisMouseButton(MouseEvent.GetEffectingButton());
 		XamlView->MouseDoubleClick(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
 
-		if (HitTest(Position))
+		if (hit)
 		{
 			return FReply::Handled().PreventThrottling();
 		}

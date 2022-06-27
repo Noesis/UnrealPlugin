@@ -99,7 +99,7 @@ public:
 	bool Alpha;
 };
 
-#if (ENGINE_MAJOR_VERSION < 5)
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 typedef FTicker FTSTicker;
 #endif
 
@@ -138,7 +138,7 @@ public:
 	TWeakObjectPtr<UMaterialInterface> MaterialPtr;
 	FMaterialRenderProxy* MaterialProxy;
 #if WITH_EDITOR
-#if (ENGINE_MAJOR_VERSION < 5)
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 	FDelegateHandle TickerHandle;
 #else
 	FTSTicker::FDelegateHandle TickerHandle;
@@ -165,9 +165,11 @@ public:
 
 static TShaderRef<FNoesisMaterialPSBase> GetMaterialPixelShader(const FMaterial* Material, Noesis::Shader::Enum ShaderType)
 {
+	TShaderRef<FShader> FoundShader;
+
+#if UE_VERSION_OLDER_THAN(4, 27, 0)
 	const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
 
-	TShaderRef<FShader> FoundShader;
 	switch (ShaderType)
 	{
 		case Noesis::Shader::Path_Pattern:
@@ -264,6 +266,109 @@ static TShaderRef<FNoesisMaterialPSBase> GetMaterialPixelShader(const FMaterial*
 			// Only pattern shaders should be requested
 			check(false);
 	}
+#else
+	FMaterialShaderTypes ShaderTypes;
+	switch (ShaderType)
+	{
+	case Noesis::Shader::Path_Pattern:
+		ShaderTypes.AddShaderType<FNoesisPathMaterialPS>();
+		break;
+	case Noesis::Shader::Path_Pattern_Clamp:
+		ShaderTypes.AddShaderType<FNoesisPathMaterialClampPS>();
+		break;
+	case Noesis::Shader::Path_Pattern_Repeat:
+		ShaderTypes.AddShaderType<FNoesisPathMaterialRepeatPS>();
+		break;
+	case Noesis::Shader::Path_Pattern_MirrorU:
+		ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorUPS>();
+		break;
+	case Noesis::Shader::Path_Pattern_MirrorV:
+		ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorVPS>();
+		break;
+	case Noesis::Shader::Path_Pattern_Mirror:
+		ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorPS>();
+		break;
+	case Noesis::Shader::Path_AA_Pattern:
+		ShaderTypes.AddShaderType<FNoesisPathAAMaterialPS>();
+		break;
+	case Noesis::Shader::Path_AA_Pattern_Clamp:
+		ShaderTypes.AddShaderType<FNoesisPathAAMaterialClampPS>();
+		break;
+	case Noesis::Shader::Path_AA_Pattern_Repeat:
+		ShaderTypes.AddShaderType<FNoesisPathAAMaterialRepeatPS>();
+		break;
+	case Noesis::Shader::Path_AA_Pattern_MirrorU:
+		ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorUPS>();
+		break;
+	case Noesis::Shader::Path_AA_Pattern_MirrorV:
+		ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorVPS>();
+		break;
+	case Noesis::Shader::Path_AA_Pattern_Mirror:
+		ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorPS>();
+		break;
+	case Noesis::Shader::SDF_Pattern:
+		ShaderTypes.AddShaderType<FNoesisSDFMaterialPS>();
+		break;
+	case Noesis::Shader::SDF_Pattern_Clamp:
+		ShaderTypes.AddShaderType<FNoesisSDFMaterialClampPS>();
+		break;
+	case Noesis::Shader::SDF_Pattern_Repeat:
+		ShaderTypes.AddShaderType<FNoesisSDFMaterialRepeatPS>();
+		break;
+	case Noesis::Shader::SDF_Pattern_MirrorU:
+		ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorUPS>();
+		break;
+	case Noesis::Shader::SDF_Pattern_MirrorV:
+		ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorVPS>();
+		break;
+	case Noesis::Shader::SDF_Pattern_Mirror:
+		ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorPS>();
+		break;
+	case Noesis::Shader::SDF_LCD_Pattern:
+		ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialPS>();
+		break;
+	case Noesis::Shader::SDF_LCD_Pattern_Clamp:
+		ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialClampPS>();
+		break;
+	case Noesis::Shader::SDF_LCD_Pattern_Repeat:
+		ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialRepeatPS>();
+		break;
+	case Noesis::Shader::SDF_LCD_Pattern_MirrorU:
+		ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorUPS>();
+		break;
+	case Noesis::Shader::SDF_LCD_Pattern_MirrorV:
+		ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorVPS>();
+		break;
+	case Noesis::Shader::SDF_LCD_Pattern_Mirror:
+		ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorPS>();
+		break;
+	case Noesis::Shader::Opacity_Pattern:
+		ShaderTypes.AddShaderType<FNoesisOpacityMaterialPS>();
+		break;
+	case Noesis::Shader::Opacity_Pattern_Clamp:
+		ShaderTypes.AddShaderType<FNoesisOpacityMaterialClampPS>();
+		break;
+	case Noesis::Shader::Opacity_Pattern_Repeat:
+		ShaderTypes.AddShaderType<FNoesisOpacityMaterialRepeatPS>();
+		break;
+	case Noesis::Shader::Opacity_Pattern_MirrorU:
+		ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorUPS>();
+		break;
+	case Noesis::Shader::Opacity_Pattern_MirrorV:
+		ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorVPS>();
+		break;
+	case Noesis::Shader::Opacity_Pattern_Mirror:
+		ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorPS>();
+		break;
+	default:
+		// Only pattern shaders should be requested
+		check(false);
+	}
+	FMaterialShaders Shaders;
+	Material->TryGetShaders(ShaderTypes, false, Shaders);
+	Shaders.TryGetPixelShader(FoundShader);
+
+#endif
 
 	return TShaderRef<FNoesisMaterialPSBase>::Cast(FoundShader);
 }
@@ -283,7 +388,7 @@ public:
 };
 
 FNoesisRenderDevice::FNoesisRenderDevice()
-	: VSConstantsHash(0), TextureSizeHash(0), PSConstantsHash(0), EffectsHash(0)
+	: VSConstantsHash(0), TextureSizeHash(0), PSConstantsHash(0), EffectsHash(0), ViewFamily(nullptr), View(nullptr)
 {
 	FRHIResourceCreateInfo CreateInfo(TEXT("Noesis.VertexIndexBuffer"));
 	DynamicVertexBuffer = RHICreateVertexBuffer(DYNAMIC_VB_SIZE, BUF_Volatile, CreateInfo);
@@ -765,6 +870,11 @@ void FNoesisRenderDevice::SetWorldTime(FGameTime InWorldTime)
 	WorldTime = InWorldTime;
 }
 
+void FNoesisRenderDevice::SetScene(FSceneInterface* InScene)
+{
+	Scene = InScene;
+}
+
 void FNoesisRenderDevice::CreateView(uint32 Left, uint32 Top, uint32 Right, uint32 Bottom)
 {
 	ViewLeft = Left;
@@ -788,21 +898,19 @@ void FNoesisRenderDevice::CreateView(uint32 Left, uint32 Top, uint32 Right, uint
 	FSceneViewFamily::ConstructionValues ViewFamilyConstruction
 	(
 		nullptr,
-		nullptr,
+		Scene,
 		FEngineShowFlags(ESFIM_Game)
 	);
 
-#if (ENGINE_MAJOR_VERSION < 5)
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 	ViewFamilyConstruction.SetWorldTimes(WorldTime.GetWorldTimeSeconds(), WorldTime.GetDeltaWorldTimeSeconds(), WorldTime.GetRealTimeSeconds());
 #else
 	ViewFamilyConstruction.SetTime(WorldTime);
 #endif
-	/*.SetGammaCorrection(DisplayGamma)
-	.SetRealtimeUpdate(true)*/
-	FSceneViewFamilyContext Family(ViewFamilyConstruction);
+	ViewFamily = new FSceneViewFamily(ViewFamilyConstruction);
 	FSceneViewInitOptions ViewInitOptions;
 	memset(&ViewInitOptions, 0, sizeof(ViewInitOptions));
-	ViewInitOptions.ViewFamily = &Family;
+	ViewInitOptions.ViewFamily = ViewFamily;
 	ViewInitOptions.SetViewRectangle(FIntRect(Left, Top, Right, Bottom));
 	ViewInitOptions.ViewOrigin = FVector::ZeroVector;
 	ViewInitOptions.ViewRotationMatrix = FMatrix::Identity;
@@ -819,7 +927,7 @@ void FNoesisRenderDevice::CreateView(uint32 Left, uint32 Top, uint32 Right, uint
 		FViewMatrices()
 	);
 
-#if (ENGINE_MAJOR_VERSION < 5)
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 	ViewUniformShaderParameters.WorldViewOrigin = View->ViewMatrices.GetViewOrigin();
 #else
 	ViewUniformShaderParameters.RelativeWorldViewOrigin = (FVector3f)View->ViewMatrices.GetViewOrigin();
@@ -835,7 +943,11 @@ void FNoesisRenderDevice::CreateView(uint32 Left, uint32 Top, uint32 Right, uint
 
 	if (GSystemTextures.PerlinNoiseGradient.GetReference())
 	{
-		ViewUniformShaderParameters.PerlinNoiseGradientTexture = (FTexture2DRHIRef&)GSystemTextures.PerlinNoiseGradient->GetRenderTargetItem().ShaderResourceTexture;
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
+		ViewUniformShaderParameters.PerlinNoiseGradientTexture = GSystemTextures.PerlinNoiseGradient->GetRHI(ERenderTargetTexture::ShaderResource);
+#else
+		ViewUniformShaderParameters.PerlinNoiseGradientTexture = GSystemTextures.PerlinNoiseGradient->GetRHI();
+#endif
 		SetBlack2DIfNull(ViewUniformShaderParameters.PerlinNoiseGradientTexture);
 	}
 	check(ViewUniformShaderParameters.PerlinNoiseGradientTexture);
@@ -843,7 +955,11 @@ void FNoesisRenderDevice::CreateView(uint32 Left, uint32 Top, uint32 Right, uint
 
 	if (GSystemTextures.PerlinNoise3D.GetReference())
 	{
-		ViewUniformShaderParameters.PerlinNoise3DTexture = (FTexture3DRHIRef&)GSystemTextures.PerlinNoise3D->GetRenderTargetItem().ShaderResourceTexture;
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
+		ViewUniformShaderParameters.PerlinNoise3DTexture = GSystemTextures.PerlinNoise3D->GetRHI(ERenderTargetTexture::ShaderResource);
+#else
+		ViewUniformShaderParameters.PerlinNoise3DTexture = GSystemTextures.PerlinNoise3D->GetRHI();
+#endif
 		SetBlack3DIfNull(ViewUniformShaderParameters.PerlinNoise3DTexture);
 	}
 	check(ViewUniformShaderParameters.PerlinNoise3DTexture);
@@ -851,7 +967,11 @@ void FNoesisRenderDevice::CreateView(uint32 Left, uint32 Top, uint32 Right, uint
 
 	if (GSystemTextures.SobolSampling.GetReference())
 	{
-		ViewUniformShaderParameters.SobolSamplingTexture = (FTexture2DRHIRef&)GSystemTextures.SobolSampling->GetRenderTargetItem().ShaderResourceTexture;
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
+		ViewUniformShaderParameters.SobolSamplingTexture = GSystemTextures.SobolSampling->GetRHI(ERenderTargetTexture::ShaderResource);
+#else
+		ViewUniformShaderParameters.SobolSamplingTexture = GSystemTextures.SobolSampling->GetRHI();
+#endif
 		SetBlack2DIfNull(ViewUniformShaderParameters.SobolSamplingTexture);
 	}
 	check(ViewUniformShaderParameters.SobolSamplingTexture);
@@ -871,8 +991,17 @@ void FNoesisRenderDevice::CreateView(uint32 Left, uint32 Top, uint32 Right, uint
 
 void FNoesisRenderDevice::DestroyView()
 {
-	delete View;
-	View = nullptr;
+	if (View != nullptr)
+	{
+		delete View;
+		View = nullptr;
+	}
+
+	if (ViewFamily != nullptr)
+	{
+		delete ViewFamily;
+		ViewFamily = nullptr;
+	}
 }
 
 static void SetTextureFormat(FNoesisTexture* Texture, EPixelFormat Format)
@@ -890,16 +1019,16 @@ static void SetTextureFormat(FNoesisTexture* Texture, EPixelFormat Format)
 
 Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InTexture)
 {
-#if (ENGINE_MAJOR_VERSION >= 5) || ((ENGINE_MAJOR_VERSION == 4) && (ENGINE_MINOR_VERSION >= 27))
-	if (!InTexture || !InTexture->GetResource())
-		return nullptr;
-
-	FTextureResource* TextureResource = InTexture->GetResource();
-#else
+#if UE_VERSION_OLDER_THAN(4, 27, 0)
 	if (!InTexture || !InTexture->Resource)
 		return nullptr;
 
 	FTextureResource* TextureResource = InTexture->Resource;
+#else
+	if (!InTexture || !InTexture->GetResource())
+		return nullptr;
+
+	FTextureResource* TextureResource = InTexture->GetResource();
 #endif
 
 	Noesis::Ptr<FNoesisTexture> Texture;
@@ -1273,39 +1402,39 @@ void FNoesisRenderDevice::ResolveRenderTarget(Noesis::RenderTarget* Surface, con
 
 void* FNoesisRenderDevice::MapVertices(uint32 Bytes)
 {
-#if ENGINE_MAJOR_VERSION >= 5
-	void* Result = RHILockBuffer(DynamicVertexBuffer, 0, Bytes, RLM_WriteOnly);
-#else
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 	void* Result = RHILockVertexBuffer(DynamicVertexBuffer, 0, Bytes, RLM_WriteOnly);
+#else
+	void* Result = RHILockBuffer(DynamicVertexBuffer, 0, Bytes, RLM_WriteOnly);
 #endif
 	return Result;
 }
 
 void FNoesisRenderDevice::UnmapVertices()
 {
-#if ENGINE_MAJOR_VERSION >= 5
-	RHIUnlockBuffer(DynamicVertexBuffer);
-#else
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 	RHIUnlockVertexBuffer(DynamicVertexBuffer);
+#else
+	RHIUnlockBuffer(DynamicVertexBuffer);
 #endif
 }
 
 void* FNoesisRenderDevice::MapIndices(uint32 Bytes)
 {
-#if ENGINE_MAJOR_VERSION >= 5
-	void* Result = RHILockBuffer(DynamicIndexBuffer, 0, Bytes, RLM_WriteOnly);
-#else
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 	void* Result = RHILockIndexBuffer(DynamicIndexBuffer, 0, Bytes, RLM_WriteOnly);
+#else
+	void* Result = RHILockBuffer(DynamicIndexBuffer, 0, Bytes, RLM_WriteOnly);
 #endif
 	return Result;
 }
 
 void FNoesisRenderDevice::UnmapIndices()
 {
-#if ENGINE_MAJOR_VERSION >= 5
-	RHIUnlockBuffer(DynamicIndexBuffer);
-#else
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 	RHIUnlockIndexBuffer(DynamicIndexBuffer);
+#else
+	RHIUnlockBuffer(DynamicIndexBuffer);
 #endif
 }
 
@@ -1328,10 +1457,10 @@ template<>
 void FNoesisRenderDevice::SetPatternMaterialParameters<FNoesisMaterialPSBase>(const Noesis::Batch& Batch, TShaderRef<FNoesisMaterialPSBase>& PixelShader)
 {
 	FMaterialRenderProxy* MaterialProxy = ((FNoesisMaterial*)Batch.pixelShader)->MaterialProxy;
-#if (ENGINE_MAJOR_VERSION >= 5) || ((ENGINE_MAJOR_VERSION == 4) && (ENGINE_MINOR_VERSION >= 27))
-	const FMaterial* Material = &MaterialProxy->GetIncompleteMaterialWithFallback(GMaxRHIFeatureLevel);
-#else
+#if UE_VERSION_OLDER_THAN(4, 27, 0)
 	const FMaterial* Material = MaterialProxy->GetMaterial(GMaxRHIFeatureLevel);
+#else
+	const FMaterial* Material = &MaterialProxy->GetIncompleteMaterialWithFallback(GMaxRHIFeatureLevel);
 #endif
 	FRHIPixelShader* ShaderRHI = RHICmdList->GetBoundPixelShader();
 	PixelShader->SetViewParameters(*RHICmdList, ShaderRHI, *View, ViewBuffer);
@@ -1391,10 +1520,10 @@ template<>
 void FNoesisRenderDevice::SetPixelShaderParameters<FNoesisCustomEffectPS>(const Noesis::Batch& Batch, TShaderRef<FNoesisCustomEffectPS>& PixelShader, FUniformBufferRHIRef& PSUniformBuffer0, FUniformBufferRHIRef& PSUniformBuffer1)
 {
 	FMaterialRenderProxy* MaterialProxy = ((FNoesisMaterial*)Batch.pixelShader)->MaterialProxy;
-#if (ENGINE_MAJOR_VERSION >= 5) || ((ENGINE_MAJOR_VERSION == 4) && (ENGINE_MINOR_VERSION >= 27))
-	const FMaterial* Material = &MaterialProxy->GetIncompleteMaterialWithFallback(GMaxRHIFeatureLevel);
-#else
+#if UE_VERSION_OLDER_THAN(4, 27, 0)
 	const FMaterial* Material = MaterialProxy->GetMaterial(GMaxRHIFeatureLevel);
+#else
+	const FMaterial* Material = &MaterialProxy->GetIncompleteMaterialWithFallback(GMaxRHIFeatureLevel);
 #endif
 	FRHIPixelShader* ShaderRHI = RHICmdList->GetBoundPixelShader();
 	PixelShader->SetViewParameters(*RHICmdList, ShaderRHI, *View, ViewBuffer);
@@ -1496,16 +1625,24 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 		FMaterialRenderProxy* MaterialProxy = ((FNoesisMaterial*)Batch.pixelShader)->MaterialProxy;
 		if (MaterialProxy != nullptr)
 		{
-#if (ENGINE_MAJOR_VERSION >= 5) || ((ENGINE_MAJOR_VERSION == 4) && (ENGINE_MINOR_VERSION >= 27))
-			const FMaterial* Material = &MaterialProxy->GetIncompleteMaterialWithFallback(GMaxRHIFeatureLevel);
-#else
+#if UE_VERSION_OLDER_THAN(4, 27, 0)
 			const FMaterial* Material = MaterialProxy->GetMaterial(GMaxRHIFeatureLevel);
+#else
+			const FMaterial* Material = &MaterialProxy->GetIncompleteMaterialWithFallback(GMaxRHIFeatureLevel);
 #endif
 			if (UsingCustomEffect)
 			{
 				UsingMaterialShader = false;
+#if UE_VERSION_OLDER_THAN(4, 27, 0)
 				const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
 				CustomEffectPixelShader = MaterialShaderMap->GetShader<FNoesisCustomEffectPS>();
+#else
+				FMaterialShaderTypes ShaderTypes;
+				ShaderTypes.AddShaderType<FNoesisCustomEffectPS>();
+				FMaterialShaders Shaders;
+				Material->TryGetShaders(ShaderTypes, false, Shaders);
+				Shaders.TryGetPixelShader(CustomEffectPixelShader);
+#endif
 			}
 			else
 			{
@@ -1547,7 +1684,7 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 	else if (!UsingCustomEffect && !UsingMaterialShader && !PixelShader.IsValid())
 		return;
 
-#if (ENGINE_MAJOR_VERSION < 5)
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 	SetGraphicsPipelineState(*RHICmdList, GraphicsPSOInit);
 #else
 	SetGraphicsPipelineState(*RHICmdList, GraphicsPSOInit, Batch.stencilRef);

@@ -5,6 +5,10 @@
 
 #include "NoesisXamlAssetTypeActions.h"
 
+// Core includes
+#include "CoreMinimal.h"
+#include "Misc/EngineVersionComparison.h"
+
 // AssetRegistry includes
 #include "AssetRegistryModule.h"
 
@@ -136,7 +140,7 @@ static bool ShouldRender(const FAssetData& AssetData)
 
 	// Unloaded blueprint or asset that may have a custom thumbnail, check to see if there is a thumbnail in the package to render
 	FString PackageFilename;
-#if (ENGINE_MAJOR_VERSION < 5)
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 	if (FPackageName::DoesPackageExist(AssetData.PackageName.ToString(), NULL, &PackageFilename))
 #else
 	if (FPackageName::DoesPackageExist(AssetData.PackageName.ToString(), &PackageFilename))

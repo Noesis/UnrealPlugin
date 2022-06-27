@@ -7,6 +7,7 @@
 
 // Core includes
 #include "CoreMinimal.h"
+#include "Misc/EngineVersionComparison.h"
 
 // CoreUObject includes
 #include "Blueprint/UserWidget.h"
@@ -32,7 +33,7 @@ enum class NoesisInstanceRenderFlags : uint8
 	Overdraw = 4
 };
 
-#if (ENGINE_MAJOR_VERSION < 5)
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 struct FGameTime
 {
 	using FTimeType = float;
@@ -126,6 +127,7 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	float Width;
 	float Height;
 	float CurrentTime;
+	FSceneInterface* Scene;
 	FGameTime WorldTime;
 	bool FlipYAxis;
 
@@ -185,6 +187,8 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 
 	// UObject interface
 	virtual void BeginDestroy() override;
+	virtual void Serialize(FArchive& Ar);
+	virtual void PostLoad();
 	// End of UObject interface
 
 #if WITH_EDITOR

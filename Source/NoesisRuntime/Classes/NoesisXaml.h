@@ -65,6 +65,7 @@ class NOESISRUNTIME_API UNoesisXaml : public UObject
 #endif
 
 	void RegisterDependencies();
+	FString GetXamlUri() const;
 
 #if WITH_EDITOR
 	bool CanRenderThumbnail();

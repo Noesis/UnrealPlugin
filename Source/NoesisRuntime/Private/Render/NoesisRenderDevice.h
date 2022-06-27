@@ -5,6 +5,10 @@
 
 #pragma once
 
+// Core includes
+#include "CoreMinimal.h"
+#include "Misc/EngineVersionComparison.h"
+
 // RHI includes
 #include "RHI.h"
 #include "RHIResources.h"
@@ -21,12 +25,12 @@
 
 class FNoesisRenderDevice : public Noesis::RenderDevice
 {
-#if ENGINE_MAJOR_VERSION >= 5
-	FBufferRHIRef DynamicVertexBuffer;
-	FBufferRHIRef DynamicIndexBuffer;
-#else
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 	FVertexBufferRHIRef DynamicVertexBuffer;
 	FIndexBufferRHIRef DynamicIndexBuffer;
+#else
+	FBufferRHIRef DynamicVertexBuffer;
+	FBufferRHIRef DynamicIndexBuffer;
 #endif
 	FUniformBufferRHIRef VSConstantBuffer;
 	FUniformBufferRHIRef TextureSizeBuffer;
@@ -53,7 +57,9 @@ class FNoesisRenderDevice : public Noesis::RenderDevice
 public:
 	FGameTime WorldTime;
 	FRHICommandList* RHICmdList;
+	FSceneViewFamily* ViewFamily;
 	FSceneView* View;
+	FSceneInterface* Scene;
 	uint32 ViewLeft, ViewTop, ViewRight, ViewBottom;
 	FVertexDeclarationRHIRef VertexDeclarations[Noesis::Shader::Count];
 	TShaderRef<FNoesisVSBase> VertexShaders[Noesis::Shader::Count];
@@ -75,6 +81,7 @@ public:
 
 	void SetRHICmdList(class FRHICommandList* RHICmdList);
 	void SetWorldTime(FGameTime InWorldTime);
+	void SetScene(FSceneInterface* InScene);
 
 	void CreateView(uint32 Left, uint32 Top, uint32 Right, uint32 Bottom);
 	void DestroyView();

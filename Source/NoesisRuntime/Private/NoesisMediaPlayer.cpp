@@ -7,6 +7,8 @@
 #include "NoesisMediaPlayer.h"
 
 // Core includes
+#include "CoreMinimal.h"
+#include "Misc/EngineVersionComparison.h"
 #include "Misc/CoreDelegates.h"
 
 // Engine includes
@@ -26,6 +28,9 @@
 #include "NoesisRuntimeModule.h"
 #include "NoesisSupport.h"
 #include "Render/NoesisRenderDevice.h"
+
+// RHI includes
+#include "RHIResources.h"
 
 #include "NsApp/MediaElement.h"
 
@@ -249,12 +254,12 @@ void NoesisMediaPlayer::CheckKeepPlaying()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-static FRHITexture2D* GetMediaTextureRHI(UMediaTexture* MediaTexture)
+static FRHITexture* GetMediaTextureRHI(UMediaTexture* MediaTexture)
 {
-#if (ENGINE_MAJOR_VERSION >= 5) || ((ENGINE_MAJOR_VERSION == 4) && (ENGINE_MINOR_VERSION >= 27))
-	FTextureResource* Resource = (FTextureResource*)MediaTexture->GetResource();
-#else
+#if UE_VERSION_OLDER_THAN(4, 27, 0)
 	FTextureResource* Resource = (FTextureResource*)MediaTexture->Resource;
+#else
+	FTextureResource* Resource = (FTextureResource*)MediaTexture->GetResource();
 #endif
 	FTextureRHIRef TextureRHI = Resource->TextureRHI;
 	return TextureRHI ? TextureRHI->GetTexture2D() : nullptr;
@@ -265,7 +270,7 @@ void NoesisMediaPlayer::OnRendering(Noesis::IView*)
 {
 	// Each time the MediaPlayer finishes a loop, it updates the MediaTexture internal texture,
 	// so we have to update our TextureSource too
-	FRHITexture2D* texRHI = GetMediaTextureRHI(MediaTexture);
+	FRHITexture* texRHI = GetMediaTextureRHI(MediaTexture);
 	if (MediaTextureRHI != texRHI && MediaTexture->GetWidth() > 2 && MediaTexture->GetHeight() > 2)
 	{
 		MediaTextureRHI = texRHI;

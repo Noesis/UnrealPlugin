@@ -21,9 +21,12 @@
 void FNoesisXamlProvider::OnXamlChanged(UNoesisXaml* Xaml)
 {
 #if WITH_EDITOR
-	if (FString* Name = NameMap.Find(Xaml))
+	if (TArray<FString>* Names = NameMap.Find(Xaml))
 	{
-		RaiseXamlChanged(TCHAR_TO_UTF8(**Name));
+		for (const FString& Name : *Names)
+		{
+			RaiseXamlChanged(TCHAR_TO_UTF8(*Name));
+		}
 	}
 #endif
 }
@@ -39,7 +42,8 @@ Noesis::Ptr<Noesis::Stream> FNoesisXamlProvider::LoadXaml(const Noesis::Uri& Uri
 		Xaml->RegisterDependencies();
 
 #if WITH_EDITOR
-		NameMap.Add(Xaml, Uri.Str());
+		TArray<FString>& Names = NameMap.FindOrAdd(Xaml);
+		Names.AddUnique(Uri.Str());
 #endif
 
 		return *new Noesis::MemoryStream(Xaml->XamlText.GetData(), (uint32)Xaml->XamlText.Num());

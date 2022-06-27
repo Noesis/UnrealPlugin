@@ -23,7 +23,7 @@ public:
 	// End of XamlProvider interface
 
 #if WITH_EDITOR
-	mutable TMap<class UNoesisXaml*, FString> NameMap;
+	mutable TMap<class UNoesisXaml*, TArray<FString>> NameMap;
 #endif
 };
 

@@ -15,16 +15,6 @@
 // Engine includes
 #include "Engine/FontFace.h"
 
-// FreeType2 includes
-#if PLATFORM_COMPILER_HAS_GENERIC_KEYWORD
-#define generic __identifier(generic)
-#endif	//PLATFORM_COMPILER_HAS_GENERIC_KEYWORD
-
-THIRD_PARTY_INCLUDES_START
-#include "ft2build.h"
-#include FT_FREETYPE_H
-THIRD_PARTY_INCLUDES_END
-
 // Noesis includes
 #include "NoesisSDK.h"
 
@@ -88,157 +78,103 @@ void UNoesisSettings::SetApplicationResources() const
 	}
 }
 
-static unsigned long StreamRead(FT_Stream Stream, unsigned long Offset, unsigned char* Buffer, unsigned long Count)
+static void GetFamilyNames(const TArray<uint8>& FontData, TArray<Noesis::FixedString<128>>& FamilyNames)
 {
-	FMemory::Memcpy(Buffer, (uint8*)Stream->descriptor.pointer + Offset, Count);
-	return Count;
-}
-
-static void StreamClose(FT_Stream) {}
-
-static TArray<FString> GetFamilyNames(FT_Library Library, const TArray<uint8>& FontData)
-{
-	TArray<FString> FamilyNames;
-
-	FT_StreamRec Stream;
-	FMemory::Memset(&Stream, 0, sizeof(Stream));
-	Stream.descriptor.pointer = (void*)FontData.GetData();
-	Stream.size = FontData.Num();
-	Stream.read = &StreamRead;
-	Stream.close = &StreamClose;
-
-	FT_Open_Args Args;
-	FMemory::Memset(&Args, 0, sizeof(Args));
-	Args.flags = FT_OPEN_STREAM;
-	Args.stream = &Stream;
-
-	FT_Face Face;
-	FT_Error Error = FT_Open_Face(Library, &Args, -1, &Face);
-	if (Error == 0)
+	Noesis::Ptr<Noesis::MemoryStream> Stream = Noesis::MakePtr<Noesis::MemoryStream>(FontData.GetData(), FontData.Num());
+	Noesis::Fonts::GetTypefaces(Stream, [&FamilyNames](const Noesis::Typeface& Typeface)
 	{
-		for (FT_Long FaceIndex = 0; FaceIndex < Face->num_faces; FaceIndex++)
-		{
-			FT_Face SubFace;
-			Error = FT_Open_Face(Library, &Args, FaceIndex, &SubFace);
-			if (Error == 0)
-			{
-				FamilyNames.AddUnique(SubFace->family_name);
-				FT_Done_Face(SubFace);
-			}
-		}
-		FT_Done_Face(Face);
-	}
-
-	return FamilyNames;
-}
-
-static FString GetFamilyName(UFontFace* FontFace, const FString& Name)
-{
-	UPackage* Package = FontFace->GetOutermost();
-	FString PackageRoot, PackagePath, PackageName;
-	FPackageName::SplitLongPackageName(Package->GetPathName(), PackageRoot, PackagePath, PackageName, false);
-	return PackageRoot.LeftChop(1) + ";component" / PackagePath / "#" + Name;
+		FamilyNames.AddUnique(Typeface.familyName);
+	});
 }
 
 static TArray<UFontFace*> DefaultFontRefs;
 void UNoesisSettings::SetFontFallbacks() const
 {
 	INoesisRuntimeModuleInterface& NoesisRuntime = INoesisRuntimeModuleInterface::Get();
-	FT_Library Library;
-	FT_Error Error = FT_Init_FreeType(&Library);
-	if (Error == 0)
+
+	for (UFontFace* FontFace : DefaultFontRefs)
 	{
-		for (UFontFace* FontFace : DefaultFontRefs)
+		FontFace->RemoveFromRoot();
+	}
+
+	DefaultFontRefs.Empty(DefaultFonts.Num());
+
+	TArray<Noesis::FixedString<128>> FamilyNamesStr;
+	for (auto& FontFallback : DefaultFonts)
+	{
+		UFontFace* FontFace = Cast<UFontFace>(FontFallback.TryLoad());
+		if (FontFace)
 		{
-			FontFace->RemoveFromRoot();
-		}
-		DefaultFontRefs.Empty(DefaultFonts.Num());
-		TArray<Noesis::String> FamilyNamesStr;
-		for (auto& FontFallback : DefaultFonts)
-		{
-			UFontFace* FontFace = Cast<UFontFace>(FontFallback.TryLoad());
-			if (FontFace)
-			{
-				FontFace->AddToRoot();
-				DefaultFontRefs.Add(FontFace);
-				NoesisRuntime.RegisterFont(FontFace);
+			FontFace->AddToRoot();
+			DefaultFontRefs.Add(FontFace);
+			NoesisRuntime.RegisterFont(FontFace);
 
 #if !WITH_EDITORONLY_DATA
-				if (FontFace->GetLoadingPolicy() != EFontLoadingPolicy::Inline)
-				{
-					TArray<uint8> FileData;
-					FFileHelper::LoadFileToArray(FileData, *FontFace->GetFontFilename());
+			if (FontFace->GetLoadingPolicy() != EFontLoadingPolicy::Inline)
+			{
+				TArray<uint8> FileData;
+				FFileHelper::LoadFileToArray(FileData, *FontFace->GetFontFilename());
 
-					TArray<FString> Names = GetFamilyNames(Library, FileData);
-					for (auto& Name : Names)
-					{
-						FamilyNamesStr.AddUnique(TCHAR_TO_UTF8(*GetFamilyName(FontFace, Name)));
-					}
-				}
-				else
+				GetFamilyNames(FileData, FamilyNamesStr);
+			}
+			else
 #endif
-				{
-					const FFontFaceDataRef FontFaceDataRef = FontFace->FontFaceData;
-					const FFontFaceData& FontFaceData = FontFaceDataRef.Get();
-					const TArray<uint8>& FontFaceDataArray = FontFaceData.GetData();
+			{
+				const FFontFaceDataRef FontFaceDataRef = FontFace->FontFaceData;
+				const FFontFaceData& FontFaceData = FontFaceDataRef.Get();
+				const TArray<uint8>& FontFaceDataArray = FontFaceData.GetData();
 
-					TArray<FString> Names = GetFamilyNames(Library, FontFaceDataArray);
-					for (auto& Name : Names)
-					{
-						FamilyNamesStr.AddUnique(TCHAR_TO_UTF8(*GetFamilyName(FontFace, Name)));
-					}
-				}
+				GetFamilyNames(FontFaceDataArray, FamilyNamesStr);
 			}
 		}
-
-		// Add user font fallbacks
-		TArray<const ANSICHAR*> FamilyNames;
-		for (auto& Name : FamilyNamesStr)
-		{
-			FamilyNames.Add(Name.Str());
-		}
-
-		// Add platform specific font fallbacks
-		if (LoadPlatformFonts)
-		{
-#if PLATFORM_WINDOWS
-			FamilyNames.Add("Arial");
-			FamilyNames.Add("Segoe UI Emoji");			// Windows 10 Emojis
-			FamilyNames.Add("Arial Unicode MS");		// Almost everything (but part of MS Office, not Windows)
-			FamilyNames.Add("Microsoft Sans Serif");	// Unicode scripts excluding Asian scripts
-			FamilyNames.Add("Microsoft YaHei");			// Chinese
-			FamilyNames.Add("Gulim");					// Korean
-			FamilyNames.Add("MS Gothic");				// Japanese
-#elif PLATFORM_MAC
-			FamilyNames.Add("Arial");
-			FamilyNames.Add("Arial Unicode MS");		// MacOS 10.5+
-#elif PLATFORM_IOS
-			FamilyNames.Add("PingFang SC");				// Simplified Chinese (iOS 9+)
-			FamilyNames.Add("Apple SD Gothic Neo");		// Korean (iOS 7+)
-			FamilyNames.Add("Hiragino Sans");			// Japanese (iOS 9+)
-#elif PLATFORM_ANDROID
-			FamilyNames.Add("Noto Sans CJK SC");		// Simplified Chinese
-			FamilyNames.Add("Noto Sans CJK KR");		// Korean
-			FamilyNames.Add("Noto Sans CJK JP");		// Japanese
-#elif PLATFORM_LINUX
-			FamilyNames.Add("Noto Sans CJK SC");		// Simplified Chinese
-			FamilyNames.Add("Noto Sans CJK KR");		// Korean
-			FamilyNames.Add("Noto Sans CJK JP");		// Japanese
-#endif
-		}
-
-		Noesis::GUI::SetFontFallbacks(FamilyNames.GetData(), FamilyNames.Num());
-		FT_Done_FreeType(Library);
 	}
+
+	// Add user font fallbacks
+	TArray<const ANSICHAR*> FamilyNames;
+	for (auto& Name : FamilyNamesStr)
+	{
+		FamilyNames.Add(Name.Str());
+	}
+
+	// Add platform specific font fallbacks
+	if (LoadPlatformFonts)
+	{
+#if PLATFORM_WINDOWS
+		FamilyNames.Add("Arial");
+		FamilyNames.Add("Segoe UI Emoji");			// Windows 10 Emojis
+		FamilyNames.Add("Arial Unicode MS");		// Almost everything (but part of MS Office, not Windows)
+		FamilyNames.Add("Microsoft Sans Serif");	// Unicode scripts excluding Asian scripts
+		FamilyNames.Add("Microsoft YaHei");			// Chinese
+		FamilyNames.Add("Gulim");					// Korean
+		FamilyNames.Add("MS Gothic");				// Japanese
+#elif PLATFORM_MAC
+		FamilyNames.Add("Arial");
+		FamilyNames.Add("Arial Unicode MS");		// MacOS 10.5+
+#elif PLATFORM_IOS
+		FamilyNames.Add("PingFang SC");				// Simplified Chinese (iOS 9+)
+		FamilyNames.Add("Apple SD Gothic Neo");		// Korean (iOS 7+)
+		FamilyNames.Add("Hiragino Sans");			// Japanese (iOS 9+)
+#elif PLATFORM_ANDROID
+		FamilyNames.Add("Noto Sans CJK SC");		// Simplified Chinese
+		FamilyNames.Add("Noto Sans CJK KR");		// Korean
+		FamilyNames.Add("Noto Sans CJK JP");		// Japanese
+#elif PLATFORM_LINUX
+		FamilyNames.Add("Noto Sans CJK SC");		// Simplified Chinese
+		FamilyNames.Add("Noto Sans CJK KR");		// Korean
+		FamilyNames.Add("Noto Sans CJK JP");		// Japanese
+#endif
+	}
+
+	Noesis::GUI::SetFontFallbacks(FamilyNames.GetData(), FamilyNames.Num());
 }
 
 void UNoesisSettings::SetFontDefaultProperties() const
 {
 	float Size = DefaultFontSize;
-	ENoesisFontWeight Weight = DefaultFontWeight;
-	ENoesisFontStretch Stretch = DefaultFontStretch;
-	ENoesisFontStyle Style = DefaultFontStyle;
-	Noesis::GUI::SetFontDefaultProperties(Size, (Noesis::FontWeight)Weight, (Noesis::FontStretch)Stretch, (Noesis::FontStyle)Style);
+	Noesis::FontWeight Weight = (Noesis::FontWeight)((int)DefaultFontWeight * 10);
+	Noesis::FontStretch Stretch = (Noesis::FontStretch)DefaultFontStretch;
+	Noesis::FontStyle Style = (Noesis::FontStyle)DefaultFontStyle;
+	Noesis::GUI::SetFontDefaultProperties(Size, Weight, Stretch, Style);
 }
 
 #if WITH_EDITOR

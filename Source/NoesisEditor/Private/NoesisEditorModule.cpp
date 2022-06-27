@@ -5,6 +5,14 @@
 
 #include "NoesisEditorModule.h"
 
+// AssetRegistry includes
+#include "AssetRegistry/AssetRegistryModule.h"
+
+// Core includes
+#include "CoreMinimal.h"
+#include "HAL/FileManager.h"
+#include "Misc/EngineVersionComparison.h"
+
 // CoreUObject includes
 #include "UObject/UObjectGlobals.h"
 
@@ -194,9 +202,13 @@ TSharedPtr<FKismetCompilerContext> GetCompilerForNoesisBlueprint(UBlueprint* Blu
 	return TSharedPtr<FKismetCompilerContext>(new FNoesisBlueprintCompilerContext(NoesisBlueprint, Results, CompilerOptions));
 }
 
-#if (ENGINE_MAJOR_VERSION < 5)
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 typedef FTicker FTSTicker;
 #endif
+
+// Forward declare functions used to fix NoesisXaml dependencies
+FString GetDependencyPath(const Noesis::Uri& Uri);
+void ConfigureFilter(FARFilter& Filter, UClass* Class, bool RecursiveClasses);
 
 class FNoesisEditorModule : public INoesisEditorModuleInterface
 {
@@ -208,6 +220,15 @@ public:
 
 		FCoreDelegates::OnPostEngineInit.AddRaw(this, &FNoesisEditorModule::OnPostEngineInit);
 	}
+
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
+	static bool IsRunningCookCommandlet()
+	{
+		FString Commandline = FCommandLine::Get();
+		const bool bIsCookCommandlet = IsRunningCommandlet() && Commandline.Contains(TEXT("run=cook"));
+		return bIsCookCommandlet;
+	}
+#endif
 
 	void OnPostEngineInit()
 	{
@@ -264,6 +285,75 @@ public:
 			Noesis::GUI::UpdateInspector();
 			return true;
 		});
+
+		if (IsRunningCookCommandlet())
+		{
+			FixNoesisXamlDependencies();
+		}
+	}
+
+	void FixNoesisXamlDependencies()
+	{
+		INoesisRuntimeModuleInterface& NoesisRuntime = INoesisRuntimeModuleInterface::Get();
+		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
+		FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
+		UAutomatedAssetImportData* AutomatedAssetImportData = NewObject<UAutomatedAssetImportData>();
+		AutomatedAssetImportData->bReplaceExisting = true;
+		IFileManager& FileManager = IFileManager::Get();
+
+		FARFilter Filter;
+		TArray<FAssetData> XamlAssets;
+		ConfigureFilter(Filter, UNoesisXaml::StaticClass(), false);
+		AssetRegistryModule.Get().GetAssets(Filter, XamlAssets);
+
+		TArray<FAssetData> MaterialAssets;
+		ConfigureFilter(Filter, UMaterialInterface::StaticClass(), true);
+		AssetRegistryModule.Get().GetAssets(Filter, MaterialAssets);
+
+		for (auto XamlAsset : XamlAssets)
+		{
+			auto Xaml = Cast<UNoesisXaml>(XamlAsset.GetAsset());
+			if (Xaml == nullptr)
+				continue;
+
+			Noesis::MemoryStream XamlStream(Xaml->XamlText.GetData(), (uint32)Xaml->XamlText.Num());
+
+			auto DependencyCallback = [&](const Noesis::Uri& Uri, Noesis::XamlDependencyType Type)
+			{
+				if (Type == Noesis::XamlDependencyType_Root) return;
+
+				// If the URI is invalid, ImportAssetsAutomated will try to reimport the whole directory
+				// causing infinite recursion.
+				if (!Uri.IsValid()) return;
+
+				FString Dependency = GetDependencyPath(Uri);
+
+				bool IsUserControl = Type == Noesis::XamlDependencyType_UserControl;
+				if (IsUserControl)
+				{
+					FAssetData* Asset = XamlAssets.FindByPredicate([&Dependency](FAssetData& Asset) { return Asset.AssetName == *Dependency; });
+					if (Asset)
+					{
+						Xaml->Xamls.AddUnique(Cast<UNoesisXaml>(Asset->GetAsset()));
+					}
+					else
+					{
+						Asset = MaterialAssets.FindByPredicate([&Dependency](FAssetData& Asset) { return Asset.AssetName == *Dependency; });
+						if (Asset)
+						{
+							Xaml->Materials.AddUnique(Cast<UMaterialInterface>(Asset->GetAsset()));
+						}
+					}
+				}
+			};
+			auto DependencyCallbackAdaptor = [](void* UserData, const Noesis::Uri& Uri, Noesis::XamlDependencyType Type)
+			{
+				auto Callback = (decltype(DependencyCallback)*)UserData;
+				return (*Callback)(Uri, Type);
+			};
+			FString Uri = Xaml->GetXamlUri();
+			Noesis::GUI::GetXamlDependencies(&XamlStream, TCHAR_TO_UTF8(*Uri), &DependencyCallback, DependencyCallbackAdaptor);
+		}
 	}
 
 	virtual void ShutdownModule() override
@@ -508,7 +598,7 @@ private:
 	TSharedPtr<FNoesisBlueprintCompiler> NoesisBlueprintCompiler;
 	FDelegateHandle AssetImportHandle;
 	FDelegateHandle ObjectPropertyChangedHandle;
-#if (ENGINE_MAJOR_VERSION < 5)
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 	FDelegateHandle TickerHandle;
 #else
 	FTSTicker::FDelegateHandle TickerHandle;

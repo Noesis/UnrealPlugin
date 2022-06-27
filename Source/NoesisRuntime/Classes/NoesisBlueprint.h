@@ -27,6 +27,7 @@ class NOESISRUNTIME_API UNoesisBlueprint : public UBlueprint
 {
 	GENERATED_UCLASS_BODY()
 
+public:
 	// UBlueprint interface
 #if WITH_EDITOR
 	virtual UClass* GetBlueprintClass() const override;

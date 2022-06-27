@@ -31,7 +31,30 @@ void UNoesisFunctionLibrary::NotifyChanged(UObject* Owner, FName PropertyName)
 
 void UNoesisFunctionLibrary::NotifyArrayChanged(UObject* Owner, FName PropertyName)
 {
-	NoesisNotifyArrayPropertyChanged(Owner, PropertyName);
+	if (!IsValid(Owner))
+		return;
+
+	UClass* OwnerClass = Owner->GetClass();
+	FProperty* ArrayProperty = OwnerClass->FindPropertyByName(PropertyName);
+	if (ArrayProperty != nullptr)
+	{
+		void* ArrayPointer = ArrayProperty->template ContainerPtrToValuePtr<void>(Owner);
+		NoesisNotifyArrayPropertyPostReset(ArrayPointer);
+	}
+}
+
+void UNoesisFunctionLibrary::NotifyMapChanged(UObject* Owner, FName PropertyName)
+{
+	if (!IsValid(Owner))
+		return;
+
+	UClass* OwnerClass = Owner->GetClass();
+	FProperty* MapProperty = OwnerClass->FindPropertyByName(PropertyName);
+	if (MapProperty != nullptr)
+	{
+		void* MapPointer = MapProperty->template ContainerPtrToValuePtr<void>(Owner);
+		NoesisNotifyMapPropertyPostReset(MapPointer);
+	}
 }
 
 void UNoesisFunctionLibrary::NotifyCanExecuteFunctionChanged(UObject* Owner, FName FunctionName)
@@ -165,7 +188,7 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Shuffle)
 	P_NATIVE_BEGIN;
 	MARK_PROPERTY_DIRTY(Stack.Object, ArrayProperty);
 	UKismetArrayLibrary::GenericArray_Shuffle(ArrayAddr, ArrayProperty);
-	NoesisNotifyArrayPropertyPostChanged(ArrayAddr);
+	NoesisNotifyArrayPropertyPostReset(ArrayAddr);
 	P_NATIVE_END;
 }
 
@@ -325,7 +348,7 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Clear)
 	P_NATIVE_BEGIN;
 	MARK_PROPERTY_DIRTY(Stack.Object, ArrayProperty);
 	UKismetArrayLibrary::GenericArray_Clear(ArrayAddr, ArrayProperty);
-	NoesisNotifyArrayPropertyPostClear(ArrayAddr);
+	NoesisNotifyArrayPropertyPostReset(ArrayAddr);
 	P_NATIVE_END;
 }
 
@@ -511,7 +534,7 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisMap_Clear)
 	const FProperty* CurrKeyProp = MapProperty->KeyProp;
 	if (CurrKeyProp->IsA<FStrProperty>())
 	{
-		NoesisNotifyMapPropertyPostChanged(MapAddr);
+		NoesisNotifyMapPropertyPostReset(MapAddr);
 	}
 	P_NATIVE_END
 }
