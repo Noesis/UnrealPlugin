@@ -5,6 +5,10 @@
 
 #include "K2Node_NoesisAssignAndNotify.h"
 
+// Core includes
+#include "CoreMinimal.h"
+#include "Misc/EngineVersionComparison.h"
+
 // BlueprintGraph includes
 #include "BlueprintActionDatabaseRegistrar.h"
 #include "BlueprintFieldNodeSpawner.h"
@@ -15,7 +19,11 @@
 #include "K2Node_VariableSet.h"
 
 // EditorStyle includes
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
 #include "Classes/EditorStyleSettings.h"
+#else
+#include "Settings/EditorStyleSettings.h"
+#endif
 
 // Engine includes
 #include "ObjectEditorUtils.h"

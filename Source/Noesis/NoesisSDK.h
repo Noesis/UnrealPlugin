@@ -5,16 +5,4 @@
 
 #pragma once
 
-#ifdef PLATFORM_WINDOWS
-#if PLATFORM_WINDOWS
-#include "Windows/AllowWindowsPlatformTypes.h"
-#endif
-#endif
-
 #include "NoesisPCH.h"
-
-#ifdef PLATFORM_WINDOWS
-#if PLATFORM_WINDOWS
-#include "Windows/HideWindowsPlatformTypes.h"
-#endif
-#endif

@@ -51,8 +51,9 @@ THIRD_PARTY_INCLUDES_END
 
 // BlueprintGraph includes
 #include "BlueprintNodeTemplateCache.h"
+
 // AssetRegistry includes
-#include "AssetRegistryModule.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 
 // Kismet includes
 #include "BlueprintCompilationManager.h"

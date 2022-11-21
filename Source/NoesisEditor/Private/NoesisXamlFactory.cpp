@@ -6,13 +6,14 @@
 #include "NoesisXamlFactory.h"
 
 // AssetRegistry includes
-#include "AssetRegistryModule.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 
 // AssetTools includes
 #include "AssetToolsModule.h"
 
 // Core includes
 #include "CoreMinimal.h"
+#include "Misc/EngineVersionComparison.h"
 #include "GenericPlatform/GenericPlatformFile.h"
 #include "HAL/PlatformFilemanager.h"
 #include "Misc/FileHelper.h"
@@ -339,7 +340,11 @@ FString GetDependencyPath(const Noesis::Uri& Uri)
 void ConfigureFilter(FARFilter& Filter, UClass* Class, bool RecursiveClasses)
 {
 	Filter.bRecursiveClasses = RecursiveClasses;
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
 	Filter.ClassNames.Add(Class->GetFName());
+#else
+	Filter.ClassPaths.Add(Class->GetClassPathName());
+#endif
 
 	Filter.bRecursivePaths = true;
 	Filter.PackagePaths.Add(TEXT("/Game"));
@@ -635,6 +640,11 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 		Noesis::RegisterComponent<LocTextExtension>();
 		Noesis::UnregisterComponent<LocTableExtension>();
 		Noesis::RegisterComponent<LocTableExtension>();
+	}
+
+	if (GetDefault<UNoesisSettings>()->ApplicationResources == FSoftObjectPath(NoesisXaml))
+	{
+		GetDefault<UNoesisSettings>()->SetApplicationResources();
 	}
 
 	StaticRecursive = Recursive;

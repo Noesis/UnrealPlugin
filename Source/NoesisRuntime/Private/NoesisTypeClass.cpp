@@ -25,8 +25,8 @@
 #include "Slate/SlateTextureAtlasInterface.h"
 
 // AssetRegistry includes
-#include "AssetRegistryModule.h"
-#include "IAssetRegistry.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "AssetRegistry/IAssetRegistry.h"
 
 // NoesisRuntime includes
 #include "NoesisInstance.h"
@@ -2440,7 +2440,7 @@ void NoesisFillTypeClassForUClass(NoesisTypeClass* TypeClass, UClass* Class)
 				}
 			}
 
-			if (!Param)
+			if (HasNoParams)
 			{
 				NoesisTypeProperty* TypeProperty = new NoesisTypePropertyObjectWrapperCommand(Noesis::Symbol(TCHAR_TO_UTF8(*Function->GetName())), Noesis::TypeOf<NoesisFunctionWrapper>(), Function, CanExecuteFunction);
 				TypeClass->AddProperty(TypeProperty);

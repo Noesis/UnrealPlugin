@@ -48,7 +48,7 @@
 
 #if WITH_EDITOR
 // AssetRegistry includes
-#include "AssetRegistryModule.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 
 // UnrealEd includes
 #include "Editor.h"
@@ -577,6 +577,7 @@ public:
 		Noesis::RegisterComponent<LocTableExtension>();
 		Noesis::RegisterComponent<InputActionTrigger>();
 		Noesis::RegisterComponent<Noesis::EnumConverter<InputActionType>>();
+		Noesis::TypeOf<RichText>();
 
 		NoesisXamlProvider = *new FNoesisXamlProvider();
 		NoesisTextureProvider = *new FNoesisTextureProvider();

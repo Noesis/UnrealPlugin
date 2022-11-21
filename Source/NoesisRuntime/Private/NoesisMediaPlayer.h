@@ -55,7 +55,6 @@ public:
 	Noesis::ImageSource* GetTextureSource() const override;
 
 private:
-	void CheckKeepPlaying();
 	void OnRendering(Noesis::IView* View);
 	void OnMediaEvent(EMediaEvent Event);
 

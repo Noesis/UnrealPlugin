@@ -39,12 +39,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NoesisMediaPlayer::NoesisMediaPlayer(NoesisApp::MediaElement* Owner, const Noesis::Uri& Uri, void*):
 	MediaPlayer(nullptr), MediaTexture(nullptr), MediaTextureRHI(nullptr), SoundComponent(nullptr),
-	TextureSource(*new Noesis::TextureSource()), View(nullptr), Volume(0.5f),
+	TextureSource(*new Noesis::TextureSource()), View(nullptr), Volume(0.5f), Position(0.0),
 	Opened(false), Ended(false), KeepPlaying(false), IsBuffering(false)
 {
 	MediaPlayer = NewObject<UMediaPlayer>(GetTransientPackage(), NAME_None, RF_Transient | RF_Public);
-	// Enable looping so texture resource is not discarded when media ends
-	MediaPlayer->SetLooping(true);
 	MediaPlayer->AddToRoot();
 
 	MediaTexture = NewObject<UMediaTexture>(GetTransientPackage(), NAME_None, RF_Transient | RF_Public);
@@ -219,21 +217,18 @@ void NoesisMediaPlayer::SetIsMuted(bool value)
 void NoesisMediaPlayer::Play()
 {
 	KeepPlaying = true;
-	MediaPlayer->Play();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void NoesisMediaPlayer::Pause()
 {
 	KeepPlaying = false;
-	MediaPlayer->Pause();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void NoesisMediaPlayer::Stop()
 {
 	KeepPlaying = false;
-	MediaPlayer->Pause();
 	MediaPlayer->Rewind();
 }
 
@@ -241,16 +236,6 @@ void NoesisMediaPlayer::Stop()
 Noesis::ImageSource* NoesisMediaPlayer::GetTextureSource() const
 {
 	return TextureSource;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-void NoesisMediaPlayer::CheckKeepPlaying()
-{
-	if (!KeepPlaying)
-	{
-		Stop();
-	}
-	KeepPlaying = false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -277,21 +262,38 @@ void NoesisMediaPlayer::OnRendering(Noesis::IView*)
 		TextureSource->SetTexture(FNoesisRenderDevice::CreateTexture(MediaTexture));
 	}
 
+	// Raise MediaOpened when texture is correctly created
 	if (Opened && MediaTexture->GetWidth() > 2 && MediaTexture->GetHeight() > 2)
 	{
-		MediaPlayer->SetRate(Rate);
-		MediaPlayer->Seek(FTimespan::FromSeconds(Position));
+		// Some platforms need looping to be enabled in order to work correctly:
+		// Windows: The texture resource is discarded when the media ends.
+		// PS4/5: sceAvPlayerStop is called when the media ends, leaving the player in an unrecoverable state.
+		// Some platforms need looping to be disabled in order to work correctly:
+		// Switch: It never sends the PlaybackEndReached if set to looping.
+		bool NeedsLooping = FCStringAnsi::Strcmp(FPlatformProperties::IniPlatformName(), "Switch") != 0;
+
+		// Set here instead of constructor because some implementations ignore it if MediaOpened is not called
+		MediaPlayer->SetLooping(NeedsLooping);
 
 		mMediaOpened();
-
 		Opened = false;
-		CheckKeepPlaying();
 	}
 
+	// Raise MediaEnded
 	if (Ended)
 	{
+		mMediaEnded();
 		Ended = false;
-		CheckKeepPlaying();
+	}
+
+	// Check if we need to continue playing or player has been paused/stopped
+	if (KeepPlaying)
+	{
+		MediaPlayer->Play();
+	}
+	else
+	{
+		MediaPlayer->Pause();
 	}
 
 	if (SoundComponent != nullptr)
@@ -332,7 +334,6 @@ void NoesisMediaPlayer::OnMediaEvent(EMediaEvent Event)
 		case EMediaEvent::PlaybackEndReached:
 		{
 			Ended = true;
-			mMediaEnded();
 			break;
 		}
 		case EMediaEvent::PlaybackResumed:

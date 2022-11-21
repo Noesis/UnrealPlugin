@@ -22,7 +22,7 @@
 		{
 			"Name": "NoesisBlueprint",
 			"Type": "UncookedOnly",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "PreDefault"
 		},
 		{
 			"Name": "NoesisEditor",

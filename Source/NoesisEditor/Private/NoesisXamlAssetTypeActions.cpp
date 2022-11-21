@@ -10,7 +10,7 @@
 #include "Misc/EngineVersionComparison.h"
 
 // AssetRegistry includes
-#include "AssetRegistryModule.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 
 // BlueprintGraph includes
 #include "BlueprintNodeTemplateCache.h"
@@ -67,7 +67,11 @@ void FNoesisXamlAssetTypeActions::GetActions(const TArray<UObject*>& InObjects, 
 		"NoesisXaml_AddToViewport",
 		LOCTEXT("NoesisXaml_AddToViewport", "Add to Viewport"),
 		LOCTEXT("NoesisXaml_AddToViewportTooltip", "Create a NoesisView and add it to the Viewport in the current Level."),
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
 		FSlateIcon(FEditorStyle::GetStyleSetName(), "ClassIcon.Widget"),
+#else
+		FSlateIcon(FAppStyle::GetAppStyleSetName(), "ClassIcon.Widget"),
+#endif
 		FUIAction(
 			FExecuteAction::CreateSP(this, &FNoesisXamlAssetTypeActions::AddToViewport, Xamls),
 			FCanExecuteAction()
@@ -122,11 +126,19 @@ static bool ShouldRender(const FAssetData& AssetData)
 		return !CachedThumbnail->IsEmpty();
 	}
 
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
 	if (AssetData.AssetClass != UBlueprint::StaticClass()->GetFName())
+#else
+	if (AssetData.AssetClassPath != UBlueprint::StaticClass()->GetClassPathName())
+#endif
 	{
 		// If we are not a blueprint, see if the CDO of the asset's class has a rendering info
 		// Blueprints can't do this because the rendering info is based on the generated class
-		UClass* AssetClass = FindObject<UClass>(ANY_PACKAGE, *AssetData.AssetClass.ToString());
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
+		UClass* AssetClass = FindObject<UClass>(nullptr, *AssetData.AssetClass.ToString());
+#else
+		UClass* AssetClass = FindObject<UClass>(nullptr, *AssetData.AssetClassPath.ToString());
+#endif
 
 		if (AssetClass)
 		{
@@ -184,7 +196,11 @@ TSharedPtr<SWidget> FNoesisXamlAssetTypeActions::GetThumbnailOverlay(const FAsse
 	const FSlateBrush* Icon = FSlateIconFinder::FindIconBrushForClass(UNoesisXaml::StaticClass());
 
 	return SNew(SBorder)
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
 		.BorderImage(FEditorStyle::GetNoBrush())
+#else
+		.BorderImage(FAppStyle::GetNoBrush())
+#endif
 		.Visibility(EVisibility::HitTestInvisible)
 		.Padding(FMargin(0.0f, 0.0f, 0.0f, 3.0f))
 		.HAlign(HAlign_Right)

@@ -6,6 +6,8 @@
 #pragma once
 
 // Core includes
+#include "CoreMinimal.h"
+#include "Misc/EngineVersionComparison.h"
 #include "Modules/ModuleManager.h"
 
 // Engine includes
@@ -34,7 +36,11 @@
 #include "K2Node_Variable.h"
 
 // EditorStyle includes
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
 #include "Classes/EditorStyleSettings.h"
+#else
+#include "Settings/EditorStyleSettings.h"
+#endif
 
 // KismetCompiler includes
 #include "KismetCompiler.h"

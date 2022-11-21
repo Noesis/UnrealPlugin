@@ -365,7 +365,7 @@ static TShaderRef<FNoesisMaterialPSBase> GetMaterialPixelShader(const FMaterial*
 		check(false);
 	}
 	FMaterialShaders Shaders;
-	Material->TryGetShaders(ShaderTypes, false, Shaders);
+	Material->TryGetShaders(ShaderTypes, nullptr, Shaders);
 	Shaders.TryGetPixelShader(FoundShader);
 
 #endif
@@ -1640,7 +1640,7 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 				FMaterialShaderTypes ShaderTypes;
 				ShaderTypes.AddShaderType<FNoesisCustomEffectPS>();
 				FMaterialShaders Shaders;
-				Material->TryGetShaders(ShaderTypes, false, Shaders);
+				Material->TryGetShaders(ShaderTypes, nullptr, Shaders);
 				Shaders.TryGetPixelShader(CustomEffectPixelShader);
 #endif
 			}

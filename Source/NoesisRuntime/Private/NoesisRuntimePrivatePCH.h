@@ -73,7 +73,7 @@
 #include "Kismet2/StructureEditorUtils.h"
 
 // AssetRegistry includes
-#include "AssetRegistryModule.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #endif
 
 #include "NoesisSupport.h"

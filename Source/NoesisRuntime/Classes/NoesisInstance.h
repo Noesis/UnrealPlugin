@@ -134,6 +134,8 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	typedef TSharedPtr<class FNoesisSlateElement, ESPMode::ThreadSafe> FNoesisSlateElementPtr;
 	FNoesisSlateElementPtr NoesisSlateElement;
 
+	class UWidgetComponent* WidgetComponent;
+
 	UPROPERTY()
 	class UNoesisXaml* BaseXaml;
 
@@ -181,7 +183,7 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	void OnPreviewGotKeyboardFocus(Noesis::BaseComponent* Component, const Noesis::KeyboardFocusChangedEventArgs& Args);
 	void OnPreviewLostKeyboardFocus(Noesis::BaseComponent* Component, const Noesis::KeyboardFocusChangedEventArgs& Args);
 
-	bool HitTest(FVector2D Position);
+	bool HitTest(FVector2D Position) const;
 
 	void TermInstance();
 
@@ -191,8 +193,9 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	virtual void PostLoad();
 	// End of UObject interface
 
-#if WITH_EDITOR
 	// UWidget interface
+	virtual void OnWidgetRebuilt() override;
+#if WITH_EDITOR
 	virtual void SetDesignerFlags(EWidgetDesignFlags NewFlags) override;
 	// End of UWidget interface
 

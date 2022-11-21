@@ -12,7 +12,11 @@ void SBlueprintModeSeparator::Construct(const FArguments& InArg)
 {
 	SBorder::Construct(
 		SBorder::FArguments()
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
 		.BorderImage(FEditorStyle::GetBrush("BlueprintEditor.PipelineSeparator"))
+#else
+		.BorderImage(FAppStyle::GetBrush("BlueprintEditor.PipelineSeparator"))
+#endif
 		.Padding(0.0f)
 	);
 }

@@ -69,7 +69,11 @@ void FNoesisBlueprintEditorToolbar::FillNoesisBlueprintEditorModesToolbar(FToolB
 			SNew(SModeWidget, FNoesisBlueprintApplicationModes::GetLocalizedMode(FNoesisBlueprintApplicationModes::PreviewMode), FNoesisBlueprintApplicationModes::PreviewMode)
 			.OnGetActiveMode(GetActiveMode)
 			.OnSetActiveMode(SetActiveMode)
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
 			.IconImage(FEditorStyle::GetBrush("UMGEditor.SwitchToDesigner"))
+#else
+			.IconImage(FAppStyle::GetBrush("UMGEditor.SwitchToDesigner"))
+#endif
 #if UE_VERSION_OLDER_THAN(5, 0, 0)
 			.SmallIconImage(FEditorStyle::GetBrush("UMGEditor.SwitchToDesigner.Small"))
 #endif
@@ -84,7 +88,11 @@ void FNoesisBlueprintEditorToolbar::FillNoesisBlueprintEditorModesToolbar(FToolB
 			.OnSetActiveMode(SetActiveMode)
 			.CanBeSelected(BlueprintEditorPtr.Get(), &FBlueprintEditor::IsEditingSingleBlueprint)
 			.ToolTipText(LOCTEXT("GraphModeButtonTooltip", "Switch to Graph Editing Mode"))
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
 			.IconImage(FEditorStyle::GetBrush("FullBlueprintEditor.SwitchToScriptingMode"))
+#else
+			.IconImage(FAppStyle::GetBrush("FullBlueprintEditor.SwitchToScriptingMode"))
+#endif
 #if UE_VERSION_OLDER_THAN(5, 0, 0)
 			.SmallIconImage(FEditorStyle::GetBrush("FullBlueprintEditor.SwitchToScriptingMode.Small"))
 #endif

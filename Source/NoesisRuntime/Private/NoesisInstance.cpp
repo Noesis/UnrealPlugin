@@ -11,6 +11,8 @@
 
 // Engine includes
 #include "SceneUtils.h"
+#include "Engine/GameViewportClient.h"
+#include "Slate/SceneViewport.h"
 
 // RenderCore includes
 #include "RenderingThread.h"
@@ -23,8 +25,15 @@
 #include "GenericPlatform/ITextInputMethodSystem.h"
 
 // Slate includes
+#include "Widgets/SViewport.h"
 #include "Widgets/SWindow.h"
 #include "Framework/Application/SlateApplication.h"
+
+// SlateCore includes
+#include "Input/HitTestGrid.h"
+
+// UMG includes
+#include "Components/WidgetComponent.h"
 
 // NoesisRuntime includes
 #include "NoesisCustomVersion.h"
@@ -91,14 +100,27 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 			DepthStencilTarget.SafeRelease();
 			uint32 SizeX = ColorTarget->GetSizeX();
 			uint32 SizeY = ColorTarget->GetSizeY();
-			uint8 Format = (uint8)PF_DepthStencil;
+			EPixelFormat Format = PF_DepthStencil;
 			uint32 NumMips = 1;
 			uint32 NumSamples = ColorTarget->GetNumSamples();
 			ETextureCreateFlags TargetableTextureFlags = TexCreate_DepthStencilTargetable;
 			ERHIAccess Access = ERHIAccess::DSVWrite;
+			FClearValueBinding ClearValue(0.f, 0);
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
 			FRHIResourceCreateInfo CreateInfo(TEXT("Noesis.RenderTarget"));
-			CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
-			DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, Access, CreateInfo);
+			CreateInfo.ClearValueBinding = ClearValue;
+			DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, (uint8)Format, NumMips, NumSamples, TargetableTextureFlags, Access, CreateInfo);
+#else
+			auto DepthStencilTargetDesc = FRHITextureCreateDesc::Create2D(TEXT("Noesis.RenderTarget"))
+				.SetExtent(SizeX, SizeY)
+				.SetFormat(Format)
+				.SetNumMips(NumMips)
+				.SetNumSamples(NumSamples)
+				.SetFlags(TargetableTextureFlags)
+				.SetInitialState(Access)
+				.SetClearValue(ClearValue);
+			DepthStencilTarget = RHICreateTexture(DepthStencilTargetDesc);
+#endif
 		}
 
 		// Clear the stencil buffer
@@ -269,9 +291,8 @@ UNoesisInstance* UNoesisInstance::FromView(Noesis::IView* View)
 }
 
 UNoesisInstance::UNoesisInstance(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer), Scene(nullptr)
+	: Super(ObjectInitializer), Scene(nullptr), WidgetComponent(nullptr)
 {
-	Visibility = ESlateVisibility::Visible;
 }
 
 void UNoesisInstance::InitInstance()
@@ -554,7 +575,7 @@ struct NoesisHitTestVisibleTester
 	Noesis::UIElement* Hit;
 };
 
-bool UNoesisInstance::HitTest(FVector2D Position)
+bool UNoesisInstance::HitTest(FVector2D Position) const
 {
 	NoesisHitTestVisibleTester HitTester;
 
@@ -641,6 +662,20 @@ void UNoesisInstance::PostLoad()
 #endif
 }
 
+void UNoesisInstance::OnWidgetRebuilt()
+{
+	Super::OnWidgetRebuilt();
+
+	for (TObjectIterator<UWidgetComponent> It; It; ++It)
+	{
+		if (It->GetUserWidgetObject() == this)
+		{
+			WidgetComponent = *It;
+			break;
+		}
+	}
+}
+
 #if WITH_EDITOR
 void UNoesisInstance::SetDesignerFlags(EWidgetDesignFlags NewFlags)
 {
@@ -682,15 +717,29 @@ void UNoesisInstance::DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRe
 
 				uint32 SizeX = BackBuffer->GetSizeX();
 				uint32 SizeY = BackBuffer->GetSizeY();
-				uint8 Format = (uint8)PF_DepthStencil;
+				EPixelFormat Format = PF_DepthStencil;
 				uint32 NumMips = BackBuffer->GetNumMips();
 				uint32 NumSamples = BackBuffer->GetNumSamples();
 				ETextureCreateFlags TargetableTextureFlags = TexCreate_DepthStencilTargetable;
 				ERHIAccess Access = ERHIAccess::DSVWrite;
-				FRHIResourceCreateInfo CreateInfo(TEXT("Noesis.RenderTarget"));
-				CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
+				FClearValueBinding ClearValue(0.f, 0);
 				FTexture2DRHIRef ColorTarget = BackBuffer;
-				FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, TargetableTextureFlags, Access, CreateInfo);
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
+				FRHIResourceCreateInfo CreateInfo(TEXT("Noesis.RenderTarget"));
+				CreateInfo.ClearValueBinding = ClearValue;
+				FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, (uint8)Format, NumMips, NumSamples, TargetableTextureFlags, Access, CreateInfo);
+#else
+				auto DepthStencilTargetDesc = FRHITextureCreateDesc::Create2D(TEXT("Noesis.RenderTarget"))
+					.SetExtent(SizeX, SizeY)
+					.SetFormat(Format)
+					.SetNumMips(NumMips)
+					.SetNumSamples(NumSamples)
+					.SetFlags(TargetableTextureFlags)
+					.SetInitialState(Access)
+					.SetClearValue(ClearValue);
+				FTexture2DRHIRef DepthStencilTarget = RHICreateTexture(DepthStencilTargetDesc);
+#endif
+				
 				FRHIRenderPassInfo RPInfo(ColorTarget, ERenderTargetActions::Load_Store, DepthStencilTarget,
 					MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::Clear_DontStore), FExclusiveDepthStencil::DepthNop_StencilWrite);
 
@@ -713,7 +762,11 @@ void UNoesisInstance::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
 	FlipYAxis = IsInViewport() && RHINeedsToSwitchVerticalAxis(GShaderPlatformForFeatureLevel[GMaxRHIFeatureLevel]);
+#else
+	FlipYAxis = false;
+#endif
 
 	FVector2D AbsolutePosition = MyGeometry.GetAbsolutePosition();
 	FVector2D AbsoluteSize = MyGeometry.GetAbsoluteSize();
@@ -721,9 +774,112 @@ void UNoesisInstance::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	Update(AbsolutePosition.X, AbsolutePosition.Y, AbsoluteSize.X, AbsoluteSize.Y);
 }
 
+bool GetHitResultAtScreenPositionAndCache(APlayerController* PlayerController, FVector2D ScreenPosition, FHitResult& HitResult)
+{
+	static int64 CachedFrame;
+	static FVector2D CachedScreenPosition;
+	static FHitResult CachedHitResult;
+
+	UPrimitiveComponent* HitComponent = nullptr;
+
+	if (GFrameNumber != CachedFrame || CachedScreenPosition != ScreenPosition)
+	{
+		CachedFrame = GFrameNumber;
+		CachedScreenPosition = ScreenPosition;
+
+		if (PlayerController)
+		{
+			if (PlayerController->GetHitResultAtScreenPosition(ScreenPosition, ECC_Visibility, true, CachedHitResult))
+			{
+				HitResult = CachedHitResult;
+				return true;
+			}
+		}
+	}
+	else
+	{
+		HitResult = CachedHitResult;
+		return true;
+	}
+
+	return false;
+}
+
 int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
 	int32 MaxLayer = Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
+
+	if (GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
+	{
+		TSharedPtr<ICursor> PlatformCursor = FSlateApplication::Get().GetPlatformCursor();
+		auto ScreenSpacePosition = PlatformCursor->GetPosition() - Args.GetWindowToDesktopTransform();
+		FVector2D Position = AllottedGeometry.AbsoluteToLocal(ScreenSpacePosition) * AllottedGeometry.Scale;
+
+		APlayerController* OwningPlayer = GetOwningPlayer();
+
+		bool WidgetComponentHit = false;
+		if (OwningPlayer != nullptr && WidgetComponent != nullptr && WidgetComponent->GetReceiveHardwareInput() &&
+			WidgetComponent->GetCurrentDrawSize().X != 0 && WidgetComponent->GetCurrentDrawSize().Y != 0)
+		{
+			UWorld* World = GetWorld();
+			UGameViewportClient* ViewportClient = World->GetGameViewport();
+			FSceneViewport* Viewport = ViewportClient->GetGameViewport();
+			auto ViewportWidget = Viewport->GetViewportWidget();
+			auto PinnedViewportWidget = ViewportWidget.Pin();
+			if (PinnedViewportWidget.IsValid())
+			{
+				auto ViewportGeometry = PinnedViewportWidget->GetTickSpaceGeometry();
+				FVector2D HitTestPosition = ViewportGeometry.AbsoluteToLocal(PlatformCursor->GetPosition()) * ViewportGeometry.Scale;
+				FHitResult HitResult;
+				if (GetHitResultAtScreenPositionAndCache(OwningPlayer, HitTestPosition, HitResult))
+				{
+					if ((UPrimitiveComponent*)WidgetComponent == HitResult.GetComponent())
+					{
+						// Get the "forward" vector based on the current rotation system.
+						const FVector ForwardVector = WidgetComponent->GetForwardVector();
+
+						// Make sure the player is interacting with the front of the widget
+						if (FVector::DotProduct(ForwardVector, HitResult.ImpactPoint - HitResult.TraceStart) < 0.f)
+						{
+							WidgetComponent->GetLocalHitLocation(HitResult.Location, Position);
+							WidgetComponentHit = true;
+						}
+					}
+				}
+			}
+		}
+
+		bool Hit = false;
+		if (WidgetComponent == nullptr || WidgetComponentHit)
+		{
+			Hit = HitTest(Position);
+		}
+
+		auto PinnedWidget = MyWidget.Pin();
+		if (Hit)
+		{
+			if (PinnedWidget.IsValid())
+			{
+				auto& HittestGrid = Args.GetHittestGrid();
+				auto WidgetVisibility = PinnedWidget->GetVisibility();
+				PinnedWidget->SetVisibility(EVisibility::Visible);
+#if UE_VERSION_OLDER_THAN(4, 27, 0)
+				HittestGrid.AddWidget(PinnedWidget.ToSharedRef(), 0, LayerId, 0);
+#elif UE_VERSION_OLDER_THAN(5, 0, 0)
+				HittestGrid.AddWidget(PinnedWidget.ToSharedRef(), 0, LayerId, FSlateInvalidationWidgetSortOrder());
+#else				
+				HittestGrid.AddWidget(PinnedWidget.Get(), 0, LayerId, FSlateInvalidationWidgetSortOrder());
+#endif
+
+				PinnedWidget->SetVisibility(WidgetVisibility);
+			}
+		}
+		else
+		{
+			auto& HittestGrid = Args.GetHittestGrid();
+			HittestGrid.RemoveWidget(PinnedWidget.Get());
+		}
+	}
 
 	if (XamlView)
 	{
