@@ -103,15 +103,16 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 			EPixelFormat Format = PF_DepthStencil;
 			uint32 NumMips = 1;
 			uint32 NumSamples = ColorTarget->GetNumSamples();
-			ETextureCreateFlags TargetableTextureFlags = TexCreate_DepthStencilTargetable;
+			ETextureCreateFlags TargetableTextureFlags = TexCreate_DepthStencilTargetable | TexCreate_Memoryless;
 			ERHIAccess Access = ERHIAccess::DSVWrite;
 			FClearValueBinding ClearValue(0.f, 0);
+			const TCHAR* Name = TEXT("Noesis.RenderTarget.Onscreen_DS");
 #if UE_VERSION_OLDER_THAN(5, 1, 0)
-			FRHIResourceCreateInfo CreateInfo(TEXT("Noesis.RenderTarget"));
+			FRHIResourceCreateInfo CreateInfo(Name);
 			CreateInfo.ClearValueBinding = ClearValue;
 			DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, (uint8)Format, NumMips, NumSamples, TargetableTextureFlags, Access, CreateInfo);
 #else
-			auto DepthStencilTargetDesc = FRHITextureCreateDesc::Create2D(TEXT("Noesis.RenderTarget"))
+			auto DepthStencilTargetDesc = FRHITextureCreateDesc::Create2D(Name)
 				.SetExtent(SizeX, SizeY)
 				.SetFormat(Format)
 				.SetNumMips(NumMips)
@@ -121,6 +122,7 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 				.SetClearValue(ClearValue);
 			DepthStencilTarget = RHICreateTexture(DepthStencilTargetDesc);
 #endif
+			NOESIS_BIND_DEBUG_TEXTURE_LABEL(DepthStencilTarget, Name);
 		}
 
 		// Clear the stencil buffer
@@ -720,16 +722,17 @@ void UNoesisInstance::DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRe
 				EPixelFormat Format = PF_DepthStencil;
 				uint32 NumMips = BackBuffer->GetNumMips();
 				uint32 NumSamples = BackBuffer->GetNumSamples();
-				ETextureCreateFlags TargetableTextureFlags = TexCreate_DepthStencilTargetable;
+				ETextureCreateFlags TargetableTextureFlags = TexCreate_DepthStencilTargetable | TexCreate_Memoryless;
 				ERHIAccess Access = ERHIAccess::DSVWrite;
 				FClearValueBinding ClearValue(0.f, 0);
 				FTexture2DRHIRef ColorTarget = BackBuffer;
+				const TCHAR* Name = TEXT("Noesis.RenderTarget.Thumbnail_DS");
 #if UE_VERSION_OLDER_THAN(5, 1, 0)
-				FRHIResourceCreateInfo CreateInfo(TEXT("Noesis.RenderTarget"));
+				FRHIResourceCreateInfo CreateInfo(Name);
 				CreateInfo.ClearValueBinding = ClearValue;
 				FTexture2DRHIRef DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, (uint8)Format, NumMips, NumSamples, TargetableTextureFlags, Access, CreateInfo);
 #else
-				auto DepthStencilTargetDesc = FRHITextureCreateDesc::Create2D(TEXT("Noesis.RenderTarget"))
+				auto DepthStencilTargetDesc = FRHITextureCreateDesc::Create2D(Name)
 					.SetExtent(SizeX, SizeY)
 					.SetFormat(Format)
 					.SetNumMips(NumMips)
@@ -739,6 +742,7 @@ void UNoesisInstance::DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRe
 					.SetClearValue(ClearValue);
 				FTexture2DRHIRef DepthStencilTarget = RHICreateTexture(DepthStencilTargetDesc);
 #endif
+				NOESIS_BIND_DEBUG_TEXTURE_LABEL(DepthStencilTarget, Name);
 				
 				FRHIRenderPassInfo RPInfo(ColorTarget, ERenderTargetActions::Load_Store, DepthStencilTarget,
 					MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::Clear_DontStore), FExclusiveDepthStencil::DepthNop_StencilWrite);

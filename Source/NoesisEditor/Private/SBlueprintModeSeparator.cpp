@@ -5,6 +5,10 @@
 
 #include "SBlueprintModeSeparator.h"
 
+// Core includes
+#include "CoreMinimal.h"
+#include "Misc/EngineVersionComparison.h"
+
 // EditorStyle includes
 #include "EditorStyleSet.h"
 

@@ -23,6 +23,23 @@
 // RenderCore includes
 #include "ProfilingDebugging/RealtimeGPUProfiler.h"
 
+#if !UE_BUILD_SHIPPING
+	#define NOESIS_BIND_DEBUG_LABEL(Resource, Name) \
+		RHIBindDebugLabelName(Resource, Name); \
+		Resource->SetName(Name);
+#else
+	#define NOESIS_BIND_DEBUG_LABEL(Resource, Name)
+#endif
+
+#define NOESIS_BIND_DEBUG_TEXTURE_LABEL(Texture, Name) NOESIS_BIND_DEBUG_LABEL(Texture, Name)
+
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
+	// RHIBindDebugLabelName and SetName are not implemented for FVertexBufferRHIRef or FIndexBufferRHIRef
+	#define NOESIS_BIND_DEBUG_BUFFER_LABEL(Buffer, Name)
+#else
+	#define NOESIS_BIND_DEBUG_BUFFER_LABEL(Buffer, Name) NOESIS_BIND_DEBUG_LABEL(Buffer, Name)
+#endif
+
 class FNoesisRenderDevice : public Noesis::RenderDevice
 {
 #if UE_VERSION_OLDER_THAN(5, 0, 0)
@@ -39,12 +56,10 @@ class FNoesisRenderDevice : public Noesis::RenderDevice
 	FUniformBufferRHIRef PSRadialGradConstantBuffer;
 	FUniformBufferRHIRef BlurConstantsBuffer;
 	FUniformBufferRHIRef ShadowConstantsBuffer;
-	TUniformBufferRef<FViewUniformShaderParameters> ViewBuffer;
 	uint32 VSConstantsHash;
 	uint32 TextureSizeHash;
 	uint32 PSConstantsHash;
 	uint32 EffectsHash;
-	uint32 ViewHash;
 
 #if WANTS_DRAW_MESH_EVENTS
 	FDrawEvent* SetRenderTargetEvent;
@@ -56,9 +71,9 @@ class FNoesisRenderDevice : public Noesis::RenderDevice
 
 public:
 	FGameTime WorldTime;
-	FRHICommandList* RHICmdList;
+	FRHICommandListImmediate* RHICmdList;
 	FSceneViewFamily* ViewFamily;
-	FSceneView* View;
+	FViewInfo* View;
 	FSceneInterface* Scene;
 	uint32 ViewLeft, ViewTop, ViewRight, ViewBottom;
 	FVertexDeclarationRHIRef VertexDeclarations[Noesis::Shader::Count];
@@ -79,7 +94,7 @@ public:
 	static void* CreateMaterial(class UMaterialInterface* Material);
 	static void DestroyMaterial(void* Material);
 
-	void SetRHICmdList(class FRHICommandList* RHICmdList);
+	void SetRHICmdList(class FRHICommandListImmediate* RHICmdList);
 	void SetWorldTime(FGameTime InWorldTime);
 	void SetScene(FSceneInterface* InScene);
 

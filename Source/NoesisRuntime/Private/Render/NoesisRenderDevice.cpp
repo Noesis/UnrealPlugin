@@ -6,6 +6,7 @@
 #include "NoesisRenderDevice.h"
 
 // Engine includes
+#include "EngineModule.h"
 #include "Engine/Texture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Rendering/Texture2DResource.h"
@@ -390,9 +391,14 @@ public:
 FNoesisRenderDevice::FNoesisRenderDevice()
 	: VSConstantsHash(0), TextureSizeHash(0), PSConstantsHash(0), EffectsHash(0), ViewFamily(nullptr), View(nullptr)
 {
-	FRHIResourceCreateInfo CreateInfo(TEXT("Noesis.VertexIndexBuffer"));
+	auto VBName = TEXT("Noesis.VertexBuffer");
+	FRHIResourceCreateInfo CreateInfo(VBName);
 	DynamicVertexBuffer = RHICreateVertexBuffer(DYNAMIC_VB_SIZE, BUF_Volatile, CreateInfo);
+	NOESIS_BIND_DEBUG_BUFFER_LABEL(DynamicVertexBuffer, VBName);
+	auto IBName = TEXT("Noesis.IndexBuffer");
+	CreateInfo.DebugName = IBName;
 	DynamicIndexBuffer = RHICreateIndexBuffer(sizeof(int16), DYNAMIC_IB_SIZE, BUF_Volatile, CreateInfo);
+	NOESIS_BIND_DEBUG_BUFFER_LABEL(DynamicIndexBuffer, IBName);
 
 	VSConstantBuffer = TUniformBufferRef<FNoesisVSConstants>::CreateUniformBufferImmediate(FNoesisVSConstants(), UniformBuffer_MultiFrame);
 	TextureSizeBuffer = TUniformBufferRef<FNoesisTextureSize>::CreateUniformBufferImmediate(FNoesisTextureSize(), UniformBuffer_MultiFrame);
@@ -401,7 +407,6 @@ FNoesisRenderDevice::FNoesisRenderDevice()
 	PSRadialGradConstantBuffer = TUniformBufferRef<FNoesisPSRadialGradConstants>::CreateUniformBufferImmediate(FNoesisPSRadialGradConstants(), UniformBuffer_MultiFrame);
 	BlurConstantsBuffer = TUniformBufferRef<FNoesisBlurConstants>::CreateUniformBufferImmediate(FNoesisBlurConstants(), UniformBuffer_MultiFrame);
 	ShadowConstantsBuffer = TUniformBufferRef<FNoesisShadowConstants>::CreateUniformBufferImmediate(FNoesisShadowConstants(), UniformBuffer_MultiFrame);
-	ViewBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(FViewUniformShaderParameters(), UniformBuffer_MultiFrame);
 
 	const auto FeatureLevel = GMaxRHIFeatureLevel;
 
@@ -831,7 +836,6 @@ FNoesisRenderDevice::~FNoesisRenderDevice()
 	PSRadialGradConstantBuffer.SafeRelease();
 	BlurConstantsBuffer.SafeRelease();
 	ShadowConstantsBuffer.SafeRelease();
-	ViewBuffer.SafeRelease();
 }
 
 uint32 GlyphCacheWidth[] = { 256, 512, 1024, 2048, 4096 };
@@ -860,7 +864,7 @@ void FNoesisRenderDevice::Destroy()
 	NoesisRenderDevice = nullptr;
 }
 
-void FNoesisRenderDevice::SetRHICmdList(FRHICommandList* InRHICmdList)
+void FNoesisRenderDevice::SetRHICmdList(FRHICommandListImmediate* InRHICmdList)
 {
 	RHICmdList = InRHICmdList;
 }
@@ -915,78 +919,8 @@ void FNoesisRenderDevice::CreateView(uint32 Left, uint32 Top, uint32 Right, uint
 	ViewInitOptions.ViewOrigin = FVector::ZeroVector;
 	ViewInitOptions.ViewRotationMatrix = FMatrix::Identity;
 	ViewInitOptions.ProjectionMatrix = Projection;
-	View = new FSceneView(ViewInitOptions);
-	FViewUniformShaderParameters ViewUniformShaderParameters;
-	ViewUniformShaderParameters.VTFeedbackBuffer = GEmptyVertexBufferWithUAV->UnorderedAccessViewRHI;
-	View->SetupCommonViewUniformBufferParameters(
-		ViewUniformShaderParameters,
-		FIntPoint(Right - Left, Bottom - Top),
-		1,
-		FIntRect(Left, Top, Right, Bottom),
-		View->ViewMatrices,
-		FViewMatrices()
-	);
-
-#if UE_VERSION_OLDER_THAN(5, 0, 0)
-	ViewUniformShaderParameters.WorldViewOrigin = View->ViewMatrices.GetViewOrigin();
-#else
-	ViewUniformShaderParameters.RelativeWorldViewOrigin = (FVector3f)View->ViewMatrices.GetViewOrigin();
-#endif
-
-
-	ERHIFeatureLevel::Type RHIFeatureLevel = View->GetFeatureLevel();
-
-	ViewUniformShaderParameters.MobilePreviewMode =
-		(GIsEditor &&
-			(RHIFeatureLevel == ERHIFeatureLevel::ES3_1) &&
-			GMaxRHIFeatureLevel > ERHIFeatureLevel::ES3_1) ? 1.0f : 0.0f;
-
-	if (GSystemTextures.PerlinNoiseGradient.GetReference())
-	{
-#if UE_VERSION_OLDER_THAN(5, 0, 0)
-		ViewUniformShaderParameters.PerlinNoiseGradientTexture = GSystemTextures.PerlinNoiseGradient->GetRHI(ERenderTargetTexture::ShaderResource);
-#else
-		ViewUniformShaderParameters.PerlinNoiseGradientTexture = GSystemTextures.PerlinNoiseGradient->GetRHI();
-#endif
-		SetBlack2DIfNull(ViewUniformShaderParameters.PerlinNoiseGradientTexture);
-	}
-	check(ViewUniformShaderParameters.PerlinNoiseGradientTexture);
-	ViewUniformShaderParameters.PerlinNoiseGradientTextureSampler = TStaticSamplerState<SF_Point, AM_Wrap, AM_Wrap, AM_Wrap>::GetRHI();
-
-	if (GSystemTextures.PerlinNoise3D.GetReference())
-	{
-#if UE_VERSION_OLDER_THAN(5, 0, 0)
-		ViewUniformShaderParameters.PerlinNoise3DTexture = GSystemTextures.PerlinNoise3D->GetRHI(ERenderTargetTexture::ShaderResource);
-#else
-		ViewUniformShaderParameters.PerlinNoise3DTexture = GSystemTextures.PerlinNoise3D->GetRHI();
-#endif
-		SetBlack3DIfNull(ViewUniformShaderParameters.PerlinNoise3DTexture);
-	}
-	check(ViewUniformShaderParameters.PerlinNoise3DTexture);
-	ViewUniformShaderParameters.PerlinNoise3DTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Wrap, AM_Wrap, AM_Wrap>::GetRHI();
-
-	if (GSystemTextures.SobolSampling.GetReference())
-	{
-#if UE_VERSION_OLDER_THAN(5, 0, 0)
-		ViewUniformShaderParameters.SobolSamplingTexture = GSystemTextures.SobolSampling->GetRHI(ERenderTargetTexture::ShaderResource);
-#else
-		ViewUniformShaderParameters.SobolSamplingTexture = GSystemTextures.SobolSampling->GetRHI();
-#endif
-		SetBlack2DIfNull(ViewUniformShaderParameters.SobolSamplingTexture);
-	}
-	check(ViewUniformShaderParameters.SobolSamplingTexture);
-
-	uint32 Hash = Noesis::HashBytes(&ViewUniformShaderParameters, sizeof(ViewUniformShaderParameters));
-	if (ViewHash != Hash)
-	{
-#if PLATFORM_APPLE
-		// UniformBuffers on Metal are broken. They are all treated as Volatile, and new data is not pushed to the GPU after an update.
-		ViewBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(ViewUniformShaderParameters, UniformBuffer_SingleFrame);
-#else
-		RHIUpdateUniformBuffer(ViewBuffer, &ViewUniformShaderParameters);
-#endif
-		ViewHash = Hash;
-	}
+	GetRendererModule().CreateAndInitSingleView(*RHICmdList, ViewFamily, &ViewInitOptions);
+	View = (FViewInfo*)ViewFamily->Views[0];
 }
 
 void FNoesisRenderDevice::DestroyView()
@@ -1143,15 +1077,16 @@ const Noesis::DeviceCaps& FNoesisRenderDevice::GetCaps() const
 }
 
 static void NoesisCreateTargetableShaderResource2D(
+	const TCHAR* Name,
 	uint32 SizeX,
 	uint32 SizeY,
-	uint8 Format,
+	EPixelFormat Format,
 	uint32 NumMips,
 	ETextureCreateFlags Flags,
 	ETextureCreateFlags TargetableTextureFlags,
 	bool bForceSeparateTargetAndShaderResource,
 	bool bForceSharedTargetAndShaderResource,
-	FRHIResourceCreateInfo& CreateInfo,
+	FClearValueBinding ClearValue,
 	FTexture2DRHIRef& OutTargetableTexture,
 	FTexture2DRHIRef& OutShaderResourceTexture,
 	uint32 NumSamples = 1
@@ -1169,12 +1104,31 @@ static void NoesisCreateTargetableShaderResource2D(
 	if (NumSamples > 1 && !bForceSharedTargetAndShaderResource)
 	{
 		bForceSeparateTargetAndShaderResource = RHISupportsSeparateMSAAAndResolveTextures(GMaxRHIShaderPlatform);
+		if (bForceSeparateTargetAndShaderResource)
+		{
+			TargetableTextureFlags |= TexCreate_Memoryless;
+		}
 	}
 
 	if (!bForceSeparateTargetAndShaderResource)
 	{
 		// Create a single texture that has both TargetableTextureFlags and TexCreate_ShaderResource set.
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
+		FRHIResourceCreateInfo CreateInfo(Name);
+		CreateInfo.ClearValueBinding = ClearValue;
 		OutTargetableTexture = OutShaderResourceTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, Flags | TargetableTextureFlags | TexCreate_ShaderResource, ERHIAccess::SRVGraphics, CreateInfo);
+#else
+		auto TextureDesc = FRHITextureCreateDesc::Create2D(Name)
+			.SetExtent(SizeX, SizeY)
+			.SetFormat(Format)
+			.SetNumMips(NumMips)
+			.SetNumSamples(NumSamples)
+			.SetFlags(Flags | TargetableTextureFlags | TexCreate_ShaderResource)
+			.SetInitialState(ERHIAccess::SRVGraphics)
+			.SetClearValue(ClearValue);
+		OutTargetableTexture = OutShaderResourceTexture = RHICreateTexture(TextureDesc);
+#endif
+		NOESIS_BIND_DEBUG_TEXTURE_LABEL(OutTargetableTexture, Name);
 	}
 	else
 	{
@@ -1184,22 +1138,52 @@ static void NoesisCreateTargetableShaderResource2D(
 			ResolveTargetableTextureFlags |= TexCreate_DepthStencilResolveTarget;
 		}
 		// Create a texture that has TargetableTextureFlags set, and a second texture that has TexCreate_ResolveTargetable and TexCreate_ShaderResource set.
+		TStringBuilder<64> RTName;
+		RTName.Append(Name).Append(TEXT("_RT"));
+		TStringBuilder<64> SRName;
+		SRName.Append(Name).Append(TEXT("_SR"));
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
+		FRHIResourceCreateInfo CreateInfo(*RTName);
+		CreateInfo.ClearValueBinding = ClearValue;
 		OutTargetableTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, Flags | TargetableTextureFlags, ERHIAccess::RTV, CreateInfo);
+		CreateInfo.DebugName = *SRName;
 		OutShaderResourceTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, 1, Flags | ResolveTargetableTextureFlags | TexCreate_ShaderResource, ERHIAccess::SRVGraphics, CreateInfo);
+#else
+		auto TargetableTextureDesc = FRHITextureCreateDesc::Create2D(*RTName)
+			.SetExtent(SizeX, SizeY)
+			.SetFormat(Format)
+			.SetNumMips(NumMips)
+			.SetNumSamples(NumSamples)
+			.SetFlags(Flags | TargetableTextureFlags)
+			.SetInitialState(ERHIAccess::RTV)
+			.SetClearValue(ClearValue);
+		OutTargetableTexture = RHICreateTexture(TargetableTextureDesc);
+		auto ShaderResourceTextureDesc = FRHITextureCreateDesc::Create2D(*SRName)
+			.SetExtent(SizeX, SizeY)
+			.SetFormat(Format)
+			.SetNumMips(NumMips)
+			.SetNumSamples(1)
+			.SetFlags(Flags | ResolveTargetableTextureFlags | TexCreate_ShaderResource)
+			.SetInitialState(ERHIAccess::SRVGraphics)
+			.SetClearValue(ClearValue);
+		OutShaderResourceTexture = RHICreateTexture(ShaderResourceTextureDesc);
+#endif
+		NOESIS_BIND_DEBUG_TEXTURE_LABEL(OutTargetableTexture, *RTName);
+		NOESIS_BIND_DEBUG_TEXTURE_LABEL(OutShaderResourceTexture, *SRName);
 	}
 }
 
-static Noesis::Ptr<Noesis::RenderTarget> CreateRenderTarget(const char* Label, uint32 Width, uint32 Height, uint32 SampleCount, FTexture2DRHIRef DepthStencilTarget)
+static Noesis::Ptr<Noesis::RenderTarget> CreateRenderTarget(const TCHAR* Name, uint32 Width, uint32 Height, uint32 SampleCount, FTexture2DRHIRef DepthStencilTarget)
 {
-	uint8 Format = (uint8)PF_R8G8B8A8;
+	EPixelFormat Format = PF_R8G8B8A8;
 	uint32 NumMips = 1;
 	ETextureCreateFlags Flags = TexCreate_None;
 	ETextureCreateFlags TargetableTextureFlags = TexCreate_RenderTargetable;
 	bool bForceSeparateTargetAndShaderResource = false;
-	FRHIResourceCreateInfo CreateInfo(TEXT("Noesis.RenderTarget"));
+	FClearValueBinding ClearValue;
 	FTexture2DRHIRef ColorTarget;
 	FTexture2DRHIRef ShaderResourceTexture;
-	NoesisCreateTargetableShaderResource2D(Width, Height, Format, NumMips, Flags, TargetableTextureFlags, bForceSeparateTargetAndShaderResource, false, CreateInfo, ColorTarget, ShaderResourceTexture, SampleCount);
+	NoesisCreateTargetableShaderResource2D(Name, Width, Height, Format, NumMips, Flags, TargetableTextureFlags, bForceSeparateTargetAndShaderResource, false, ClearValue, ColorTarget, ShaderResourceTexture, SampleCount);
 
 	FNoesisRenderTarget* RenderTarget = new FNoesisRenderTarget();
 	RenderTarget->Texture = *new FNoesisTexture(Width, Height, NumMips, true);
@@ -1208,36 +1192,49 @@ static Noesis::Ptr<Noesis::RenderTarget> CreateRenderTarget(const char* Label, u
 	RenderTarget->Texture->Format = Noesis::TextureFormat::RGBA8;
 	RenderTarget->DepthStencilTarget = DepthStencilTarget;
 
-	FName TextureName = FName(Label);
-	ColorTarget->SetName(TextureName);
-	ShaderResourceTexture->SetName(TextureName);
-
 	return Noesis::Ptr<Noesis::RenderTarget>(*RenderTarget);
 }
 
 Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CreateRenderTarget(const char* Label, uint32 Width, uint32 Height, uint32 SampleCount, bool NeedsStencil)
 {
+	TStringBuilder<64> Name;
+	Name.Append(TEXT("Noesis.RenderTarget.")).Append(UTF8_TO_TCHAR(Label));
 	FTexture2DRHIRef DepthStencilTarget;
 
 	if (NeedsStencil)
 	{
+		TStringBuilder<64> DSName;
+		DSName.Append(*Name).Append(TEXT("_DS"));
 		uint32 NumMips = 1;
-		uint8 Format = (uint8)PF_DepthStencil;
-		ETextureCreateFlags TargetableTextureFlags = TexCreate_DepthStencilTargetable;
+		EPixelFormat Format = PF_DepthStencil;
+		ETextureCreateFlags TargetableTextureFlags = TexCreate_DepthStencilTargetable | TexCreate_Memoryless;
 		ERHIAccess Access = ERHIAccess::DSVWrite;
-		FRHIResourceCreateInfo CreateInfo(TEXT("Noesis.RenderTarget"));
-		CreateInfo.ClearValueBinding = FClearValueBinding(0.f, 0);
+		FClearValueBinding ClearValue(0.f, 0);
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
+		FRHIResourceCreateInfo CreateInfo(*DSName);
+		CreateInfo.ClearValueBinding = ClearValue;
 		DepthStencilTarget = RHICreateTexture2D(Width, Height, Format, NumMips, SampleCount, TargetableTextureFlags, Access, CreateInfo);
-
-		FName TextureName = FName(Label);
-		DepthStencilTarget->SetName(TextureName);
+#else
+		auto DepthStencilTargetDesc = FRHITextureCreateDesc::Create2D(*DSName)
+			.SetExtent(Width, Height)
+			.SetFormat(Format)
+			.SetNumMips(NumMips)
+			.SetNumSamples(SampleCount)
+			.SetFlags(TargetableTextureFlags)
+			.SetInitialState(Access)
+			.SetClearValue(ClearValue);
+		DepthStencilTarget = RHICreateTexture(DepthStencilTargetDesc);
+#endif
+		NOESIS_BIND_DEBUG_TEXTURE_LABEL(DepthStencilTarget, *DSName);
 	}
 
-	return ::CreateRenderTarget(Label, Width, Height, SampleCount, DepthStencilTarget);
+	return ::CreateRenderTarget(*Name, Width, Height, SampleCount, DepthStencilTarget);
 }
 
 Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CloneRenderTarget(const char* Label, Noesis::RenderTarget* InSharedRenderTarget)
 {
+	TStringBuilder<64> Name;
+	Name.Append(TEXT("Noesis.RenderTarget.")).Append(UTF8_TO_TCHAR(Label)).ToString();
 	FNoesisRenderTarget* SharedRenderTarget = (FNoesisRenderTarget*)InSharedRenderTarget;
 
 	uint32 Width = SharedRenderTarget->ColorTarget->GetSizeX();
@@ -1245,28 +1242,39 @@ Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CloneRenderTarget(const c
 	uint32 SampleCount = SharedRenderTarget->ColorTarget->GetNumSamples();
 	FTexture2DRHIRef DepthStencilTarget = SharedRenderTarget->DepthStencilTarget;
 
-	return ::CreateRenderTarget(Label, Width, Height, SampleCount, DepthStencilTarget);
+	return ::CreateRenderTarget(*Name, Width, Height, SampleCount, DepthStencilTarget);
 }
 
 Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(const char* Label, uint32 Width, uint32 Height, uint32 NumLevels, Noesis::TextureFormat::Enum TextureFormat, const void** Data)
 {
+	TStringBuilder<64> Name;
+	Name.Append(TEXT("Noesis.Texture.")).Append(UTF8_TO_TCHAR(Label)).ToString();
 	uint32 SizeX = (uint32)Width;
 	uint32 SizeY = (uint32)Height;
 	EPixelFormat Formats[Noesis::TextureFormat::Count] = { PF_R8G8B8A8, PF_R8G8B8A8, PF_G8 };
-	uint8 Format = (uint8)Formats[TextureFormat];
+	EPixelFormat Format = Formats[TextureFormat];
 	uint32 NumMips = (uint32)NumLevels;
 	uint32 NumSamples = 1;
 	ETextureCreateFlags Flags = TexCreate_None;
 	ERHIAccess Access = ERHIAccess::SRVGraphics;
-	FRHIResourceCreateInfo CreateInfo(TEXT("Noesis.Texture"));
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
+	FRHIResourceCreateInfo CreateInfo(*Name);
 	FTexture2DRHIRef ShaderResourceTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, Flags, Access, CreateInfo);
+#else
+	auto ShaderResourceTextureDesc = FRHITextureCreateDesc::Create2D(*Name)
+		.SetExtent(SizeX, SizeY)
+		.SetFormat(Format)
+		.SetNumMips(NumMips)
+		.SetNumSamples(NumSamples)
+		.SetFlags(Flags)
+		.SetInitialState(Access);
+	FTexture2DRHIRef ShaderResourceTexture = RHICreateTexture(ShaderResourceTextureDesc);
+#endif
+	NOESIS_BIND_DEBUG_TEXTURE_LABEL(ShaderResourceTexture, *Name);
 
 	FNoesisTexture* Texture = new FNoesisTexture(SizeX, SizeY, NumMips, TextureFormat == Noesis::TextureFormat::RGBA8);
 	Texture->ShaderResourceTexture = ShaderResourceTexture;
 	Texture->Format = TextureFormat;
-
-	FName TextureName = FName(Label);
-	ShaderResourceTexture->SetName(TextureName);
 
 	if (Data != nullptr)
 	{
@@ -1326,7 +1334,9 @@ void FNoesisRenderDevice::SetRenderTarget(Noesis::RenderTarget* Surface)
 #endif
 	check(Surface);
 	FNoesisRenderTarget* RenderTarget = (FNoesisRenderTarget*)Surface;
-	ERenderTargetActions ColorTargetActions = ERenderTargetActions::DontLoad_Store;
+	bool NeedsResolve = (RenderTarget->ColorTarget != RenderTarget->Texture->ShaderResourceTexture) && RenderTarget->ColorTarget->IsMultisampled();
+	constexpr uint8 DontLoad_Resolve = (((uint8)ERenderTargetLoadAction::ENoAction << (uint8)ERenderTargetActions::LoadOpMask) | (uint8)ERenderTargetStoreAction::EMultisampleResolve);
+	ERenderTargetActions ColorTargetActions = NeedsResolve ? (ERenderTargetActions)DontLoad_Resolve : ERenderTargetActions::DontLoad_Store;
 
 	EDepthStencilTargetActions DepthStencilTargetActions =
 		MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::DontLoad_DontStore);
@@ -1336,16 +1346,30 @@ void FNoesisRenderDevice::SetRenderTarget(Noesis::RenderTarget* Surface)
 	{
 		RHICmdList->Transition(FRHITransitionInfo(RenderTarget->ColorTarget, ERHIAccess::SRVGraphics, ERHIAccess::RTV));
 	}
+	else if (NeedsResolve)
+	{
+		RHICmdList->Transition(FRHITransitionInfo(RenderTarget->Texture->ShaderResourceTexture, ERHIAccess::SRVGraphics, ERHIAccess::RTV | ERHIAccess::ResolveDst));
+	}
 
 	if (RenderTarget->DepthStencilTarget)
 	{
 		FRHIRenderPassInfo RPInfo(RenderTarget->ColorTarget, ColorTargetActions, nullptr,
 			RenderTarget->DepthStencilTarget, DepthStencilTargetActions, nullptr, FExclusiveDepthStencil::DepthNop_StencilWrite);
+
+		// There's a bug in FRHIRenderPassInfo constructors. Can't pass it there.
+		// check(!ResolveColorRT || ResolveColorRT->IsMultisampled()) should be
+		// check(!ResolveColorRT || !ResolveColorRT->IsMultisampled());
+		RPInfo.ColorRenderTargets[0].ResolveTarget = NeedsResolve ? RenderTarget->Texture->ShaderResourceTexture : nullptr;
 		RHICmdList->BeginRenderPass(RPInfo, TEXT("NoesisOffScreen"));
 	}
 	else
 	{
 		FRHIRenderPassInfo RPInfo(RenderTarget->ColorTarget, ColorTargetActions, nullptr);
+
+		// There's a bug in FRHIRenderPassInfo constructors. Can't pass it there.
+		// check(!ResolveColorRT || ResolveColorRT->IsMultisampled()) should be
+		// check(!ResolveColorRT || !ResolveColorRT->IsMultisampled());
+		RPInfo.ColorRenderTargets[0].ResolveTarget = NeedsResolve ? RenderTarget->Texture->ShaderResourceTexture : nullptr;
 		RHICmdList->BeginRenderPass(RPInfo, TEXT("NoesisOffScreen"));
 	}
 	RHICmdList->SetViewport(0, 0, 0.0f, RenderTarget->ColorTarget->GetSizeX(), RenderTarget->ColorTarget->GetSizeY(), 1.0f);
@@ -1362,30 +1386,29 @@ void FNoesisRenderDevice::ResolveRenderTarget(Noesis::RenderTarget* Surface, con
 	RHICmdList->EndRenderPass();
 	if (RenderTarget->ColorTarget != RenderTarget->Texture->ShaderResourceTexture)
 	{
-		for (uint32 TileIndex = 0; TileIndex != (uint32)NumTiles; ++TileIndex)
+		if (!RenderTarget->ColorTarget->IsMultisampled())
 		{
-			const Noesis::Tile& Tile = Tiles[TileIndex];
+			RHICmdList->Transition(FRHITransitionInfo(RenderTarget->ColorTarget, ERHIAccess::RTV, ERHIAccess::CopySrc));
+			RHICmdList->Transition(FRHITransitionInfo(RenderTarget->Texture->ShaderResourceTexture, ERHIAccess::SRVGraphics, ERHIAccess::CopyDest));
 
-			uint32 ResolveMinX = Tile.x;
-			uint32 ResolveMinY = RenderTarget->Texture->ShaderResourceTexture->GetSizeY() - (Tile.y + Tile.height);
-			uint32 ResolveMaxX = Tile.x + Tile.width;
-			uint32 ResolveMaxY = RenderTarget->Texture->ShaderResourceTexture->GetSizeY() - Tile.y;
+			for (uint32 TileIndex = 0; TileIndex != (uint32)NumTiles; ++TileIndex)
+			{
+				const Noesis::Tile& Tile = Tiles[TileIndex];
 
-			FResolveParams ResolveParams;
-			ResolveParams.Rect.X1 = ResolveMinX;
-			ResolveParams.Rect.Y1 = ResolveMinY;
-			ResolveParams.Rect.X2 = ResolveMaxX;
-			ResolveParams.Rect.Y2 = ResolveMaxY;
-			ResolveParams.DestRect.X1 = ResolveMinX;
-			ResolveParams.DestRect.Y1 = ResolveMinY;
-			ResolveParams.DestRect.X2 = ResolveMaxX;
-			ResolveParams.DestRect.Y2 = ResolveMaxY;
-			ResolveParams.MipIndex = 0;
-			ResolveParams.SourceArrayIndex = 0;
-			ResolveParams.DestArrayIndex = 0;
-			ResolveParams.SourceAccessFinal = ERHIAccess::RTV;
-			ResolveParams.DestAccessFinal = ERHIAccess::SRVGraphics;
-			RHICmdList->CopyToResolveTarget(RenderTarget->ColorTarget, RenderTarget->Texture->ShaderResourceTexture, ResolveParams);
+				// TODO: Min and Max shouldn't be required after Noesis SDK 3.2, which fixes the negative position issues.
+				FRHICopyTextureInfo CopyTextureInfo;
+				CopyTextureInfo.Size = FIntVector(FMath::Min(RenderTarget->ColorTarget->GetSizeX(), Tile.width), FMath::Min(RenderTarget->ColorTarget->GetSizeY(), Tile.height), 1);
+				CopyTextureInfo.SourcePosition = FIntVector(FMath::Max(0, (int32)Tile.x), FMath::Max(0, (int32)(RenderTarget->Texture->ShaderResourceTexture->GetSizeY() - (Tile.y + Tile.height))), 0);
+				CopyTextureInfo.DestPosition = CopyTextureInfo.SourcePosition;
+				RHICmdList->CopyTexture(RenderTarget->ColorTarget, RenderTarget->Texture->ShaderResourceTexture, CopyTextureInfo);
+			}
+
+			RHICmdList->Transition(FRHITransitionInfo(RenderTarget->ColorTarget, ERHIAccess::CopySrc, ERHIAccess::RTV));
+			RHICmdList->Transition(FRHITransitionInfo(RenderTarget->Texture->ShaderResourceTexture, ERHIAccess::CopyDest, ERHIAccess::SRVGraphics));
+		}
+		else
+		{
+			RHICmdList->Transition(FRHITransitionInfo(RenderTarget->Texture->ShaderResourceTexture, ERHIAccess::RTV | ERHIAccess::ResolveDst, ERHIAccess::SRVGraphics));
 		}
 	}
 	else
@@ -1463,8 +1486,12 @@ void FNoesisRenderDevice::SetPatternMaterialParameters<FNoesisMaterialPSBase>(co
 	const FMaterial* Material = &MaterialProxy->GetIncompleteMaterialWithFallback(GMaxRHIFeatureLevel);
 #endif
 	FRHIPixelShader* ShaderRHI = RHICmdList->GetBoundPixelShader();
-	PixelShader->SetViewParameters(*RHICmdList, ShaderRHI, *View, ViewBuffer);
+	PixelShader->SetViewParameters(*RHICmdList, ShaderRHI, *View, View->ViewUniformBuffer);
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
 	PixelShader->SetParameters<FRHIPixelShader>(*RHICmdList, ShaderRHI, MaterialProxy, *Material, *View);
+#else
+	PixelShader->SetParameters<FRHIPixelShader, FRHICommandList>(*RHICmdList, ShaderRHI, MaterialProxy, *Material, *View);
+#endif
 }
 
 template<class PixelShaderClass>
@@ -1526,14 +1553,14 @@ void FNoesisRenderDevice::SetPixelShaderParameters<FNoesisCustomEffectPS>(const 
 	const FMaterial* Material = &MaterialProxy->GetIncompleteMaterialWithFallback(GMaxRHIFeatureLevel);
 #endif
 	FRHIPixelShader* ShaderRHI = RHICmdList->GetBoundPixelShader();
-	PixelShader->SetViewParameters(*RHICmdList, ShaderRHI, *View, ViewBuffer);
+	PixelShader->SetViewParameters(*RHICmdList, ShaderRHI, *View, View->ViewUniformBuffer);
 
 	FNoesisTexture* Texture = (FNoesisTexture*)(Batch.pattern);
 	FRHITexture* PatternTexture = Texture->ShaderResourceTexture;
 	//FRHISamplerState* PatternSamplerState = SamplerStates[Batch.patternSampler.v];
 	FRHISamplerState* PatternSamplerState = TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp>::GetRHI(); // This should be point samplig for the behavior to be the same as UE4's
 	FNoesisPostProcessMaterialParameters Params = {};
-	Params.View = ViewBuffer;
+	Params.View = View->ViewUniformBuffer;
 	Params.PostProcessInput_BilinearSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp>::GetRHI();
 	Params.PostProcessInput_0_Texture = PatternTexture;
 	Params.PostProcessInput_0_Sampler = PatternSamplerState;
@@ -1601,6 +1628,43 @@ void FNoesisRenderDevice::SetPixelShaderParameters<FNoesisCustomEffectPS>(const 
 	PixelShader->SetParameters(*RHICmdList, PixelShader, *View, MaterialProxy, Params);
 }
 
+static inline bool ConditionalUpdateUniformBuffer(FUniformBufferRHIRef& UniformBuffer, uint32& BufferHash, const Noesis::UniformData& UniformData)
+{
+	// There's no data.
+	if (UniformData.values == nullptr)
+		return false;
+
+	// Buffer is up to date.
+	if (BufferHash == UniformData.hash)
+		return false;
+		
+	check(UniformBuffer != nullptr);
+	uint32 UniformDataSize = UniformData.numDwords * 4;
+	const auto& UniformBufferLayout = UniformBuffer->GetLayout();
+	uint32 UniformBufferSize = UniformBufferLayout.ConstantBufferSize;
+
+	// Need a copy on the stack because RHI requires a 16 byte alignment and 16 byte padding.
+	// Reading from UniformData.values can cause an OOB read if UniformDataSize < UniformBufferSize.
+	// We allocate UniformBufferSize bytes but only memcpy UniformDataSize bytes.
+	check(UniformDataSize <= UniformBufferSize);
+	void* UniformBufferData = FMemory_Alloca(UniformBufferSize);
+	FMemory::Memcpy(UniformBufferData, UniformData.values, UniformDataSize);
+
+#if PLATFORM_APPLE
+	// UniformBuffers on Metal are broken. They are all treated as Volatile, and new data is not pushed to the GPU after an update.
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
+	UniformBuffer = RHICreateUniformBuffer(UniformBufferData, UniformBufferLayout, UniformBuffer_MultiFrame, EUniformBufferValidation::ValidateResources);
+#else
+	UniformBuffer = RHICreateUniformBuffer(UniformBufferData, &UniformBufferLayout, UniformBuffer_MultiFrame, EUniformBufferValidation::ValidateResources);
+#endif
+#else
+	RHIUpdateUniformBuffer(UniformBuffer, UniformBufferData);
+#endif
+
+	BufferHash = UniformData.hash;
+
+	return true;
+}
 
 void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 {
@@ -1691,73 +1755,13 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 #endif
 
 	// Update the uniform buffers
-	if (VSConstantsHash != Batch.vertexUniforms[0].hash)
-	{
-		uint32 Size = Batch.vertexUniforms[0].numDwords * 4;
-		void* VSConstants = FMemory_Alloca(Size);
-		FMemory::Memcpy(VSConstants, Batch.vertexUniforms[0].values, Size);
-		check((Batch.vertexUniforms[0].numDwords * 4) == sizeof(FNoesisVSConstants));
-#if PLATFORM_APPLE
-		// UniformBuffers on Metal are broken. They are all treated as Volatile, and new data is not pushed to the GPU after an update.
-		VSConstantBuffer = RHICreateUniformBuffer(VSConstants, VSConstantBuffer->GetLayout(), UniformBuffer_MultiFrame, EUniformBufferValidation::ValidateResources);
-#else
-		RHIUpdateUniformBuffer(VSConstantBuffer, VSConstants);
-#endif
-		VSConstantsHash = Batch.vertexUniforms[0].hash;
-	}
+	ConditionalUpdateUniformBuffer(VSConstantBuffer, VSConstantsHash, Batch.vertexUniforms[0]);
 
-	if (Batch.vertexUniforms[1].values != nullptr)
-	{
-		if (TextureSizeHash != Batch.vertexUniforms[1].hash)
-		{
-			uint32 Size = Batch.vertexUniforms[1].numDwords * 4;
-			void* TextureSize = FMemory_Alloca(Size);
-			FMemory::Memcpy(TextureSize, Batch.vertexUniforms[1].values, Size);
-#if PLATFORM_APPLE
-			// UniformBuffers on Metal are broken. They are all treated as Volatile, and new data is not pushed to the GPU after an update.
-			TextureSizeBuffer = RHICreateUniformBuffer(TextureSize, TextureSizeBuffer->GetLayout(), UniformBuffer_MultiFrame, EUniformBufferValidation::ValidateResources);
-#else
-			RHIUpdateUniformBuffer(TextureSizeBuffer, TextureSize);
-#endif
-			TextureSizeHash = Batch.vertexUniforms[1].hash;
-		}
-	}
+	ConditionalUpdateUniformBuffer(TextureSizeBuffer, TextureSizeHash, Batch.vertexUniforms[1]);
 
-	if (Batch.pixelUniforms[0].values != nullptr)
-	{
-		check(PSUniformBuffer0 != nullptr);
-		if (PSConstantsHash != Batch.pixelUniforms[0].hash)
-		{
-			uint32 Size = Batch.pixelUniforms[0].numDwords * 4;
-			void* PSConstants = FMemory_Alloca(Size);
-			FMemory::Memcpy(PSConstants, Batch.pixelUniforms[0].values, Size);
-#if PLATFORM_APPLE
-			// UniformBuffers on Metal are broken. They are all treated as Volatile, and new data is not pushed to the GPU after an update.
-			PSUniformBuffer0 = RHICreateUniformBuffer(PSConstants, PSUniformBuffer0->GetLayout(), UniformBuffer_MultiFrame, EUniformBufferValidation::ValidateResources);
-#else
-			RHIUpdateUniformBuffer(PSUniformBuffer0, PSConstants);
-#endif
-			PSConstantsHash = Batch.pixelUniforms[0].hash;
-		}
-	}
+	ConditionalUpdateUniformBuffer(PSUniformBuffer0, PSConstantsHash, Batch.pixelUniforms[0]);
 
-	if (Batch.pixelUniforms[1].values != nullptr)
-	{
-		check(PSUniformBuffer1 != nullptr);
-		if (EffectsHash != Batch.pixelUniforms[1].hash)
-		{
-			uint32 Size = Batch.pixelUniforms[1].numDwords * 4;
-			void* PSConstants = FMemory_Alloca(Size);
-			FMemory::Memcpy(PSConstants, Batch.pixelUniforms[1].values, Size);
-#if PLATFORM_APPLE
-			// UniformBuffers on Metal are broken. They are all treated as Volatile, and new data is not pushed to the GPU after an update.
-			PSUniformBuffer1 = RHICreateUniformBuffer(PSConstants, PSUniformBuffer1->GetLayout(), UniformBuffer_MultiFrame, EUniformBufferValidation::ValidateResources);
-#else
-			RHIUpdateUniformBuffer(PSUniformBuffer1, PSConstants);
-#endif
-			EffectsHash = Batch.pixelUniforms[1].hash;
-		}
-	}
+	ConditionalUpdateUniformBuffer(PSUniformBuffer1, EffectsHash, Batch.pixelUniforms[1]);
 
 	VertexShader->SetVSConstants(*RHICmdList, VSConstantBuffer);
 

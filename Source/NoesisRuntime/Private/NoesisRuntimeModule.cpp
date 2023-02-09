@@ -40,6 +40,7 @@
 #include "NoesisMediaPlayer.h"
 #include "Extensions/LocTableExtension.h"
 #include "Extensions/LocTextExtension.h"
+#include "Extensions/RichText.h"
 #include "Extensions/InputActionTrigger.h"
 
 // Noesis includes
