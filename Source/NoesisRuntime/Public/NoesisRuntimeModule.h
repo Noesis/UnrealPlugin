@@ -33,6 +33,8 @@ NOESISRUNTIME_API size_t NoesisAllocSize(void* UserData, void* Ptr);
 	#define NS_LOG(...)
 #endif
 
+DECLARE_MULTICAST_DELEGATE(FNoesisKeyboardRequest);
+
 class NOESISRUNTIME_API INoesisRuntimeModuleInterface : public IModuleInterface
 {
 public:
@@ -41,4 +43,6 @@ public:
 	virtual void RegisterFont(const class UFontFace* Font) = 0;
 	virtual void OnXamlChanged(class UNoesisXaml* Xaml) = 0;
 	virtual void OnTextureChanged(class UTexture2D* Texture) = 0;
+	virtual FNoesisKeyboardRequest& OnKeyboardRequested() = 0;
+	virtual FNoesisKeyboardRequest& OnKeyboardDismissed() = 0;
 };

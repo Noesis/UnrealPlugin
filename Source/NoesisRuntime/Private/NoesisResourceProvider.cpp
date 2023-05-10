@@ -18,6 +18,11 @@
 #include "NoesisXaml.h"
 #include "NoesisSupport.h"
 
+// LangServer includes
+#if WITH_EDITOR
+#include "NsApp/LangServer.h"
+#endif
+
 void FNoesisXamlProvider::OnXamlChanged(UNoesisXaml* Xaml)
 {
 #if WITH_EDITOR
@@ -33,9 +38,23 @@ void FNoesisXamlProvider::OnXamlChanged(UNoesisXaml* Xaml)
 
 Noesis::Ptr<Noesis::Stream> FNoesisXamlProvider::LoadXaml(const Noesis::Uri& Uri)
 {
-	FString XamlPath = NsProviderUriToAssetPath(Uri);
-	UNoesisXaml* Xaml = LoadObject<UNoesisXaml>(nullptr, *XamlPath, nullptr, LOAD_NoWarn);
+#if WITH_EDITOR
+	Noesis::String Scheme;
+	Uri.GetScheme(Scheme);
+	if (Scheme == "lsfile")
+	{
+		Noesis::Ptr<Noesis::Stream> stream = Noesis::LangServer::GetXaml(Uri, true);
+		if (stream != nullptr)
+		{
+			return stream;
+		}
+	}
+#endif
 
+	FString Path = NsProviderUriToAssetPath(Uri);
+	UObject* Asset = LoadObject<UObject>(nullptr, *Path, nullptr, LOAD_NoWarn);
+
+	UNoesisXaml* Xaml = Cast<UNoesisXaml>(Asset);
 	if (Xaml)
 	{
 		// Need to register the XAML's dependencies before returning.
@@ -47,6 +66,12 @@ Noesis::Ptr<Noesis::Stream> FNoesisXamlProvider::LoadXaml(const Noesis::Uri& Uri
 #endif
 
 		return *new Noesis::MemoryStream(Xaml->XamlText.GetData(), (uint32)Xaml->XamlText.Num());
+	}
+
+	UNoesisRive* Rive = Cast<UNoesisRive>(Asset);
+	if (Rive)
+	{
+		return *new Noesis::MemoryStream(Rive->Content.GetData(), (uint32)Rive->Content.Num());
 	}
 
 	return nullptr;
@@ -75,6 +100,20 @@ Noesis::TextureInfo FNoesisTextureProvider::GetTextureInfo(const Noesis::Uri& Ur
 		return Noesis::TextureInfo { (uint32)Texture->GetSizeX(), (uint32)Texture->GetSizeY() };
 	}
 
+#if WITH_EDITOR
+	Noesis::String Scheme;
+	Uri.GetScheme(Scheme);
+	if (Scheme == "lsfile")
+	{
+		Noesis::FixedString<512> Path;
+		Uri.GetPath(Path);
+		if (FPaths::FileExists(Path.Str()))
+		{
+			return Noesis::TextureInfo{ 1, 1 };
+		}
+	}
+#endif
+
 	return Noesis::TextureInfo {};
 }
 
@@ -82,7 +121,11 @@ Noesis::Ptr<Noesis::Texture> FNoesisTextureProvider::LoadTexture(const Noesis::U
 {
 	FString TexturePath = NsProviderUriToAssetPath(Uri);
 	FString TextureObjectPath = TexturePath + TEXT(".") + FPackageName::GetShortName(TexturePath);
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
 	UTexture2D* Texture = FindObject<UTexture2D>(nullptr, *TextureObjectPath);
+#else
+	UTexture2D* Texture = FindFirstObject<UTexture2D>(*TextureObjectPath);
+#endif
 
 	if (Texture)
 	{
@@ -131,6 +174,17 @@ Noesis::FontSource FNoesisFontProvider::MatchFont(const Noesis::Uri& BaseUri, co
 
 bool FNoesisFontProvider::FamilyExists(const Noesis::Uri& BaseUri, const char* FamilyName)
 {
+#if WITH_EDITOR
+	Noesis::String Scheme;
+	BaseUri.GetScheme(Scheme);
+	if (Scheme == "lsfile")
+	{
+		if (Noesis::LangServer::FolderHasFontFamily(BaseUri, FamilyName))
+		{
+			return true;
+		}
+	}
+#endif
 	return Noesis::CachedFontProvider::FamilyExists(GetUnrealUri(BaseUri), FamilyName);
 }
 

@@ -27,18 +27,11 @@ void FNoesisBlueprintPreviewApplicationMode::PostActivateMode()
 FNoesisBlueprintPreviewApplicationMode::FNoesisBlueprintPreviewApplicationMode(TSharedPtr<class FNoesisBlueprintEditor> InNoesisBlueprintEditor)
 	: FNoesisBlueprintApplicationMode(InNoesisBlueprintEditor, FNoesisBlueprintApplicationModes::PreviewMode)
 {
-	TabLayout = FTabManager::NewLayout("NoesisBlueprintEditor_Preview_Layout_v1")
+	TabLayout = FTabManager::NewLayout("NoesisBlueprintEditor_Preview_Layout_v2")
 		->AddArea
 		(
 			FTabManager::NewPrimaryArea()
 			->SetOrientation(Orient_Vertical)
-			->Split
-			(
-				FTabManager::NewStack()
-				->SetSizeCoefficient(0.2f)
-				->SetHideTabWell(true)
-				->AddTab(FNoesisBlueprintEditor::PreviewTabID, ETabState::OpenedTab)
-			)
 			->Split
 			(
 				FTabManager::NewStack()

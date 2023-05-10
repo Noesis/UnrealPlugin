@@ -38,10 +38,13 @@
 #include "NoesisSettings.h"
 #include "NoesisSupport.h"
 #include "NoesisMediaPlayer.h"
+#include "Extensions/BackgroundImage.h"
+#include "Extensions/EnhancedInputActionTrigger.h"
 #include "Extensions/LocTableExtension.h"
 #include "Extensions/LocTextExtension.h"
 #include "Extensions/RichText.h"
 #include "Extensions/InputActionTrigger.h"
+#include "Extensions/WorldTransformConverter.h"
 
 // Noesis includes
 #include "NoesisSDK.h"
@@ -59,6 +62,8 @@
 
 extern "C" void NsRegisterReflectionAppInteractivity();
 extern "C" void NsRegisterReflectionAppMediaElement();
+extern "C" void NsRegisterReflectionAppRiveBase();
+extern "C" void NsRegisterReflectionAppRive();
 
 void NoesisInitTypeTables();
 void NoesisGarbageCollected();
@@ -128,7 +133,6 @@ static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* De
 }
 
 DECLARE_MEMORY_STAT(TEXT("CPU Memory"), STAT_NoesisMemory, STATGROUP_Noesis);
-void* NoesisAllocationCallbackUserData = nullptr;
 void* NoesisAlloc(void* UserData, size_t Size)
 {
 	void* Result = FMemory::Malloc(Size);
@@ -211,38 +215,6 @@ void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Even
 }
 
 #endif
-
-void OnPostEngineInit()
-{
-	NoesisInitTypeTables();
-
-	const UNoesisSettings* Settings = GetDefault<UNoesisSettings>();
-	Settings->SetLicense();
-	Settings->SetApplicationResources();
-	Settings->SetFontFallbacks();
-	Settings->SetFontDefaultProperties();
-
-	// This check is not done inside SetLicense because that is also invoked when user is typing the license and would spam the console
-	if (Settings->LicenseName == "" || Settings->LicenseKey == "")
-	{
-		UE_LOG(LogNoesis, Warning, TEXT("License not set. Get one at https://www.noesisengine.com/trial"));
-	}
-
-#if WITH_EDITOR
-	if (GEditor)
-	{
-		GEditor->OnBlueprintPreCompile().AddStatic(OnBlueprintPreCompile);
-		FEnumEditorUtils::FEnumEditorManager::Get().AddListener(new NotifyEnumChanged);
-		FStructureEditorUtils::FStructEditorManager::Get().AddListener(new NotifyStructChanged);
-
-		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-		IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
-		AssetRegistry.OnAssetRenamed().AddStatic(&OnAssetRenamed);
-	}
-
-	FCoreUObjectDelegates::OnObjectPropertyChanged.AddStatic(&OnObjectPropertyChanged);
-#endif
-}
 
 void ShowTextBoxVirtualKeyboard(Noesis::TextBox*);
 void ShowPasswordBoxVirtualKeyboard(Noesis::PasswordBox*);
@@ -445,6 +417,7 @@ private:
 
 TSharedPtr<NoesisTextBoxVirtualKeyboardEntry> TextBoxVirtualKeyboardEntry;
 TSharedPtr<NoesisPasswordBoxVirtualKeyboardEntry> PasswordBoxVirtualKeyboardEntry;
+bool GNoesisIsEnteringText = false;
 
 void ShowTextBoxVirtualKeyboard(Noesis::TextBox* TextBox)
 {
@@ -468,41 +441,6 @@ void ShowPasswordBoxVirtualKeyboard(Noesis::PasswordBox* PasswordBox)
 	TSharedPtr<NoesisPasswordBoxVirtualKeyboardEntry> NewPasswordBoxVirtualKeyboardEntry = MakeShared<NoesisPasswordBoxVirtualKeyboardEntry>(PasswordBox);
 	FSlateApplication::Get().ShowVirtualKeyboard(true, FSlateApplication::Get().GetUserIndexForKeyboard(), NewPasswordBoxVirtualKeyboardEntry);
 	PasswordBoxVirtualKeyboardEntry = NewPasswordBoxVirtualKeyboardEntry;
-}
-
-void NoesisSoftwareKeyboardCallback(void* UserData, Noesis::UIElement* FocusedElement, bool Open)
-{
-	if (Open)
-	{
-		if (FocusedElement)
-		{
-			const Noesis::TypeClass* NewFocusClass = FocusedElement->GetClassType();
-			const Noesis::TypeClass* TextBoxClass = Noesis::TextBox::StaticGetClassType(nullptr);
-			const Noesis::TypeClass* PasswordBoxClass = Noesis::PasswordBox::StaticGetClassType(nullptr);
-			if (FPlatformApplicationMisc::RequiresVirtualKeyboard())
-			{
-				if (NewFocusClass == TextBoxClass || NewFocusClass->IsDescendantOf(TextBoxClass))
-				{
-					Noesis::TextBox* TextBox = (Noesis::TextBox*)FocusedElement;
-
-					ShowTextBoxVirtualKeyboard(TextBox);
-				}
-				else if (NewFocusClass == PasswordBoxClass || NewFocusClass->IsDescendantOf(PasswordBoxClass))
-				{
-					Noesis::PasswordBox* PasswordBox = (Noesis::PasswordBox*)FocusedElement;
-
-					ShowPasswordBoxVirtualKeyboard(PasswordBox);
-				}
-			}
-		}
-	}
-	else
-	{
-		if (FSlateApplication::IsInitialized() && FPlatformApplicationMisc::RequiresVirtualKeyboard())
-		{
-			FSlateApplication::Get().ShowVirtualKeyboard(false, FSlateApplication::Get().GetUserIndexForKeyboard());
-		}
-	}
 }
 
 void NoesisPlaySoundCallback(void* UserData, const Noesis::Uri& Uri, float Volume)
@@ -563,21 +501,34 @@ public:
 	{
 		NoesisRuntimeModuleInterface = this;
 
+		Noesis::MemoryCallbacks MemoryCallbacks { 0, &NoesisAlloc, &NoesisRealloc, &NoesisDealloc, &NoesisAllocSize };
+		Noesis::GUI::SetMemoryCallbacks(MemoryCallbacks);
+
 		Noesis::GUI::SetErrorHandler(&NoesisErrorHandler);
 #if UE_BUILD_SHIPPING + UE_BUILD_SHIPPING_WITH_EDITOR == 0
 		Noesis::GUI::SetLogHandler(&NoesisLogHandler);
 #else
+		Noesis::GUI::DisableHotReload();
 		Noesis::GUI::DisableInspector();
 #endif
-		Noesis::MemoryCallbacks MemoryCallbacks{ NoesisAllocationCallbackUserData, &NoesisAlloc, &NoesisRealloc, &NoesisDealloc, &NoesisAllocSize };
-		Noesis::GUI::SetMemoryCallbacks(MemoryCallbacks);
+		Noesis::GUI::DisableSocketInit();
+
 		Noesis::GUI::Init();
+
 		NsRegisterReflectionAppInteractivity();
 		NsRegisterReflectionAppMediaElement();
+		NsRegisterReflectionAppRiveBase();
+		NsRegisterReflectionAppRive();
 		Noesis::RegisterComponent<LocTextExtension>();
 		Noesis::RegisterComponent<LocTableExtension>();
 		Noesis::RegisterComponent<InputActionTrigger>();
+		Noesis::RegisterComponent<WorldTransformConverter>();
+		Noesis::RegisterComponent<BackgroundImage>();
 		Noesis::RegisterComponent<Noesis::EnumConverter<InputActionType>>();
+#if WITH_ENHANCED_INPUT
+		Noesis::RegisterComponent<EnhancedInputActionTrigger>();
+		Noesis::RegisterComponent<Noesis::EnumConverter<TriggerEvent>>();
+#endif
 		Noesis::TypeOf<RichText>();
 
 		NoesisXamlProvider = *new FNoesisXamlProvider();
@@ -589,14 +540,15 @@ public:
 
 		LastSelectedTextBox.Reset();
 		LastSelectedPasswordBox.Reset();
-		Noesis::GUI::SetSoftwareKeyboardCallback(nullptr, &NoesisSoftwareKeyboardCallback);
+		Noesis::GUI::SetSoftwareKeyboardCallback(this, &FNoesisRuntimeModule::NoesisSoftwareKeyboardCallback);
 
 		Noesis::GUI::SetPlayAudioCallback(nullptr, &NoesisPlaySoundCallback);
 		NoesisApp::MediaElement::SetCreateMediaPlayerCallback(NoesisCreateMediaPlayerCallback, nullptr);
 
 		PostGarbageCollectConditionalBeginDestroyDelegateHandle = FCoreUObjectDelegates::PostGarbageCollectConditionalBeginDestroy.AddStatic(NoesisGarbageCollected);
 
-		PostEngineInitDelegateHandle = FCoreDelegates::OnPostEngineInit.AddStatic(OnPostEngineInit);
+		PostEngineInitDelegateHandle = FCoreDelegates::OnPostEngineInit.AddRaw(this, &FNoesisRuntimeModule::OnPostEngineInit);
+		EnginePreExitDelegateHandle = FCoreDelegates::OnEnginePreExit.AddRaw(this, &FNoesisRuntimeModule::OnEnginePreExit);
 
 		Noesis::Reflection::SetFallbackHandler(&NoesisReflectionRegistryCallback);
 
@@ -604,16 +556,131 @@ public:
 		AddShaderSourceDirectoryMapping(TEXT("/Plugin/NoesisGUI"), PluginShaderDir);
 
 		CultureChangedHandle = FTextLocalizationManager::Get().OnTextRevisionChangedEvent.AddStatic(&NoesisCultureChanged);
+
+		OverlayRenderDelegateHandle = NoesisRegisterOverlayRender();
+	}
+
+	static void NoesisSoftwareKeyboardCallback(void* UserData, Noesis::UIElement* FocusedElement, bool Open)
+	{
+		GNoesisIsEnteringText = Open && !FPlatformApplicationMisc::RequiresVirtualKeyboard();
+		FNoesisRuntimeModule* ThisModule = (FNoesisRuntimeModule*)UserData;
+
+		if (Open)
+		{
+			if (FocusedElement)
+			{
+				const Noesis::TypeClass* NewFocusClass = FocusedElement->GetClassType();
+				const Noesis::TypeClass* TextBoxClass = Noesis::TextBox::StaticGetClassType(nullptr);
+				const Noesis::TypeClass* PasswordBoxClass = Noesis::PasswordBox::StaticGetClassType(nullptr);
+				if (FPlatformApplicationMisc::RequiresVirtualKeyboard())
+				{
+					if (NewFocusClass == TextBoxClass || NewFocusClass->IsDescendantOf(TextBoxClass))
+					{
+						Noesis::TextBox* TextBox = (Noesis::TextBox*)FocusedElement;
+
+						ShowTextBoxVirtualKeyboard(TextBox);
+					}
+					else if (NewFocusClass == PasswordBoxClass || NewFocusClass->IsDescendantOf(PasswordBoxClass))
+					{
+						Noesis::PasswordBox* PasswordBox = (Noesis::PasswordBox*)FocusedElement;
+
+						ShowPasswordBoxVirtualKeyboard(PasswordBox);
+					}
+				}
+			}
+
+			ThisModule->KeyboardRequested.Broadcast();
+		}
+		else
+		{
+			if (FSlateApplication::IsInitialized() && FPlatformApplicationMisc::RequiresVirtualKeyboard())
+			{
+				FSlateApplication::Get().ShowVirtualKeyboard(false, FSlateApplication::Get().GetUserIndexForKeyboard());
+			}
+
+			ThisModule->KeyboardDismissed.Broadcast();
+		}
+	}
+
+	void OnPostEngineInit()
+	{
+		NoesisInitTypeTables();
+
+		const UNoesisSettings* Settings = GetDefault<UNoesisSettings>();
+		Settings->SetLicense();
+		Settings->SetApplicationResources();
+		Settings->SetFontFallbacks();
+		Settings->SetFontDefaultProperties();
+
+		// This check is not done inside SetLicense because that is also invoked when user is typing the license and would spam the console
+		if (Settings->LicenseName == "" || Settings->LicenseKey == "")
+		{
+			UE_LOG(LogNoesis, Warning, TEXT("License not set. Get one at https://www.noesisengine.com/trial"));
+		}
+
+#if WITH_EDITOR
+		if (GEditor)
+		{
+			BlueprintPreCompileHandle = GEditor->OnBlueprintPreCompile().AddStatic(OnBlueprintPreCompile);
+
+			NotifyEnumChangedListener = new NotifyEnumChanged;
+			FEnumEditorUtils::FEnumEditorManager::Get().AddListener(NotifyEnumChangedListener);
+			NotifyStructChangedListener = new NotifyStructChanged;
+			FStructureEditorUtils::FStructEditorManager::Get().AddListener(NotifyStructChangedListener);
+
+			FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+			IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+			AssetRenamedHandle = AssetRegistry.OnAssetRenamed().AddStatic(&OnAssetRenamed);
+		}
+
+		ObjectPropertyChangedHandle = FCoreUObjectDelegates::OnObjectPropertyChanged.AddStatic(&OnObjectPropertyChanged);
+#endif
+
+		InputPreProcessor = NoesisRegisterInputPreProcessor();
+
+		ViewExtension = NoesisRegisterSceneViewExtension();
+	}
+
+	void OnEnginePreExit()
+	{
+#if WITH_EDITOR
+		if (GEditor)
+		{
+			FCoreUObjectDelegates::OnObjectPropertyChanged.Remove(ObjectPropertyChangedHandle);
+
+			FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+			IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+			AssetRegistry.OnAssetRenamed().Remove(AssetRenamedHandle);
+
+			FEnumEditorUtils::FEnumEditorManager::Get().RemoveListener(NotifyEnumChangedListener);
+			delete NotifyEnumChangedListener;
+			FStructureEditorUtils::FStructEditorManager::Get().RemoveListener(NotifyStructChangedListener);
+			delete NotifyStructChangedListener;
+
+			GEditor->OnBlueprintPreCompile().Remove(BlueprintPreCompileHandle);
+		}
+#endif
+
+		NoesisUnregisterInputPreProcessor(InputPreProcessor);
+		InputPreProcessor.Reset();
+
+		NoesisUnregisterSceneViewExtension(ViewExtension);
+		ViewExtension.Reset();
 	}
 
 	virtual void ShutdownModule() override
 	{
 		NoesisRuntimeModuleInterface = nullptr;
 
+		BackgroundImage::NoesisBackgroundTexture.Reset();
+
+		NoesisUnregisterOverlayRender(OverlayRenderDelegateHandle);
+
 		FTextLocalizationManager::Get().OnTextRevisionChangedEvent.Remove(CultureChangedHandle);
 
 		Noesis::Reflection::SetFallbackHandler(nullptr);
 
+		FCoreDelegates::OnEnginePreExit.Remove(EnginePreExitDelegateHandle);
 		FCoreDelegates::OnPostEngineInit.Remove(PostEngineInitDelegateHandle);
 
 		FCoreUObjectDelegates::PostGarbageCollectConditionalBeginDestroy.Remove(PostGarbageCollectConditionalBeginDestroyDelegateHandle);
@@ -627,7 +694,13 @@ public:
 		NoesisTextureProvider.Reset();
 		NoesisFontProvider.Reset();
 
+#if WITH_ENHANCED_INPUT
+		Noesis::UnregisterComponent<Noesis::EnumConverter<TriggerEvent>>();
+		Noesis::UnregisterComponent<EnhancedInputActionTrigger>();
+#endif
 		Noesis::UnregisterComponent<Noesis::EnumConverter<InputActionType>>();
+		Noesis::UnregisterComponent<BackgroundImage>();
+		Noesis::UnregisterComponent<WorldTransformConverter>();
 		Noesis::UnregisterComponent<InputActionTrigger>();
 		Noesis::UnregisterComponent<LocTextExtension>();
 		Noesis::UnregisterComponent<LocTableExtension>();
@@ -650,6 +723,16 @@ public:
 	{
 		NoesisTextureProvider->OnTextureChanged(Texture);
 	}
+
+	virtual FNoesisKeyboardRequest& OnKeyboardRequested() override
+	{
+		return KeyboardRequested;
+	}
+
+	virtual FNoesisKeyboardRequest& OnKeyboardDismissed() override
+	{
+		return KeyboardDismissed;
+	}
 	// End of INoesisRuntimeModuleInterface interface
 
 	static INoesisRuntimeModuleInterface* NoesisRuntimeModuleInterface;
@@ -658,7 +741,20 @@ public:
 	Noesis::Ptr<FNoesisFontProvider> NoesisFontProvider;
 	FDelegateHandle PostGarbageCollectConditionalBeginDestroyDelegateHandle;
 	FDelegateHandle PostEngineInitDelegateHandle;
+	FDelegateHandle EnginePreExitDelegateHandle;
 	FDelegateHandle CultureChangedHandle;
+	FDelegateHandle OverlayRenderDelegateHandle;
+#if WITH_EDITOR
+	FDelegateHandle BlueprintPreCompileHandle;
+	NotifyEnumChanged* NotifyEnumChangedListener;
+	NotifyStructChanged* NotifyStructChangedListener;
+	FDelegateHandle AssetRenamedHandle;
+	FDelegateHandle ObjectPropertyChangedHandle;
+#endif
+	TSharedPtr<class IInputProcessor> InputPreProcessor;
+	TSharedPtr<class ISceneViewExtension> ViewExtension;
+	FNoesisKeyboardRequest KeyboardRequested;
+	FNoesisKeyboardRequest KeyboardDismissed;
 };
 
 INoesisRuntimeModuleInterface* FNoesisRuntimeModule::NoesisRuntimeModuleInterface = 0;

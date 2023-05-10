@@ -18,17 +18,18 @@ UNoesisXamlThumbnailRenderer::UNoesisXamlThumbnailRenderer(const FObjectInitiali
 
 bool UNoesisXamlThumbnailRenderer::CanVisualizeAsset(UObject* Object)
 {
-	UNoesisXaml* NoesisXaml = Cast<UNoesisXaml>(Object);
-	return NoesisXaml && NoesisXaml->CanRenderThumbnail();
+	UNoesisXaml* Xaml = Cast<UNoesisXaml>(Object);
+	return Xaml != nullptr;
 }
 
-void UNoesisXamlThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint32 Width, uint32 Height, FRenderTarget* Viewport, FCanvas* Canvas, bool bAdditionalViewFamily)
+void UNoesisXamlThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint32 Width, uint32 Height,
+	FRenderTarget* Viewport, FCanvas* Canvas, bool bAdditionalViewFamily)
 {
-	UNoesisXaml* NoesisXaml = Cast<UNoesisXaml>(Object);
-	if (!NoesisXaml)
-		return;
-
-	FIntRect ViewportRect(X, Y, X + Width, Y + Height);
-	const FTexture2DRHIRef& BackBuffer = Viewport->GetRenderTargetTexture();
-	NoesisXaml->RenderThumbnail(ViewportRect, BackBuffer);
+	UNoesisXaml* Xaml = Cast<UNoesisXaml>(Object);
+	if (Xaml != nullptr)
+	{
+		FIntRect ViewportRect(X, Y, X + Width, Y + Height);
+		const FTexture2DRHIRef& BackBuffer = Viewport->GetRenderTargetTexture();
+		Xaml->RenderThumbnail(ViewportRect, BackBuffer);
+	}
 }

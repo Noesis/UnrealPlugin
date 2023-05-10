@@ -82,18 +82,14 @@ TArray<UFontFace*> ImportFontFamily(FString PackagePath, FString FamilyName, FSt
 		FString FontPackagePath;
 		FString FamilyName;
 		TArray<UFontFace*> Fonts;
-		FT_Library FTLibrary;
 
 		ScanFolderForFonts(FString InFontPackagePath, FString InFamilyName)
 			: FontPackagePath(InFontPackagePath), FamilyName(InFamilyName)
 		{
-			int32 Error = FT_Init_FreeType(&FTLibrary);
-			checkf(Error == 0, TEXT("Could not init Freetype"));
 		}
 
 		~ScanFolderForFonts()
 		{
-			FT_Done_FreeType(FTLibrary);
 		}
 
 		virtual bool Visit(const TCHAR* FilenameOrDirectory, bool IsDirectory) override
@@ -106,77 +102,50 @@ TArray<UFontFace*> ImportFontFamily(FString PackagePath, FString FamilyName, FSt
 					TArray<uint8> FileData;
 					if (FFileHelper::LoadFileToArray(FileData, FilenameOrDirectory))
 					{
-						FT_StreamRec Stream;
-						FMemory::Memset(&Stream, 0, sizeof(Stream));
-						Stream.descriptor.pointer = FileData.GetData();
-						Stream.size = FileData.Num();
-						Stream.read = &StreamRead;
-						Stream.close = &StreamClose;
-
-						FT_Open_Args Args;
-						FMemory::Memset(&Args, 0, sizeof(Args));
-						Args.flags = FT_OPEN_STREAM;
-						Args.stream = &Stream;
-
-						FT_Face Face;
-						FT_Error Error = FT_Open_Face(FTLibrary, &Args, -1, &Face);
-						if (Error == 0)
+						Noesis::MemoryStream Stream(FileData.GetData(), FileData.Num());
+						Noesis::Fonts::GetTypefaces(&Stream, [&](const Noesis::Typeface& typeface)
 						{
-							for (FT_Long FaceIndex = 0; FaceIndex < Face->num_faces; FaceIndex++)
+							if (Noesis::StrCaseStartsWith(TCHAR_TO_UTF8(*FamilyName), typeface.familyName))
 							{
-								FT_Face SubFace;
-								Error = FT_Open_Face(FTLibrary, &Args, FaceIndex, &SubFace);
-								if (Error == 0)
+								FString FontFaceName = ObjectTools::SanitizeObjectName(FPaths::GetBaseFilename(FPaths::GetBaseFilename(FilenameOrDirectory)));
+
+								UPackage* FontFacePackage = NULL;
+
+								FString FontFaceObjectPath = FontPackagePath / FontFaceName + TEXT(".") + FontFaceName;
+								UFontFace* ExistingFontFace = LoadObject<UFontFace>(NULL, *FontFaceObjectPath);
+
+								if (ExistingFontFace)
 								{
-									FString FaceFamilyName = SubFace->family_name;
-									FaceFamilyName.TrimStartAndEndInline();
-									if (FaceFamilyName == FamilyName)
-									{
-										FString FontFaceName = ObjectTools::SanitizeObjectName(FPaths::GetBaseFilename(FPaths::GetBaseFilename(FilenameOrDirectory)));
-
-										UPackage* FontFacePackage = NULL;
-
-										FString FontFaceObjectPath = FontPackagePath / FontFaceName + TEXT(".") + FontFaceName;
-										UFontFace* ExistingFontFace = LoadObject<UFontFace>(NULL, *FontFaceObjectPath);
-
-										if (ExistingFontFace)
-										{
-											Fonts.AddUnique(ExistingFontFace);
-											FT_Done_Face(SubFace);
-											continue;
-										}
-										FontFacePackage = CreatePackage(*(FontPackagePath / FontFaceName));
-
-										auto FontFaceFactory = NewObject<UFontFileImportFactory>();
-										FontFaceFactory->AddToRoot();
-
-										UAutomatedAssetImportData* AutomatedAssetImportData = NewObject<UAutomatedAssetImportData>();
-										FontFaceFactory->SetAutomatedAssetImportData(AutomatedAssetImportData);
-
-										bool Cancelled = false;
-										UFontFace* FontFace = (UFontFace*)FontFaceFactory->ImportObject(UFontFace::StaticClass(), FontFacePackage, *FontFaceName, RF_Standalone | RF_Public, FilenameOrDirectory, TEXT(""), Cancelled);
-
-										if (FontFace != NULL)
-										{
-											// Notify the asset registry
-											FAssetRegistryModule::AssetCreated(FontFace);
-
-											// Set the dirty flag so this package will get saved later
-											FontFacePackage->SetDirtyFlag(true);
-										}
-
-										FontFaceFactory->RemoveFromRoot();
-
-										// Add a default typeface referencing the newly created font face
-										Fonts.AddUnique(FontFace);
-									}
-
-									FT_Done_Face(SubFace);
+									Fonts.AddUnique(ExistingFontFace);
+									return;
 								}
-							}
 
-							FT_Done_Face(Face);
-						}
+								FontFacePackage = CreatePackage(*(FontPackagePath / FontFaceName));
+
+								auto FontFaceFactory = NewObject<UFontFileImportFactory>();
+								FontFaceFactory->AddToRoot();
+
+								UAutomatedAssetImportData* AutomatedAssetImportData = NewObject<UAutomatedAssetImportData>();
+								FontFaceFactory->SetAutomatedAssetImportData(AutomatedAssetImportData);
+
+								bool Cancelled = false;
+								UFontFace* FontFace = (UFontFace*)FontFaceFactory->ImportObject(UFontFace::StaticClass(), FontFacePackage, *FontFaceName, RF_Standalone | RF_Public, FilenameOrDirectory, TEXT(""), Cancelled);
+
+								if (FontFace != NULL)
+								{
+									// Notify the asset registry
+									FAssetRegistryModule::AssetCreated(FontFace);
+
+									// Set the dirty flag so this package will get saved later
+									FontFacePackage->SetDirtyFlag(true);
+								}
+
+								FontFaceFactory->RemoveFromRoot();
+
+								// Add a default typeface referencing the newly created font face
+								Fonts.AddUnique(FontFace);
+							}
+						});
 					}
 				}
 			}
@@ -310,6 +279,10 @@ static void AddDependency(UNoesisXaml* NoesisXaml, UObject* Asset)
 	else if (UMediaSource* Video = Cast<UMediaSource>(Asset))
 	{
 		NoesisXaml->Videos.Add(Video);
+	}
+	else if (UNoesisRive* Rive = Cast<UNoesisRive>(Asset))
+	{
+		NoesisXaml->Rives.Add(Rive);
 	}
 	else if (UMaterialInterface* Material = Cast<UMaterialInterface>(Asset))
 	{

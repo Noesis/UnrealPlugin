@@ -93,7 +93,6 @@ public:
 	// End of Texture interface
 
 	FTexture2DRHIRef ShaderResourceTexture;
-	Noesis::TextureFormat::Enum Format;
 	uint32 Width;
 	uint32 Height;
 	uint32 NumMipMaps;
@@ -389,7 +388,6 @@ public:
 };
 
 FNoesisRenderDevice::FNoesisRenderDevice()
-	: VSConstantsHash(0), TextureSizeHash(0), PSConstantsHash(0), EffectsHash(0), ViewFamily(nullptr), View(nullptr)
 {
 	auto VBName = TEXT("Noesis.VertexBuffer");
 	FRHIResourceCreateInfo CreateInfo(VBName);
@@ -401,6 +399,7 @@ FNoesisRenderDevice::FNoesisRenderDevice()
 	NOESIS_BIND_DEBUG_BUFFER_LABEL(DynamicIndexBuffer, IBName);
 
 	VSConstantBuffer = TUniformBufferRef<FNoesisVSConstants>::CreateUniformBufferImmediate(FNoesisVSConstants(), UniformBuffer_MultiFrame);
+	VSConstantBufferRightEye = TUniformBufferRef<FNoesisVSConstantsRightEye>::CreateUniformBufferImmediate(FNoesisVSConstantsRightEye(), UniformBuffer_MultiFrame);
 	TextureSizeBuffer = TUniformBufferRef<FNoesisTextureSize>::CreateUniformBufferImmediate(FNoesisTextureSize(), UniformBuffer_MultiFrame);
 	PSRgbaConstantBuffer = TUniformBufferRef<FNoesisPSRgbaConstants>::CreateUniformBufferImmediate(FNoesisPSRgbaConstants(), UniformBuffer_MultiFrame);
 	PSOpacityConstantBuffer = TUniformBufferRef<FNoesisPSOpacityConstants>::CreateUniformBufferImmediate(FNoesisPSOpacityConstants(), UniformBuffer_MultiFrame);
@@ -412,323 +411,314 @@ FNoesisRenderDevice::FNoesisRenderDevice()
 
 	FMemory::Memzero(VertexDeclarations);
 
-	VertexDeclarations[Noesis::Shader::RGBA] = GNoesisPosVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::RGBA] = TShaderMapRef<FNoesisPosVS>(GetGlobalShaderMap(FeatureLevel));
+	VertexDeclarations[Noesis::Shader::Vertex::Format::Pos] = GNoesisPosVertexDeclaration.VertexDeclarationRHI;
+	VertexDeclarations[Noesis::Shader::Vertex::Format::PosColor] = GNoesisPosColorVertexDeclaration.VertexDeclarationRHI;
+	VertexDeclarations[Noesis::Shader::Vertex::Format::PosTex0] = GNoesisPosTex0VertexDeclaration.VertexDeclarationRHI;
+	VertexDeclarations[Noesis::Shader::Vertex::Format::PosTex0Rect] = GNoesisPosTex0RectVertexDeclaration.VertexDeclarationRHI;
+	VertexDeclarations[Noesis::Shader::Vertex::Format::PosTex0RectTile] = GNoesisPosTex0RectTileVertexDeclaration.VertexDeclarationRHI;
+	VertexDeclarations[Noesis::Shader::Vertex::Format::PosColorCoverage] = GNoesisPosColorCoverageVertexDeclaration.VertexDeclarationRHI;
+	VertexDeclarations[Noesis::Shader::Vertex::Format::PosTex0Coverage] = GNoesisPosTex0CoverageVertexDeclaration.VertexDeclarationRHI;
+	VertexDeclarations[Noesis::Shader::Vertex::Format::PosTex0CoverageRect] = GNoesisPosTex0CoverageRectVertexDeclaration.VertexDeclarationRHI;
+	VertexDeclarations[Noesis::Shader::Vertex::Format::PosTex0CoverageRectTile] = GNoesisPosTex0CoverageRectTileVertexDeclaration.VertexDeclarationRHI;
+	VertexDeclarations[Noesis::Shader::Vertex::Format::PosColorTex1] = GNoesisPosColorTex1VertexDeclaration.VertexDeclarationRHI;
+	VertexDeclarations[Noesis::Shader::Vertex::Format::PosTex0Tex1] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
+	VertexDeclarations[Noesis::Shader::Vertex::Format::PosTex0Tex1Rect] = GNoesisPosTex0Tex1RectVertexDeclaration.VertexDeclarationRHI;
+	VertexDeclarations[Noesis::Shader::Vertex::Format::PosTex0Tex1RectTile] = GNoesisPosTex0Tex1RectTileVertexDeclaration.VertexDeclarationRHI;
+	VertexDeclarations[Noesis::Shader::Vertex::Format::PosColorTex0Tex1] = GNoesisPosColorTex0Tex1VertexDeclaration.VertexDeclarationRHI;
+	VertexDeclarations[Noesis::Shader::Vertex::Format::PosColorTex1Rect] = GNoesisPosColorTex1RectVertexDeclaration.VertexDeclarationRHI;
+	VertexDeclarations[Noesis::Shader::Vertex::Format::PosColorTex0RectImagePos] = GNoesisPosColorTex0RectImagePosVertexDeclaration.VertexDeclarationRHI;
+
+	VertexShaders[Noesis::Shader::Vertex::Pos] = TShaderMapRef<FNoesisPosVS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosColor] = TShaderMapRef<FNoesisPosColorVS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosTex0] = TShaderMapRef<FNoesisPosTex0VS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosTex0Rect] = TShaderMapRef<FNoesisPosTex0RectVS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosTex0RectTile] = TShaderMapRef<FNoesisPosTex0RectTileVS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosColorCoverage] = TShaderMapRef<FNoesisPosColorCoverageVS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosTex0Coverage] = TShaderMapRef<FNoesisPosTex0CoverageVS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosTex0CoverageRect] = TShaderMapRef<FNoesisPosTex0CoverageRectVS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosTex0CoverageRectTile] = TShaderMapRef<FNoesisPosTex0CoverageRectTileVS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosColorTex1_SDF] = TShaderMapRef<FNoesisPosColorTex1SDFVS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1_SDF] = TShaderMapRef<FNoesisPosTex0Tex1SDFVS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1Rect_SDF] = TShaderMapRef<FNoesisPosTex0Tex1RectSDFVS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1RectTile_SDF] = TShaderMapRef<FNoesisPosTex0Tex1RectTileSDFVS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosColorTex1] = TShaderMapRef<FNoesisPosColorTex1VS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1] = TShaderMapRef<FNoesisPosTex0Tex1VS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1Rect] = TShaderMapRef<FNoesisPosTex0Tex1RectVS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1RectTile] = TShaderMapRef<FNoesisPosTex0Tex1RectTileVS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosColorTex0Tex1] = TShaderMapRef<FNoesisPosColorTex0Tex1VS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1_Downsample] = TShaderMapRef<FNoesisPosTex0Tex1DownsampleVS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosColorTex1Rect] = TShaderMapRef<FNoesisPosColorTex1RectVS>(GetGlobalShaderMap(FeatureLevel));
+	VertexShaders[Noesis::Shader::Vertex::PosColorTex0RectImagePos] = TShaderMapRef<FNoesisPosColorTex0RectImagePosVS>(GetGlobalShaderMap(FeatureLevel));
+
 	PixelShaders[Noesis::Shader::RGBA] = TShaderMapRef<FNoesisRgbaPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::RGBA] = &PSRgbaConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::RGBA] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Mask] = GNoesisPosVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Mask] = TShaderMapRef<FNoesisPosVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Mask] = TShaderMapRef<FNoesisMaskPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Mask] = nullptr;
-	PixelShaderConstantBuffer1[Noesis::Shader::Mask] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Clear] = GNoesisPosVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Clear] = TShaderMapRef<FNoesisPosVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Clear] = TShaderMapRef<FNoesisClearPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Clear] = nullptr;
-	PixelShaderConstantBuffer1[Noesis::Shader::Clear] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_Solid] = GNoesisPosColorVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_Solid] = TShaderMapRef<FNoesisPosColorVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_Solid] = TShaderMapRef<FNoesisPathSolidPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_Solid] = nullptr;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_Solid] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_Linear] = GNoesisPosTex0VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_Linear] = TShaderMapRef<FNoesisPosTex0VS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_Linear] = TShaderMapRef<FNoesisPathLinearPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_Linear] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_Linear] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_Radial] = GNoesisPosTex0VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_Radial] = TShaderMapRef<FNoesisPosTex0VS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_Radial] = TShaderMapRef<FNoesisPathRadialPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_Radial] = &PSRadialGradConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_Radial] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_Pattern] = GNoesisPosTex0VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_Pattern] = TShaderMapRef<FNoesisPosTex0VS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_Pattern] = TShaderMapRef<FNoesisPathPatternPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_Pattern] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_Pattern] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_Pattern_Clamp] = GNoesisPosTex0RectVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_Pattern_Clamp] = TShaderMapRef<FNoesisPosTex0RectVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_Pattern_Clamp] = TShaderMapRef<FNoesisPathPatternClampPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_Pattern_Clamp] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_Pattern_Clamp] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_Pattern_Repeat] = GNoesisPosTex0RectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_Pattern_Repeat] = TShaderMapRef<FNoesisPosTex0RectTileVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_Pattern_Repeat] = TShaderMapRef<FNoesisPathPatternRepeatPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_Pattern_Repeat] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_Pattern_Repeat] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_Pattern_MirrorU] = GNoesisPosTex0RectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_Pattern_MirrorU] = TShaderMapRef<FNoesisPosTex0RectTileVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_Pattern_MirrorU] = TShaderMapRef<FNoesisPathPatternMirrorUPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_Pattern_MirrorU] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_Pattern_MirrorU] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_Pattern_MirrorV] = GNoesisPosTex0RectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_Pattern_MirrorV] = TShaderMapRef<FNoesisPosTex0RectTileVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_Pattern_MirrorV] = TShaderMapRef<FNoesisPathPatternMirrorVPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_Pattern_MirrorV] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_Pattern_MirrorV] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_Pattern_Mirror] = GNoesisPosTex0RectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_Pattern_Mirror] = TShaderMapRef<FNoesisPosTex0RectTileVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_Pattern_Mirror] = TShaderMapRef<FNoesisPathPatternMirrorPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_Pattern_Mirror] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_Pattern_Mirror] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_AA_Solid] = GNoesisPosColorCoverageVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_AA_Solid] = TShaderMapRef<FNoesisPosColorCoverageVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_AA_Solid] = TShaderMapRef<FNoesisPathAASolidPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Solid] = nullptr;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Solid] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_AA_Linear] = GNoesisPosTex0CoverageVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_AA_Linear] = TShaderMapRef<FNoesisPosTex0CoverageVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_AA_Linear] = TShaderMapRef<FNoesisPathAALinearPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Linear] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Linear] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_AA_Radial] = GNoesisPosTex0CoverageVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_AA_Radial] = TShaderMapRef<FNoesisPosTex0CoverageVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_AA_Radial] = TShaderMapRef<FNoesisPathAARadialPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Radial] = &PSRadialGradConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Radial] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_AA_Pattern] = GNoesisPosTex0CoverageVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_AA_Pattern] = TShaderMapRef<FNoesisPosTex0CoverageVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_AA_Pattern] = TShaderMapRef<FNoesisPathAAPatternPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Pattern] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Pattern] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_AA_Pattern_Clamp] = GNoesisPosTex0CoverageRectVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_AA_Pattern_Clamp] = TShaderMapRef<FNoesisPosTex0CoverageRectVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_AA_Pattern_Clamp] = TShaderMapRef<FNoesisPathAAPatternClampPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Pattern_Clamp] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Pattern_Clamp] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_AA_Pattern_Repeat] = GNoesisPosTex0CoverageRectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_AA_Pattern_Repeat] = TShaderMapRef<FNoesisPosTex0CoverageRectTileVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_AA_Pattern_Repeat] = TShaderMapRef<FNoesisPathAAPatternRepeatPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Pattern_Repeat] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Pattern_Repeat] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_AA_Pattern_MirrorU] = GNoesisPosTex0CoverageRectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_AA_Pattern_MirrorU] = TShaderMapRef<FNoesisPosTex0CoverageRectTileVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_AA_Pattern_MirrorU] = TShaderMapRef<FNoesisPathAAPatternMirrorUPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Pattern_MirrorU] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Pattern_MirrorU] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_AA_Pattern_MirrorV] = GNoesisPosTex0CoverageRectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_AA_Pattern_MirrorV] = TShaderMapRef<FNoesisPosTex0CoverageRectTileVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_AA_Pattern_MirrorV] = TShaderMapRef<FNoesisPathAAPatternMirrorVPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Pattern_MirrorV] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Pattern_MirrorV] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Path_AA_Pattern_Mirror] = GNoesisPosTex0CoverageRectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Path_AA_Pattern_Mirror] = TShaderMapRef<FNoesisPosTex0CoverageRectTileVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Path_AA_Pattern_Mirror] = TShaderMapRef<FNoesisPathAAPatternMirrorPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Pattern_Mirror] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Pattern_Mirror] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_Solid] = GNoesisPosColorTex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_Solid] = TShaderMapRef<FNoesisPosColorTex1SDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_Solid] = TShaderMapRef<FNoesisSDFSolidPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Solid] = nullptr;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Solid] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_Linear] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_Linear] = TShaderMapRef<FNoesisPosTex0Tex1SDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_Linear] = TShaderMapRef<FNoesisSDFLinearPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Linear] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Linear] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_Radial] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_Radial] = TShaderMapRef<FNoesisPosTex0Tex1SDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_Radial] = TShaderMapRef<FNoesisSDFRadialPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Radial] = &PSRadialGradConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Radial] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_Pattern] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_Pattern] = TShaderMapRef<FNoesisPosTex0Tex1SDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_Pattern] = TShaderMapRef<FNoesisSDFPatternPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Pattern] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Pattern] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_Pattern_Clamp] = GNoesisPosTex0Tex1RectVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_Pattern_Clamp] = TShaderMapRef<FNoesisPosTex0Tex1RectSDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_Pattern_Clamp] = TShaderMapRef<FNoesisSDFPatternClampPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Pattern_Clamp] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Pattern_Clamp] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_Pattern_Repeat] = GNoesisPosTex0Tex1RectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_Pattern_Repeat] = TShaderMapRef<FNoesisPosTex0Tex1RectTileSDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_Pattern_Repeat] = TShaderMapRef<FNoesisSDFPatternRepeatPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Pattern_Repeat] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Pattern_Repeat] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_Pattern_MirrorU] = GNoesisPosTex0Tex1RectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_Pattern_MirrorU] = TShaderMapRef<FNoesisPosTex0Tex1RectTileSDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_Pattern_MirrorU] = TShaderMapRef<FNoesisSDFPatternMirrorUPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Pattern_MirrorU] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Pattern_MirrorU] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_Pattern_MirrorV] = GNoesisPosTex0Tex1RectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_Pattern_MirrorV] = TShaderMapRef<FNoesisPosTex0Tex1RectTileSDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_Pattern_MirrorV] = TShaderMapRef<FNoesisSDFPatternMirrorVPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Pattern_MirrorV] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Pattern_MirrorV] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_Pattern_Mirror] = GNoesisPosTex0Tex1RectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_Pattern_Mirror] = TShaderMapRef<FNoesisPosTex0Tex1RectTileSDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_Pattern_Mirror] = TShaderMapRef<FNoesisSDFPatternMirrorPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Pattern_Mirror] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Pattern_Mirror] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_LCD_Solid] = GNoesisPosColorTex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_LCD_Solid] = TShaderMapRef<FNoesisPosColorTex1SDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_LCD_Solid] = TShaderMapRef<FNoesisSDFLCDSolidPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Solid] = nullptr;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Solid] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_LCD_Linear] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_LCD_Linear] = TShaderMapRef<FNoesisPosTex0Tex1SDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_LCD_Linear] = TShaderMapRef<FNoesisSDFLCDLinearPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Linear] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Linear] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_LCD_Radial] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_LCD_Radial] = TShaderMapRef<FNoesisPosTex0Tex1SDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_LCD_Radial] = TShaderMapRef<FNoesisSDFLCDRadialPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Radial] = &PSRadialGradConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Radial] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_LCD_Pattern] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_LCD_Pattern] = TShaderMapRef<FNoesisPosTex0Tex1SDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_LCD_Pattern] = TShaderMapRef<FNoesisSDFLCDPatternPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Pattern] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Pattern] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_LCD_Pattern_Clamp] = GNoesisPosTex0Tex1RectVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_LCD_Pattern_Clamp] = TShaderMapRef<FNoesisPosTex0Tex1RectSDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_LCD_Pattern_Clamp] = TShaderMapRef<FNoesisSDFLCDPatternClampPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Pattern_Clamp] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Pattern_Clamp] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_LCD_Pattern_Repeat] = GNoesisPosTex0Tex1RectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_LCD_Pattern_Repeat] = TShaderMapRef<FNoesisPosTex0Tex1RectTileSDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_LCD_Pattern_Repeat] = TShaderMapRef<FNoesisSDFLCDPatternRepeatPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Pattern_Repeat] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Pattern_Repeat] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_LCD_Pattern_MirrorU] = GNoesisPosTex0Tex1RectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_LCD_Pattern_MirrorU] = TShaderMapRef<FNoesisPosTex0Tex1RectTileSDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_LCD_Pattern_MirrorU] = TShaderMapRef<FNoesisSDFLCDPatternMirrorUPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Pattern_MirrorU] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Pattern_MirrorU] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_LCD_Pattern_MirrorV] = GNoesisPosTex0Tex1RectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_LCD_Pattern_MirrorV] = TShaderMapRef<FNoesisPosTex0Tex1RectTileSDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_LCD_Pattern_MirrorV] = TShaderMapRef<FNoesisSDFLCDPatternMirrorVPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Pattern_MirrorV] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Pattern_MirrorV] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::SDF_LCD_Pattern_Mirror] = GNoesisPosTex0Tex1RectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::SDF_LCD_Pattern_Mirror] = TShaderMapRef<FNoesisPosTex0Tex1RectTileSDFVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::SDF_LCD_Pattern_Mirror] = TShaderMapRef<FNoesisSDFLCDPatternMirrorPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Pattern_Mirror] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Pattern_Mirror] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Opacity_Solid] = GNoesisPosColorTex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Opacity_Solid] = TShaderMapRef<FNoesisPosColorTex1VS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Opacity_Solid] = TShaderMapRef<FNoesisOpacitySolidPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Solid] = nullptr;
-	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Solid] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Opacity_Linear] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Opacity_Linear] = TShaderMapRef<FNoesisPosTex0Tex1VS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Opacity_Linear] = TShaderMapRef<FNoesisOpacityLinearPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Linear] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Linear] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Opacity_Radial] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Opacity_Radial] = TShaderMapRef<FNoesisPosTex0Tex1VS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Opacity_Radial] = TShaderMapRef<FNoesisOpacityRadialPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Radial] = &PSRadialGradConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Radial] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Opacity_Pattern] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Opacity_Pattern] = TShaderMapRef<FNoesisPosTex0Tex1VS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Opacity_Pattern] = TShaderMapRef<FNoesisOpacityPatternPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Pattern] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Pattern] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Opacity_Pattern_Clamp] = GNoesisPosTex0Tex1RectVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Opacity_Pattern_Clamp] = TShaderMapRef<FNoesisPosTex0Tex1RectVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Opacity_Pattern_Clamp] = TShaderMapRef<FNoesisOpacityPatternClampPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Pattern_Clamp] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Pattern_Clamp] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Opacity_Pattern_Repeat] = GNoesisPosTex0Tex1RectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Opacity_Pattern_Repeat] = TShaderMapRef<FNoesisPosTex0Tex1RectTileVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Opacity_Pattern_Repeat] = TShaderMapRef<FNoesisOpacityPatternRepeatPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Pattern_Repeat] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Pattern_Repeat] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Opacity_Pattern_MirrorU] = GNoesisPosTex0Tex1RectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Opacity_Pattern_MirrorU] = TShaderMapRef<FNoesisPosTex0Tex1RectTileVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Opacity_Pattern_MirrorU] = TShaderMapRef<FNoesisOpacityPatternMirrorUPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Pattern_MirrorU] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Pattern_MirrorU] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Opacity_Pattern_MirrorV] = GNoesisPosTex0Tex1RectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Opacity_Pattern_MirrorV] = TShaderMapRef<FNoesisPosTex0Tex1RectTileVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Opacity_Pattern_MirrorV] = TShaderMapRef<FNoesisOpacityPatternMirrorVPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Pattern_MirrorV] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Pattern_MirrorV] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Opacity_Pattern_Mirror] = GNoesisPosTex0Tex1RectTileVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Opacity_Pattern_Mirror] = TShaderMapRef<FNoesisPosTex0Tex1RectTileVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Opacity_Pattern_Mirror] = TShaderMapRef<FNoesisOpacityPatternMirrorPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Pattern_Mirror] = &PSOpacityConstantBuffer;
-	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Pattern_Mirror] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Upsample] = GNoesisPosColorTex0Tex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Upsample] = TShaderMapRef<FNoesisPosColorTex0Tex1VS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Upsample] = TShaderMapRef<FNoesisUpsamplePS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Upsample] = nullptr;
-	PixelShaderConstantBuffer1[Noesis::Shader::Upsample] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Downsample] = GNoesisPosTex0Tex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Downsample] = TShaderMapRef<FNoesisPosTex0Tex1DownsampleVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Downsample] = TShaderMapRef<FNoesisDownsamplePS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Downsample] = nullptr;
-	PixelShaderConstantBuffer1[Noesis::Shader::Downsample] = nullptr;
-
-	VertexDeclarations[Noesis::Shader::Shadow] = GNoesisPosColorTex1RectVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Shadow] = TShaderMapRef<FNoesisPosColorTex1RectVS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Shadow] = TShaderMapRef<FNoesisShadowPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Shadow] = nullptr;
-	PixelShaderConstantBuffer1[Noesis::Shader::Shadow] = &ShadowConstantsBuffer;
-
-	VertexDeclarations[Noesis::Shader::Blur] = GNoesisPosColorTex1VertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Blur] = TShaderMapRef<FNoesisPosColorTex1VS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Blur] = TShaderMapRef<FNoesisBlurPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShaderConstantBuffer0[Noesis::Shader::Blur] = nullptr;
-	PixelShaderConstantBuffer1[Noesis::Shader::Blur] = &BlurConstantsBuffer;
+	//PixelShaders[Noesis::Shader::Custom_Effect] = nullptr;
 
-	VertexDeclarations[Noesis::Shader::Custom_Effect] = GNoesisPosColorTex0RectImagePosVertexDeclaration.VertexDeclarationRHI;
-	VertexShaders[Noesis::Shader::Custom_Effect] = TShaderMapRef<FNoesisPosColorTex0RectImagePosVS>(GetGlobalShaderMap(FeatureLevel));
-	// PixelShaders[Noesis::Shader::Custom_Effect] = nullptr;
+	PixelShaderConstantBuffer0[Noesis::Shader::RGBA] = &PSRgbaConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Mask] = nullptr;
+	PixelShaderConstantBuffer0[Noesis::Shader::Clear] = nullptr;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_Solid] = nullptr;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_Linear] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_Radial] = &PSRadialGradConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_Pattern] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_Pattern_Clamp] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_Pattern_Repeat] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_Pattern_MirrorU] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_Pattern_MirrorV] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_Pattern_Mirror] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Solid] = nullptr;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Linear] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Radial] = &PSRadialGradConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Pattern] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Pattern_Clamp] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Pattern_Repeat] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Pattern_MirrorU] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Pattern_MirrorV] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Path_AA_Pattern_Mirror] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Solid] = nullptr;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Linear] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Radial] = &PSRadialGradConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Pattern] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Pattern_Clamp] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Pattern_Repeat] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Pattern_MirrorU] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Pattern_MirrorV] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_Pattern_Mirror] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Solid] = nullptr;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Linear] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Radial] = &PSRadialGradConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Pattern] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Pattern_Clamp] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Pattern_Repeat] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Pattern_MirrorU] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Pattern_MirrorV] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::SDF_LCD_Pattern_Mirror] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Solid] = nullptr;
+	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Linear] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Radial] = &PSRadialGradConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Pattern] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Pattern_Clamp] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Pattern_Repeat] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Pattern_MirrorU] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Pattern_MirrorV] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Opacity_Pattern_Mirror] = &PSOpacityConstantBuffer;
+	PixelShaderConstantBuffer0[Noesis::Shader::Upsample] = nullptr;
+	PixelShaderConstantBuffer0[Noesis::Shader::Downsample] = nullptr;
+	PixelShaderConstantBuffer0[Noesis::Shader::Shadow] = nullptr;
+	PixelShaderConstantBuffer0[Noesis::Shader::Blur] = nullptr;
 	PixelShaderConstantBuffer0[Noesis::Shader::Custom_Effect] = nullptr;
+
+	PixelShaderConstantBuffer1[Noesis::Shader::RGBA] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Mask] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Clear] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_Solid] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_Linear] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_Radial] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_Pattern] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_Pattern_Clamp] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_Pattern_Repeat] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_Pattern_MirrorU] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_Pattern_MirrorV] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_Pattern_Mirror] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Solid] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Linear] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Radial] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Pattern] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Pattern_Clamp] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Pattern_Repeat] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Pattern_MirrorU] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Pattern_MirrorV] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Path_AA_Pattern_Mirror] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Solid] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Linear] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Radial] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Pattern] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Pattern_Clamp] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Pattern_Repeat] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Pattern_MirrorU] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Pattern_MirrorV] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_Pattern_Mirror] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Solid] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Linear] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Radial] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Pattern] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Pattern_Clamp] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Pattern_Repeat] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Pattern_MirrorU] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Pattern_MirrorV] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::SDF_LCD_Pattern_Mirror] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Solid] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Linear] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Radial] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Pattern] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Pattern_Clamp] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Pattern_Repeat] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Pattern_MirrorU] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Pattern_MirrorV] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Opacity_Pattern_Mirror] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Upsample] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Downsample] = nullptr;
+	PixelShaderConstantBuffer1[Noesis::Shader::Shadow] = &ShadowConstantsBuffer;
+	PixelShaderConstantBuffer1[Noesis::Shader::Blur] = &BlurConstantsBuffer;
 	PixelShaderConstantBuffer1[Noesis::Shader::Custom_Effect] = nullptr;
+
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::RGBA] = &PSRgbaConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Mask] = nullptr;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Clear] = nullptr;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_Solid] = nullptr;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_Linear] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_Radial] = &PSRadialGradConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_Pattern] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_Pattern_Clamp] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_Pattern_Repeat] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_Pattern_MirrorU] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_Pattern_MirrorV] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_Pattern_Mirror] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_AA_Solid] = nullptr;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_AA_Linear] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_AA_Radial] = &PSRadialGradConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_AA_Pattern] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_AA_Pattern_Clamp] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_AA_Pattern_Repeat] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_AA_Pattern_MirrorU] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_AA_Pattern_MirrorV] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Path_AA_Pattern_Mirror] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_Solid] = nullptr;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_Linear] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_Radial] = &PSRadialGradConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_Pattern] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_Pattern_Clamp] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_Pattern_Repeat] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_Pattern_MirrorU] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_Pattern_MirrorV] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_Pattern_Mirror] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_LCD_Solid] = nullptr;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_LCD_Linear] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_LCD_Radial] = &PSRadialGradConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_LCD_Pattern] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_LCD_Pattern_Clamp] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_LCD_Pattern_Repeat] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_LCD_Pattern_MirrorU] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_LCD_Pattern_MirrorV] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::SDF_LCD_Pattern_Mirror] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Opacity_Solid] = nullptr;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Opacity_Linear] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Opacity_Radial] = &PSRadialGradConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Opacity_Pattern] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Opacity_Pattern_Clamp] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Opacity_Pattern_Repeat] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Opacity_Pattern_MirrorU] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Opacity_Pattern_MirrorV] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Opacity_Pattern_Mirror] = &PSOpacityConstantsHash;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Upsample] = nullptr;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Downsample] = nullptr;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Shadow] = nullptr;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Blur] = nullptr;
+	PixelShaderConstantBuffer0Hash[Noesis::Shader::Custom_Effect] = nullptr;
+
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::RGBA] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Mask] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Clear] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_Solid] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_Linear] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_Radial] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_Pattern] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_Pattern_Clamp] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_Pattern_Repeat] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_Pattern_MirrorU] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_Pattern_MirrorV] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_Pattern_Mirror] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_AA_Solid] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_AA_Linear] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_AA_Radial] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_AA_Pattern] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_AA_Pattern_Clamp] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_AA_Pattern_Repeat] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_AA_Pattern_MirrorU] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_AA_Pattern_MirrorV] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Path_AA_Pattern_Mirror] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_Solid] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_Linear] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_Radial] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_Pattern] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_Pattern_Clamp] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_Pattern_Repeat] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_Pattern_MirrorU] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_Pattern_MirrorV] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_Pattern_Mirror] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_LCD_Solid] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_LCD_Linear] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_LCD_Radial] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_LCD_Pattern] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_LCD_Pattern_Clamp] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_LCD_Pattern_Repeat] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_LCD_Pattern_MirrorU] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_LCD_Pattern_MirrorV] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::SDF_LCD_Pattern_Mirror] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Opacity_Solid] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Opacity_Linear] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Opacity_Radial] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Opacity_Pattern] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Opacity_Pattern_Clamp] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Opacity_Pattern_Repeat] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Opacity_Pattern_MirrorU] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Opacity_Pattern_MirrorV] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Opacity_Pattern_Mirror] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Upsample] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Downsample] = nullptr;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Shadow] = &ShadowConstantsHash;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Blur] = &BlurConstantsHash;
+	PixelShaderConstantBuffer1Hash[Noesis::Shader::Custom_Effect] = nullptr;
 
 	// Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
 	PixelShadersPatternSRGB[Noesis::Shader::Path_Pattern] = TShaderMapRef<FNoesisPathPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
@@ -766,12 +756,13 @@ FNoesisRenderDevice::FNoesisRenderDevice()
 	PixelShadersPatternSRGB[Noesis::Shader::Opacity_Pattern_MirrorV] = TShaderMapRef<FNoesisOpacityPatternMirrorVSRGBPS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShadersPatternSRGB[Noesis::Shader::Opacity_Pattern_Mirror] = TShaderMapRef<FNoesisOpacityPatternMirrorSRGBPS>(GetGlobalShaderMap(FeatureLevel));
 
-
-	DepthStencilStates[Noesis::StencilMode::Disabled] =   TStaticDepthStencilState<false,  CF_Always>::GetRHI();
-	DepthStencilStates[Noesis::StencilMode::Equal_Keep] = TStaticDepthStencilState<false, CF_Always, true, CF_Equal,  SO_Keep, SO_Keep, SO_Keep,      true, CF_Equal,  SO_Keep, SO_Keep, SO_Keep>::GetRHI();
-	DepthStencilStates[Noesis::StencilMode::Equal_Incr] = TStaticDepthStencilState<false, CF_Always, true, CF_Equal,  SO_Keep, SO_Keep, SO_Increment, true, CF_Equal,  SO_Keep, SO_Keep, SO_Increment>::GetRHI();
-	DepthStencilStates[Noesis::StencilMode::Equal_Decr] = TStaticDepthStencilState<false, CF_Always, true, CF_Equal,  SO_Keep, SO_Keep, SO_Decrement, true, CF_Equal,  SO_Keep, SO_Keep, SO_Decrement>::GetRHI();
-	DepthStencilStates[Noesis::StencilMode::Clear] =      TStaticDepthStencilState<false, CF_Always, true, CF_Always, SO_Keep, SO_Keep, SO_Zero,      true, CF_Always, SO_Keep, SO_Keep, SO_Zero>::GetRHI();
+	DepthStencilStates[Noesis::StencilMode::Disabled] =         TStaticDepthStencilState<false, CF_Always>::GetRHI();
+	DepthStencilStates[Noesis::StencilMode::Equal_Keep] =       TStaticDepthStencilState<false, CF_Always,           true, CF_Equal,  SO_Keep, SO_Keep, SO_Keep,      true, CF_Equal,  SO_Keep, SO_Keep, SO_Keep>::GetRHI();
+	DepthStencilStates[Noesis::StencilMode::Equal_Incr] =       TStaticDepthStencilState<false, CF_Always,           true, CF_Equal,  SO_Keep, SO_Keep, SO_Increment, true, CF_Equal,  SO_Keep, SO_Keep, SO_Increment>::GetRHI();
+	DepthStencilStates[Noesis::StencilMode::Equal_Decr] =       TStaticDepthStencilState<false, CF_Always,           true, CF_Equal,  SO_Keep, SO_Keep, SO_Decrement, true, CF_Equal,  SO_Keep, SO_Keep, SO_Decrement>::GetRHI();
+	DepthStencilStates[Noesis::StencilMode::Clear] =            TStaticDepthStencilState<false, CF_Always,           true, CF_Always, SO_Keep, SO_Keep, SO_Zero,      true, CF_Always, SO_Keep, SO_Keep, SO_Zero>::GetRHI();
+	DepthStencilStates[Noesis::StencilMode::Disabled_ZTest] =   TStaticDepthStencilState<false>::GetRHI();
+	DepthStencilStates[Noesis::StencilMode::Equal_Keep_ZTest] = TStaticDepthStencilState<false, CF_DepthNearOrEqual, true, CF_Equal,  SO_Keep, SO_Keep, SO_Keep,      true, CF_Equal,  SO_Keep, SO_Keep, SO_Keep>::GetRHI();
 
 	BlendStates[Noesis::BlendMode::Src] =              TStaticBlendState<CW_RGBA>::GetRHI();
 	BlendStates[Noesis::BlendMode::SrcOver] =          TStaticBlendState<CW_RGBA, BO_Add, BF_One,       BF_InverseSourceAlpha,  BO_Add, BF_One, BF_InverseSourceAlpha>::GetRHI();
@@ -779,6 +770,13 @@ FNoesisRenderDevice::FNoesisRenderDevice()
 	BlendStates[Noesis::BlendMode::SrcOver_Screen] =   TStaticBlendState<CW_RGBA, BO_Add, BF_One,       BF_InverseSourceColor,  BO_Add, BF_One, BF_InverseSourceAlpha>::GetRHI();
 	BlendStates[Noesis::BlendMode::SrcOver_Additive] = TStaticBlendState<CW_RGBA, BO_Add, BF_One,       BF_One,                 BO_Add, BF_One, BF_InverseSourceAlpha>::GetRHI();
 	BlendStates[Noesis::BlendMode::SrcOver_Dual] =     TStaticBlendState<CW_RGBA, BO_Add, BF_One,       BF_InverseSource1Color, BO_Add, BF_One, BF_InverseSource1Alpha>::GetRHI();
+
+	BlendStatesWorldUI[Noesis::BlendMode::Src] =              TStaticBlendState<CW_RGBA, BO_Add, BF_One,       BF_Zero,                BO_Add, BF_Zero, BF_InverseSourceAlpha>::GetRHI();
+	BlendStatesWorldUI[Noesis::BlendMode::SrcOver] =          TStaticBlendState<CW_RGBA, BO_Add, BF_One,       BF_InverseSourceAlpha,  BO_Add, BF_Zero, BF_InverseSourceAlpha>::GetRHI();
+	BlendStatesWorldUI[Noesis::BlendMode::SrcOver_Multiply] = TStaticBlendState<CW_RGBA, BO_Add, BF_DestColor, BF_InverseSourceAlpha,  BO_Add, BF_Zero, BF_InverseSourceAlpha>::GetRHI();
+	BlendStatesWorldUI[Noesis::BlendMode::SrcOver_Screen] =   TStaticBlendState<CW_RGBA, BO_Add, BF_One,       BF_InverseSourceColor,  BO_Add, BF_Zero, BF_InverseSourceAlpha>::GetRHI();
+	BlendStatesWorldUI[Noesis::BlendMode::SrcOver_Additive] = TStaticBlendState<CW_RGBA, BO_Add, BF_One,       BF_One,                 BO_Add, BF_Zero, BF_InverseSourceAlpha>::GetRHI();
+	BlendStatesWorldUI[Noesis::BlendMode::SrcOver_Dual] =     TStaticBlendState<CW_RGBA, BO_Add, BF_One,       BF_InverseSource1Color, BO_Add, BF_Zero, BF_InverseSource1Alpha>::GetRHI();
 
 	FMemory::Memzero(SamplerStates);
 	SamplerStates[Noesis::SamplerState{ { Noesis::WrapMode::ClampToEdge, Noesis::MinMagFilter::Nearest, Noesis::MipFilter::Disabled } }.v] = TNoesisStaticSamplerState<SF_Point,     AM_Clamp,  AM_Clamp,  0>::GetRHI();
@@ -830,6 +828,7 @@ FNoesisRenderDevice::~FNoesisRenderDevice()
 	DynamicVertexBuffer.SafeRelease();
 	DynamicIndexBuffer.SafeRelease();
 	VSConstantBuffer.SafeRelease();
+	VSConstantBufferRightEye.SafeRelease();
 	TextureSizeBuffer.SafeRelease();
 	PSRgbaConstantBuffer.SafeRelease();
 	PSOpacityConstantBuffer.SafeRelease();
@@ -938,17 +937,15 @@ void FNoesisRenderDevice::DestroyView()
 	}
 }
 
-static void SetTextureFormat(FNoesisTexture* Texture, EPixelFormat Format)
+Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(uint32 InWidth, uint32 InHeight, uint32 InNumMipMaps, bool InAlpha)
 {
-	switch (Format)
-	{
-		case PF_R8G8B8A8:
-			Texture->Format = Texture->HasAlpha() ? Noesis::TextureFormat::RGBA8 : Noesis::TextureFormat::RGBX8;
-			break;
-		case PF_G8:
-			Texture->Format = Noesis::TextureFormat::R8;
-			break;
-	}
+	return *new FNoesisTexture(InWidth, InHeight, InNumMipMaps, InAlpha);
+}
+
+void FNoesisRenderDevice::SetRHITexture(Noesis::Texture* InTexture, FTexture2DRHIRef TextureRef)
+{
+	FNoesisTexture* Texture = (FNoesisTexture*)InTexture;
+	Texture->ShaderResourceTexture = TextureRef;
 }
 
 Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InTexture)
@@ -981,7 +978,6 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 			check(Texture->Height == TextureRef->GetSizeY());
 			check(Texture->NumMipMaps == TextureRef->GetNumMips());
 			Texture->ShaderResourceTexture = TextureRef;
-			SetTextureFormat(Texture, TextureRef->GetFormat());
 		}
 		else
 		{
@@ -996,7 +992,6 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 						check(Texture->Height == TextureRef->GetSizeY());
 						check(Texture->NumMipMaps == TextureRef->GetNumMips());
 						Texture->ShaderResourceTexture = TextureRef;
-						SetTextureFormat(Texture, TextureRef->GetFormat());
 					}
 				}
 			);
@@ -1015,7 +1010,6 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 		check(Texture->Height == TextureRef->GetSizeY());
 		check(Texture->NumMipMaps == TextureRef->GetNumMips());
 		Texture->ShaderResourceTexture = TextureRef;
-		SetTextureFormat(Texture, TextureRef->GetFormat());
 	}
 	else if (InTexture->IsA<UMediaTexture>())
 	{
@@ -1036,7 +1030,6 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 		check(Texture->Height == TextureRef->GetSizeY());
 		check(Texture->NumMipMaps == TextureRef->GetNumMips());
 		Texture->ShaderResourceTexture = TextureRef;
-		SetTextureFormat(Texture, TextureRef->GetFormat());
 	}
 	else
 	{
@@ -1189,7 +1182,6 @@ static Noesis::Ptr<Noesis::RenderTarget> CreateRenderTarget(const TCHAR* Name, u
 	RenderTarget->Texture = *new FNoesisTexture(Width, Height, NumMips, true);
 	RenderTarget->ColorTarget = ColorTarget;
 	RenderTarget->Texture->ShaderResourceTexture = ShaderResourceTexture;
-	RenderTarget->Texture->Format = Noesis::TextureFormat::RGBA8;
 	RenderTarget->DepthStencilTarget = DepthStencilTarget;
 
 	return Noesis::Ptr<Noesis::RenderTarget>(*RenderTarget);
@@ -1274,7 +1266,6 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(const char* Labe
 
 	FNoesisTexture* Texture = new FNoesisTexture(SizeX, SizeY, NumMips, TextureFormat == Noesis::TextureFormat::RGBA8);
 	Texture->ShaderResourceTexture = ShaderResourceTexture;
-	Texture->Format = TextureFormat;
 
 	if (Data != nullptr)
 	{
@@ -1309,7 +1300,6 @@ void FNoesisRenderDevice::UpdateTexture(Noesis::Texture* InTexture, uint32 Level
 
 void FNoesisRenderDevice::BeginOffscreenRender()
 {
-	RHICmdList->SetScissorRect(false, 0, 0, 0, 0);
 }
 
 void FNoesisRenderDevice::EndOffscreenRender()
@@ -1318,7 +1308,6 @@ void FNoesisRenderDevice::EndOffscreenRender()
 
 void FNoesisRenderDevice::BeginOnscreenRender()
 {
-	RHICmdList->SetScissorRect(false, 0, 0, 0, 0);
 }
 
 void FNoesisRenderDevice::EndOnscreenRender()
@@ -1377,6 +1366,19 @@ void FNoesisRenderDevice::SetRenderTarget(Noesis::RenderTarget* Surface)
 	CreateView(0, 0, RenderTarget->ColorTarget->GetSizeX(), RenderTarget->ColorTarget->GetSizeY());
 }
 
+void FNoesisRenderDevice::BeginTile(Noesis::RenderTarget* Surface, const Noesis::Tile& Tile)
+{
+	check(RHICmdList);
+	FNoesisRenderTarget* RenderTarget = (FNoesisRenderTarget*)Surface;
+	RHICmdList->SetScissorRect(true, Tile.x, (int32)(RenderTarget->Texture->ShaderResourceTexture->GetSizeY() - (Tile.y + Tile.height)), Tile.x + Tile.width, (int32)(RenderTarget->Texture->ShaderResourceTexture->GetSizeY() - Tile.y));
+}
+
+void FNoesisRenderDevice::EndTile(Noesis::RenderTarget* Surface)
+{
+	check(RHICmdList);
+	RHICmdList->SetScissorRect(false, 0, 0, 0, 0);
+}
+
 void FNoesisRenderDevice::ResolveRenderTarget(Noesis::RenderTarget* Surface, const Noesis::Tile* Tiles, uint32 NumTiles)
 {
 	check(RHICmdList);
@@ -1395,10 +1397,9 @@ void FNoesisRenderDevice::ResolveRenderTarget(Noesis::RenderTarget* Surface, con
 			{
 				const Noesis::Tile& Tile = Tiles[TileIndex];
 
-				// TODO: Min and Max shouldn't be required after Noesis SDK 3.2, which fixes the negative position issues.
 				FRHICopyTextureInfo CopyTextureInfo;
-				CopyTextureInfo.Size = FIntVector(FMath::Min(RenderTarget->ColorTarget->GetSizeX(), Tile.width), FMath::Min(RenderTarget->ColorTarget->GetSizeY(), Tile.height), 1);
-				CopyTextureInfo.SourcePosition = FIntVector(FMath::Max(0, (int32)Tile.x), FMath::Max(0, (int32)(RenderTarget->Texture->ShaderResourceTexture->GetSizeY() - (Tile.y + Tile.height))), 0);
+				CopyTextureInfo.Size = FIntVector(Tile.width, Tile.height, 1);
+				CopyTextureInfo.SourcePosition = FIntVector((int32)Tile.x, (int32)(RenderTarget->Texture->ShaderResourceTexture->GetSizeY() - (Tile.y + Tile.height)), 0);
 				CopyTextureInfo.DestPosition = CopyTextureInfo.SourcePosition;
 				RHICmdList->CopyTexture(RenderTarget->ColorTarget, RenderTarget->Texture->ShaderResourceTexture, CopyTextureInfo);
 			}
@@ -1628,7 +1629,7 @@ void FNoesisRenderDevice::SetPixelShaderParameters<FNoesisCustomEffectPS>(const 
 	PixelShader->SetParameters(*RHICmdList, PixelShader, *View, MaterialProxy, Params);
 }
 
-static inline bool ConditionalUpdateUniformBuffer(FUniformBufferRHIRef& UniformBuffer, uint32& BufferHash, const Noesis::UniformData& UniformData)
+static inline bool BufferNeedsUpdate(uint32& BufferHash, const Noesis::UniformData& UniformData)
 {
 	// There's no data.
 	if (UniformData.values == nullptr)
@@ -1637,9 +1638,14 @@ static inline bool ConditionalUpdateUniformBuffer(FUniformBufferRHIRef& UniformB
 	// Buffer is up to date.
 	if (BufferHash == UniformData.hash)
 		return false;
-		
+
+	return true;
+}
+
+static inline void UpdateUniformBuffer(FUniformBufferRHIRef& UniformBuffer, uint32 UniformDataSize, const void* UniformDataValues)
+{
 	check(UniformBuffer != nullptr);
-	uint32 UniformDataSize = UniformData.numDwords * 4;
+
 	const auto& UniformBufferLayout = UniformBuffer->GetLayout();
 	uint32 UniformBufferSize = UniformBufferLayout.ConstantBufferSize;
 
@@ -1648,7 +1654,7 @@ static inline bool ConditionalUpdateUniformBuffer(FUniformBufferRHIRef& UniformB
 	// We allocate UniformBufferSize bytes but only memcpy UniformDataSize bytes.
 	check(UniformDataSize <= UniformBufferSize);
 	void* UniformBufferData = FMemory_Alloca(UniformBufferSize);
-	FMemory::Memcpy(UniformBufferData, UniformData.values, UniformDataSize);
+	FMemory::Memcpy(UniformBufferData, UniformDataValues, UniformDataSize);
 
 #if PLATFORM_APPLE
 	// UniformBuffers on Metal are broken. They are all treated as Volatile, and new data is not pushed to the GPU after an update.
@@ -1660,6 +1666,16 @@ static inline bool ConditionalUpdateUniformBuffer(FUniformBufferRHIRef& UniformB
 #else
 	RHIUpdateUniformBuffer(UniformBuffer, UniformBufferData);
 #endif
+}
+
+static inline bool ConditionalUpdateUniformBuffer(FUniformBufferRHIRef& UniformBuffer, uint32& BufferHash, const Noesis::UniformData& UniformData)
+{
+	if (!BufferNeedsUpdate(BufferHash, UniformData))
+		return false;
+
+	uint32 UniformDataSize = UniformData.numDwords * 4;
+	const void* UniformDataValues = UniformData.values;
+	UpdateUniformBuffer(UniformBuffer, UniformDataSize, UniformDataValues);
 
 	BufferHash = UniformData.hash;
 
@@ -1674,7 +1690,7 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 
 	GraphicsPSOInit.DepthStencilState = DepthStencilStates[Batch.renderState.f.stencilMode];
 
-	GraphicsPSOInit.BlendState = Batch.renderState.f.colorEnable ? BlendStates[Batch.renderState.f.blendMode] : TStaticBlendState<CW_NONE>::GetRHI();
+	GraphicsPSOInit.BlendState = Batch.renderState.f.colorEnable ? (IsWorldUI ? BlendStatesWorldUI[Batch.renderState.f.blendMode] : BlendStates[Batch.renderState.f.blendMode]) : TStaticBlendState<CW_NONE>::GetRHI();
 
 	GraphicsPSOInit.RasterizerState = Batch.renderState.f.wireframe ? TStaticRasterizerState<FM_Wireframe, CM_None>::GetRHI() : TStaticRasterizerState<FM_Solid, CM_None>::GetRHI();
 
@@ -1727,11 +1743,15 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 		}
 	}
 
-	FVertexDeclarationRHIRef& VertexDeclaration = VertexDeclarations[ShaderCode];
-	TShaderRef<FNoesisVSBase> VertexShader = VertexShaders[ShaderCode];
+	uint32 VertexShaderCode = Noesis::VertexForShader[ShaderCode];
+	uint32 VertexFormatCode = Noesis::FormatForVertex[VertexShaderCode];
+	FVertexDeclarationRHIRef& VertexDeclaration = VertexDeclarations[VertexFormatCode];
+	TShaderRef<FNoesisVSBase> VertexShader = VertexShaders[VertexShaderCode];
 	TShaderRef<FNoesisPSBase> PixelShader = PatternSRGB ? PixelShadersPatternSRGB[ShaderCode] : PixelShaders[ShaderCode];
 	FUniformBufferRHIRef& PSUniformBuffer0 = *PixelShaderConstantBuffer0[ShaderCode];
 	FUniformBufferRHIRef& PSUniformBuffer1 = *PixelShaderConstantBuffer1[ShaderCode];
+	uint32& PSUniformBuffer0Hash = *PixelShaderConstantBuffer0Hash[ShaderCode];
+	uint32& PSUniformBuffer1Hash = *PixelShaderConstantBuffer1Hash[ShaderCode];
 	GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = VertexDeclaration;
 	GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = UsingCustomEffect ? CustomEffectPixelShader.GetPixelShader() : (UsingMaterialShader ? MaterialPixelShader.GetPixelShader() : PixelShader.GetPixelShader());
@@ -1754,16 +1774,44 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 	SetGraphicsPipelineState(*RHICmdList, GraphicsPSOInit, Batch.stencilRef);
 #endif
 
+	uint32 NumInstances = 1;
+
 	// Update the uniform buffers
-	ConditionalUpdateUniformBuffer(VSConstantBuffer, VSConstantsHash, Batch.vertexUniforms[0]);
+	if (Batch.singlePassStereo)
+	{
+		//GraphicsPSOInit.MultiViewCount = 2;
+		if (GraphicsPSOInit.MultiViewCount == 0)
+		{
+			NumInstances = 2;
+		}
+
+		const Noesis::UniformData& UniformData = Batch.vertexUniforms[0];
+		if (BufferNeedsUpdate(VSConstantsHash, UniformData))
+		{
+			uint32 UniformDataSize = UniformData.numDwords * 4 / 2;
+			const uint8* UniformDataValues = (const uint8 *)UniformData.values;
+			UpdateUniformBuffer(VSConstantBuffer, UniformDataSize, UniformDataValues);
+
+			UniformDataValues += UniformDataSize;
+			UpdateUniformBuffer(VSConstantBufferRightEye, UniformDataSize, UniformDataValues);
+
+			VSConstantsHash = UniformData.hash;
+		}
+
+		VertexShader->SetVSConstantsRightEye(*RHICmdList, VSConstantBufferRightEye);
+	}
+	else
+	{
+		ConditionalUpdateUniformBuffer(VSConstantBuffer, VSConstantsHash, Batch.vertexUniforms[0]);
+	}
+
+	VertexShader->SetVSConstants(*RHICmdList, VSConstantBuffer);
 
 	ConditionalUpdateUniformBuffer(TextureSizeBuffer, TextureSizeHash, Batch.vertexUniforms[1]);
 
-	ConditionalUpdateUniformBuffer(PSUniformBuffer0, PSConstantsHash, Batch.pixelUniforms[0]);
+	ConditionalUpdateUniformBuffer(PSUniformBuffer0, PSUniformBuffer0Hash, Batch.pixelUniforms[0]);
 
-	ConditionalUpdateUniformBuffer(PSUniformBuffer1, EffectsHash, Batch.pixelUniforms[1]);
-
-	VertexShader->SetVSConstants(*RHICmdList, VSConstantBuffer);
+	ConditionalUpdateUniformBuffer(PSUniformBuffer1, PSUniformBuffer1Hash, Batch.pixelUniforms[1]);
 
 	if (Batch.vertexUniforms[1].values != nullptr)
 	{
@@ -1786,5 +1834,5 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 	RHICmdList->SetStencilRef(Batch.stencilRef);
 	RHICmdList->SetStreamSource(0, DynamicVertexBuffer, Batch.vertexOffset);
 
-	RHICmdList->DrawIndexedPrimitive(DynamicIndexBuffer, 0, 0, Batch.numVertices, Batch.startIndex, Batch.numIndices / 3, 1);
+	RHICmdList->DrawIndexedPrimitive(DynamicIndexBuffer, 0, 0, Batch.numVertices, Batch.startIndex, Batch.numIndices / 3, NumInstances);
 }

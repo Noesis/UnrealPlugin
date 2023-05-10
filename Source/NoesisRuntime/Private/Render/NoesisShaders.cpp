@@ -6,6 +6,7 @@
 #include "NoesisShaders.h"
 
 IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisVSConstants, "NoesisVSConstants");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisVSConstantsRightEye, "NoesisVSConstantsRightEye");
 IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisTextureSize, "NoesisTextureSize");
 IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisPSRgbaConstants, "NoesisPSRgbaConstants");
 IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisPSOpacityConstants, "NoesisPSOpacityConstants");

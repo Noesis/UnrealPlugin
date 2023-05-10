@@ -31,3 +31,14 @@ void FNoesisBlueprintCompiler::Compile(UBlueprint* Blueprint, const FKismetCompi
 void FNoesisBlueprintCompiler::PostCompile(UBlueprint* Blueprint)
 {
 }
+
+bool FNoesisBlueprintCompiler::GetBlueprintTypesForClass(UClass* ParentClass, UClass*& OutBlueprintClass, UClass*& OutBlueprintGeneratedClass) const
+{
+    if (ParentClass->IsChildOf<UNoesisInstance>())
+    {
+        OutBlueprintClass = UNoesisBlueprint::StaticClass();
+        OutBlueprintGeneratedClass = UNoesisBlueprintGeneratedClass::StaticClass();
+        return true;
+    }
+    return false;
+}

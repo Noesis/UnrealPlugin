@@ -294,6 +294,65 @@ struct NoesisTypeTraits<FTimespan>
 };
 
 template<>
+struct NoesisTypeTraits<FMatrix>
+{
+	typedef Noesis::Matrix4 NoesisType;
+	static Noesis::Matrix4 ToNoesis(const FMatrix& Value)
+	{
+		return Noesis::Matrix4(
+			Value.M[0][0], Value.M[0][1], Value.M[0][2], Value.M[0][3],
+			Value.M[1][0], Value.M[1][1], Value.M[1][2], Value.M[1][3],
+			Value.M[2][0], Value.M[2][1], Value.M[2][2], Value.M[2][3],
+			Value.M[3][0], Value.M[3][1], Value.M[3][2], Value.M[3][3]
+		);
+	}
+	static FMatrix ToUnreal(const Noesis::Matrix4& Value)
+	{
+		return FMatrix(
+			FPlane(Value[0][0], Value[0][1], Value[0][2], Value[0][3]),
+			FPlane(Value[1][0], Value[1][1], Value[1][2], Value[1][3]),
+			FPlane(Value[2][0], Value[2][1], Value[2][2], Value[2][3]),
+			FPlane(Value[3][0], Value[3][1], Value[3][2], Value[3][3])
+		);
+	}
+	static bool Equals(const FMatrix& Left, const FMatrix& Right)
+	{
+		return Left == Right;
+	}
+};
+
+template<>
+struct NoesisTypeTraits<FTransform>
+{
+	typedef Noesis::Transform3 NoesisType;
+	static Noesis::Transform3 ToNoesis(const FTransform& Value)
+	{
+		FMatrix Matrix = Value.ToMatrixWithScale();
+
+		return Noesis::Transform3(
+			Matrix.M[0][0], Matrix.M[0][1], Matrix.M[0][2],
+			Matrix.M[1][0], Matrix.M[1][1], Matrix.M[1][2],
+			Matrix.M[2][0], Matrix.M[2][1], Matrix.M[2][2],
+			Matrix.M[3][0], Matrix.M[3][1], Matrix.M[3][2]
+		);
+	}
+	static FTransform ToUnreal(const Noesis::Transform3& Value)
+	{
+		FMatrix Matrix(
+			FPlane(Value[0][0], Value[0][1], Value[0][2], 0.f),
+			FPlane(Value[1][0], Value[1][1], Value[1][2], 0.f),
+			FPlane(Value[2][0], Value[2][1], Value[2][2], 0.f),
+			FPlane(Value[3][0], Value[3][1], Value[3][2], 1.f)
+		);
+		return FTransform(Matrix);
+	}
+	static bool Equals(const FTransform& Left, const FTransform& Right)
+	{
+		return Left.Equals(Right);
+	}
+};
+
+template<>
 struct NoesisTypeTraits<UTexture2D*>
 {
 	typedef Noesis::TextureSource* NoesisType;
@@ -667,7 +726,9 @@ void NoesisInitTypeTables()
 		{TBaseStructure<FNoesisCornerRadius>::Get(), { &GenericGetter<FNoesisCornerRadius>, &GenericSetter<FNoesisCornerRadius>, &GenericGetType<FNoesisCornerRadius> }},
 		{TBaseStructure<FNoesisDuration>::Get(), { &GenericGetter<FNoesisDuration>, &GenericSetter<FNoesisDuration>, &GenericGetType<FNoesisDuration> }},
 		{TBaseStructure<FNoesisKeyTime>::Get(), { &GenericGetter<FNoesisKeyTime>, &GenericSetter<FNoesisKeyTime>, &GenericGetType<FNoesisKeyTime> }},
-		{TimespanStruct, { &GenericGetter<FTimespan>, &GenericSetter<FTimespan>, &GenericGetType<FTimespan> }}
+		{TimespanStruct, { &GenericGetter<FTimespan>, &GenericSetter<FTimespan>, &GenericGetType<FTimespan> }},
+		{TBaseStructure<FMatrix>::Get(), { &GenericGetter<FMatrix>, &GenericSetter<FMatrix>, &GenericGetType<FMatrix> }},
+		{TBaseStructure<FTransform>::Get(), { &GenericGetter<FTransform>, &GenericSetter<FTransform>, &GenericGetType<FTransform> }}
 	};
 
 	TypeInfos =
@@ -829,11 +890,11 @@ public:
 
 NoesisTypeEnumNull NullEnumType;
 
-class NoesisEnumWrapper : public Noesis::Boxed<int32>
+class NoesisEnumWrapper : public Noesis::Boxed<int64_t>
 {
 public:
 	NoesisEnumWrapper(const NoesisTypeEnum* InTypeEnum, int64 InValue)
-		: Noesis::Boxed<int32>((int32)InValue), TypeEnum(InTypeEnum)
+		: Noesis::Boxed<int64_t>(InValue), TypeEnum(InTypeEnum)
 	{
 		check(INT_MIN <= InValue && InValue <= INT_MAX);
 	}
@@ -851,15 +912,15 @@ public:
 
 	const NoesisTypeEnum* TypeEnum;
 
-	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisEnumWrapper, Noesis::Boxed<int32>)
+	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisEnumWrapper, Noesis::Boxed<int64_t>)
 };
 
 bool NoesisTypeEnum::GetValueObject(Noesis::Symbol Id, Noesis::Ptr<Noesis::BoxedValue>& Value) const
 {
-	int32 Val;
+	uint64_t Val;
 	if (!HasName(Id, Val))
 		return false;
-	Value = Noesis::Ptr<Noesis::BoxedValue>(*new NoesisEnumWrapper(this, Val));
+	Value = Noesis::Ptr<Noesis::BoxedValue>(*new NoesisEnumWrapper(this, (int64)Val));
 	return true;
 }
 
@@ -871,14 +932,14 @@ public:
 	{
 	}
 
-	virtual Noesis::Ptr<Noesis::BaseComponent> Box(uint32 Value) const override
+	virtual Noesis::Ptr<Noesis::BaseComponent> Box(uint64_t Value) const override
 	{
 		return *new NoesisEnumWrapper(TypeEnum, Value);
 	}
 
-	virtual uint32 Unbox(Noesis::BaseComponent* Value) const override
+	virtual uint64_t Unbox(Noesis::BaseComponent* Value) const override
 	{
-		return (uint32)Noesis::Boxing::Unbox<int32>(Value);
+		return (uint64_t)Noesis::Boxing::Unbox<int64_t>(Value);
 	}
 
 	const NoesisTypeEnum* TypeEnum;
@@ -1071,9 +1132,21 @@ public:
 		return -1;
 	}
 
+	virtual void InsertComponent(uint32_t Index, Noesis::BaseComponent* Item) override
+	{
+	}
+
 	virtual int IndexOfComponent(const Noesis::BaseComponent* Item) const override
 	{
 		return ComponentArray.Find(Noesis::Ptr<Noesis::BaseComponent>((Noesis::BaseComponent*)Item));
+	}
+
+	virtual void RemoveAt(uint32_t Index) override
+	{
+	}
+
+	virtual void Clear() override
+	{
 	}
 	// End of IList interface
 
@@ -1210,6 +1283,13 @@ public:
 		return Index;
 	}
 
+	virtual void InsertComponent(uint32_t Index, Noesis::BaseComponent* Item) override
+	{
+		NativeInsert(Index);
+		NativeSet(Index, Item);
+		NotifyPostInsert(Index);
+	}
+
 	virtual int IndexOfComponent(const Noesis::BaseComponent* Item) const override
 	{
 		for (uint32 Index = 0; Index != Count(); ++Index)
@@ -1221,6 +1301,16 @@ public:
 			}
 		}
 		return -1;
+	}
+
+	virtual void RemoveAt(uint32_t Index) override
+	{
+		NativeRemoveAt(Index);
+	}
+
+	virtual void Clear() override
+	{
+		NativeClear();
 	}
 	// End of IList interface
 
@@ -1397,6 +1487,18 @@ protected:
 		SetPropertyByRef(PairPtr, ValueProperty, Value);
 	}
 
+	void NativeRemove(const char* Key)
+	{
+		FScriptMapHelper MapHelper(MapProperty, MapPointer);
+		FString KeyString = UTF8_TO_TCHAR(Key);
+		FProperty* ValueProperty = MapProperty->ValueProp;
+		uint8* PairPtr = MapHelper.FindMapPairPtrFromHash(&KeyString);
+		if (PairPtr)
+		{
+			MapHelper.RemovePair(PairPtr);
+		}
+	}
+
 public:
 	// IDictionary interface
 	virtual bool Find(const char* Key, Noesis::Ptr<Noesis::BaseComponent>& Value) const override
@@ -1412,6 +1514,11 @@ public:
 	virtual void Add(const char* Key, BaseComponent* Value) override
 	{
 		NativeAdd(Key, Value);
+	}
+
+	virtual void Remove(const char* Key) override
+	{
+		NativeRemove(Key);
 	}
 
 	virtual Noesis::NotifyDictionaryChangedEventHandler& DictionaryChanged() override
@@ -1966,7 +2073,11 @@ public:
 	{
 		TypeClass = (NoesisTypeClass*)NoesisCreateTypeClassForUMaterial(InMaterial);
 
-		MaterialInstanceDynamic = UMaterialInstanceDynamic::Create(InMaterial, GetTransientPackage());
+		MaterialInstanceDynamic = Cast<UMaterialInstanceDynamic>(InMaterial);
+		if (MaterialInstanceDynamic == nullptr)
+		{
+			MaterialInstanceDynamic = UMaterialInstanceDynamic::Create(InMaterial, GetTransientPackage());
+		}
 		MaterialInstanceDynamic->AddToRoot();
 		Material = NoesisCreateMaterial(MaterialInstanceDynamic);
 	}
@@ -2412,6 +2523,7 @@ void NoesisFillTypeClassForUClass(NoesisTypeClass* TypeClass, UClass* Class)
 	for (TFieldIterator<UFunction> FunctionIt(Class, EFieldIteratorFlags::ExcludeSuper); FunctionIt; ++FunctionIt)
 	{
 		UFunction* Function = *FunctionIt;
+		FString FunctionName = Function->GetName();
 
 		FProperty* Param = CastField<FProperty>(Function->ChildProperties);
 		bool HasNoParams = Function->NumParms == 0;
@@ -2419,7 +2531,7 @@ void NoesisFillTypeClassForUClass(NoesisTypeClass* TypeClass, UClass* Class)
 
 		if (HasNoParams || HasOneParam)
 		{
-			UFunction* CanExecuteFunction = Class->FindFunctionByName(*(FString(TEXT("CanExecute")) + Function->GetName()), EIncludeSuperFlag::ExcludeSuper);
+			UFunction* CanExecuteFunction = Class->FindFunctionByName(*(FString(TEXT("CanExecute")) + FunctionName), EIncludeSuperFlag::ExcludeSuper);
 			if (CanExecuteFunction)
 			{
 				FProperty* CanExecuteParam = CastField<FProperty>(CanExecuteFunction->ChildProperties);
@@ -2456,14 +2568,21 @@ void NoesisFillTypeClassForUClass(NoesisTypeClass* TypeClass, UClass* Class)
 			}
 		}
 
-		if (Function->GetName().StartsWith(TEXT("Get")))
+		bool IsGetter = false;
+		FString SetterName = FunctionName;
+		Noesis::Symbol PropertyId;
+		if (FunctionName.StartsWith(TEXT("Get")))
 		{
-			Noesis::Symbol PropertyId = Noesis::Symbol(TCHAR_TO_UTF8(*Function->GetName().RightChop(3)));
+			IsGetter = true;
+			SetterName[0] = TEXT('S');
+			PropertyId = Noesis::Symbol(TCHAR_TO_UTF8(*FunctionName.RightChop(3)));
+		}
+
+		if (IsGetter)
+		{
 			FProperty* OutParam = CastField<FProperty>(Function->ChildProperties);
 			if (Function->NumParms == 1 && (OutParam != nullptr) && ((OutParam->PropertyFlags & CPF_OutParm) != 0))
 			{
-				FString SetterName = Function->GetName();
-				SetterName[0] = TEXT('S');
 				UFunction* Setter = Class->FindFunctionByName(*SetterName, EIncludeSuperFlag::ExcludeSuper);
 				if (Setter != nullptr)
 				{
@@ -2701,6 +2820,11 @@ void NoesisDestroyViews()
 	{
 		UNoesisXaml* Xaml = *It;
 		Xaml->DestroyThumbnailRenderData();
+	}
+	for (TObjectIterator<UNoesisRive> It; It; ++It)
+	{
+		UNoesisRive* Rive = *It;
+		Rive->DestroyThumbnailRenderData();
 	}
 
 	// We keep track of the rest of initialized views, and their DataContexts, as those may be running in game.
@@ -3086,6 +3210,24 @@ NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisFindComponentForUObje
 		if (WrapperPtr)
 		{
 			return Noesis::Ptr<Noesis::BaseComponent>(*WrapperPtr);
+		}
+	}
+
+	return nullptr;
+}
+
+NOESISRUNTIME_API UObject* NoesisFindUObjectForComponent(Noesis::BaseComponent* Component)
+{
+	if (Component == nullptr)
+		return nullptr;
+
+	NoesisObjectWrapper* Wrapper = Noesis::DynamicCast<NoesisObjectWrapper*>(Component);
+	if (Wrapper != nullptr)
+	{
+		UObject* const* ObjectPtr = ObjectMap.FindKey(Wrapper);
+		if (ObjectPtr)
+		{
+			return *ObjectPtr;
 		}
 	}
 

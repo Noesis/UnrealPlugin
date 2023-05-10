@@ -37,6 +37,7 @@ UNoesisSettings::UNoesisSettings(const FObjectInitializer& ObjectInitializer)
 	DefaultFontStyle = ENoesisFontStyle::Normal;
 	GeneralLogLevel = ENoesisLoggingSettings::Warning;
 	BindingLogLevel = ENoesisLoggingSettings::Warning;
+	ReloadEnabled = true;
 	PremultiplyAlpha = true;
 }
 

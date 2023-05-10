@@ -118,6 +118,10 @@ class NOESISRUNTIME_API UNoesisSettings : public UObject
 	UPROPERTY(EditAnywhere, Config, Category = "Editor Settings")
 	ENoesisLoggingSettings BindingLogLevel;
 
+	/** Enables hot-reloading of XAMLs and Textures while in Play mode */
+	UPROPERTY(EditAnywhere, Config, Category = "Editor Settings")
+	bool ReloadEnabled;
+
 	/** Premultiplies the color channels of UI textures with the value of the alpha channel */
 	UPROPERTY(EditAnywhere, Config, Category = "Editor Settings")
 	bool PremultiplyAlpha;

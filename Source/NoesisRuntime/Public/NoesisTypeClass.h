@@ -121,6 +121,7 @@ template<class StructType> StructType NoesisGetUStructFromComponent(Noesis::Base
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisFindComponentForUObject(UObject* Object);
+NOESISRUNTIME_API UObject* NoesisFindUObjectForComponent(Noesis::BaseComponent* Component);
 
 NOESISRUNTIME_API Noesis::TypeClass* NoesisCreateTypeClassForUClass(class UClass*);
 NOESISRUNTIME_API Noesis::TypeClass* NoesisCreateTypeClassForUStruct(class UScriptStruct*);

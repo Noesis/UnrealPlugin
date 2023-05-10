@@ -31,6 +31,12 @@ struct In
 #if HAS_IMAGE_POSITION
     float4 imagePos: ATTRIBUTE7;
 #endif
+
+#if INSTANCED_STEREO
+    uint instanceId : SV_InstanceID;
+#elif MOBILE_MULTI_VIEW
+    uint viewId : SV_ViewID;
+#endif
 };
 
 struct Out
@@ -73,12 +79,26 @@ struct Out
 #if HAS_IMAGE_POSITION
     float4 imagePos: IMAGE_POSITION;
 #endif
+
+#if INSTANCED_STEREO
+    nointerpolation uint viewportIndex : SV_ViewPortArrayIndex;
+#elif MOBILE_MULTI_VIEW
+    nointerpolation uint viewId : VIEW_ID;
+#endif
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NoesisVS(in In i, out Out o)
 {
+#if INSTANCED_STEREO
+    o.viewportIndex = i.instanceId;
+    o.position = mul(i.instanceId == 0 ? NoesisVSConstants.projectionMtx : NoesisVSConstantsRightEye.projectionMtx, float4(i.position, 0, 1));
+#elif MOBILE_MULTI_VIEW
+    o.viewId = i.viewId;
+    o.position = mul(i.viewId == 0 ? NoesisVSConstants.projectionMtx : NoesisVSConstantsRightEye.projectionMtx, float4(i.position, 0, 1));
+#else
     o.position = mul(NoesisVSConstants.projectionMtx, float4(i.position, 0, 1));
+#endif
 
 #if HAS_COLOR
     o.color FCOLOR_COMPONENT_SWIZZLE = i.color.bgra;

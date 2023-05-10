@@ -12,8 +12,6 @@
 #include "NoesisBlueprintGraphApplicationMode.h"
 #include "NoesisBlueprintEditorCommands.h"
 
-const FName FNoesisBlueprintEditor::PreviewTabID("Preview");
-
 void FNoesisBlueprintEditor::InitNoesisBlueprintEditor(const EToolkitMode::Type Mode, const TSharedPtr< IToolkitHost >& InitToolkitHost, const TArray<UBlueprint*>& InBlueprints, bool bShouldOpenInDefaultsMode)
 {
 	TSharedPtr<FNoesisBlueprintEditor> ThisPtr(SharedThis(this));

@@ -114,6 +114,10 @@ BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisVSConstants, )
 SHADER_PARAMETER(FMatrix44f, projectionMtx)
 END_GLOBAL_SHADER_PARAMETER_STRUCT()
 
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisVSConstantsRightEye, )
+SHADER_PARAMETER(FMatrix44f, projectionMtx)
+END_GLOBAL_SHADER_PARAMETER_STRUCT()
+
 BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisTextureSize, )
 SHADER_PARAMETER(FVector2f, textureSize)
 END_GLOBAL_SHADER_PARAMETER_STRUCT()
@@ -148,6 +152,7 @@ public:
 		: FGlobalShader(Initializer)
 	{
 		VSConstantsBuffer.Bind(Initializer.ParameterMap, FNoesisVSConstants::StaticStructMetadata.GetShaderVariableName());
+		VSConstantsBufferRightEye.Bind(Initializer.ParameterMap, FNoesisVSConstantsRightEye::StaticStructMetadata.GetShaderVariableName());
 		TextureSizeBuffer.Bind(Initializer.ParameterMap, FNoesisTextureSize::StaticStructMetadata.GetShaderVariableName());
 	}
 
@@ -165,6 +170,14 @@ public:
 		SetUniformBufferParameter(RHICmdList, ShaderRHI, VSConstantsBuffer, VSConstants);
 	}
 
+	void SetVSConstantsRightEye(FRHICommandList& RHICmdList, const FUniformBufferRHIRef& VSConstants)
+	{
+		FRHIVertexShader* ShaderRHI = RHICmdList.GetBoundVertexShader();
+
+		check(VSConstantsBufferRightEye.IsBound());
+		SetUniformBufferParameter(RHICmdList, ShaderRHI, VSConstantsBufferRightEye, VSConstants);
+	}
+
 	void SetTextureSize(FRHICommandList& RHICmdList, const FUniformBufferRHIRef& TextureSize)
 	{
 		FRHIVertexShader* ShaderRHI = RHICmdList.GetBoundVertexShader();
@@ -174,6 +187,7 @@ public:
 	}
 
 	LAYOUT_FIELD(FShaderUniformBufferParameter, VSConstantsBuffer);
+	LAYOUT_FIELD(FShaderUniformBufferParameter, VSConstantsBufferRightEye);
 	LAYOUT_FIELD(FShaderUniformBufferParameter, TextureSizeBuffer)
 };
 

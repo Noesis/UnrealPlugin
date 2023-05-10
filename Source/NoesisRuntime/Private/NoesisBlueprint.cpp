@@ -14,6 +14,12 @@ UNoesisBlueprint::UNoesisBlueprint(const FObjectInitializer& ObjectInitializer)
 	bRecompileOnLoad = false;
 
 	TessellationQuality = ENoesisTessellationQuality::Medium;
+
+	EnableKeyboard = true;
+	EnableMouse = true;
+	EmulateTouch = false;
+	EnableTouch = true;
+	EnableActions = false;
 }
 
 #if WITH_EDITOR

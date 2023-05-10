@@ -45,6 +45,9 @@ class NOESISRUNTIME_API UNoesisXaml : public UObject
 	TArray<class UMediaSource*> Videos;
 
 	UPROPERTY()
+	TArray<class UNoesisRive*> Rives;
+
+	UPROPERTY()
 	TArray<class UMaterialInterface*> Materials;
 
 	UPROPERTY()
@@ -68,13 +71,11 @@ class NOESISRUNTIME_API UNoesisXaml : public UObject
 	FString GetXamlUri() const;
 
 #if WITH_EDITOR
-	bool CanRenderThumbnail();
 	void RenderThumbnail(FIntRect, const FTexture2DRHIRef&);
 	void DestroyThumbnailRenderData();
 #endif
 
 #if WITH_EDITORONLY_DATA
-	UPROPERTY()
-	class UNoesisInstance* ThumbnailRenderInstance;
+	Noesis::Ptr<Noesis::IView> ThumbnailView;
 #endif
 };

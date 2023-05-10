@@ -19,12 +19,10 @@ namespace Noesis
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Adds a *Text* attached property for TextBlock which formats Unreal-style RichText into Inlines.
 ///
-/// Decorator markup tags, with their Inline output:
+/// A single Decorator markup tag, **img**, is provided. This will generate an Image contained in 
+/// an InlineUIContainer, with it's Style set to the resource key supplied by the id parameter.
 ///
-/// * *img*: Image contained in an InlineUIContainer, with it's Style set to the resource key
-///   supplied by the id parameter
-///
-/// If a tag name does not match a decorator above, it will be used as a Style resource key. If a
+/// If a tag name does not match a Decorator, it will be used as a Style resource key. If a
 /// resource is found with this key, a Span will be created with that Style set to it.
 ///
 /// This example uses the following DataContext:

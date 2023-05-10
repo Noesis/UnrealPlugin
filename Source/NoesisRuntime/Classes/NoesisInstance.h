@@ -122,6 +122,7 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 
 	Noesis::Ptr<Noesis::FrameworkElement> Xaml;
 	Noesis::Ptr<Noesis::IView> XamlView;
+	Noesis::Ptr<Noesis::BaseComponent> DataContext;
 	float Left;
 	float Top;
 	float Width;
@@ -129,11 +130,14 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	float CurrentTime;
 	FSceneInterface* Scene;
 	FGameTime WorldTime;
-	bool FlipYAxis;
+	bool IsGamepadSimulatedClick = false;
+	bool Is3DWidget = false;
+	mutable bool SupportsKeyboardFocus = true;
 
 	typedef TSharedPtr<class FNoesisSlateElement, ESPMode::ThreadSafe> FNoesisSlateElementPtr;
 	FNoesisSlateElementPtr NoesisSlateElement;
 
+	UPROPERTY()
 	class UWidgetComponent* WidgetComponent;
 
 	UPROPERTY()
@@ -147,6 +151,21 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 
 	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	NoesisInstanceRenderFlags RenderFlags;
+
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	bool EnableKeyboard;
+
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	bool EnableMouse;
+
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	bool EmulateTouch;
+
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	bool EnableTouch;
+
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	bool EnableActions;
 
 	UFUNCTION(BlueprintCallable, Category = "NoesisGUI")
 	void InitInstance();
@@ -174,9 +193,14 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 
 	static UNoesisInstance* FromView(Noesis::IView* View);
 
-	void Update(float InLeft, float InTop, float InWidth, float InHeight);
+	void Update();
 
 	FVector2D GetSize() const;
+	void Init3DWidget(UWorld* World);
+	void Term3DWidget(UWorld* World);
+	void Tick3DWidget(UWorld* World, ELevelTick TickType, float DeltaTime);
+	static void Add3DElement(UWorld* World, Noesis::FrameworkElement* Element);
+	static void Remove3DElement(UWorld* World, Noesis::FrameworkElement* Element);
 
 	TMap<Noesis::TextBox*, TSharedPtr<class NoesisTextBoxTextInputMethodContext> > TextInputMethodContexts;
 
@@ -197,15 +221,22 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	virtual void OnWidgetRebuilt() override;
 #if WITH_EDITOR
 	virtual void SetDesignerFlags(EWidgetDesignFlags NewFlags) override;
-	// End of UWidget interface
-
-	void DrawThumbnail(FIntRect ViewportRect, const FTexture2DRHIRef& BackBuffer);
 #endif // WITH_EDITOR
+	// End of UWidget interface
 
 	void UpdateWorldTime();
 
+	UInputComponent* GetInputComponent();
+
 	void RegisterInputAction(FInputActionBinding Binding);
 	void UnregisterInputAction(FInputActionBinding Binding);
+
+#if WITH_ENHANCED_INPUT
+	void OnEnhancedInputActionTriggered(Noesis::Key);
+	void OnEnhancedInputActionCompleted(Noesis::Key);
+	void OnEnhancedInputActionHorizontalScroll(const struct FInputActionValue&);
+	void OnEnhancedInputActionVerticalScroll(const struct FInputActionValue&);
+#endif
 
 	// UUserWidget interface
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
@@ -225,7 +256,16 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	virtual FCursorReply NativeOnCursorQuery(const FGeometry& MyGeometry, const FPointerEvent& CursorEvent) override;
 	virtual FReply NativeOnMouseButtonDoubleClick(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual bool NativeSupportsKeyboardFocus() const override;
-	virtual void InitializeNativeClassData() override;
+	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 	// End of UUserWidget interface
 };
 
+FDelegateHandle NoesisRegisterOverlayRender();
+void NoesisUnregisterOverlayRender(FDelegateHandle InOverlayRenderDelegateHandle);
+
+TSharedPtr<class ISceneViewExtension> NoesisRegisterSceneViewExtension();
+void NoesisUnregisterSceneViewExtension(TSharedPtr<class ISceneViewExtension>);
+
+TSharedPtr<class IInputProcessor> NoesisRegisterInputPreProcessor();
+void NoesisUnregisterInputPreProcessor(TSharedPtr<class IInputProcessor>);

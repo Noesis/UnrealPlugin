@@ -10,6 +10,7 @@
 
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/App.Interactivity.cpp"
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/AttachableObject.cpp"
+#include "NoesisSDK/Src/Packages/App/Interactivity/Src/BackgroundEffectBehavior.cpp"
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/Behavior.cpp"
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/BehaviorCollection.cpp"
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/ChangePropertyAction.cpp"

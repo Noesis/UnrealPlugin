@@ -17,17 +17,10 @@
 FNoesisBlueprintGraphApplicationMode::FNoesisBlueprintGraphApplicationMode(TSharedPtr<class FNoesisBlueprintEditor> InNoesisBlueprintEditor)
 	: FNoesisBlueprintApplicationMode(InNoesisBlueprintEditor, FNoesisBlueprintApplicationModes::GraphMode)
 {
-	TabLayout = FTabManager::NewLayout("NoesisBlueprintEditor_Graph_Layout_v1")
+	TabLayout = FTabManager::NewLayout("NoesisBlueprintEditor_Graph_Layout_v2")
 		->AddArea
 		(
 			FTabManager::NewPrimaryArea()->SetOrientation(Orient_Vertical)
-			->Split
-			(
-				FTabManager::NewStack()
-				->SetSizeCoefficient(0.186721f)
-				->SetHideTabWell(true)
-				->AddTab(FNoesisBlueprintEditor::PreviewTabID, ETabState::OpenedTab)
-			)
 			->Split
 			(
 				FTabManager::NewSplitter()->SetOrientation(Orient_Horizontal)

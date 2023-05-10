@@ -97,6 +97,7 @@ NoesisMediaPlayer::~NoesisMediaPlayer()
 	}
 
 	MediaPlayer->OnMediaEvent().RemoveAll(this);
+	MediaPlayer->Close();
 	MediaPlayer->RemoveFromRoot();
 	MediaPlayer = nullptr;
 
@@ -289,7 +290,10 @@ void NoesisMediaPlayer::OnRendering(Noesis::IView*)
 	// Check if we need to continue playing or player has been paused/stopped
 	if (KeepPlaying)
 	{
-		MediaPlayer->Play();
+		if (!MediaPlayer->IsPlaying())
+		{
+			MediaPlayer->Play();
+		}
 	}
 	else
 	{
@@ -359,6 +363,10 @@ void NoesisMediaPlayer::OnMediaEvent(EMediaEvent Event)
 		}
 		case EMediaEvent::SeekCompleted:
 		{
+			/*if (KeepPlaying)
+			{
+				MediaPlayer->Play();
+			}*/
 			break;
 		}
 		case EMediaEvent::TracksChanged:

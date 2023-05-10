@@ -29,5 +29,15 @@
 			"Type": "Editor",
 			"LoadingPhase": "Default"
 		}
+	],
+	"Plugins": [
+		{
+			"Name": "EnhancedInput",
+			"Enabled": false
+		},
+		{
+			"Name": "CommonUI",
+			"Enabled": false
+		}
 	]
 }

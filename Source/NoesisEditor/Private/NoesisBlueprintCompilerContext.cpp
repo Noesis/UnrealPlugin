@@ -57,5 +57,10 @@ void FNoesisBlueprintCompilerContext::CopyTermDefaultsToDefaultObject(UObject* D
 		DefaultInstance->BaseXaml = NoesisBlueprint->BaseXaml;
 		DefaultInstance->EnablePPAA = NoesisBlueprint->EnablePPAA;
 		DefaultInstance->TessellationQuality = NoesisBlueprint->TessellationQuality;
+		DefaultInstance->EnableKeyboard = NoesisBlueprint->EnableKeyboard;
+		DefaultInstance->EnableMouse = NoesisBlueprint->EnableMouse;
+		DefaultInstance->EmulateTouch = NoesisBlueprint->EmulateTouch;
+		DefaultInstance->EnableTouch = NoesisBlueprint->EnableTouch;
+		DefaultInstance->EnableActions = NoesisBlueprint->EnableActions;
 	}
 }

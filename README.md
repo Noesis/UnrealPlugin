@@ -3,7 +3,7 @@
 <a href="https://www.noesisengine.com/bugs/"><img alt="issues" src="https://img.shields.io/badge/issues-bugtracker-blue"></a>
 <a href="https://twitter.com/NoesisEngine"><img src="https://img.shields.io/badge/twitter-%40NoesisEngine-55acee.svg?style=flat-square"></a>
 
-# NoesisGUI Unreal Engine 4.26 Plugin
+# NoesisGUI Unreal Engine Plugin
 
 This repository contains the source code for the [NoesisGUI](https://www.noesisengine.com/) Unreal integration.
 
@@ -94,6 +94,6 @@ After you read this document, we have a few samples so you can see some of the c
 
     * Make sure you enabled the plugin for your project before adding the dependency to the module `NoesisRuntime`. If you already had a project created, simply add the dependency manually as described in [First steps with NoesisGUI and Unreal](https://www.noesisengine.com/docs/Gui.Core.UnrealTutorial.html#project-setup).
 
-* In windows, you get an error stating that `NoesisRuntime` cannot be loaded bcause `Noesis.dll` cannot be found.
+* In windows, you get an error stating that `NoesisRuntime` cannot be loaded because `Noesis.dll` cannot be found.
     
     * Make sure you ran the installation script, as described in the [Plugin installation](#plugin-installation) section.

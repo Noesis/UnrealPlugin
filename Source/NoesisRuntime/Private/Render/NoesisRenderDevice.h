@@ -50,16 +50,20 @@ class FNoesisRenderDevice : public Noesis::RenderDevice
 	FBufferRHIRef DynamicIndexBuffer;
 #endif
 	FUniformBufferRHIRef VSConstantBuffer;
+	FUniformBufferRHIRef VSConstantBufferRightEye;
 	FUniformBufferRHIRef TextureSizeBuffer;
 	FUniformBufferRHIRef PSRgbaConstantBuffer;
 	FUniformBufferRHIRef PSOpacityConstantBuffer;
 	FUniformBufferRHIRef PSRadialGradConstantBuffer;
 	FUniformBufferRHIRef BlurConstantsBuffer;
 	FUniformBufferRHIRef ShadowConstantsBuffer;
-	uint32 VSConstantsHash;
-	uint32 TextureSizeHash;
-	uint32 PSConstantsHash;
-	uint32 EffectsHash;
+	uint32 VSConstantsHash = 0;
+	uint32 TextureSizeHash = 0;
+	uint32 PSRgbaConstantsHash = 0;
+	uint32 PSOpacityConstantsHash = 0;
+	uint32 PSRadialGradConstantsHash = 0;
+	uint32 BlurConstantsHash = 0;
+	uint32 ShadowConstantsHash = 0;
 
 #if WANTS_DRAW_MESH_EVENTS
 	FDrawEvent* SetRenderTargetEvent;
@@ -71,25 +75,31 @@ class FNoesisRenderDevice : public Noesis::RenderDevice
 
 public:
 	FGameTime WorldTime;
-	FRHICommandListImmediate* RHICmdList;
-	FSceneViewFamily* ViewFamily;
-	FViewInfo* View;
-	FSceneInterface* Scene;
+	FRHICommandListImmediate* RHICmdList = nullptr;
+	FSceneViewFamily* ViewFamily = nullptr;
+	FViewInfo* View = nullptr;
+	FSceneInterface* Scene = nullptr;
 	uint32 ViewLeft, ViewTop, ViewRight, ViewBottom;
-	FVertexDeclarationRHIRef VertexDeclarations[Noesis::Shader::Count];
-	TShaderRef<FNoesisVSBase> VertexShaders[Noesis::Shader::Count];
+	bool IsWorldUI = false;
+	FVertexDeclarationRHIRef VertexDeclarations[Noesis::Shader::Vertex::Format::Count];
+	TShaderRef<FNoesisVSBase> VertexShaders[Noesis::Shader::Vertex::Count];
 	TShaderRef<FNoesisPSBase> PixelShaders[Noesis::Shader::Count];
 	TShaderRef<FNoesisPSBase> PixelShadersPatternSRGB[Noesis::Shader::Count];
 	FUniformBufferRHIRef* PixelShaderConstantBuffer0[Noesis::Shader::Count];
 	FUniformBufferRHIRef* PixelShaderConstantBuffer1[Noesis::Shader::Count];
+	uint32* PixelShaderConstantBuffer0Hash[Noesis::Shader::Count];
+	uint32* PixelShaderConstantBuffer1Hash[Noesis::Shader::Count];
 	FRHIDepthStencilState* DepthStencilStates[Noesis::StencilMode::Count];
 	FRHIBlendState* BlendStates[Noesis::BlendMode::Count];
+	FRHIBlendState* BlendStatesWorldUI[Noesis::BlendMode::Count];
 	//FRHISamplerState* SamplerStates[Noesis::WrapMode::Count * Noesis::MinMagFilter::Count * Noesis::MipFilter::Count];
 	FRHISamplerState* SamplerStates[64];
 
 	static FNoesisRenderDevice* Get();
 	static void Destroy();
 
+	static Noesis::Ptr<Noesis::Texture> CreateTexture(uint32 InWidth, uint32 InHeight, uint32 InNumMipMaps, bool InAlpha);
+	static void SetRHITexture(Noesis::Texture* Texture, FTexture2DRHIRef TextureRef);
 	static Noesis::Ptr<Noesis::Texture> CreateTexture(class UTexture* Texture);
 	static void* CreateMaterial(class UMaterialInterface* Material);
 	static void DestroyMaterial(void* Material);
@@ -118,6 +128,8 @@ public:
 	virtual void BeginOnscreenRender() override;
 	virtual void EndOnscreenRender() override;
 	virtual void SetRenderTarget(Noesis::RenderTarget* Surface) override;
+	virtual void BeginTile(Noesis::RenderTarget* Surface, const Noesis::Tile& Tile) override;
+	virtual void EndTile(Noesis::RenderTarget* Surface) override;
 	virtual void ResolveRenderTarget(Noesis::RenderTarget* Surface, const Noesis::Tile* Tiles, uint32 NumTiles) override;
 	virtual void* MapVertices(uint32 Bytes) override;
 	virtual void UnmapVertices() override;

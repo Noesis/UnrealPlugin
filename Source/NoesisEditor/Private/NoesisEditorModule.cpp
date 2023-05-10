@@ -29,14 +29,17 @@
 #include "NoesisSupport.h"
 #include "NoesisTypeClass.h"
 #include "NoesisXaml.h"
+#include "NoesisRive.h"
 #include "NoesisBlueprint.h"
 
 // NoesisEditor includes
 #include "NoesisBlueprintAssetTypeActions.h"
 #include "NoesisXamlAssetTypeActions.h"
+#include "NoesisRiveAssetTypeActions.h"
 #include "NoesisBlueprintCompiler.h"
 #include "NoesisBlueprintCompilerContext.h"
 #include "NoesisXamlThumbnailRenderer.h"
+#include "NoesisRiveThumbnailRenderer.h"
 #include "NoesisStyle.h"
 
 // KismetCompiler includes
@@ -52,6 +55,9 @@
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Images/SImage.h"
+
+// LangServer includes
+#include "NsApp/LangServer.h"
 
 #define LOCTEXT_NAMESPACE "NoesisEditorModule"
 
@@ -108,40 +114,57 @@ void PremultiplyAlpha(UTexture2D* Texture)
 	}
 }
 
-void OnObjectImported(UFactory* ImportFactory, UObject* InObject)
+static void DestroyThumbnails()
 {
-	if (!IsValid(InObject))
-		return;
-
 	for (TObjectIterator<UNoesisXaml> It; It; ++It)
 	{
 		UNoesisXaml* Xaml = *It;
 		Xaml->DestroyThumbnailRenderData();
 	}
 
+	for (TObjectIterator<UNoesisRive> It; It; ++It)
+	{
+		UNoesisRive* Rive = *It;
+		Rive->DestroyThumbnailRenderData();
+	}
+}
+
+void OnObjectImported(UFactory* ImportFactory, UObject* InObject)
+{
+	if (!IsValid(InObject))
+		return;
+
+	DestroyThumbnails();
+
 	if (InObject->IsA<UNoesisXaml>())
 	{
-		UNoesisXaml* Xaml = (UNoesisXaml*)InObject;
-		INoesisRuntimeModuleInterface::Get().OnXamlChanged(Xaml);
+		if (GetDefault<UNoesisSettings>()->ReloadEnabled)
+		{
+			UNoesisXaml* Xaml = (UNoesisXaml*)InObject;
+			INoesisRuntimeModuleInterface::Get().OnXamlChanged(Xaml);
+		}
 	}
 
 	if (InObject->IsA<UTexture2D>())
 	{
 		UTexture2D* Texture = (UTexture2D*)InObject;
-		if (Texture->LODGroup == TEXTUREGROUP_UI &&
-			!Texture->SRGB)
+		if (Texture->LODGroup == TEXTUREGROUP_UI && !Texture->SRGB)
 		{
 			if (GetDefault<UNoesisSettings>()->PremultiplyAlpha)
 			{
 				PremultiplyAlpha(Texture);
 			}
 		}
-		Noesis::Ptr<Noesis::TextureSource> TextureSource = Noesis::StaticPtrCast<Noesis::TextureSource>(NoesisFindComponentForUObject(Texture));
+		Noesis::Ptr<Noesis::TextureSource> TextureSource = Noesis::StaticPtrCast<Noesis::TextureSource>(
+			NoesisFindComponentForUObject(Texture));
 		if (TextureSource != nullptr)
 		{
 			TextureSource->SetTexture(NoesisCreateTexture(Texture));
 		}
-		INoesisRuntimeModuleInterface::Get().OnTextureChanged(Texture);
+		if (GetDefault<UNoesisSettings>()->ReloadEnabled)
+		{
+			INoesisRuntimeModuleInterface::Get().OnTextureChanged(Texture);
+		}
 	}
 }
 
@@ -154,17 +177,13 @@ void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Even
 	if (!ReentryGuard)
 	{
 		ReentryGuard = 1;
-		for (TObjectIterator<UNoesisXaml> It; It; ++It)
-		{
-			UNoesisXaml* Xaml = *It;
-			Xaml->DestroyThumbnailRenderData();
-		}
+
+		DestroyThumbnails();
 
 		if (Object->IsA<UTexture2D>())
 		{
 			UTexture2D* Texture = (UTexture2D*)Object;
-			if (Texture->LODGroup == TEXTUREGROUP_UI &&
-				!Texture->SRGB)
+			if (Texture->LODGroup == TEXTUREGROUP_UI && !Texture->SRGB)
 			{
 				// Avoid reimporting the texture unless one of these properties has changed
 				if (Event.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UTexture, SRGB) ||
@@ -172,7 +191,8 @@ void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Even
 				{
 					if (GetDefault<UNoesisSettings>()->PremultiplyAlpha)
 					{
-						// We need to reimport the texture here in case the Texture's Source has already been premultiplied
+						// We need to reimport the texture here in case the Texture's Source has
+						// already been premultiplied
 						FReimportManager::Instance()->Reimport(Texture);
 
 						// Important!!!
@@ -180,18 +200,23 @@ void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Even
 					}
 				}
 			}
-			Noesis::Ptr<Noesis::TextureSource> TextureSource = Noesis::StaticPtrCast<Noesis::TextureSource>(NoesisFindComponentForUObject(Texture));
+			Noesis::Ptr<Noesis::TextureSource> TextureSource = Noesis::StaticPtrCast<Noesis::TextureSource>(
+				NoesisFindComponentForUObject(Texture));
 			if (TextureSource != nullptr)
 			{
 				TextureSource->SetTexture(NoesisCreateTexture(Texture));
 			}
-			INoesisRuntimeModuleInterface::Get().OnTextureChanged(Texture);
+			if (GetDefault<UNoesisSettings>()->ReloadEnabled)
+			{
+				INoesisRuntimeModuleInterface::Get().OnTextureChanged(Texture);
+			}
 		}
 
 		if (Object->IsA<UMaterialInterface>())
 		{
 			NoesisDestroyTypeClassForMaterial((UMaterialInterface*)Object);
 		}
+
 		ReentryGuard = 0;
 	}
 }
@@ -235,6 +260,10 @@ public:
 		// Register slate style overrides
 		FNoesisStyle::Initialize();
 
+		// Initialize LangServer
+		Noesis::LangServer::SetDetails("Unreal", 1000);
+        Noesis::LangServer::Run();
+
 		// Register asset type actions
 		IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
 
@@ -244,11 +273,13 @@ public:
 		AssetTools.RegisterAssetTypeActions(NoesisBlueprintAssetTypeActions.ToSharedRef());
 		NoesisXamlAssetTypeActions = MakeShareable(new FNoesisXamlAssetTypeActions(Category));
 		AssetTools.RegisterAssetTypeActions(NoesisXamlAssetTypeActions.ToSharedRef());
+		NoesisRiveAssetTypeActions = MakeShareable(new FNoesisRiveAssetTypeActions(Category));
+		AssetTools.RegisterAssetTypeActions(NoesisRiveAssetTypeActions.ToSharedRef());
 
 		// Register blueprint compiler
 		NoesisBlueprintCompiler = MakeShareable(new FNoesisBlueprintCompiler());
 		IKismetCompilerInterface& KismetCompilerModule = FModuleManager::LoadModuleChecked<IKismetCompilerInterface>("KismetCompiler");
-		KismetCompilerModule.GetCompilers().Add(NoesisBlueprintCompiler.Get());
+		KismetCompilerModule.GetCompilers().Insert(NoesisBlueprintCompiler.Get(), 0); // Make sure our compiler goes before the WidgetBlueprint compiler
 		FKismetCompilerContext::RegisterCompilerForBP(UNoesisBlueprint::StaticClass(), &GetCompilerForNoesisBlueprint);
 
 		// Register settings
@@ -262,6 +293,7 @@ public:
 
 		// Register thumbnail renderers
 		UThumbnailManager::Get().RegisterCustomRenderer(UNoesisXaml::StaticClass(), UNoesisXamlThumbnailRenderer::StaticClass());
+		UThumbnailManager::Get().RegisterCustomRenderer(UNoesisRive::StaticClass(), UNoesisRiveThumbnailRenderer::StaticClass());
 
 		AssetImportHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetPostImport.AddStatic(&OnObjectImported);
 
@@ -283,6 +315,7 @@ public:
 		TickerHandle = FTSTicker::GetCoreTicker().AddTicker(TEXT("NoesisEditor"), 0.0f, [this](float DeltaTime)
 		{
 			Noesis::GUI::UpdateInspector();
+			Noesis::LangServer::Tick();
 			return true;
 		});
 
@@ -363,12 +396,16 @@ public:
 		// Unregister slate style overrides
 		FNoesisStyle::Shutdown();
 
+		// Disable LangServer
+		Noesis::LangServer::Shutdown();
+
 		// Unregister asset type actions
 		if (FModuleManager::Get().IsModuleLoaded("AssetTools"))
 		{
 			IAssetTools& AssetTools = FModuleManager::GetModuleChecked<FAssetToolsModule>("AssetTools").Get();
 			AssetTools.UnregisterAssetTypeActions(NoesisBlueprintAssetTypeActions.ToSharedRef());
 			AssetTools.UnregisterAssetTypeActions(NoesisXamlAssetTypeActions.ToSharedRef());
+			AssetTools.UnregisterAssetTypeActions(NoesisRiveAssetTypeActions.ToSharedRef());
 		}
 
 		// Unregister blueprint compiler
@@ -595,6 +632,7 @@ public:
 private:
 	TSharedPtr<FNoesisBlueprintAssetTypeActions> NoesisBlueprintAssetTypeActions;
 	TSharedPtr<FNoesisXamlAssetTypeActions> NoesisXamlAssetTypeActions;
+	TSharedPtr<FNoesisRiveAssetTypeActions> NoesisRiveAssetTypeActions;
 	TSharedPtr<FNoesisBlueprintCompiler> NoesisBlueprintCompiler;
 	FDelegateHandle AssetImportHandle;
 	FDelegateHandle ObjectPropertyChangedHandle;

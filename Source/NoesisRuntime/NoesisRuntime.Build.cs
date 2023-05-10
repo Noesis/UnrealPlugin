@@ -4,6 +4,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using UnrealBuildTool;
+using EpicGames.Core;
 using System;
 
 public class NoesisRuntime : ModuleRules
@@ -21,6 +22,17 @@ public class NoesisRuntime : ModuleRules
 		{
 			PrivateDefinitions.Add("NS_APP_INTERACTIVITY_API=NS_DLL_EXPORT");
 			PrivateDefinitions.Add("NS_APP_MEDIAELEMENT_API=NS_DLL_EXPORT");
+			PrivateDefinitions.Add("NS_APP_RIVEBASE_API=NS_DLL_EXPORT");
+			PrivateDefinitions.Add("NS_APP_RIVE_API=NS_DLL_EXPORT");
+			if (Target.Type == TargetType.Editor)
+			{
+				// In modular builds we want the LangServer functions
+				// dllexported from this module and
+				// dllimported from the other modules.
+				// That's why we use PrivateDefinitions.
+				PrivateDefinitions.Add("NS_APP_LANGSERVER_API=NS_DLL_EXPORT");
+				PrivateDefinitions.Add("NS_APP_PROVIDERS_API=NS_DLL_EXPORT");
+			}
 		}
 
 		PublicIncludePaths.AddRange(
@@ -81,5 +93,50 @@ public class NoesisRuntime : ModuleRules
 				"AssetRegistry"
 			}
 			);
+
+		bool WithEnhancedInput = false;
+		bool WithCommonUI = false;
+		var Project = Target.ProjectFile != null ? ProjectDescriptor.FromFile(Target.ProjectFile) : null;
+		var AvailablePlugins = Plugins.ReadAvailablePlugins(new DirectoryReference(EngineDirectory), Target.ProjectFile?.Directory, null);
+
+		Func<string, bool> IsPluginEnabled = (string Name) =>
+		{
+			var PluginInfo = AvailablePlugins.Find(pPluginInfo => { return pPluginInfo.Name == Name; });
+			return PluginInfo != null ? Plugins.IsPluginEnabledForTarget(PluginInfo, Project, Target.Platform, Target.Configuration, Target.Type) : false;
+		};
+		WithEnhancedInput = IsPluginEnabled("EnhancedInput");
+		WithCommonUI = IsPluginEnabled("CommonUI");
+
+		if (WithEnhancedInput)
+		{
+			System.Console.WriteLine("NoesisGUI: It looks like your project is using the EnhancedInput plugin. The warning below is harmless but, if you want to get rid of it, you can edit NoesisGUI.uplugin and change the EnhancedInput plugin dependency to be enabled.");
+			PublicDependencyModuleNames.AddRange(
+				new string[]
+				{
+					"EnhancedInput"
+				}
+				);
+			PublicDefinitions.Add("WITH_ENHANCED_INPUT=1");
+		}
+		else
+		{
+			PublicDefinitions.Add("WITH_ENHANCED_INPUT=0");
+		}
+
+		if (WithCommonUI)
+		{
+			System.Console.WriteLine("NoesisGUI: It looks like your project is using the CommonUI plugin. The warning below is harmless but, if you want to get rid of it, you can edit NoesisGUI.uplugin and change the CommonUI plugin dependency to be enabled.");
+			PublicDependencyModuleNames.AddRange(
+				new string[]
+				{
+					"CommonInput"
+				}
+				);
+			PublicDefinitions.Add("WITH_COMMON_UI=1");
+		}
+		else
+		{
+			PublicDefinitions.Add("WITH_COMMON_UI=0");
+		}
 	}
 }

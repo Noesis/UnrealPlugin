@@ -14,8 +14,7 @@
 #include "Engine/FontFace.h"
 
 // NoesisRuntime includes
-#include "NoesisInstance.h"
-#include "NoesisRuntimeModule.h"
+#include "NoesisThumbnailRenderer.h"
 
 UNoesisXaml::UNoesisXaml(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -102,39 +101,22 @@ FString UNoesisXaml::GetXamlUri() const
 }
 
 #if WITH_EDITOR
-bool UNoesisXaml::CanRenderThumbnail()
-{
-	if (!ThumbnailRenderInstance)
-	{
-		ThumbnailRenderInstance = NewObject<UNoesisInstance>();
-		ThumbnailRenderInstance->BaseXaml = this;
-		ThumbnailRenderInstance->InitInstance();
-	}
-
-	return ThumbnailRenderInstance ? ThumbnailRenderInstance->XamlView != nullptr : false;
-}
-
 void UNoesisXaml::RenderThumbnail(FIntRect ViewportRect, const FTexture2DRHIRef& BackBuffer)
 {
-	if (!ThumbnailRenderInstance)
+	if (ThumbnailView == nullptr)
 	{
-		ThumbnailRenderInstance = NewObject<UNoesisInstance>();
-		ThumbnailRenderInstance->BaseXaml = this;
-		ThumbnailRenderInstance->InitInstance();
+		Noesis::Ptr<Noesis::BaseComponent> Root = UNoesisXaml::LoadXaml();
+		Noesis::FrameworkElement* Content = Noesis::DynamicCast<Noesis::FrameworkElement*>(Root.GetPtr());
+		ThumbnailView = FNoesisThumbnailRenderer::CreateView(Content);
 	}
 
-	if (ThumbnailRenderInstance)
-	{
-		ThumbnailRenderInstance->DrawThumbnail(ViewportRect, BackBuffer);
-	}
+	UWorld* World = GetWorld();
+	if (World == nullptr) World = GWorld.GetReference();
+	FNoesisThumbnailRenderer::RenderView(ThumbnailView, World, ViewportRect, BackBuffer);
 }
 
 void UNoesisXaml::DestroyThumbnailRenderData()
 {
-	if (ThumbnailRenderInstance)
-	{
-		ThumbnailRenderInstance->TermInstance();
-		ThumbnailRenderInstance = nullptr;
-	}
+	ThumbnailView.Reset();
 }
 #endif

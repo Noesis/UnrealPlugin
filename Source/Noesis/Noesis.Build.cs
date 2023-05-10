@@ -17,6 +17,9 @@ public class Noesis : ModuleRules
 		string NoesisIncludePath = Path.Combine(NoesisBasePath, "Include");
 		string NoesisInteractivityIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "Interactivity", "Include");
 		string NoesisMediaElementIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "MediaElement", "Include");
+		string NoesisRiveBaseIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "RiveBase", "Include");
+		string NoesisRiveIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "Rive", "Include");
+		string RiveIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "RiveBase", "Src", "rive", "include");
 
 		// In monolithic builds we don't want the Interactivity and MediaElement functions
 		// dllexported or dllimported from any modules.
@@ -25,12 +28,26 @@ public class Noesis : ModuleRules
 		{
 			PublicDefinitions.Add("NS_APP_INTERACTIVITY_API=");
 			PublicDefinitions.Add("NS_APP_MEDIAELEMENT_API=");
+			PublicDefinitions.Add("NS_APP_RIVEBASE_API=");
+			PublicDefinitions.Add("NS_APP_RIVE_API=");
+            if (Target.Type == TargetType.Editor)
+			{
+				PublicDefinitions.Add("NS_APP_LANGSERVER_API=");
+			}
 		}
 
 		PublicIncludePaths.Add(ModuleDirectory);
 		PublicIncludePaths.Add(NoesisIncludePath);
 		PublicIncludePaths.Add(NoesisInteractivityIncludePath);
 		PublicIncludePaths.Add(NoesisMediaElementIncludePath);
+		PublicIncludePaths.Add(NoesisRiveBaseIncludePath);
+		PublicIncludePaths.Add(NoesisRiveIncludePath);
+		PublicIncludePaths.Add(RiveIncludePath);
+
+        if (Target.Type == TargetType.Editor)
+		{
+			PublicIncludePaths.Add(Path.Combine(NoesisBasePath, "Src", "Packages", "App", "LangServer", "Include"));
+		}
 
 		if (!Directory.Exists(NoesisBasePath))
 		{

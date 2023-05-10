@@ -46,4 +46,19 @@ public:
 	/** Specifies tessellation quality. */
 	UPROPERTY(EditAnywhere, Category = "Noesis View")
 	ENoesisTessellationQuality TessellationQuality;
+
+	UPROPERTY(EditAnywhere, Category = "Noesis View")
+	bool EnableKeyboard;
+
+	UPROPERTY(EditAnywhere, Category = "Noesis View")
+	bool EnableMouse;
+
+	UPROPERTY(EditAnywhere, Category = "Noesis View", meta = (EditCondition = "EnableMouse"))
+	bool EmulateTouch;
+
+	UPROPERTY(EditAnywhere, Category = "Noesis View")
+	bool EnableTouch;
+
+	UPROPERTY(EditAnywhere, Category = "Noesis View")
+	bool EnableActions;
 };
