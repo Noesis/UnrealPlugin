@@ -5,6 +5,9 @@
 
 #include "NoesisSupport.h"
 
+// RHI includes
+#include "RHI.h"
+
 // Engine includes
 #include "Engine/GameViewportClient.h"
 

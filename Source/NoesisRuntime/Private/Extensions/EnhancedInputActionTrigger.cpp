@@ -9,6 +9,9 @@
 // EnhancedInput includes
 #include "InputAction.h"
 
+// NoesisRuntime includes
+#include "NoesisSupport.h"
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class UNoesisEnhancedInputDelegateHandler : public UObject
 {

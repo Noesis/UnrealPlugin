@@ -11,9 +11,14 @@
 #include "Misc/EngineVersionComparison.h"
 #include "Misc/CoreDelegates.h"
 
+// CoreUObject includes
+#include "UObject/Package.h"
+
 // Engine includes
 #include "AudioDevice.h"
 #include "AudioDeviceManager.h"
+#include "TextureResource.h"
+#include "Engine/Texture2D.h"
 
 // Media includes
 #include "IMediaEventSink.h"

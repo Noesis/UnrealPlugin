@@ -7,6 +7,11 @@
 
 // Core includes
 #include "Misc/FileHelper.h"
+#include "Misc/EngineVersionComparison.h"
+
+// CoreUObject includes
+#include "UObject/UObjectGlobals.h"
+#include "UObject/Package.h"
 
 // Engine includes
 #include "Engine/Texture.h"
@@ -17,6 +22,7 @@
 // NoesisRuntime includes
 #include "NoesisXaml.h"
 #include "NoesisSupport.h"
+#include "NoesisRive.h"
 
 // LangServer includes
 #if WITH_EDITOR

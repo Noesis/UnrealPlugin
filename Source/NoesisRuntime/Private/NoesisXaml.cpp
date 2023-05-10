@@ -7,13 +7,16 @@
 
 // CoreUObject includes
 #include "Misc/PackageName.h"
+#include "UObject/Package.h"
 
 // Engine includes
 #include "EditorFramework/AssetImportData.h"
 #include "Engine/Font.h"
 #include "Engine/FontFace.h"
+#include "Engine/World.h"
 
 // NoesisRuntime includes
+#include "NoesisRuntimeModule.h"
 #include "NoesisThumbnailRenderer.h"
 
 UNoesisXaml::UNoesisXaml(const FObjectInitializer& ObjectInitializer)

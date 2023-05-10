@@ -24,6 +24,7 @@
 #include "Engine/FontFace.h"
 #include "Engine/Texture2D.h"
 #include "Sound/SoundWave.h"
+#include "Materials/MaterialInterface.h"
 
 // FreeType2 includes
 THIRD_PARTY_INCLUDES_START
@@ -46,6 +47,7 @@ THIRD_PARTY_INCLUDES_END
 #include "NoesisSettings.h"
 #include "NoesisSupport.h"
 #include "NoesisXaml.h"
+#include "NoesisRive.h"
 #include "Extensions/LocTableExtension.h"
 #include "Extensions/LocTextExtension.h"
 

@@ -94,8 +94,6 @@ public class NoesisRuntime : ModuleRules
 			}
 			);
 
-		bool WithEnhancedInput = false;
-		bool WithCommonUI = false;
 		var Project = Target.ProjectFile != null ? ProjectDescriptor.FromFile(Target.ProjectFile) : null;
 		var AvailablePlugins = Plugins.ReadAvailablePlugins(new DirectoryReference(EngineDirectory), Target.ProjectFile?.Directory, null);
 
@@ -104,12 +102,10 @@ public class NoesisRuntime : ModuleRules
 			var PluginInfo = AvailablePlugins.Find(pPluginInfo => { return pPluginInfo.Name == Name; });
 			return PluginInfo != null ? Plugins.IsPluginEnabledForTarget(PluginInfo, Project, Target.Platform, Target.Configuration, Target.Type) : false;
 		};
-		WithEnhancedInput = IsPluginEnabled("EnhancedInput");
-		WithCommonUI = IsPluginEnabled("CommonUI");
 
+		bool WithEnhancedInput = true;
 		if (WithEnhancedInput)
 		{
-			System.Console.WriteLine("NoesisGUI: It looks like your project is using the EnhancedInput plugin. The warning below is harmless but, if you want to get rid of it, you can edit NoesisGUI.uplugin and change the EnhancedInput plugin dependency to be enabled.");
 			PublicDependencyModuleNames.AddRange(
 				new string[]
 				{
@@ -123,6 +119,7 @@ public class NoesisRuntime : ModuleRules
 			PublicDefinitions.Add("WITH_ENHANCED_INPUT=0");
 		}
 
+		bool WithCommonUI = IsPluginEnabled("CommonUI");
 		if (WithCommonUI)
 		{
 			System.Console.WriteLine("NoesisGUI: It looks like your project is using the CommonUI plugin. The warning below is harmless but, if you want to get rid of it, you can edit NoesisGUI.uplugin and change the CommonUI plugin dependency to be enabled.");

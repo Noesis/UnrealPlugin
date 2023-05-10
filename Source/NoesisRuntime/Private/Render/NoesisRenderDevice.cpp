@@ -11,6 +11,11 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "Rendering/Texture2DResource.h"
 #include "Materials/Material.h"
+#if UE_VERSION_OLDER_THAN(5, 2, 0)
+#include "MaterialShared.h"
+#else
+#include "Materials/MaterialRenderProxy.h"
+#endif
 #include "SceneView.h"
 
 // RHI includes
@@ -18,6 +23,11 @@
 #include "RHICommandList.h"
 #include "RHIStaticStates.h"
 #include "PipelineStateCache.h"
+#if UE_VERSION_OLDER_THAN(5, 2, 0)
+#include "RHIDefinitions.h"
+#else
+#include "DataDrivenShaderPlatformInfo.h"
+#endif
 
 // MediaAsset includes
 #include "MediaTexture.h"
@@ -107,7 +117,9 @@ class FNoesisMaterial
 {
 public:
 	FNoesisMaterial(UMaterialInterface* InMaterial)
+#if WITH_EDITOR
 		: MaterialPtr(InMaterial)
+#endif
 	{
 		MaterialProxy = InMaterial->GetRenderProxy();
 #if WITH_EDITOR
@@ -135,9 +147,9 @@ public:
 #endif
 	}
 
-	TWeakObjectPtr<UMaterialInterface> MaterialPtr;
 	FMaterialRenderProxy* MaterialProxy;
 #if WITH_EDITOR
+	TWeakObjectPtr<UMaterialInterface> MaterialPtr;
 #if UE_VERSION_OLDER_THAN(5, 0, 0)
 	FDelegateHandle TickerHandle;
 #else
@@ -376,7 +388,7 @@ static TShaderRef<FNoesisMaterialPSBase> GetMaterialPixelShader(const FMaterial*
 template<ESamplerFilter Filter = SF_Point,
 	ESamplerAddressMode AddressU = AM_Clamp,
 	ESamplerAddressMode AddressV = AM_Clamp,
-	int MaxMipLevel = 0>
+	int MaxMipLevel = 1>
 class TNoesisStaticSamplerState : public TStaticStateRHI<TNoesisStaticSamplerState<Filter, AddressU, AddressV, MaxMipLevel>, FSamplerStateRHIRef, FRHISamplerState*>
 {
 public:

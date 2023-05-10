@@ -33,7 +33,7 @@
 	"Plugins": [
 		{
 			"Name": "EnhancedInput",
-			"Enabled": false
+			"Enabled": true
 		},
 		{
 			"Name": "CommonUI",

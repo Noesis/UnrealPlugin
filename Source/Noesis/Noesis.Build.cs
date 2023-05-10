@@ -30,9 +30,10 @@ public class Noesis : ModuleRules
 			PublicDefinitions.Add("NS_APP_MEDIAELEMENT_API=");
 			PublicDefinitions.Add("NS_APP_RIVEBASE_API=");
 			PublicDefinitions.Add("NS_APP_RIVE_API=");
-            if (Target.Type == TargetType.Editor)
+			if (Target.Type == TargetType.Editor)
 			{
 				PublicDefinitions.Add("NS_APP_LANGSERVER_API=");
+				PublicDefinitions.Add("NS_APP_PROVIDERS_API=");
 			}
 		}
 
@@ -44,7 +45,7 @@ public class Noesis : ModuleRules
 		PublicIncludePaths.Add(NoesisRiveIncludePath);
 		PublicIncludePaths.Add(RiveIncludePath);
 
-        if (Target.Type == TargetType.Editor)
+		if (Target.Type == TargetType.Editor)
 		{
 			PublicIncludePaths.Add(Path.Combine(NoesisBasePath, "Src", "Packages", "App", "LangServer", "Include"));
 		}

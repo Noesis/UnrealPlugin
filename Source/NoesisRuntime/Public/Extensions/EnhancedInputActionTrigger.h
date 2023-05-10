@@ -20,20 +20,13 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 enum TriggerEvent
 {
-	TriggerEvent_None,
-	TriggerEvent_Triggered,
-    TriggerEvent_Started,
-	TriggerEvent_Ongoing,
-	TriggerEvent_Canceled,
-	TriggerEvent_Completed
+    TriggerEvent_None = (int)ETriggerEvent::None,
+    TriggerEvent_Triggered = (int)ETriggerEvent::Triggered,
+    TriggerEvent_Started = (int)ETriggerEvent::Started,
+    TriggerEvent_Ongoing = (int)ETriggerEvent::Ongoing,
+    TriggerEvent_Canceled = (int)ETriggerEvent::Canceled,
+    TriggerEvent_Completed = (int)ETriggerEvent::Completed
 };
-
-// Sanity checks in case ETriggerEvent changes
-static_assert((int)TriggerEvent_None == (int)ETriggerEvent::None);
-static_assert((int)TriggerEvent_Triggered == (int)ETriggerEvent::Triggered);
-static_assert((int)TriggerEvent_Started == (int)ETriggerEvent::Started);
-static_assert((int)TriggerEvent_Ongoing == (int)ETriggerEvent::Ongoing);
-static_assert((int)TriggerEvent_Canceled == (int)ETriggerEvent::Canceled);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NOESISRUNTIME_API EnhancedInputActionTrigger : public NoesisApp::TriggerBaseT<Noesis::FrameworkElement>

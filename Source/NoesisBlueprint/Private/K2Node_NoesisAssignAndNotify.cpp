@@ -30,6 +30,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetStringLibrary.h"
 #include "Kismet/KismetTextLibrary.h"
+#include "Engine/BlueprintGeneratedClass.h"
 
 // KismetCompiler includes
 #include "KismetCompiler.h"

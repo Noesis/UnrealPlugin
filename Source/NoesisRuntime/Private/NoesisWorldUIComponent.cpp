@@ -8,6 +8,11 @@
 // UMG includes
 #include "Blueprint/UserWidget.h"
 
+// NoesisRuntime includes
+#include "NoesisSupport.h"
+#include "NoesisTypeClass.h"
+#include "NoesisXaml.h"
+
 UNoesisWorldUIComponent::UNoesisWorldUIComponent(): Xaml(nullptr), Scale(1.0f), Center(true)
 {
 	PrimaryComponentTick.bCanEverTick = true;

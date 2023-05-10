@@ -18,6 +18,9 @@
 
 // Engine includes
 #include "EditorFramework/AssetImportData.h"
+#include "Engine/Texture.h"
+#include "Engine/Texture2D.h"
+#include "Materials/MaterialInterface.h"
 
 // UnrealEd includes
 #include "Editor.h"
@@ -53,6 +56,7 @@
 
 // Slate includes
 #include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "Framework/Application/SlateApplication.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Images/SImage.h"
 

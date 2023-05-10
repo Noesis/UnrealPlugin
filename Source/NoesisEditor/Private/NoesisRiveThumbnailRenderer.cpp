@@ -5,10 +5,14 @@
 
 #include "NoesisRiveThumbnailRenderer.h"
 
+// RHI include
+#include "RHI.h"
+
 // Engine includes
 #include "UnrealClient.h"
 
 // NoesisRuntime includes
+#include "NoesisRive.h"
 #include "NoesisXaml.h"
 
 UNoesisRiveThumbnailRenderer::UNoesisRiveThumbnailRenderer(const FObjectInitializer& ObjectInitializer)

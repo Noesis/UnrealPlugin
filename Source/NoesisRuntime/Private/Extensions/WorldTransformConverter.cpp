@@ -8,8 +8,11 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool WorldTransformConverter::TryConvert(Noesis::BaseComponent* Value, const Noesis::Type* TargetType,
-	Noesis::BaseComponent* Parameter, Noesis::Ptr<Noesis::BaseComponent>& Result)
+	Noesis::BaseComponent*, Noesis::Ptr<Noesis::BaseComponent>& Result)
 {
+	if (TargetType != Noesis::TypeOf<Noesis::Transform3>())
+		return false;
+
 	if (!Noesis::Boxing::CanUnbox<Noesis::Transform3>(Value))
 		return false;
 	

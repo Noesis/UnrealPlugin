@@ -10,6 +10,9 @@
 #include "Stats/Stats.h"
 #include "Stats/Stats2.h"
 
+// CoreUObject includes
+#include "UObject/UObjectIterator.h"
+
 // Engine includes
 #include "EngineModule.h"
 #include "SceneUtils.h"
@@ -18,6 +21,18 @@
 #include "GameFramework/WorldSettings.h"
 #include "Kismet/GameplayStatics.h"
 #include "Slate/SceneViewport.h"
+#if UE_VERSION_OLDER_THAN(5, 2, 0)
+#include "MaterialShared.h"
+#else
+#include "Materials/MaterialRenderProxy.h"
+#endif
+
+// RHI includes
+#if UE_VERSION_OLDER_THAN(5, 2, 0)
+#include "RHIDefinitions.h"
+#else
+#include "DataDrivenShaderPlatformInfo.h"
+#endif
 
 // RenderCore includes
 #include "RendererInterface.h"
@@ -60,6 +75,13 @@
 #if WITH_COMMON_UI
 // CommonInput includes
 #include "CommonInputSubsystem.h"
+#endif
+
+#if WITH_ENHANCED_INPUT
+// EnhancedInput includes
+#include "EnhancedInputComponent.h"
+#include "InputAction.h"
+#include "InputTriggers.h"
 #endif
 
 DECLARE_CYCLE_STAT(TEXT("Update"), STAT_NoesisInstance_Update, STATGROUP_Noesis);
@@ -136,6 +158,10 @@ public:
 	float Top;
 	float Right;
 	float Bottom;
+	float ViewLeft;
+	float ViewTop;
+	float ViewRight;
+	float ViewBottom;
 	FSceneInterface* Scene;
 	FGameTime WorldTime;
 	bool IsMobileMultiView = false;
@@ -237,7 +263,7 @@ void FNoesisSlateElement::RenderOnscreen(FRHICommandListImmediate& RHICmdList, b
 	RenderDevice->SetWorldTime(WorldTime);
 	RenderDevice->SetScene(Scene);
 	RenderDevice->SetRHICmdList(&RHICmdList);
-	RenderDevice->CreateView(Left, Top, Right, Bottom);
+	RenderDevice->CreateView(ViewLeft, ViewTop, ViewRight, ViewBottom);
 	Renderer->SetRenderRegion(0.f, 0.f, Right - Left, Bottom - Top);
 	if (WithViewProj)
 	{
@@ -497,6 +523,10 @@ void UNoesisInstance::InitInstance()
 			NoesisSlateElement = MakeShared<FNoesisSlateElement, ESPMode::ThreadSafe>(Renderer);
 
 			CurrentTime = 0.0f;
+
+			Xaml->Measure(Noesis::Size(FLT_INF, FLT_INF));
+			auto DesiredSize = Xaml->GetDesiredSize();
+			SetMinimumDesiredSize(FVector2D(DesiredSize.width, DesiredSize.height));
 		}
 
 		Xaml->PreviewGotKeyboardFocus() += Noesis::MakeDelegate(this, &UNoesisInstance::OnPreviewGotKeyboardFocus);
@@ -534,10 +564,7 @@ void UNoesisInstance::InitInstance()
 				{
 					EnhancedInputComponent->BindAction(Action, ETriggerEvent::Triggered, this, &UNoesisInstance::OnEnhancedInputActionTriggered, Event.Value);
 					EnhancedInputComponent->BindAction(Action, ETriggerEvent::Completed, this, &UNoesisInstance::OnEnhancedInputActionCompleted, Event.Value);
-#if UE_VERSION_OLDER_THAN(5, 1, 0)
-#else
 					EnhancedInputComponent->BindAction(Action, ETriggerEvent::Canceled, this, &UNoesisInstance::OnEnhancedInputActionCompleted, Event.Value);
-#endif
 				}
 			}
 
@@ -767,6 +794,7 @@ void UNoesisInstance::Init3DWidget(UWorld* World)
 	SetPlayerContext(FLocalPlayerContext(World->GetFirstLocalPlayerFromController(), World));
 	FWorldDelegates::OnWorldPostActorTick.AddUObject(this, &UNoesisInstance::Tick3DWidget);
 	FWorldDelegates::OnWorldBeginTearDown.AddUObject(this, &UNoesisInstance::Term3DWidget);
+	FCoreDelegates::OnSafeFrameChangedEvent.AddUObject(this, &UNoesisInstance::ViewportResized3DWidget);
 	InitInstance();
 	ENQUEUE_RENDER_COMMAND(FNoesisInstance_Add3DSlateElement)
 	(
@@ -792,6 +820,7 @@ void UNoesisInstance::Term3DWidget(UWorld* World)
 		}
 	);
 	TermInstance();
+	FCoreDelegates::OnSafeFrameChangedEvent.RemoveAll(this);
 	FWorldDelegates::OnWorldPostActorTick.RemoveAll(this);
 	Is3DWidget = false;
 	RemoveFromRoot();
@@ -851,7 +880,7 @@ void UNoesisInstance::Tick3DWidget(UWorld* World, ELevelTick TickType, float Del
 						}
 					);
 					XamlView->SetProjectionMatrix(ViewProj);
-				}
+							}
 				else
 				{
 					Noesis::Matrix4 ViewProj = UnrealToNoesisViewProj(ViewProjectionData.ComputeViewProjectionMatrix(), Width, Height);
@@ -870,10 +899,21 @@ void UNoesisInstance::Tick3DWidget(UWorld* World, ELevelTick TickType, float Del
 
 		Update();
 
+		NoesisSlateElement->ViewLeft = Left;
+		NoesisSlateElement->ViewTop = Top;
+		NoesisSlateElement->ViewRight = Left + Width;
+		NoesisSlateElement->ViewBottom = Top + Height;
 		NoesisSlateElement->Scene = Scene;
 		NoesisSlateElement->WorldTime = WorldTime;
 		NoesisSlateElement->EnqueueRenderOffscreen();
 	}
+}
+
+void UNoesisInstance::ViewportResized3DWidget()
+{
+	check(Is3DWidget);
+
+	Tick3DWidget(GetWorld(), LEVELTICK_TimeOnly, 0.0f);
 }
 
 static UNoesisInstance* Find3DInstanceForWorld(UWorld* World)
@@ -1282,6 +1322,16 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 		NoesisSlateElement->Top = SlateRect.Top;
 		NoesisSlateElement->Right = SlateRect.Right;
 		NoesisSlateElement->Bottom = SlateRect.Bottom;
+
+		UGameViewportClient* ViewportClient = GetWorld()->GetGameViewport();
+		FSceneViewport* Viewport = ViewportClient->GetGameViewport();
+		auto ViewportPosition = Viewport->GetInitialPositionXY();
+		auto ViewportSize = Viewport->GetSizeXY();
+		auto UnscaledViewRect = FIntRect(ViewportPosition.X, ViewportPosition.Y, ViewportPosition.X + ViewportSize.X, ViewportPosition.Y + ViewportSize.Y);
+		NoesisSlateElement->ViewLeft = UnscaledViewRect.Min.X;
+		NoesisSlateElement->ViewTop = UnscaledViewRect.Min.Y;
+		NoesisSlateElement->ViewRight = UnscaledViewRect.Max.X;
+		NoesisSlateElement->ViewBottom = UnscaledViewRect.Max.Y;
 
 		NoesisSlateElement->Scene = Scene;
 		NoesisSlateElement->IsMobileMultiView = false;
@@ -1843,6 +1893,9 @@ public:
 
 	virtual void PrePostProcessPass_RenderThread(FRDGBuilder& GraphBuilder, const FSceneView& View, const FPostProcessingInputs& Inputs) override
 	{
+		if (View.Family->Scene->IsEditorScene())
+			return;
+
 		if (GNoesis3DSlateElements.Num() == 0)
 			return;
 
@@ -1850,6 +1903,10 @@ public:
 
 		auto ColorTexture = PostDOFTranslucencyResources.ColorTexture.Target;
 		auto DepthStencilTexture = PostDOFTranslucencyResources.DepthTexture.Target;
+
+		if (ColorTexture == nullptr || DepthStencilTexture == nullptr)
+			return;
+
 		FRenderTargetParameters* PassParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
 		{
 			PassParameters->RenderTargets[0] = FRenderTargetBinding(ColorTexture, ERenderTargetLoadAction::ELoad);
@@ -1875,6 +1932,13 @@ public:
 
 	virtual void PostRenderViewFamily_RenderThread(FRDGBuilder& GraphBuilder, FSceneViewFamily& InViewFamily) override
 	{
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
+		if (InViewFamily.Views[0]->bIsSceneCapture)
+#else
+		if (InViewFamily.Views[0]->bIsSceneCapture || InViewFamily.Views[0]->bIsSceneCaptureCube)
+#endif
+			return;
+
 		if (InViewFamily.RenderTarget->GetRenderTargetTexture() == nullptr)
 			return;
 

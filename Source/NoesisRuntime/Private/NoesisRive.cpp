@@ -7,6 +7,11 @@
 
 // CoreUObject includes
 #include "Misc/PackageName.h"
+#include "UObject/Package.h"
+
+// Engine includes
+#include "EditorFramework/AssetImportData.h"
+#include "Engine/World.h"
 
 // NoesisRuntime includes
 #include "NoesisThumbnailRenderer.h"

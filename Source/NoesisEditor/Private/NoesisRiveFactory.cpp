@@ -8,6 +8,9 @@
 // Core includes
 #include "CoreMinimal.h"
 
+// Engine includes
+#include "EditorFramework/AssetImportData.h"
+
 // NoesisRuntime includes
 #include "NoesisRive.h"
 

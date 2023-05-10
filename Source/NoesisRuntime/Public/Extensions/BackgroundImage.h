@@ -9,6 +9,7 @@
 #include "CoreMinimal.h"
 
 // RHI includes
+#include "RHI.h"
 #include "RHIResources.h"
 
 // Noesis includes
@@ -26,7 +27,7 @@ public:
 	static Noesis::Ptr<Noesis::Texture> NoesisBackgroundTexture;
 
 private:
-	void OnViewportResized(FViewport* Viewport, uint32);
+	void OnViewportResized(class FViewport* Viewport, uint32);
 
 	FDelegateHandle mViewportResizedDelegateHandle;
 

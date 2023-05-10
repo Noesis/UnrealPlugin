@@ -7,12 +7,14 @@
 
 // Core includes
 #include "UObject/PropertyPortFlags.h"
+#include "Misc/EngineVersionComparison.h"
 
 // CoreUObject includes
 #include "UObject/TextProperty.h"
 #include "UObject/UObjectIterator.h"
 #include "UObject/UObjectThreadContext.h"
 #include "UObject/FieldIterator.h"
+#include "UObject/Package.h"
 
 // Engine includes
 #include "Engine/Texture2D.h"
@@ -23,6 +25,14 @@
 #include "Materials/Material.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Slate/SlateTextureAtlasInterface.h"
+#if UE_VERSION_OLDER_THAN(5, 2, 0)
+#include "MaterialShared.h"
+#else
+#include "MaterialDomain.h"
+#endif
+
+// Slate includes
+#include "Framework/Text/TextLayout.h"
 
 // AssetRegistry includes
 #include "AssetRegistry/AssetRegistryModule.h"
@@ -34,6 +44,7 @@
 #include "NoesisStructs.h"
 #include "NoesisRuntimeModule.h"
 #include "NoesisBaseComponent.h"
+#include "NoesisRive.h"
 #include "NoesisXaml.h"
 
 // Noesis includes
@@ -353,6 +364,24 @@ struct NoesisTypeTraits<FTransform>
 };
 
 template<>
+struct NoesisTypeTraits<ETextFlowDirection>
+{
+	typedef Noesis::FlowDirection NoesisType;
+	static Noesis::FlowDirection ToNoesis(const ETextFlowDirection& Value)
+	{
+		return (Value == ETextFlowDirection::RightToLeft) ? Noesis::FlowDirection_RightToLeft : Noesis::FlowDirection_LeftToRight;
+	}
+	static ETextFlowDirection ToUnreal(const Noesis::FlowDirection& Value)
+	{
+		return (Value == Noesis::FlowDirection_LeftToRight) ? ETextFlowDirection::LeftToRight : ETextFlowDirection::RightToLeft;
+	}
+	static bool Equals(const ETextFlowDirection& Left, const ETextFlowDirection& Right)
+	{
+		return Left == Right;
+	}
+};
+
+template<>
 struct NoesisTypeTraits<UTexture2D*>
 {
 	typedef Noesis::TextureSource* NoesisType;
@@ -430,6 +459,7 @@ struct NoesisTypeInfo
 };
 
 TMap<UScriptStruct*, NoesisTypeInfo> StructTypeInfos;
+TMap<UEnum*, NoesisTypeInfo> EnumTypeInfos;
 
 Noesis::Ptr<Noesis::BaseComponent> StructGetter(void* BasePointer, FProperty* Property)
 {
@@ -467,6 +497,11 @@ Noesis::Ptr<Noesis::BaseComponent> EnumGetter(void* BasePointer, FProperty* Prop
 {
 	check(Property->IsA<FEnumProperty>());
 	FEnumProperty* EnumProperty = (FEnumProperty*)Property;
+	NoesisTypeInfo* TypeInfo = EnumTypeInfos.Find(EnumProperty->GetEnum());
+	if (TypeInfo != nullptr)
+	{
+		return (*TypeInfo->Getter)(BasePointer, Property);
+	}
 	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
 	FNumericProperty* UnderlyingProperty = EnumProperty->GetUnderlyingProperty();
 	check(UnderlyingProperty->IsInteger());
@@ -478,6 +513,11 @@ bool EnumSetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Prop
 {
 	check(Property->IsA<FEnumProperty>());
 	FEnumProperty* EnumProperty = (FEnumProperty*)Property;
+	NoesisTypeInfo* TypeInfo = EnumTypeInfos.Find(EnumProperty->GetEnum());
+	if (TypeInfo != nullptr)
+	{
+		return (*TypeInfo->Setter)(Input, BasePointer, Property);
+	}
 	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
 	FNumericProperty* UnderlyingProperty = EnumProperty->GetUnderlyingProperty();
 	check(UnderlyingProperty->IsInteger());
@@ -488,6 +528,11 @@ const Noesis::Type* EnumGetType(FProperty* Property)
 {
 	check(Property->IsA<FEnumProperty>());
 	FEnumProperty* EnumProperty = (FEnumProperty*)Property;
+	NoesisTypeInfo* TypeInfo = EnumTypeInfos.Find(EnumProperty->GetEnum());
+	if (TypeInfo != nullptr)
+	{
+		return (*TypeInfo->GetType)(Property);
+	}
 	return NoesisCreateTypeEnumForUEnum(EnumProperty->GetEnum());
 }
 
@@ -729,6 +774,11 @@ void NoesisInitTypeTables()
 		{TimespanStruct, { &GenericGetter<FTimespan>, &GenericSetter<FTimespan>, &GenericGetType<FTimespan> }},
 		{TBaseStructure<FMatrix>::Get(), { &GenericGetter<FMatrix>, &GenericSetter<FMatrix>, &GenericGetType<FMatrix> }},
 		{TBaseStructure<FTransform>::Get(), { &GenericGetter<FTransform>, &GenericSetter<FTransform>, &GenericGetType<FTransform> }}
+	};
+
+	EnumTypeInfos =
+	{
+		{StaticEnum<ETextFlowDirection>(), { &GenericGetter<ETextFlowDirection>, &GenericSetter<ETextFlowDirection>, &GenericGetType<ETextFlowDirection> }}
 	};
 
 	TypeInfos =
@@ -1623,7 +1673,6 @@ protected:
 NoesisTypeProperty::NoesisTypeProperty(Noesis::Symbol Name, const Noesis::Type* Type)
 	: Noesis::TypeProperty(Name, Type)
 {
-	check(Type != nullptr);
 }
 
 void* NoesisTypeProperty::GetContent(void* Ptr) const
@@ -1705,15 +1754,33 @@ public:
 		mProperties.Insert(It, Property);
 	}
 
+	void AddEvent(NoesisTypeProperty* Event)
+	{
+		check(Event);
+
+		PropertyVector::Iterator It = LowerBound(mEvents.Begin(), mEvents.End(), Event,
+			[](Noesis::TypeProperty* elem1, Noesis::TypeProperty* elem2)
+			{
+				return elem1->GetName() < elem2->GetName();
+			});
+
+		check(It == mEvents.End() || (*It)->GetName() != Event->GetName());
+
+		mEvents.Insert(It, Event);
+	}
+
 	void ChangeName(Noesis::Symbol NewName)
 	{
 		PropertyVector Properties = mProperties;
 		mProperties.Clear();
+		PropertyVector Events = mEvents;
+		mEvents.Clear();
 		const Noesis::TypeClass* Base = mBase;
 		NoesisIsShuttingDown = true;
 		this->~NoesisTypeClass();
 		NoesisIsShuttingDown = false;
 		::new(this) NoesisTypeClass(NewName);
+		mEvents = Noesis::MoveArg(Events);
 		mProperties = Noesis::MoveArg(Properties);
 		mBase = Base;
 	}
@@ -1721,6 +1788,12 @@ public:
 	void InvalidateProperties()
 	{
 		for (auto TypeProperty : mProperties)
+		{
+			NoesisTypeProperty* Property = (NoesisTypeProperty*)TypeProperty;
+			Property->Invalidate();
+		}
+
+		for (auto TypeProperty : mEvents)
 		{
 			NoesisTypeProperty* Property = (NoesisTypeProperty*)TypeProperty;
 			Property->Invalidate();
@@ -1958,6 +2031,7 @@ public:
 	Noesis::PropertyChangedEventHandler PropertyChangedHandler;
 	UObject* Object;
 	TMap<UFunction*, Noesis::Ptr<class NoesisFunctionWrapper>> CommandMap;
+	TMap<FProperty*, Noesis::EventHandler> EventMap;
 };
 
 class NoesisFunctionWrapper : public Noesis::BaseCommand
@@ -2104,6 +2178,14 @@ public:
 		}
 	}
 
+	void SetTextureParameterValue(FName ParamName, UTexture* Value)
+	{
+		if (MaterialInstanceDynamic != nullptr)
+		{
+			MaterialInstanceDynamic->SetTextureParameterValue(ParamName, Value);
+		}
+	}
+
 protected:
 
 	NoesisTypeClass* TypeClass = nullptr;
@@ -2164,6 +2246,8 @@ public:
 	}
 
 	UTexture* Texture;
+
+	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisTextureWrapper, Noesis::TextureSource)
 };
 
 Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUTexture(UTexture* Texture)
@@ -2327,6 +2411,112 @@ bool NoesisTypePropertyObjectWrapper::IsReadOnly() const
 #endif
 
 	return Property->HasAllPropertyFlags(CPF_BlueprintReadOnly);
+}
+
+class NoesisTypePropertyObjectWrapperEvent : public NoesisTypeProperty
+{
+public:
+	NoesisTypePropertyObjectWrapperEvent(Noesis::Symbol Name, FProperty* InProperty);
+
+	/// From TypeProperty
+	//@{
+	void* GetContent(const void* Ptr) const override;
+	const void* Get(const void* Ptr) const override;
+	//@}
+
+	virtual void Invalidate() override;
+
+protected:
+	/// From TypeProperty
+	//@{
+	bool IsReadOnly() const override;
+	//@}
+
+private:
+	FProperty* Property;
+};
+
+NoesisTypePropertyObjectWrapperEvent::NoesisTypePropertyObjectWrapperEvent(Noesis::Symbol Name, FProperty* InProperty)
+	: NoesisTypeProperty(Name, nullptr), Property(InProperty)
+{
+}
+
+DEFINE_FUNCTION(execNoesisDelegate)
+{
+	P_FINISH;
+	P_NATIVE_BEGIN;
+
+	UFunction* Delegate = Stack.Node;
+	FString EventName = Delegate->GetName().RightChop(15); // Remove the NoesisDelegate_ prefix
+	auto Wrapper = NoesisFindComponentForUObject(Context);
+	if (Wrapper != nullptr)
+	{
+		auto TypeClass = (NoesisTypeClass*)Wrapper->GetClassType();
+		Noesis::TypeClassEvent ClassEvent = Noesis::FindEvent(TypeClass, Noesis::Symbol(TCHAR_TO_UTF8(*EventName)));
+		auto TypeProperty = (NoesisTypePropertyObjectWrapperEvent*)ClassEvent.event;
+		if (TypeProperty != nullptr)
+		{
+			auto EventHandler = (Noesis::EventHandler*)TypeProperty->GetContent(Wrapper);
+			Noesis::EventArgs Args;
+			EventHandler->Invoke(Wrapper, Args);
+		}
+	}
+
+	P_NATIVE_END;
+}
+
+void* NoesisTypePropertyObjectWrapperEvent::GetContent(const void* Ptr) const
+{
+#if WITH_EDITOR
+	if (Property == nullptr)
+	{
+		NS_LOG("A property of a deleted class is still referenced");
+		return nullptr;
+	}
+#endif
+
+	NoesisObjectWrapper* Wrapper = (NoesisObjectWrapper*)Ptr;
+	if (Wrapper->Object == nullptr)
+	{
+		NS_LOG("A wrapper of a deleted object is still referenced");
+		return nullptr;
+	}
+
+	auto Found = Wrapper->EventMap.Find(Property);
+	if (Found == nullptr)
+	{
+		// We add the fuction names to the UObject class so FScriptDelegate can find them later.
+		// We only need to do this once per event name.
+		const auto DelegateName = WriteToString<128>("NoesisDelegate_", *Property->GetName());
+		UClass* ObjectClass = UObject::StaticClass();
+		if (ObjectClass->FindFunctionByName(*DelegateName) == nullptr)
+		{
+			auto NoesisDelegateFunc = NewObject<UFunction>(ObjectClass, *DelegateName);
+			NoesisDelegateFunc->SetNativeFunc(&execNoesisDelegate);
+			NoesisDelegateFunc->FunctionFlags |= FUNC_Native;
+			ObjectClass->AddFunctionToFunctionMap(NoesisDelegateFunc, *DelegateName);
+		}
+
+		FScriptDelegate Delegate;
+		Delegate.BindUFunction(Wrapper->Object, *DelegateName);
+		FMulticastDelegateProperty* DelegateProperty = (FMulticastDelegateProperty*)Property;
+		DelegateProperty->AddDelegate(Delegate, Wrapper->Object);
+	}
+	return &Wrapper->EventMap.FindOrAdd(Property);
+}
+
+const void* NoesisTypePropertyObjectWrapperEvent::Get(const void* Ptr) const
+{
+	return GetContent(Ptr);
+}
+
+void NoesisTypePropertyObjectWrapperEvent::Invalidate()
+{
+}
+
+bool NoesisTypePropertyObjectWrapperEvent::IsReadOnly() const
+{
+	return true;
 }
 
 class NoesisTypePropertyObjectWrapperGetterSetter : public NoesisTypeProperty
@@ -2620,6 +2810,12 @@ void NoesisFillTypeClassForUClass(NoesisTypeClass* TypeClass, UClass* Class)
 				TypeClass->AddProperty(TypeProperty);
 			}
 		}
+
+		if (Property->GetClass()->IsChildOf(FMulticastDelegateProperty::StaticClass()))
+		{
+			NoesisTypeProperty* TypeProperty = new NoesisTypePropertyObjectWrapperEvent(PropertyId, Property);
+			TypeClass->AddEvent(TypeProperty);
+		}
 	}
 }
 
@@ -2728,6 +2924,7 @@ Noesis::TypeClass* NoesisCreateTypeClassForUMaterial(UMaterialInterface* Materia
 			Material->GetVectorParameterDefaultValue(Param, Value);
 
 			const Noesis::DependencyProperty* DependencyProperty = nullptr;
+			const Noesis::DependencyProperty* LinearDependencyProperty = nullptr;
 
 			if (BaseMaterial->MaterialDomain == MD_UI)
 			{
@@ -2740,6 +2937,16 @@ Noesis::TypeClass* NoesisCreateTypeClassForUMaterial(UMaterialInterface* Materia
 								Noesis::Color Color = Args.NewValue<Noesis::Color>();
 								Wrapper->SetVectorParameterValue(ParamName, FLinearColor(Color.r, Color.g, Color.b, Color.a));
 							})));
+
+				Data->RegisterProperty<Noesis::Point4D>(LinearDependencyProperty, TCHAR_TO_UTF8(*(Param.Name.ToString() + "_Linear")),
+					Noesis::FrameworkPropertyMetadata::Create(Noesis::Point4D(Value.R, Value.G, Value.B, Value.A),
+						Noesis::FrameworkPropertyMetadataOptions_None, Noesis::PropertyChangedCallback(
+							[ParamName = Param.Name](Noesis::DependencyObject* Object, const Noesis::DependencyPropertyChangedEventArgs& Args)
+							{
+								NoesisUIMaterialWrapper* Wrapper = (NoesisUIMaterialWrapper*)Object;
+								Noesis::Point4D Color = Args.NewValue<Noesis::Point4D>();
+								Wrapper->SetVectorParameterValue(ParamName, FLinearColor(Color.y, Color.z, Color.w, Color.x));
+							})));
 			}
 			else
 			{
@@ -2751,6 +2958,81 @@ Noesis::TypeClass* NoesisCreateTypeClassForUMaterial(UMaterialInterface* Materia
 								NoesisPostProcessMaterialWrapper* Wrapper = (NoesisPostProcessMaterialWrapper*)Object;
 								Noesis::Color Color = Args.NewValue<Noesis::Color>();
 								Wrapper->SetVectorParameterValue(ParamName, FLinearColor(Color.r, Color.g, Color.b, Color.a));
+							})));
+
+				Data->RegisterProperty<Noesis::Point4D>(LinearDependencyProperty, TCHAR_TO_UTF8(*(Param.Name.ToString() + "_Linear")),
+					Noesis::FrameworkPropertyMetadata::Create(Noesis::Point4D(Value.R, Value.G, Value.B, Value.A),
+						Noesis::FrameworkPropertyMetadataOptions_None, Noesis::PropertyChangedCallback(
+							[ParamName = Param.Name](Noesis::DependencyObject* Object, const Noesis::DependencyPropertyChangedEventArgs& Args)
+							{
+								NoesisPostProcessMaterialWrapper* Wrapper = (NoesisPostProcessMaterialWrapper*)Object;
+								Noesis::Point4D Color = Args.NewValue<Noesis::Point4D>();
+								Wrapper->SetVectorParameterValue(ParamName, FLinearColor(Color.y, Color.z, Color.w, Color.x));
+							})));
+			}
+		}
+	}
+
+	{
+		TArray<FMaterialParameterInfo> ParamInfo;
+		TArray<FGuid> ParamGuid;
+		Material->GetAllTextureParameterInfo(ParamInfo, ParamGuid);
+
+		for (auto& Param : ParamInfo)
+		{
+			UTexture* Value;
+			Material->GetTextureParameterDefaultValue(Param, Value);
+
+			const Noesis::DependencyProperty* DependencyProperty = nullptr;
+
+			if (BaseMaterial->MaterialDomain == MD_UI)
+			{
+				Data->RegisterProperty<Noesis::Ptr<Noesis::BitmapSource>>(DependencyProperty, TCHAR_TO_UTF8(*Param.Name.ToString()),
+					Noesis::FrameworkPropertyMetadata::Create(NoesisCreateComponentForUObject(Value),
+						Noesis::FrameworkPropertyMetadataOptions_None, Noesis::PropertyChangedCallback(
+							[ParamName = Param.Name](Noesis::DependencyObject* Object, const Noesis::DependencyPropertyChangedEventArgs& Args)
+							{
+								NoesisUIMaterialWrapper* Wrapper = (NoesisUIMaterialWrapper*)Object;
+								Noesis::BitmapSource* NewValue = Args.NewValue<Noesis::BitmapSource*>();
+								Noesis::BitmapImage* BitmapImage = Noesis::DynamicCast<Noesis::BitmapImage*>(NewValue);
+								if (BitmapImage != nullptr)
+								{
+									const Noesis::Uri& SourceUri = BitmapImage->GetUriSource();
+									FString SourcePath = NsProviderUriToAssetPath(SourceUri);
+									UTexture* UnrealTexture = LoadObject<UTexture>(nullptr, *SourcePath, nullptr, LOAD_NoWarn);
+									Wrapper->SetTextureParameterValue(ParamName, UnrealTexture);
+								}
+								NoesisTextureWrapper* TextureWrapper = Noesis::DynamicCast<NoesisTextureWrapper*>(NewValue);
+								if (TextureWrapper != nullptr)
+								{
+									UTexture* UnrealTexture = TextureWrapper->Texture;
+									Wrapper->SetTextureParameterValue(ParamName, UnrealTexture);
+								}
+							})));
+			}
+			else
+			{
+				Data->RegisterProperty<Noesis::Ptr<Noesis::BaseComponent>>(DependencyProperty, TCHAR_TO_UTF8(*Param.Name.ToString()),
+					Noesis::FrameworkPropertyMetadata::Create(NoesisCreateComponentForUObject(Value),
+						Noesis::FrameworkPropertyMetadataOptions_None, Noesis::PropertyChangedCallback(
+							[ParamName = Param.Name](Noesis::DependencyObject* Object, const Noesis::DependencyPropertyChangedEventArgs& Args)
+							{
+								NoesisPostProcessMaterialWrapper* Wrapper = (NoesisPostProcessMaterialWrapper*)Object;
+								Noesis::BitmapSource* NewValue = Args.NewValue<Noesis::BitmapSource*>();
+								Noesis::BitmapImage* BitmapImage = Noesis::DynamicCast<Noesis::BitmapImage*>(NewValue);
+								if (BitmapImage != nullptr)
+								{
+									const Noesis::Uri& SourceUri = BitmapImage->GetUriSource();
+									FString SourcePath = NsProviderUriToAssetPath(SourceUri);
+									UTexture* UnrealTexture = LoadObject<UTexture>(nullptr, *SourcePath, nullptr, LOAD_NoWarn);
+									Wrapper->SetTextureParameterValue(ParamName, UnrealTexture);
+								}
+								NoesisTextureWrapper* TextureWrapper = Noesis::DynamicCast<NoesisTextureWrapper*>(NewValue);
+								if (TextureWrapper != nullptr)
+								{
+									UTexture* UnrealTexture = TextureWrapper->Texture;
+									Wrapper->SetTextureParameterValue(ParamName, UnrealTexture);
+								}
 							})));
 			}
 		}

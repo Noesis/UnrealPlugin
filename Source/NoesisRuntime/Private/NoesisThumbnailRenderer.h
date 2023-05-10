@@ -7,6 +7,14 @@
 
 #if WITH_EDITOR
 
+// RHI includes
+#include "RHI.h"
+
+// Engine includes
+#include "Engine/World.h"
+
+#include "NoesisSDK.h"
+
 struct FNoesisThumbnailRenderer
 {
     static Noesis::Ptr<Noesis::IView> CreateView(Noesis::FrameworkElement* Content);

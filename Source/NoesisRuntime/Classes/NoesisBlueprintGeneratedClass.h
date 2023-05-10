@@ -8,6 +8,9 @@
 // Core includes
 #include "CoreMinimal.h"
 
+// CoreUObject includes
+#include "UObject/Package.h"
+
 // Engine includes
 #include "Engine/BlueprintGeneratedClass.h"
 

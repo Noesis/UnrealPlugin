@@ -30,6 +30,7 @@
 
 // Slate includes
 #include "Widgets/Images/SImage.h"
+#include "Widgets/Layout/SBorder.h"
 
 // SlateCore includes
 #include "Styling/SlateIconFinder.h"

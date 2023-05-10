@@ -27,6 +27,7 @@
 // Engine includes
 #include "ActiveSound.h"
 #include "AudioDevice.h"
+#include "Engine/Texture2D.h"
 
 // Projects includes
 #include "Interfaces/IPluginManager.h"

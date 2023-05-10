@@ -10,6 +10,8 @@
 
 // NoesisRuntime includes
 #include "NoesisBlueprint.h"
+#include "NoesisBlueprintGeneratedClass.h"
+#include "NoesisInstance.h"
 
 bool FNoesisBlueprintCompiler::CanCompile(const UBlueprint* Blueprint)
 {

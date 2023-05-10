@@ -79,12 +79,15 @@ void UNoesisSettings::SetApplicationResources() const
 	}
 }
 
-static void GetFamilyNames(const TArray<uint8>& FontData, TArray<Noesis::FixedString<128>>& FamilyNames)
+static void GetFamilyNames(const TArray<uint8>& FontData, TArray<Noesis::FixedString<128>>& FamilyNames,
+	const Noesis::String& Path)
 {
-	Noesis::Ptr<Noesis::MemoryStream> Stream = Noesis::MakePtr<Noesis::MemoryStream>(FontData.GetData(), FontData.Num());
-	Noesis::Fonts::GetTypefaces(Stream, [&FamilyNames](const Noesis::Typeface& Typeface)
+	Noesis::MemoryStream Stream(FontData.GetData(), FontData.Num());
+	Noesis::Fonts::GetTypefaces(&Stream, [&FamilyNames, &Path](const Noesis::Typeface& Typeface)
 	{
-		FamilyNames.AddUnique(Typeface.familyName);
+		Noesis::FixedString<512> PathFamilyName(Path.Str());
+		PathFamilyName.Append(Typeface.familyName);
+		FamilyNames.AddUnique(PathFamilyName.Str());
 	});
 }
 
@@ -100,6 +103,9 @@ void UNoesisSettings::SetFontFallbacks() const
 
 	DefaultFontRefs.Empty(DefaultFonts.Num());
 
+	FString PackageRoot, PackagePath, PackageName;
+	Noesis::String PathStr;
+
 	TArray<Noesis::FixedString<128>> FamilyNamesStr;
 	for (auto& FontFallback : DefaultFonts)
 	{
@@ -110,13 +116,17 @@ void UNoesisSettings::SetFontFallbacks() const
 			DefaultFontRefs.Add(FontFace);
 			NoesisRuntime.RegisterFont(FontFace);
 
+			UPackage* Package = FontFace->GetOutermost();
+			FPackageName::SplitLongPackageName(Package->GetPathName(), PackageRoot, PackagePath, PackageName, false);
+			PathStr = TCHAR_TO_UTF8(*(PackageRoot.LeftChop(1) + ";component" / PackagePath / "#"));
+
 #if !WITH_EDITORONLY_DATA
 			if (FontFace->GetLoadingPolicy() != EFontLoadingPolicy::Inline)
 			{
 				TArray<uint8> FileData;
 				FFileHelper::LoadFileToArray(FileData, *FontFace->GetFontFilename());
 
-				GetFamilyNames(FileData, FamilyNamesStr);
+				GetFamilyNames(FileData, FamilyNamesStr, PathStr);
 			}
 			else
 #endif
@@ -125,7 +135,7 @@ void UNoesisSettings::SetFontFallbacks() const
 				const FFontFaceData& FontFaceData = FontFaceDataRef.Get();
 				const TArray<uint8>& FontFaceDataArray = FontFaceData.GetData();
 
-				GetFamilyNames(FontFaceDataArray, FamilyNamesStr);
+				GetFamilyNames(FontFaceDataArray, FamilyNamesStr, PathStr);
 			}
 		}
 	}

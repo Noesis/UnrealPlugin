@@ -12,6 +12,9 @@
 // CoreUObject includes
 #include "Blueprint/UserWidget.h"
 
+// Engine includes
+#include "Components/InputComponent.h"
+
 // UMG includes
 #include "Components/Widget.h"
 
@@ -199,6 +202,7 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	void Init3DWidget(UWorld* World);
 	void Term3DWidget(UWorld* World);
 	void Tick3DWidget(UWorld* World, ELevelTick TickType, float DeltaTime);
+	void ViewportResized3DWidget();
 	static void Add3DElement(UWorld* World, Noesis::FrameworkElement* Element);
 	static void Remove3DElement(UWorld* World, Noesis::FrameworkElement* Element);
 

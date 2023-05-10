@@ -9,6 +9,9 @@
 #include "CoreMinimal.h"
 #include "Misc/EngineVersionComparison.h"
 
+// RHI includes
+#include "RHI.h"
+
 // RenderCore includes
 #include "RenderResource.h"
 #include "GlobalShader.h"
@@ -18,6 +21,14 @@
 #include "MaterialShader.h"
 #include "Runtime/Renderer/Private/ScreenPass.h"
 #include "Runtime/Renderer/Private/PostProcess/PostProcessMaterial.h"
+
+// Engine includes
+#if UE_VERSION_OLDER_THAN(5, 2, 0)
+#include "MaterialShared.h"
+#else
+#include "MaterialDomain.h"
+#include "Materials/MaterialRenderProxy.h"
+#endif
 
 // Noesis includes
 #include "NoesisSDK.h"

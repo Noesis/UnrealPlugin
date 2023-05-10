@@ -5,6 +5,9 @@
 
 #include "NoesisXamlThumbnailRenderer.h"
 
+// RHI includes
+#include "RHI.h"
+
 // Engine includes
 #include "UnrealClient.h"
 
