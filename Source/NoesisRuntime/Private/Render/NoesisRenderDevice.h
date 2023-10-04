@@ -66,25 +66,26 @@ class FNoesisRenderDevice : public Noesis::RenderDevice
 	uint32 ShadowConstantsHash = 0;
 
 #if WANTS_DRAW_MESH_EVENTS
-	FDrawEvent* SetRenderTargetEvent;
-	FDrawEvent* TileEvent;
+	FDrawEvent SetRenderTargetEvent;
 #endif
 
-	FNoesisRenderDevice();
+	FNoesisRenderDevice(bool LinearColor);
 	virtual ~FNoesisRenderDevice();
 
 public:
 	FGameTime WorldTime;
-	FRHICommandListImmediate* RHICmdList = nullptr;
+	FRHICommandList* RHICmdList = nullptr;
 	FSceneViewFamily* ViewFamily = nullptr;
 	FViewInfo* View = nullptr;
 	FSceneInterface* Scene = nullptr;
 	uint32 ViewLeft, ViewTop, ViewRight, ViewBottom;
 	bool IsWorldUI = false;
+	bool IsLinearColor = false;
 	FVertexDeclarationRHIRef VertexDeclarations[Noesis::Shader::Vertex::Format::Count];
 	TShaderRef<FNoesisVSBase> VertexShaders[Noesis::Shader::Vertex::Count];
+	TShaderRef<FNoesisVSBase> VertexShadersStereo[Noesis::Shader::Vertex::Count];
 	TShaderRef<FNoesisPSBase> PixelShaders[Noesis::Shader::Count];
-	TShaderRef<FNoesisPSBase> PixelShadersPatternSRGB[Noesis::Shader::Count];
+	TShaderRef<FNoesisPSBase> PixelShadersPatternConvertColor[Noesis::Shader::Count];
 	FUniformBufferRHIRef* PixelShaderConstantBuffer0[Noesis::Shader::Count];
 	FUniformBufferRHIRef* PixelShaderConstantBuffer1[Noesis::Shader::Count];
 	uint32* PixelShaderConstantBuffer0Hash[Noesis::Shader::Count];
@@ -94,8 +95,13 @@ public:
 	FRHIBlendState* BlendStatesWorldUI[Noesis::BlendMode::Count];
 	//FRHISamplerState* SamplerStates[Noesis::WrapMode::Count * Noesis::MinMagFilter::Count * Noesis::MipFilter::Count];
 	FRHISamplerState* SamplerStates[64];
+	TUniformBufferRef<FSceneTextureUniformParameters> SceneTexturesUniformBuffer;
+	TUniformBufferRef<FViewUniformShaderParameters> ViewUniformBuffer;
+
+	void SetSceneTexturesUniformBuffer(const TUniformBufferRef<FSceneTextureUniformParameters>& Params) { SceneTexturesUniformBuffer = Params; }
 
 	static FNoesisRenderDevice* Get();
+	static FNoesisRenderDevice* GetLinear();
 	static void Destroy();
 
 	static Noesis::Ptr<Noesis::Texture> CreateTexture(uint32 InWidth, uint32 InHeight, uint32 InNumMipMaps, bool InAlpha);
@@ -104,11 +110,11 @@ public:
 	static void* CreateMaterial(class UMaterialInterface* Material);
 	static void DestroyMaterial(void* Material);
 
-	void SetRHICmdList(class FRHICommandListImmediate* RHICmdList);
+	void SetRHICmdList(class FRHICommandList* RHICmdList);
 	void SetWorldTime(FGameTime InWorldTime);
 	void SetScene(FSceneInterface* InScene);
 
-	void CreateView(uint32 Left, uint32 Top, uint32 Right, uint32 Bottom);
+	void CreateView(uint32 Left, uint32 Top, uint32 Right, uint32 Bottom, const FIntRect& ViewRect, const FMatrix& ViewProjectionMatrix);
 	void DestroyView();
 
 	template<class PixelShaderClass>

@@ -582,8 +582,12 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 		if (Texture->LODGroup != TEXTUREGROUP_UI ||
 			Texture->SRGB)
 		{
+			Texture->PreEditChange(UTexture::StaticClass()->FindPropertyByName("LODGroup"));
 			Texture->LODGroup = TEXTUREGROUP_UI;
+			Texture->PostEditChange();
+			Texture->PreEditChange(UTexture::StaticClass()->FindPropertyByName("SRGB"));
 			Texture->SRGB = false;
+			Texture->PostEditChange();
 
 			// We notify the change in one of the two properties, so that the callback in NoesisEditorModule
 			// triggers a reimport and premultiplies the alpha, if needed.

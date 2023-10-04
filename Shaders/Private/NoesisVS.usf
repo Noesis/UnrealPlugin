@@ -1,4 +1,5 @@
 #include "/Engine/Private/Common.ush"
+#include "/Engine/Private/GammaCorrectionCommon.ush"
 
 struct In
 {
@@ -32,10 +33,12 @@ struct In
     float4 imagePos: ATTRIBUTE7;
 #endif
 
+#if WITH_STEREO
 #if INSTANCED_STEREO
     uint instanceId : SV_InstanceID;
 #elif MOBILE_MULTI_VIEW
     uint viewId : SV_ViewID;
+#endif
 #endif
 };
 
@@ -80,16 +83,19 @@ struct Out
     float4 imagePos: IMAGE_POSITION;
 #endif
 
+#if WITH_STEREO
 #if INSTANCED_STEREO
     nointerpolation uint viewportIndex : SV_ViewPortArrayIndex;
 #elif MOBILE_MULTI_VIEW
     nointerpolation uint viewId : VIEW_ID;
+#endif
 #endif
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NoesisVS(in In i, out Out o)
 {
+#if WITH_STEREO
 #if INSTANCED_STEREO
     o.viewportIndex = i.instanceId;
     o.position = mul(i.instanceId == 0 ? NoesisVSConstants.projectionMtx : NoesisVSConstantsRightEye.projectionMtx, float4(i.position, 0, 1));
@@ -99,9 +105,16 @@ void NoesisVS(in In i, out Out o)
 #else
     o.position = mul(NoesisVSConstants.projectionMtx, float4(i.position, 0, 1));
 #endif
+#else
+    o.position = mul(NoesisVSConstants.projectionMtx, float4(i.position, 0, 1));
+#endif
 
 #if HAS_COLOR
-    o.color FCOLOR_COMPONENT_SWIZZLE = i.color.bgra;
+    #if LINEAR_COLOR
+        o.color FCOLOR_COMPONENT_SWIZZLE = half4(sRGBToLinear(i.color.bgr), i.color.a);
+    #else
+        o.color FCOLOR_COMPONENT_SWIZZLE = i.color.bgra;
+    #endif
 #endif
 
 #if DOWNSAMPLE

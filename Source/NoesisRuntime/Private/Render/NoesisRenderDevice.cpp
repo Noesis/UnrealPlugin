@@ -175,206 +175,410 @@ public:
 	FTexture2DRHIRef DepthStencilTarget;
 };
 
-static TShaderRef<FNoesisMaterialPSBase> GetMaterialPixelShader(const FMaterial* Material, Noesis::Shader::Enum ShaderType)
+static TShaderRef<FNoesisMaterialPSBase> GetMaterialPixelShader(const FMaterial* Material, Noesis::Shader::Enum ShaderType, bool IsLinearColor)
 {
 	TShaderRef<FShader> FoundShader;
 
 #if UE_VERSION_OLDER_THAN(4, 27, 0)
 	const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
 
-	switch (ShaderType)
+	if (IsLinearColor)
 	{
+		switch (ShaderType)
+		{
+			case Noesis::Shader::Path_Pattern:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Clamp:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialClampLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Repeat:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialRepeatLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_MirrorU:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialMirrorULinearColorPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_MirrorV:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialMirrorVLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Mirror:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialMirrorLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Clamp:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialClampLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Repeat:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialRepeatLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_MirrorU:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialMirrorULinearColorPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_MirrorV:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialMirrorVLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Mirror:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialMirrorLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Clamp:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialClampLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Repeat:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialRepeatLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_MirrorU:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialMirrorULinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_MirrorV:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialMirrorVLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Mirror:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialMirrorLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Clamp:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialClampLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Repeat:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialRepeatLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_MirrorU:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialMirrorULinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_MirrorV:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialMirrorVLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Mirror:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialMirrorLinearColorPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialLinearColorPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Clamp:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialClampLinearColorPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Repeat:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialRepeatLinearColorPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_MirrorU:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialMirrorULinearColorPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_MirrorV:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialMirrorVLinearColorPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Mirror:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialMirrorLinearColorPS>();
+				break;
+			default:
+				// Only pattern shaders should be requested
+				check(false);
+		}
+	}
+	else
+	{
+		switch (ShaderType)
+		{
+			case Noesis::Shader::Path_Pattern:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Clamp:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialClampPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Repeat:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialRepeatPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_MirrorU:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialMirrorUPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_MirrorV:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialMirrorVPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Mirror:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialMirrorPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Clamp:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialClampPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Repeat:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialRepeatPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_MirrorU:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialMirrorUPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_MirrorV:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialMirrorVPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Mirror:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialMirrorPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Clamp:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialClampPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Repeat:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialRepeatPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_MirrorU:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialMirrorUPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_MirrorV:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialMirrorVPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Mirror:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialMirrorPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Clamp:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialClampPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Repeat:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialRepeatPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_MirrorU:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialMirrorUPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_MirrorV:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialMirrorVPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Mirror:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialMirrorPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Clamp:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialClampPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Repeat:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialRepeatPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_MirrorU:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialMirrorUPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_MirrorV:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialMirrorVPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Mirror:
+				FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialMirrorPS>();
+				break;
+			default:
+				// Only pattern shaders should be requested
+				check(false);
+		}
+	}
+#else
+	FMaterialShaderTypes ShaderTypes;
+	if (IsLinearColor)
+	{
+		switch (ShaderType)
+		{
 		case Noesis::Shader::Path_Pattern:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialPS>();
+			ShaderTypes.AddShaderType<FNoesisPathMaterialLinearColorPS>();
 			break;
 		case Noesis::Shader::Path_Pattern_Clamp:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialClampPS>();
+			ShaderTypes.AddShaderType<FNoesisPathMaterialClampLinearColorPS>();
 			break;
 		case Noesis::Shader::Path_Pattern_Repeat:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialRepeatPS>();
+			ShaderTypes.AddShaderType<FNoesisPathMaterialRepeatLinearColorPS>();
 			break;
 		case Noesis::Shader::Path_Pattern_MirrorU:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialMirrorUPS>();
+			ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorULinearColorPS>();
 			break;
 		case Noesis::Shader::Path_Pattern_MirrorV:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialMirrorVPS>();
+			ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorVLinearColorPS>();
 			break;
 		case Noesis::Shader::Path_Pattern_Mirror:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisPathMaterialMirrorPS>();
+			ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorLinearColorPS>();
 			break;
 		case Noesis::Shader::Path_AA_Pattern:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialPS>();
+			ShaderTypes.AddShaderType<FNoesisPathAAMaterialLinearColorPS>();
 			break;
 		case Noesis::Shader::Path_AA_Pattern_Clamp:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialClampPS>();
+			ShaderTypes.AddShaderType<FNoesisPathAAMaterialClampLinearColorPS>();
 			break;
 		case Noesis::Shader::Path_AA_Pattern_Repeat:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialRepeatPS>();
+			ShaderTypes.AddShaderType<FNoesisPathAAMaterialRepeatLinearColorPS>();
 			break;
 		case Noesis::Shader::Path_AA_Pattern_MirrorU:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialMirrorUPS>();
+			ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorULinearColorPS>();
 			break;
 		case Noesis::Shader::Path_AA_Pattern_MirrorV:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialMirrorVPS>();
+			ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorVLinearColorPS>();
 			break;
 		case Noesis::Shader::Path_AA_Pattern_Mirror:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisPathAAMaterialMirrorPS>();
+			ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorLinearColorPS>();
 			break;
 		case Noesis::Shader::SDF_Pattern:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialPS>();
+			ShaderTypes.AddShaderType<FNoesisSDFMaterialLinearColorPS>();
 			break;
 		case Noesis::Shader::SDF_Pattern_Clamp:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialClampPS>();
+			ShaderTypes.AddShaderType<FNoesisSDFMaterialClampLinearColorPS>();
 			break;
 		case Noesis::Shader::SDF_Pattern_Repeat:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialRepeatPS>();
+			ShaderTypes.AddShaderType<FNoesisSDFMaterialRepeatLinearColorPS>();
 			break;
 		case Noesis::Shader::SDF_Pattern_MirrorU:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialMirrorUPS>();
+			ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorULinearColorPS>();
 			break;
 		case Noesis::Shader::SDF_Pattern_MirrorV:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialMirrorVPS>();
+			ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorVLinearColorPS>();
 			break;
 		case Noesis::Shader::SDF_Pattern_Mirror:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisSDFMaterialMirrorPS>();
+			ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorLinearColorPS>();
 			break;
 		case Noesis::Shader::SDF_LCD_Pattern:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialPS>();
+			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialLinearColorPS>();
 			break;
 		case Noesis::Shader::SDF_LCD_Pattern_Clamp:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialClampPS>();
+			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialClampLinearColorPS>();
 			break;
 		case Noesis::Shader::SDF_LCD_Pattern_Repeat:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialRepeatPS>();
+			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialRepeatLinearColorPS>();
 			break;
 		case Noesis::Shader::SDF_LCD_Pattern_MirrorU:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialMirrorUPS>();
+			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorULinearColorPS>();
 			break;
 		case Noesis::Shader::SDF_LCD_Pattern_MirrorV:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialMirrorVPS>();
+			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorVLinearColorPS>();
 			break;
 		case Noesis::Shader::SDF_LCD_Pattern_Mirror:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisSDFLCDMaterialMirrorPS>();
+			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorLinearColorPS>();
 			break;
 		case Noesis::Shader::Opacity_Pattern:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialPS>();
+			ShaderTypes.AddShaderType<FNoesisOpacityMaterialLinearColorPS>();
 			break;
 		case Noesis::Shader::Opacity_Pattern_Clamp:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialClampPS>();
+			ShaderTypes.AddShaderType<FNoesisOpacityMaterialClampLinearColorPS>();
 			break;
 		case Noesis::Shader::Opacity_Pattern_Repeat:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialRepeatPS>();
+			ShaderTypes.AddShaderType<FNoesisOpacityMaterialRepeatLinearColorPS>();
 			break;
 		case Noesis::Shader::Opacity_Pattern_MirrorU:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialMirrorUPS>();
+			ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorULinearColorPS>();
 			break;
 		case Noesis::Shader::Opacity_Pattern_MirrorV:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialMirrorVPS>();
+			ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorVLinearColorPS>();
 			break;
 		case Noesis::Shader::Opacity_Pattern_Mirror:
-			FoundShader = MaterialShaderMap->GetShader<FNoesisOpacityMaterialMirrorPS>();
+			ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorLinearColorPS>();
 			break;
 		default:
 			// Only pattern shaders should be requested
 			check(false);
+		}
 	}
-#else
-	FMaterialShaderTypes ShaderTypes;
-	switch (ShaderType)
+	else
 	{
-	case Noesis::Shader::Path_Pattern:
-		ShaderTypes.AddShaderType<FNoesisPathMaterialPS>();
-		break;
-	case Noesis::Shader::Path_Pattern_Clamp:
-		ShaderTypes.AddShaderType<FNoesisPathMaterialClampPS>();
-		break;
-	case Noesis::Shader::Path_Pattern_Repeat:
-		ShaderTypes.AddShaderType<FNoesisPathMaterialRepeatPS>();
-		break;
-	case Noesis::Shader::Path_Pattern_MirrorU:
-		ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorUPS>();
-		break;
-	case Noesis::Shader::Path_Pattern_MirrorV:
-		ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorVPS>();
-		break;
-	case Noesis::Shader::Path_Pattern_Mirror:
-		ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorPS>();
-		break;
-	case Noesis::Shader::Path_AA_Pattern:
-		ShaderTypes.AddShaderType<FNoesisPathAAMaterialPS>();
-		break;
-	case Noesis::Shader::Path_AA_Pattern_Clamp:
-		ShaderTypes.AddShaderType<FNoesisPathAAMaterialClampPS>();
-		break;
-	case Noesis::Shader::Path_AA_Pattern_Repeat:
-		ShaderTypes.AddShaderType<FNoesisPathAAMaterialRepeatPS>();
-		break;
-	case Noesis::Shader::Path_AA_Pattern_MirrorU:
-		ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorUPS>();
-		break;
-	case Noesis::Shader::Path_AA_Pattern_MirrorV:
-		ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorVPS>();
-		break;
-	case Noesis::Shader::Path_AA_Pattern_Mirror:
-		ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorPS>();
-		break;
-	case Noesis::Shader::SDF_Pattern:
-		ShaderTypes.AddShaderType<FNoesisSDFMaterialPS>();
-		break;
-	case Noesis::Shader::SDF_Pattern_Clamp:
-		ShaderTypes.AddShaderType<FNoesisSDFMaterialClampPS>();
-		break;
-	case Noesis::Shader::SDF_Pattern_Repeat:
-		ShaderTypes.AddShaderType<FNoesisSDFMaterialRepeatPS>();
-		break;
-	case Noesis::Shader::SDF_Pattern_MirrorU:
-		ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorUPS>();
-		break;
-	case Noesis::Shader::SDF_Pattern_MirrorV:
-		ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorVPS>();
-		break;
-	case Noesis::Shader::SDF_Pattern_Mirror:
-		ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorPS>();
-		break;
-	case Noesis::Shader::SDF_LCD_Pattern:
-		ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialPS>();
-		break;
-	case Noesis::Shader::SDF_LCD_Pattern_Clamp:
-		ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialClampPS>();
-		break;
-	case Noesis::Shader::SDF_LCD_Pattern_Repeat:
-		ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialRepeatPS>();
-		break;
-	case Noesis::Shader::SDF_LCD_Pattern_MirrorU:
-		ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorUPS>();
-		break;
-	case Noesis::Shader::SDF_LCD_Pattern_MirrorV:
-		ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorVPS>();
-		break;
-	case Noesis::Shader::SDF_LCD_Pattern_Mirror:
-		ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorPS>();
-		break;
-	case Noesis::Shader::Opacity_Pattern:
-		ShaderTypes.AddShaderType<FNoesisOpacityMaterialPS>();
-		break;
-	case Noesis::Shader::Opacity_Pattern_Clamp:
-		ShaderTypes.AddShaderType<FNoesisOpacityMaterialClampPS>();
-		break;
-	case Noesis::Shader::Opacity_Pattern_Repeat:
-		ShaderTypes.AddShaderType<FNoesisOpacityMaterialRepeatPS>();
-		break;
-	case Noesis::Shader::Opacity_Pattern_MirrorU:
-		ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorUPS>();
-		break;
-	case Noesis::Shader::Opacity_Pattern_MirrorV:
-		ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorVPS>();
-		break;
-	case Noesis::Shader::Opacity_Pattern_Mirror:
-		ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorPS>();
-		break;
-	default:
-		// Only pattern shaders should be requested
-		check(false);
+		switch (ShaderType)
+		{
+		case Noesis::Shader::Path_Pattern:
+			ShaderTypes.AddShaderType<FNoesisPathMaterialPS>();
+			break;
+		case Noesis::Shader::Path_Pattern_Clamp:
+			ShaderTypes.AddShaderType<FNoesisPathMaterialClampPS>();
+			break;
+		case Noesis::Shader::Path_Pattern_Repeat:
+			ShaderTypes.AddShaderType<FNoesisPathMaterialRepeatPS>();
+			break;
+		case Noesis::Shader::Path_Pattern_MirrorU:
+			ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorUPS>();
+			break;
+		case Noesis::Shader::Path_Pattern_MirrorV:
+			ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorVPS>();
+			break;
+		case Noesis::Shader::Path_Pattern_Mirror:
+			ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorPS>();
+			break;
+		case Noesis::Shader::Path_AA_Pattern:
+			ShaderTypes.AddShaderType<FNoesisPathAAMaterialPS>();
+			break;
+		case Noesis::Shader::Path_AA_Pattern_Clamp:
+			ShaderTypes.AddShaderType<FNoesisPathAAMaterialClampPS>();
+			break;
+		case Noesis::Shader::Path_AA_Pattern_Repeat:
+			ShaderTypes.AddShaderType<FNoesisPathAAMaterialRepeatPS>();
+			break;
+		case Noesis::Shader::Path_AA_Pattern_MirrorU:
+			ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorUPS>();
+			break;
+		case Noesis::Shader::Path_AA_Pattern_MirrorV:
+			ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorVPS>();
+			break;
+		case Noesis::Shader::Path_AA_Pattern_Mirror:
+			ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorPS>();
+			break;
+		case Noesis::Shader::SDF_Pattern:
+			ShaderTypes.AddShaderType<FNoesisSDFMaterialPS>();
+			break;
+		case Noesis::Shader::SDF_Pattern_Clamp:
+			ShaderTypes.AddShaderType<FNoesisSDFMaterialClampPS>();
+			break;
+		case Noesis::Shader::SDF_Pattern_Repeat:
+			ShaderTypes.AddShaderType<FNoesisSDFMaterialRepeatPS>();
+			break;
+		case Noesis::Shader::SDF_Pattern_MirrorU:
+			ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorUPS>();
+			break;
+		case Noesis::Shader::SDF_Pattern_MirrorV:
+			ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorVPS>();
+			break;
+		case Noesis::Shader::SDF_Pattern_Mirror:
+			ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorPS>();
+			break;
+		case Noesis::Shader::SDF_LCD_Pattern:
+			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialPS>();
+			break;
+		case Noesis::Shader::SDF_LCD_Pattern_Clamp:
+			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialClampPS>();
+			break;
+		case Noesis::Shader::SDF_LCD_Pattern_Repeat:
+			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialRepeatPS>();
+			break;
+		case Noesis::Shader::SDF_LCD_Pattern_MirrorU:
+			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorUPS>();
+			break;
+		case Noesis::Shader::SDF_LCD_Pattern_MirrorV:
+			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorVPS>();
+			break;
+		case Noesis::Shader::SDF_LCD_Pattern_Mirror:
+			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorPS>();
+			break;
+		case Noesis::Shader::Opacity_Pattern:
+			ShaderTypes.AddShaderType<FNoesisOpacityMaterialPS>();
+			break;
+		case Noesis::Shader::Opacity_Pattern_Clamp:
+			ShaderTypes.AddShaderType<FNoesisOpacityMaterialClampPS>();
+			break;
+		case Noesis::Shader::Opacity_Pattern_Repeat:
+			ShaderTypes.AddShaderType<FNoesisOpacityMaterialRepeatPS>();
+			break;
+		case Noesis::Shader::Opacity_Pattern_MirrorU:
+			ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorUPS>();
+			break;
+		case Noesis::Shader::Opacity_Pattern_MirrorV:
+			ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorVPS>();
+			break;
+		case Noesis::Shader::Opacity_Pattern_Mirror:
+			ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorPS>();
+			break;
+		default:
+			// Only pattern shaders should be requested
+			check(false);
+		}
 	}
 	FMaterialShaders Shaders;
 	Material->TryGetShaders(ShaderTypes, nullptr, Shaders);
@@ -399,15 +603,24 @@ public:
 	}
 };
 
-FNoesisRenderDevice::FNoesisRenderDevice()
+FNoesisRenderDevice::FNoesisRenderDevice(bool LinearColor)
+	: IsLinearColor(LinearColor)
 {
 	auto VBName = TEXT("Noesis.VertexBuffer");
 	FRHIResourceCreateInfo CreateInfo(VBName);
+#if UE_VERSION_OLDER_THAN(5, 3, 0)
 	DynamicVertexBuffer = RHICreateVertexBuffer(DYNAMIC_VB_SIZE, BUF_Volatile, CreateInfo);
+#else
+	DynamicVertexBuffer = FRHICommandListExecutor::GetImmediateCommandList().CreateVertexBuffer(DYNAMIC_VB_SIZE, BUF_Volatile, CreateInfo);
+#endif
 	NOESIS_BIND_DEBUG_BUFFER_LABEL(DynamicVertexBuffer, VBName);
 	auto IBName = TEXT("Noesis.IndexBuffer");
 	CreateInfo.DebugName = IBName;
+#if UE_VERSION_OLDER_THAN(5, 3, 0)
 	DynamicIndexBuffer = RHICreateIndexBuffer(sizeof(int16), DYNAMIC_IB_SIZE, BUF_Volatile, CreateInfo);
+#else
+	DynamicIndexBuffer = FRHICommandListExecutor::GetImmediateCommandList().CreateIndexBuffer(sizeof(int16), DYNAMIC_IB_SIZE, BUF_Volatile, CreateInfo);
+#endif
 	NOESIS_BIND_DEBUG_BUFFER_LABEL(DynamicIndexBuffer, IBName);
 
 	VSConstantBuffer = TUniformBufferRef<FNoesisVSConstants>::CreateUniformBufferImmediate(FNoesisVSConstants(), UniformBuffer_MultiFrame);
@@ -440,27 +653,170 @@ FNoesisRenderDevice::FNoesisRenderDevice()
 	VertexDeclarations[Noesis::Shader::Vertex::Format::PosColorTex1Rect] = GNoesisPosColorTex1RectVertexDeclaration.VertexDeclarationRHI;
 	VertexDeclarations[Noesis::Shader::Vertex::Format::PosColorTex0RectImagePos] = GNoesisPosColorTex0RectImagePosVertexDeclaration.VertexDeclarationRHI;
 
-	VertexShaders[Noesis::Shader::Vertex::Pos] = TShaderMapRef<FNoesisPosVS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosColor] = TShaderMapRef<FNoesisPosColorVS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosTex0] = TShaderMapRef<FNoesisPosTex0VS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosTex0Rect] = TShaderMapRef<FNoesisPosTex0RectVS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosTex0RectTile] = TShaderMapRef<FNoesisPosTex0RectTileVS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosColorCoverage] = TShaderMapRef<FNoesisPosColorCoverageVS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosTex0Coverage] = TShaderMapRef<FNoesisPosTex0CoverageVS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosTex0CoverageRect] = TShaderMapRef<FNoesisPosTex0CoverageRectVS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosTex0CoverageRectTile] = TShaderMapRef<FNoesisPosTex0CoverageRectTileVS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosColorTex1_SDF] = TShaderMapRef<FNoesisPosColorTex1SDFVS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1_SDF] = TShaderMapRef<FNoesisPosTex0Tex1SDFVS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1Rect_SDF] = TShaderMapRef<FNoesisPosTex0Tex1RectSDFVS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1RectTile_SDF] = TShaderMapRef<FNoesisPosTex0Tex1RectTileSDFVS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosColorTex1] = TShaderMapRef<FNoesisPosColorTex1VS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1] = TShaderMapRef<FNoesisPosTex0Tex1VS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1Rect] = TShaderMapRef<FNoesisPosTex0Tex1RectVS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1RectTile] = TShaderMapRef<FNoesisPosTex0Tex1RectTileVS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosColorTex0Tex1] = TShaderMapRef<FNoesisPosColorTex0Tex1VS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1_Downsample] = TShaderMapRef<FNoesisPosTex0Tex1DownsampleVS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosColorTex1Rect] = TShaderMapRef<FNoesisPosColorTex1RectVS>(GetGlobalShaderMap(FeatureLevel));
-	VertexShaders[Noesis::Shader::Vertex::PosColorTex0RectImagePos] = TShaderMapRef<FNoesisPosColorTex0RectImagePosVS>(GetGlobalShaderMap(FeatureLevel));
+	if (IsLinearColor)
+	{
+		VertexShaders[Noesis::Shader::Vertex::Pos] = TShaderMapRef<FNoesisPosVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosColor] = TShaderMapRef<FNoesisPosLinearColorVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0] = TShaderMapRef<FNoesisPosTex0VS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Rect] = TShaderMapRef<FNoesisPosTex0RectVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0RectTile] = TShaderMapRef<FNoesisPosTex0RectTileVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosColorCoverage] = TShaderMapRef<FNoesisPosLinearColorCoverageVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Coverage] = TShaderMapRef<FNoesisPosTex0CoverageVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0CoverageRect] = TShaderMapRef<FNoesisPosTex0CoverageRectVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0CoverageRectTile] = TShaderMapRef<FNoesisPosTex0CoverageRectTileVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosColorTex1_SDF] = TShaderMapRef<FNoesisPosLinearColorTex1SDFVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1_SDF] = TShaderMapRef<FNoesisPosTex0Tex1SDFVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1Rect_SDF] = TShaderMapRef<FNoesisPosTex0Tex1RectSDFVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1RectTile_SDF] = TShaderMapRef<FNoesisPosTex0Tex1RectTileSDFVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosColorTex1] = TShaderMapRef<FNoesisPosLinearColorTex1VS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1] = TShaderMapRef<FNoesisPosTex0Tex1VS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1Rect] = TShaderMapRef<FNoesisPosTex0Tex1RectVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1RectTile] = TShaderMapRef<FNoesisPosTex0Tex1RectTileVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosColorTex0Tex1] = TShaderMapRef<FNoesisPosLinearColorTex0Tex1VS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1_Downsample] = TShaderMapRef<FNoesisPosTex0Tex1DownsampleVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosColorTex1Rect] = TShaderMapRef<FNoesisPosLinearColorTex1RectVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosColorTex0RectImagePos] = TShaderMapRef<FNoesisPosLinearColorTex0RectImagePosVS>(GetGlobalShaderMap(FeatureLevel));
+
+		VertexShadersStereo[Noesis::Shader::Vertex::Pos] = TShaderMapRef<FNoesisPosStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosColor] = TShaderMapRef<FNoesisPosLinearColorStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0] = TShaderMapRef<FNoesisPosTex0StereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Rect] = TShaderMapRef<FNoesisPosTex0RectStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0RectTile] = TShaderMapRef<FNoesisPosTex0RectTileStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosColorCoverage] = TShaderMapRef<FNoesisPosLinearColorCoverageStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Coverage] = TShaderMapRef<FNoesisPosTex0CoverageStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0CoverageRect] = TShaderMapRef<FNoesisPosTex0CoverageRectStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0CoverageRectTile] = TShaderMapRef<FNoesisPosTex0CoverageRectTileStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosColorTex1_SDF] = TShaderMapRef<FNoesisPosLinearColorTex1SDFStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Tex1_SDF] = TShaderMapRef<FNoesisPosTex0Tex1SDFStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Tex1Rect_SDF] = TShaderMapRef<FNoesisPosTex0Tex1RectSDFStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Tex1RectTile_SDF] = TShaderMapRef<FNoesisPosTex0Tex1RectTileSDFStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosColorTex1] = TShaderMapRef<FNoesisPosLinearColorTex1StereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Tex1] = TShaderMapRef<FNoesisPosTex0Tex1StereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Tex1Rect] = TShaderMapRef<FNoesisPosTex0Tex1RectStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Tex1RectTile] = TShaderMapRef<FNoesisPosTex0Tex1RectTileStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosColorTex0Tex1] = TShaderMapRef<FNoesisPosLinearColorTex0Tex1StereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Tex1_Downsample] = TShaderMapRef<FNoesisPosTex0Tex1DownsampleStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosColorTex1Rect] = TShaderMapRef<FNoesisPosLinearColorTex1RectStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosColorTex0RectImagePos] = TShaderMapRef<FNoesisPosLinearColorTex0RectImagePosStereoVS>(GetGlobalShaderMap(FeatureLevel));
+
+		// Read the comment next to PATTERN_LINEAR in FNoesisPS::ModifyCompilationEnvironment
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_Pattern] = TShaderMapRef<FNoesisPathPatternLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_Pattern_Clamp] = TShaderMapRef<FNoesisPathPatternClampLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_Pattern_Repeat] = TShaderMapRef<FNoesisPathPatternRepeatLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_Pattern_MirrorU] = TShaderMapRef<FNoesisPathPatternMirrorULinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_Pattern_MirrorV] = TShaderMapRef<FNoesisPathPatternMirrorVLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_Pattern_Mirror] = TShaderMapRef<FNoesisPathPatternMirrorLinearPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_AA_Pattern] = TShaderMapRef<FNoesisPathAAPatternLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_AA_Pattern_Clamp] = TShaderMapRef<FNoesisPathAAPatternClampLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_AA_Pattern_Repeat] = TShaderMapRef<FNoesisPathAAPatternRepeatLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_AA_Pattern_MirrorU] = TShaderMapRef<FNoesisPathAAPatternMirrorULinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_AA_Pattern_MirrorV] = TShaderMapRef<FNoesisPathAAPatternMirrorVLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_AA_Pattern_Mirror] = TShaderMapRef<FNoesisPathAAPatternMirrorLinearPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_Pattern] = TShaderMapRef<FNoesisSDFPatternLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_Pattern_Clamp] = TShaderMapRef<FNoesisSDFPatternClampLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_Pattern_Repeat] = TShaderMapRef<FNoesisSDFPatternRepeatLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_Pattern_MirrorU] = TShaderMapRef<FNoesisSDFPatternMirrorULinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_Pattern_MirrorV] = TShaderMapRef<FNoesisSDFPatternMirrorVLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_Pattern_Mirror] = TShaderMapRef<FNoesisSDFPatternMirrorLinearPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_LCD_Pattern] = TShaderMapRef<FNoesisSDFLCDPatternLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_LCD_Pattern_Clamp] = TShaderMapRef<FNoesisSDFLCDPatternClampLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_LCD_Pattern_Repeat] = TShaderMapRef<FNoesisSDFLCDPatternRepeatLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_LCD_Pattern_MirrorU] = TShaderMapRef<FNoesisSDFLCDPatternMirrorULinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_LCD_Pattern_MirrorV] = TShaderMapRef<FNoesisSDFLCDPatternMirrorVLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_LCD_Pattern_Mirror] = TShaderMapRef<FNoesisSDFLCDPatternMirrorLinearPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern] = TShaderMapRef<FNoesisOpacityPatternLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern_Clamp] = TShaderMapRef<FNoesisOpacityPatternClampLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern_Repeat] = TShaderMapRef<FNoesisOpacityPatternRepeatLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern_MirrorU] = TShaderMapRef<FNoesisOpacityPatternMirrorULinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern_MirrorV] = TShaderMapRef<FNoesisOpacityPatternMirrorVLinearPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern_Mirror] = TShaderMapRef<FNoesisOpacityPatternMirrorLinearPS>(GetGlobalShaderMap(FeatureLevel));
+	}
+	else
+	{
+		VertexShaders[Noesis::Shader::Vertex::Pos] = TShaderMapRef<FNoesisPosVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosColor] = TShaderMapRef<FNoesisPosColorVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0] = TShaderMapRef<FNoesisPosTex0VS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Rect] = TShaderMapRef<FNoesisPosTex0RectVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0RectTile] = TShaderMapRef<FNoesisPosTex0RectTileVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosColorCoverage] = TShaderMapRef<FNoesisPosColorCoverageVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Coverage] = TShaderMapRef<FNoesisPosTex0CoverageVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0CoverageRect] = TShaderMapRef<FNoesisPosTex0CoverageRectVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0CoverageRectTile] = TShaderMapRef<FNoesisPosTex0CoverageRectTileVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosColorTex1_SDF] = TShaderMapRef<FNoesisPosColorTex1SDFVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1_SDF] = TShaderMapRef<FNoesisPosTex0Tex1SDFVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1Rect_SDF] = TShaderMapRef<FNoesisPosTex0Tex1RectSDFVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1RectTile_SDF] = TShaderMapRef<FNoesisPosTex0Tex1RectTileSDFVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosColorTex1] = TShaderMapRef<FNoesisPosColorTex1VS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1] = TShaderMapRef<FNoesisPosTex0Tex1VS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1Rect] = TShaderMapRef<FNoesisPosTex0Tex1RectVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1RectTile] = TShaderMapRef<FNoesisPosTex0Tex1RectTileVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosColorTex0Tex1] = TShaderMapRef<FNoesisPosColorTex0Tex1VS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosTex0Tex1_Downsample] = TShaderMapRef<FNoesisPosTex0Tex1DownsampleVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosColorTex1Rect] = TShaderMapRef<FNoesisPosColorTex1RectVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShaders[Noesis::Shader::Vertex::PosColorTex0RectImagePos] = TShaderMapRef<FNoesisPosColorTex0RectImagePosVS>(GetGlobalShaderMap(FeatureLevel));
+
+		VertexShadersStereo[Noesis::Shader::Vertex::Pos] = TShaderMapRef<FNoesisPosStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosColor] = TShaderMapRef<FNoesisPosColorStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0] = TShaderMapRef<FNoesisPosTex0StereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Rect] = TShaderMapRef<FNoesisPosTex0RectStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0RectTile] = TShaderMapRef<FNoesisPosTex0RectTileStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosColorCoverage] = TShaderMapRef<FNoesisPosColorCoverageStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Coverage] = TShaderMapRef<FNoesisPosTex0CoverageStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0CoverageRect] = TShaderMapRef<FNoesisPosTex0CoverageRectStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0CoverageRectTile] = TShaderMapRef<FNoesisPosTex0CoverageRectTileStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosColorTex1_SDF] = TShaderMapRef<FNoesisPosColorTex1SDFStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Tex1_SDF] = TShaderMapRef<FNoesisPosTex0Tex1SDFStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Tex1Rect_SDF] = TShaderMapRef<FNoesisPosTex0Tex1RectSDFStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Tex1RectTile_SDF] = TShaderMapRef<FNoesisPosTex0Tex1RectTileSDFStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosColorTex1] = TShaderMapRef<FNoesisPosColorTex1StereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Tex1] = TShaderMapRef<FNoesisPosTex0Tex1StereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Tex1Rect] = TShaderMapRef<FNoesisPosTex0Tex1RectStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Tex1RectTile] = TShaderMapRef<FNoesisPosTex0Tex1RectTileStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosColorTex0Tex1] = TShaderMapRef<FNoesisPosColorTex0Tex1StereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosTex0Tex1_Downsample] = TShaderMapRef<FNoesisPosTex0Tex1DownsampleStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosColorTex1Rect] = TShaderMapRef<FNoesisPosColorTex1RectStereoVS>(GetGlobalShaderMap(FeatureLevel));
+		VertexShadersStereo[Noesis::Shader::Vertex::PosColorTex0RectImagePos] = TShaderMapRef<FNoesisPosColorTex0RectImagePosStereoVS>(GetGlobalShaderMap(FeatureLevel));
+
+		// Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_Pattern] = TShaderMapRef<FNoesisPathPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_Pattern_Clamp] = TShaderMapRef<FNoesisPathPatternClampSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_Pattern_Repeat] = TShaderMapRef<FNoesisPathPatternRepeatSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_Pattern_MirrorU] = TShaderMapRef<FNoesisPathPatternMirrorUSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_Pattern_MirrorV] = TShaderMapRef<FNoesisPathPatternMirrorVSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_Pattern_Mirror] = TShaderMapRef<FNoesisPathPatternMirrorSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_AA_Pattern] = TShaderMapRef<FNoesisPathAAPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_AA_Pattern_Clamp] = TShaderMapRef<FNoesisPathAAPatternClampSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_AA_Pattern_Repeat] = TShaderMapRef<FNoesisPathAAPatternRepeatSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_AA_Pattern_MirrorU] = TShaderMapRef<FNoesisPathAAPatternMirrorUSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_AA_Pattern_MirrorV] = TShaderMapRef<FNoesisPathAAPatternMirrorVSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Path_AA_Pattern_Mirror] = TShaderMapRef<FNoesisPathAAPatternMirrorSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_Pattern] = TShaderMapRef<FNoesisSDFPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_Pattern_Clamp] = TShaderMapRef<FNoesisSDFPatternClampSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_Pattern_Repeat] = TShaderMapRef<FNoesisSDFPatternRepeatSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_Pattern_MirrorU] = TShaderMapRef<FNoesisSDFPatternMirrorUSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_Pattern_MirrorV] = TShaderMapRef<FNoesisSDFPatternMirrorVSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_Pattern_Mirror] = TShaderMapRef<FNoesisSDFPatternMirrorSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_LCD_Pattern] = TShaderMapRef<FNoesisSDFLCDPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_LCD_Pattern_Clamp] = TShaderMapRef<FNoesisSDFLCDPatternClampSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_LCD_Pattern_Repeat] = TShaderMapRef<FNoesisSDFLCDPatternRepeatSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_LCD_Pattern_MirrorU] = TShaderMapRef<FNoesisSDFLCDPatternMirrorUSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_LCD_Pattern_MirrorV] = TShaderMapRef<FNoesisSDFLCDPatternMirrorVSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::SDF_LCD_Pattern_Mirror] = TShaderMapRef<FNoesisSDFLCDPatternMirrorSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern] = TShaderMapRef<FNoesisOpacityPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern_Clamp] = TShaderMapRef<FNoesisOpacityPatternClampSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern_Repeat] = TShaderMapRef<FNoesisOpacityPatternRepeatSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern_MirrorU] = TShaderMapRef<FNoesisOpacityPatternMirrorUSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern_MirrorV] = TShaderMapRef<FNoesisOpacityPatternMirrorVSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern_Mirror] = TShaderMapRef<FNoesisOpacityPatternMirrorSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+	}
 
 	PixelShaders[Noesis::Shader::RGBA] = TShaderMapRef<FNoesisRgbaPS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Mask] = TShaderMapRef<FNoesisMaskPS>(GetGlobalShaderMap(FeatureLevel));
@@ -732,42 +1088,6 @@ FNoesisRenderDevice::FNoesisRenderDevice()
 	PixelShaderConstantBuffer1Hash[Noesis::Shader::Blur] = &BlurConstantsHash;
 	PixelShaderConstantBuffer1Hash[Noesis::Shader::Custom_Effect] = nullptr;
 
-	// Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
-	PixelShadersPatternSRGB[Noesis::Shader::Path_Pattern] = TShaderMapRef<FNoesisPathPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::Path_Pattern_Clamp] = TShaderMapRef<FNoesisPathPatternClampSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::Path_Pattern_Repeat] = TShaderMapRef<FNoesisPathPatternRepeatSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::Path_Pattern_MirrorU] = TShaderMapRef<FNoesisPathPatternMirrorUSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::Path_Pattern_MirrorV] = TShaderMapRef<FNoesisPathPatternMirrorVSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::Path_Pattern_Mirror] = TShaderMapRef<FNoesisPathPatternMirrorSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-
-	PixelShadersPatternSRGB[Noesis::Shader::Path_AA_Pattern] = TShaderMapRef<FNoesisPathAAPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::Path_AA_Pattern_Clamp] = TShaderMapRef<FNoesisPathAAPatternClampSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::Path_AA_Pattern_Repeat] = TShaderMapRef<FNoesisPathAAPatternRepeatSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::Path_AA_Pattern_MirrorU] = TShaderMapRef<FNoesisPathAAPatternMirrorUSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::Path_AA_Pattern_MirrorV] = TShaderMapRef<FNoesisPathAAPatternMirrorVSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::Path_AA_Pattern_Mirror] = TShaderMapRef<FNoesisPathAAPatternMirrorSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-
-	PixelShadersPatternSRGB[Noesis::Shader::SDF_Pattern] = TShaderMapRef<FNoesisSDFPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::SDF_Pattern_Clamp] = TShaderMapRef<FNoesisSDFPatternClampSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::SDF_Pattern_Repeat] = TShaderMapRef<FNoesisSDFPatternRepeatSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::SDF_Pattern_MirrorU] = TShaderMapRef<FNoesisSDFPatternMirrorUSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::SDF_Pattern_MirrorV] = TShaderMapRef<FNoesisSDFPatternMirrorVSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::SDF_Pattern_Mirror] = TShaderMapRef<FNoesisSDFPatternMirrorSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-
-	PixelShadersPatternSRGB[Noesis::Shader::SDF_LCD_Pattern] = TShaderMapRef<FNoesisSDFLCDPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::SDF_LCD_Pattern_Clamp] = TShaderMapRef<FNoesisSDFLCDPatternClampSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::SDF_LCD_Pattern_Repeat] = TShaderMapRef<FNoesisSDFLCDPatternRepeatSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::SDF_LCD_Pattern_MirrorU] = TShaderMapRef<FNoesisSDFLCDPatternMirrorUSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::SDF_LCD_Pattern_MirrorV] = TShaderMapRef<FNoesisSDFLCDPatternMirrorVSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::SDF_LCD_Pattern_Mirror] = TShaderMapRef<FNoesisSDFLCDPatternMirrorSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-
-	PixelShadersPatternSRGB[Noesis::Shader::Opacity_Pattern] = TShaderMapRef<FNoesisOpacityPatternSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::Opacity_Pattern_Clamp] = TShaderMapRef<FNoesisOpacityPatternClampSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::Opacity_Pattern_Repeat] = TShaderMapRef<FNoesisOpacityPatternRepeatSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::Opacity_Pattern_MirrorU] = TShaderMapRef<FNoesisOpacityPatternMirrorUSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::Opacity_Pattern_MirrorV] = TShaderMapRef<FNoesisOpacityPatternMirrorVSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-	PixelShadersPatternSRGB[Noesis::Shader::Opacity_Pattern_Mirror] = TShaderMapRef<FNoesisOpacityPatternMirrorSRGBPS>(GetGlobalShaderMap(FeatureLevel));
-
 	DepthStencilStates[Noesis::StencilMode::Disabled] =         TStaticDepthStencilState<false, CF_Always>::GetRHI();
 	DepthStencilStates[Noesis::StencilMode::Equal_Keep] =       TStaticDepthStencilState<false, CF_Always,           true, CF_Equal,  SO_Keep, SO_Keep, SO_Keep,      true, CF_Equal,  SO_Keep, SO_Keep, SO_Keep>::GetRHI();
 	DepthStencilStates[Noesis::StencilMode::Equal_Incr] =       TStaticDepthStencilState<false, CF_Always,           true, CF_Equal,  SO_Keep, SO_Keep, SO_Increment, true, CF_Equal,  SO_Keep, SO_Keep, SO_Increment>::GetRHI();
@@ -851,13 +1171,14 @@ FNoesisRenderDevice::~FNoesisRenderDevice()
 
 uint32 GlyphCacheWidth[] = { 256, 512, 1024, 2048, 4096 };
 uint32 GlyphCacheHeight[] = { 256, 512, 1024, 2048, 4096 };
-static FNoesisRenderDevice* NoesisRenderDevice = 0;
+static FNoesisRenderDevice* NoesisRenderDevice = nullptr;
+static FNoesisRenderDevice* LinearNoesisRenderDevice = nullptr;
 
 FNoesisRenderDevice* FNoesisRenderDevice::Get()
 {
 	if (!NoesisRenderDevice)
 	{
-		NoesisRenderDevice = new FNoesisRenderDevice();
+		NoesisRenderDevice = new FNoesisRenderDevice(false);
 		NoesisRenderDevice->SetOffscreenWidth((uint32)FMath::Max(0, GetDefault<UNoesisSettings>()->OffscreenTextureWidth));
 		NoesisRenderDevice->SetOffscreenHeight((uint32)FMath::Max(0, GetDefault<UNoesisSettings>()->OffscreenTextureHeight));
 		NoesisRenderDevice->SetOffscreenSampleCount((uint32)GetDefault<UNoesisSettings>()->OffscreenTextureSampleCount);
@@ -869,13 +1190,31 @@ FNoesisRenderDevice* FNoesisRenderDevice::Get()
 	return NoesisRenderDevice;
 }
 
+FNoesisRenderDevice* FNoesisRenderDevice::GetLinear()
+{
+	if (!LinearNoesisRenderDevice)
+	{
+		LinearNoesisRenderDevice = new FNoesisRenderDevice(true);
+		LinearNoesisRenderDevice->SetOffscreenWidth((uint32)FMath::Max(0, GetDefault<UNoesisSettings>()->OffscreenTextureWidth));
+		LinearNoesisRenderDevice->SetOffscreenHeight((uint32)FMath::Max(0, GetDefault<UNoesisSettings>()->OffscreenTextureHeight));
+		LinearNoesisRenderDevice->SetOffscreenSampleCount((uint32)GetDefault<UNoesisSettings>()->OffscreenTextureSampleCount);
+		LinearNoesisRenderDevice->SetOffscreenDefaultNumSurfaces((uint32)FMath::Max(0, GetDefault<UNoesisSettings>()->OffscreenInitSurfaces));
+		LinearNoesisRenderDevice->SetOffscreenMaxNumSurfaces((uint32)FMath::Max(0, GetDefault<UNoesisSettings>()->OffscreenMaxSurfaces));
+		LinearNoesisRenderDevice->SetGlyphCacheWidth(GlyphCacheWidth[(uint8)GetDefault<UNoesisSettings>()->GlyphTextureSize]);
+		LinearNoesisRenderDevice->SetGlyphCacheHeight(GlyphCacheHeight[(uint8)GetDefault<UNoesisSettings>()->GlyphTextureSize]);
+	}
+	return LinearNoesisRenderDevice;
+}
+
 void FNoesisRenderDevice::Destroy()
 {
 	delete NoesisRenderDevice;
 	NoesisRenderDevice = nullptr;
+	delete LinearNoesisRenderDevice;
+	LinearNoesisRenderDevice = nullptr;
 }
 
-void FNoesisRenderDevice::SetRHICmdList(FRHICommandListImmediate* InRHICmdList)
+void FNoesisRenderDevice::SetRHICmdList(FRHICommandList* InRHICmdList)
 {
 	RHICmdList = InRHICmdList;
 }
@@ -890,26 +1229,13 @@ void FNoesisRenderDevice::SetScene(FSceneInterface* InScene)
 	Scene = InScene;
 }
 
-void FNoesisRenderDevice::CreateView(uint32 Left, uint32 Top, uint32 Right, uint32 Bottom)
+void FNoesisRenderDevice::CreateView(uint32 Left, uint32 Top, uint32 Right, uint32 Bottom, const FIntRect& ViewRect, const FMatrix& ViewProjectionMatrix)
 {
 	ViewLeft = Left;
 	ViewTop = Top;
 	ViewRight = Right;
 	ViewBottom = Bottom;
 
-	float Width = Right - Left;
-	float Height = Bottom - Top;
-	// Matrix construction from FSlateRHIRenderer::CreateProjectionMatrix
-	const float ZNear = -100.0f;
-	const float ZFar = 100.0f;
-	FMatrix Projection = AdjustProjectionMatrixForRHI(
-		FMatrix(
-			FPlane(2.0f / Width, 0.0f, 0.0f, 0.0f),
-			FPlane(0.0f, 2.0f / Height, 0.0f, 0.0f),
-			FPlane(0.0f, 0.0f, 1.0f / (ZNear - ZFar), 0.0f),
-			FPlane((Left + Right) / -Width, (Top + Bottom) / Height, ZNear / (ZNear - ZFar), 1.0f)
-		)
-	);
 	FSceneViewFamily::ConstructionValues ViewFamilyConstruction
 	(
 		nullptr,
@@ -926,12 +1252,13 @@ void FNoesisRenderDevice::CreateView(uint32 Left, uint32 Top, uint32 Right, uint
 	FSceneViewInitOptions ViewInitOptions;
 	memset(&ViewInitOptions, 0, sizeof(ViewInitOptions));
 	ViewInitOptions.ViewFamily = ViewFamily;
-	ViewInitOptions.SetViewRectangle(FIntRect(Left, Top, Right, Bottom));
+	ViewInitOptions.SetViewRectangle(ViewRect);
 	ViewInitOptions.ViewOrigin = FVector::ZeroVector;
 	ViewInitOptions.ViewRotationMatrix = FMatrix::Identity;
-	ViewInitOptions.ProjectionMatrix = Projection;
-	GetRendererModule().CreateAndInitSingleView(*RHICmdList, ViewFamily, &ViewInitOptions);
+	ViewInitOptions.ProjectionMatrix = ViewProjectionMatrix;
+	GetRendererModule().CreateAndInitSingleView(FRHICommandListExecutor::GetImmediateCommandList(), ViewFamily, &ViewInitOptions);
 	View = (FViewInfo*)ViewFamily->Views[0];
+	ViewUniformBuffer = View->ViewUniformBuffer;
 }
 
 void FNoesisRenderDevice::DestroyView()
@@ -1077,7 +1404,7 @@ void FNoesisRenderDevice::DestroyMaterial(void* InMaterial)
 
 const Noesis::DeviceCaps& FNoesisRenderDevice::GetCaps() const
 {
-	static Noesis::DeviceCaps Caps = { 0.f, false, false };
+	static Noesis::DeviceCaps Caps = { 0.f, IsLinearColor, false };
 	return Caps;
 }
 
@@ -1178,12 +1505,12 @@ static void NoesisCreateTargetableShaderResource2D(
 	}
 }
 
-static Noesis::Ptr<Noesis::RenderTarget> CreateRenderTarget(const TCHAR* Name, uint32 Width, uint32 Height, uint32 SampleCount, FTexture2DRHIRef DepthStencilTarget)
+static Noesis::Ptr<Noesis::RenderTarget> CreateRenderTarget(const TCHAR* Name, uint32 Width, uint32 Height, uint32 SampleCount, FTexture2DRHIRef DepthStencilTarget, bool IsLinearColor)
 {
 	EPixelFormat Format = PF_R8G8B8A8;
 	uint32 NumMips = 1;
-	ETextureCreateFlags Flags = TexCreate_None;
-	ETextureCreateFlags TargetableTextureFlags = TexCreate_RenderTargetable;
+	ETextureCreateFlags Flags = IsLinearColor ? TexCreate_SRGB : TexCreate_None;
+	ETextureCreateFlags TargetableTextureFlags = TexCreate_RenderTargetable | (IsLinearColor ? TexCreate_SRGB : TexCreate_None);
 	bool bForceSeparateTargetAndShaderResource = false;
 	FClearValueBinding ClearValue;
 	FTexture2DRHIRef ColorTarget;
@@ -1232,7 +1559,7 @@ Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CreateRenderTarget(const 
 		NOESIS_BIND_DEBUG_TEXTURE_LABEL(DepthStencilTarget, *DSName);
 	}
 
-	return ::CreateRenderTarget(*Name, Width, Height, SampleCount, DepthStencilTarget);
+	return ::CreateRenderTarget(*Name, Width, Height, SampleCount, DepthStencilTarget, IsLinearColor);
 }
 
 Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CloneRenderTarget(const char* Label, Noesis::RenderTarget* InSharedRenderTarget)
@@ -1246,7 +1573,7 @@ Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CloneRenderTarget(const c
 	uint32 SampleCount = SharedRenderTarget->ColorTarget->GetNumSamples();
 	FTexture2DRHIRef DepthStencilTarget = SharedRenderTarget->DepthStencilTarget;
 
-	return ::CreateRenderTarget(*Name, Width, Height, SampleCount, DepthStencilTarget);
+	return ::CreateRenderTarget(*Name, Width, Height, SampleCount, DepthStencilTarget, IsLinearColor);
 }
 
 Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(const char* Label, uint32 Width, uint32 Height, uint32 NumLevels, Noesis::TextureFormat::Enum TextureFormat, const void** Data)
@@ -1259,7 +1586,7 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(const char* Labe
 	EPixelFormat Format = Formats[TextureFormat];
 	uint32 NumMips = (uint32)NumLevels;
 	uint32 NumSamples = 1;
-	ETextureCreateFlags Flags = TexCreate_None;
+	ETextureCreateFlags Flags = IsLinearColor ? TexCreate_SRGB : TexCreate_None;
 	ERHIAccess Access = ERHIAccess::SRVGraphics;
 #if UE_VERSION_OLDER_THAN(5, 1, 0)
 	FRHIResourceCreateInfo CreateInfo(*Name);
@@ -1312,26 +1639,35 @@ void FNoesisRenderDevice::UpdateTexture(Noesis::Texture* InTexture, uint32 Level
 
 void FNoesisRenderDevice::BeginOffscreenRender()
 {
+	FUniformBufferStaticBindings StaticUniformBufferBindings;
+	StaticUniformBufferBindings.TryAddUniformBuffer(SceneTexturesUniformBuffer);
+	StaticUniformBufferBindings.TryAddUniformBuffer(ViewUniformBuffer);
+	RHICmdList->SetStaticUniformBuffers(MoveTemp(StaticUniformBufferBindings));
 }
 
 void FNoesisRenderDevice::EndOffscreenRender()
 {
+	RHICmdList->SetStaticUniformBuffers({});
 }
 
 void FNoesisRenderDevice::BeginOnscreenRender()
 {
+	FUniformBufferStaticBindings StaticUniformBufferBindings;
+	StaticUniformBufferBindings.TryAddUniformBuffer(SceneTexturesUniformBuffer);
+	StaticUniformBufferBindings.TryAddUniformBuffer(ViewUniformBuffer);
+	RHICmdList->SetStaticUniformBuffers(MoveTemp(StaticUniformBufferBindings));
 }
 
 void FNoesisRenderDevice::EndOnscreenRender()
 {
+	RHICmdList->SetStaticUniformBuffers({});
 }
 
 void FNoesisRenderDevice::SetRenderTarget(Noesis::RenderTarget* Surface)
 {
 	check(RHICmdList);
 #if WANTS_DRAW_MESH_EVENTS
-	SetRenderTargetEvent = new FDrawEvent();
-	BEGIN_DRAW_EVENTF(*RHICmdList, SetRenderTarget, (*SetRenderTargetEvent), TEXT("SetRenderTarget"));
+	BEGIN_DRAW_EVENTF(*RHICmdList, SetRenderTarget, SetRenderTargetEvent, TEXT("SetRenderTarget"));
 #endif
 	check(Surface);
 	FNoesisRenderTarget* RenderTarget = (FNoesisRenderTarget*)Surface;
@@ -1375,7 +1711,7 @@ void FNoesisRenderDevice::SetRenderTarget(Noesis::RenderTarget* Surface)
 	}
 	RHICmdList->SetViewport(0, 0, 0.0f, RenderTarget->ColorTarget->GetSizeX(), RenderTarget->ColorTarget->GetSizeY(), 1.0f);
 
-	CreateView(0, 0, RenderTarget->ColorTarget->GetSizeX(), RenderTarget->ColorTarget->GetSizeY());
+	CreateView(0, 0, RenderTarget->ColorTarget->GetSizeX(), RenderTarget->ColorTarget->GetSizeY(), FIntRect(0, 0, RenderTarget->ColorTarget->GetSizeX(), RenderTarget->ColorTarget->GetSizeY()), FMatrix::Identity);
 }
 
 void FNoesisRenderDevice::BeginTile(Noesis::RenderTarget* Surface, const Noesis::Tile& Tile)
@@ -1430,7 +1766,7 @@ void FNoesisRenderDevice::ResolveRenderTarget(Noesis::RenderTarget* Surface, con
 	}
 
 #if WANTS_DRAW_MESH_EVENTS
-	STOP_DRAW_EVENT((*SetRenderTargetEvent));
+	STOP_DRAW_EVENT(SetRenderTargetEvent);
 #endif
 
 	DestroyView();
@@ -1440,8 +1776,10 @@ void* FNoesisRenderDevice::MapVertices(uint32 Bytes)
 {
 #if UE_VERSION_OLDER_THAN(5, 0, 0)
 	void* Result = RHILockVertexBuffer(DynamicVertexBuffer, 0, Bytes, RLM_WriteOnly);
-#else
+#elif UE_VERSION_OLDER_THAN(5, 3, 0)
 	void* Result = RHILockBuffer(DynamicVertexBuffer, 0, Bytes, RLM_WriteOnly);
+#else
+	void* Result = RHICmdList->LockBuffer(DynamicVertexBuffer, 0, Bytes, RLM_WriteOnly);
 #endif
 	return Result;
 }
@@ -1450,8 +1788,10 @@ void FNoesisRenderDevice::UnmapVertices()
 {
 #if UE_VERSION_OLDER_THAN(5, 0, 0)
 	RHIUnlockVertexBuffer(DynamicVertexBuffer);
-#else
+#elif UE_VERSION_OLDER_THAN(5, 3, 0)
 	RHIUnlockBuffer(DynamicVertexBuffer);
+#else
+	RHICmdList->UnlockBuffer(DynamicVertexBuffer);
 #endif
 }
 
@@ -1459,8 +1799,10 @@ void* FNoesisRenderDevice::MapIndices(uint32 Bytes)
 {
 #if UE_VERSION_OLDER_THAN(5, 0, 0)
 	void* Result = RHILockIndexBuffer(DynamicIndexBuffer, 0, Bytes, RLM_WriteOnly);
-#else
+#elif UE_VERSION_OLDER_THAN(5, 3, 0)
 	void* Result = RHILockBuffer(DynamicIndexBuffer, 0, Bytes, RLM_WriteOnly);
+#else
+	void* Result = RHICmdList->LockBuffer(DynamicIndexBuffer, 0, Bytes, RLM_WriteOnly);
 #endif
 	return Result;
 }
@@ -1469,8 +1811,10 @@ void FNoesisRenderDevice::UnmapIndices()
 {
 #if UE_VERSION_OLDER_THAN(5, 0, 0)
 	RHIUnlockIndexBuffer(DynamicIndexBuffer);
-#else
+#elif UE_VERSION_OLDER_THAN(5, 3, 0)
 	RHIUnlockBuffer(DynamicIndexBuffer);
+#else
+	RHICmdList->UnlockBuffer(DynamicIndexBuffer);
 #endif
 }
 
@@ -1499,7 +1843,7 @@ void FNoesisRenderDevice::SetPatternMaterialParameters<FNoesisMaterialPSBase>(co
 	const FMaterial* Material = &MaterialProxy->GetIncompleteMaterialWithFallback(GMaxRHIFeatureLevel);
 #endif
 	FRHIPixelShader* ShaderRHI = RHICmdList->GetBoundPixelShader();
-	PixelShader->SetViewParameters(*RHICmdList, ShaderRHI, *View, View->ViewUniformBuffer);
+	PixelShader->SetViewParameters(*RHICmdList, ShaderRHI, *View, ViewUniformBuffer);
 #if UE_VERSION_OLDER_THAN(5, 1, 0)
 	PixelShader->SetParameters<FRHIPixelShader>(*RHICmdList, ShaderRHI, MaterialProxy, *Material, *View);
 #else
@@ -1566,14 +1910,15 @@ void FNoesisRenderDevice::SetPixelShaderParameters<FNoesisCustomEffectPS>(const 
 	const FMaterial* Material = &MaterialProxy->GetIncompleteMaterialWithFallback(GMaxRHIFeatureLevel);
 #endif
 	FRHIPixelShader* ShaderRHI = RHICmdList->GetBoundPixelShader();
-	PixelShader->SetViewParameters(*RHICmdList, ShaderRHI, *View, View->ViewUniformBuffer);
+	PixelShader->SetViewParameters(*RHICmdList, ShaderRHI, *View, ViewUniformBuffer);
 
 	FNoesisTexture* Texture = (FNoesisTexture*)(Batch.pattern);
 	FRHITexture* PatternTexture = Texture->ShaderResourceTexture;
 	//FRHISamplerState* PatternSamplerState = SamplerStates[Batch.patternSampler.v];
 	FRHISamplerState* PatternSamplerState = TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp>::GetRHI(); // This should be point samplig for the behavior to be the same as UE4's
 	FNoesisPostProcessMaterialParameters Params = {};
-	Params.View = View->ViewUniformBuffer;
+	Params.View = ViewUniformBuffer;
+	Params.SceneTextures.SceneTextures = SceneTexturesUniformBuffer;
 	Params.PostProcessInput_BilinearSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp>::GetRHI();
 	Params.PostProcessInput_0_Texture = PatternTexture;
 	Params.PostProcessInput_0_Sampler = PatternSamplerState;
@@ -1584,7 +1929,7 @@ void FNoesisRenderDevice::SetPixelShaderParameters<FNoesisCustomEffectPS>(const 
 		const FVector2f ViewportMax(Texture->GetWidth(), Texture->GetHeight());
 		const FVector2f ViewportSize = ViewportMax - ViewportMin;
 
-		FScreenPassTextureViewportParameters& Viewport = Params.PostProcessInput_1.Viewport;
+		FScreenPassTextureViewportParameters& Viewport = Params.PostProcessInput;
 
 		Viewport.Extent = Extent;
 		Viewport.ExtentInverse = FVector2f(1.0f / Extent.X, 1.0f / Extent.Y);
@@ -1654,7 +1999,7 @@ static inline bool BufferNeedsUpdate(uint32& BufferHash, const Noesis::UniformDa
 	return true;
 }
 
-static inline void UpdateUniformBuffer(FUniformBufferRHIRef& UniformBuffer, uint32 UniformDataSize, const void* UniformDataValues)
+static inline void UpdateUniformBuffer(FRHICommandList* RHICmdList, FUniformBufferRHIRef& UniformBuffer, uint32 UniformDataSize, const void* UniformDataValues)
 {
 	check(UniformBuffer != nullptr);
 
@@ -1676,18 +2021,22 @@ static inline void UpdateUniformBuffer(FUniformBufferRHIRef& UniformBuffer, uint
 	UniformBuffer = RHICreateUniformBuffer(UniformBufferData, &UniformBufferLayout, UniformBuffer_MultiFrame, EUniformBufferValidation::ValidateResources);
 #endif
 #else
+#if UE_VERSION_OLDER_THAN(5, 3, 0)
 	RHIUpdateUniformBuffer(UniformBuffer, UniformBufferData);
+#else
+	RHICmdList->UpdateUniformBuffer(UniformBuffer, UniformBufferData);
+#endif
 #endif
 }
 
-static inline bool ConditionalUpdateUniformBuffer(FUniformBufferRHIRef& UniformBuffer, uint32& BufferHash, const Noesis::UniformData& UniformData)
+static inline bool ConditionalUpdateUniformBuffer(FRHICommandList* RHICmdList, FUniformBufferRHIRef& UniformBuffer, uint32& BufferHash, const Noesis::UniformData& UniformData)
 {
 	if (!BufferNeedsUpdate(BufferHash, UniformData))
 		return false;
 
 	uint32 UniformDataSize = UniformData.numDwords * 4;
 	const void* UniformDataValues = UniformData.values;
-	UpdateUniformBuffer(UniformBuffer, UniformDataSize, UniformDataValues);
+	UpdateUniformBuffer(RHICmdList, UniformBuffer, UniformDataSize, UniformDataValues);
 
 	BufferHash = UniformData.hash;
 
@@ -1738,28 +2087,28 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 			}
 			else
 			{
-				MaterialPixelShader = GetMaterialPixelShader(Material, ShaderCode);
+				MaterialPixelShader = GetMaterialPixelShader(Material, ShaderCode, IsLinearColor);
 			}
 		}
 	}
 
-	bool PatternSRGB = false;
+	bool PatternConvertColor = false;
 	if (Batch.pattern != nullptr)
 	{
 		FNoesisTexture* Texture = (FNoesisTexture*)(Batch.pattern);
 		FRHITexture* PatternTexture = Texture->ShaderResourceTexture;
-		if (PatternTexture != nullptr && EnumHasAnyFlags(PatternTexture->GetFlags(), TexCreate_SRGB))
+		if (PatternTexture != nullptr)
 		{
-			// Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
-			PatternSRGB = true;
+			// Read the comment next to PATTERN_SRGB and PATTERN_LINEAR in FNoesisPS::ModifyCompilationEnvironment
+			PatternConvertColor = IsLinearColor != EnumHasAnyFlags(PatternTexture->GetFlags(), TexCreate_SRGB);
 		}
 	}
 
 	uint32 VertexShaderCode = Noesis::VertexForShader[ShaderCode];
 	uint32 VertexFormatCode = Noesis::FormatForVertex[VertexShaderCode];
 	FVertexDeclarationRHIRef& VertexDeclaration = VertexDeclarations[VertexFormatCode];
-	TShaderRef<FNoesisVSBase> VertexShader = VertexShaders[VertexShaderCode];
-	TShaderRef<FNoesisPSBase> PixelShader = PatternSRGB ? PixelShadersPatternSRGB[ShaderCode] : PixelShaders[ShaderCode];
+	TShaderRef<FNoesisVSBase> VertexShader = Batch.singlePassStereo ? VertexShadersStereo[VertexShaderCode] : VertexShaders[VertexShaderCode];
+	TShaderRef<FNoesisPSBase> PixelShader = PatternConvertColor ? PixelShadersPatternConvertColor[ShaderCode] : PixelShaders[ShaderCode];
 	FUniformBufferRHIRef& PSUniformBuffer0 = *PixelShaderConstantBuffer0[ShaderCode];
 	FUniformBufferRHIRef& PSUniformBuffer1 = *PixelShaderConstantBuffer1[ShaderCode];
 	uint32& PSUniformBuffer0Hash = *PixelShaderConstantBuffer0Hash[ShaderCode];
@@ -1773,12 +2122,21 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 	if (!VertexShader.IsValid())
 		return;
 
-	if (UsingCustomEffect && !CustomEffectPixelShader.IsValid())
-		return;
-	else if (UsingMaterialShader && !MaterialPixelShader.IsValid())
-		return;
-	else if (!UsingCustomEffect && !UsingMaterialShader && !PixelShader.IsValid())
-		return;
+	if (UsingCustomEffect)
+	{
+		if (!CustomEffectPixelShader.IsValid() || !ViewUniformBuffer.IsValid() || !SceneTexturesUniformBuffer.IsValid())
+			return;
+	}
+	else if (UsingMaterialShader)
+	{
+		if (!MaterialPixelShader.IsValid() || !ViewUniformBuffer.IsValid())
+			return;
+	}
+	else
+	{
+		if (!PixelShader.IsValid())
+			return;
+	}
 
 #if UE_VERSION_OLDER_THAN(5, 0, 0)
 	SetGraphicsPipelineState(*RHICmdList, GraphicsPSOInit);
@@ -1802,10 +2160,10 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 		{
 			uint32 UniformDataSize = UniformData.numDwords * 4 / 2;
 			const uint8* UniformDataValues = (const uint8 *)UniformData.values;
-			UpdateUniformBuffer(VSConstantBuffer, UniformDataSize, UniformDataValues);
+			UpdateUniformBuffer(RHICmdList, VSConstantBuffer, UniformDataSize, UniformDataValues);
 
 			UniformDataValues += UniformDataSize;
-			UpdateUniformBuffer(VSConstantBufferRightEye, UniformDataSize, UniformDataValues);
+			UpdateUniformBuffer(RHICmdList, VSConstantBufferRightEye, UniformDataSize, UniformDataValues);
 
 			VSConstantsHash = UniformData.hash;
 		}
@@ -1814,16 +2172,16 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 	}
 	else
 	{
-		ConditionalUpdateUniformBuffer(VSConstantBuffer, VSConstantsHash, Batch.vertexUniforms[0]);
+		ConditionalUpdateUniformBuffer(RHICmdList, VSConstantBuffer, VSConstantsHash, Batch.vertexUniforms[0]);
 	}
 
 	VertexShader->SetVSConstants(*RHICmdList, VSConstantBuffer);
 
-	ConditionalUpdateUniformBuffer(TextureSizeBuffer, TextureSizeHash, Batch.vertexUniforms[1]);
+	ConditionalUpdateUniformBuffer(RHICmdList, TextureSizeBuffer, TextureSizeHash, Batch.vertexUniforms[1]);
 
-	ConditionalUpdateUniformBuffer(PSUniformBuffer0, PSUniformBuffer0Hash, Batch.pixelUniforms[0]);
+	ConditionalUpdateUniformBuffer(RHICmdList, PSUniformBuffer0, PSUniformBuffer0Hash, Batch.pixelUniforms[0]);
 
-	ConditionalUpdateUniformBuffer(PSUniformBuffer1, PSUniformBuffer1Hash, Batch.pixelUniforms[1]);
+	ConditionalUpdateUniformBuffer(RHICmdList, PSUniformBuffer1, PSUniformBuffer1Hash, Batch.pixelUniforms[1]);
 
 	if (Batch.vertexUniforms[1].values != nullptr)
 	{

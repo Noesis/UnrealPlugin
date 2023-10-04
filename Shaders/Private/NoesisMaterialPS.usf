@@ -1,4 +1,5 @@
 #include "/Engine/Private/Common.ush"
+#include "/Engine/Private/GammaCorrectionCommon.ush"
 #include "/Engine/Generated/Material.ush"
 
 #ifndef EFFECT
@@ -435,6 +436,9 @@ Out NoesisPS(in In i)
 
         half4 paint = half4(Color * Opacity, Opacity); // Premultiplied alpha
         half opacity_ = NoesisPSOpacityConstants.opacity;
+        #if PATTERN_LINEAR
+            paint.xyz = sRGBToLinear(paint.xyz);
+        #endif
     #endif
 
     Out o;

@@ -342,6 +342,14 @@ void UK2Node_NoesisAssignAndNotify::ExpandNode(class FKismetCompilerContext& Com
 
 		if (VariableProperty)
 		{
+			UFunction* Setter = nullptr;
+			const FString& SetterFunctionName = VariableProperty->GetMetaData(FBlueprintMetadata::MD_PropertySetFunction);
+			if (!SetterFunctionName.IsEmpty())
+			{
+				UClass* OwnerClass = VariableProperty->GetOwnerClass();
+				Setter = OwnerClass->FindFunctionByName(*SetterFunctionName);
+			}
+
 			const UEdGraphSchema_K2* K2Schema = CompilerContext.GetSchema();
 
 			// Our node's pins
@@ -351,257 +359,41 @@ void UK2Node_NoesisAssignAndNotify::ExpandNode(class FKismetCompilerContext& Com
 			UEdGraphPin* VariableSetPin = FindPin(GetVarNameString());
 			UEdGraphPin* VariableGetPin = FindPin(GetVariableOutputPinName());
 
-			// Set node
-			UK2Node_VariableSet* SetNode = CompilerContext.SpawnIntermediateNode<UK2Node_VariableSet>(this, SourceGraph);
-			SetNode->VariableReference = VariableReference;
-			SetNode->AllocateDefaultPins();
-			UEdGraphPin* SetNodeExecPin = SetNode->GetExecPin();
-			UEdGraphPin* SetNodeThenPin = SetNode->FindPin(K2Schema->PN_Then);
-			UEdGraphPin* SetNodeSelfPin = K2Schema->FindSelfPin(*SetNode, EGPD_Input);
-			UEdGraphPin* SetNodeVariableSetPin = SetNode->FindPin(GetVarNameString());
-			UEdGraphPin* SetNodeVariableGetPin = SetNode->FindPin(GetVariableOutputPinName());
+			// CallFunction node
+			UK2Node_CallFunction* CallFunctionNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+			CallFunctionNode->FunctionReference.SetExternalMember(TEXT("NoesisSetWithNotify"), UNoesisFunctionLibrary::StaticClass());
+			CallFunctionNode->AllocateDefaultPins();
+			UEdGraphPin* CallFunctionNodeExecPin = CallFunctionNode->GetExecPin();
+			UEdGraphPin* CallFunctionNodeThenPin = CallFunctionNode->FindPin(K2Schema->PN_Then);
+			UEdGraphPin* CallFunctionNodeSelfPin = K2Schema->FindSelfPin(*CallFunctionNode, EGPD_Input);
+			CallFunctionNodeSelfPin->DefaultObject = UNoesisFunctionLibrary::StaticClass()->GetDefaultObject();
+			UEdGraphPin* CallFunctionNodePropertyPin = CallFunctionNode->FindPin(TEXT("Property"));
+			UEdGraphPin* CallFunctionNodeValuePin = CallFunctionNode->FindPin(TEXT("Value"));
+			UEdGraphPin* CallFunctionNodeSetterPin = CallFunctionNode->FindPin(TEXT("Setter"));
+			CallFunctionNodeSetterPin->DefaultObject = Setter;
 
-			// Notify node
-			UK2Node_CallFunction* NotifyNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-			if (VariableProperty->IsA<FArrayProperty>())
-			{
-				NotifyNode->FunctionReference.SetExternalMember(TEXT("NotifyArrayChanged"), UNoesisFunctionLibrary::StaticClass());
-			}
-			else
-			{
-				NotifyNode->FunctionReference.SetExternalMember(TEXT("NotifyChanged"), UNoesisFunctionLibrary::StaticClass());
-			}
-			NotifyNode->AllocateDefaultPins();
-			UEdGraphPin* NotifyNodeExecPin = NotifyNode->GetExecPin();
-			UEdGraphPin* NotifyNodeThenPin = NotifyNode->FindPin(K2Schema->PN_Then);
-			UEdGraphPin* NotifyNodeSelfPin = K2Schema->FindSelfPin(*NotifyNode, EGPD_Input);
-			NotifyNodeSelfPin->DefaultObject = UNoesisFunctionLibrary::StaticClass()->GetDefaultObject();
-			UEdGraphPin* NotifyNodeOwnerPin = NotifyNode->FindPin(TEXT("Owner"));
-			UEdGraphPin* NotifyNodePropertyNamePin = NotifyNode->FindPin(TEXT("PropertyName"));
+			// VariableGet node
+			UK2Node_VariableGet* VariableGetNode = CompilerContext.SpawnIntermediateNode<UK2Node_VariableGet>(this, SourceGraph);
+			VariableGetNode->VariableReference = VariableReference;
+			VariableGetNode->AllocateDefaultPins();
+			UEdGraphPin* VariableGetNodeSelfPin = K2Schema->FindSelfPin(*VariableGetNode, EGPD_Input);
+			UEdGraphPin* VariableGetNodeVariablePin = VariableGetNode->FindPin(GetVarNameString());
 
-			// Compare node
-			UK2Node_CallFunction* CompareNode = nullptr;
-			UEdGraphPin* CompareNodeExecPin = nullptr;
-			UEdGraphPin* CompareNodeThenPin = nullptr;
-			UEdGraphPin* CompareNodeFirstInputPin = nullptr;
-			UEdGraphPin* CompareNodeSecondInputPin = nullptr;
-			UEdGraphPin* CompareNodeReturnValuePin = nullptr;
-			if (VariableProperty->IsA<FIntProperty>())
-			{
-				CompareNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-				CompareNode->FunctionReference.SetExternalMember(TEXT("NotEqual_IntInt"), UKismetMathLibrary::StaticClass());
-				CompareNode->AllocateDefaultPins();
-				CompareNodeExecPin = CompareNode->GetExecPin();
-				CompareNodeThenPin = CompareNode->FindPin(K2Schema->PN_Then);
-				UEdGraphPin* CompareNodeSelfPin = K2Schema->FindSelfPin(*CompareNode, EGPD_Input);
-				CompareNodeSelfPin->DefaultObject = UKismetMathLibrary::StaticClass()->GetDefaultObject();
-				CompareNodeFirstInputPin = CompareNode->FindPin(TEXT("A"));
-				CompareNodeSecondInputPin = CompareNode->FindPin(TEXT("B"));
-				CompareNodeReturnValuePin = CompareNode->FindPin(TEXT("ReturnValue"));
-			}
-			else if (VariableProperty->IsA<FFloatProperty>())
-			{
-				CompareNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-				CompareNode->FunctionReference.SetExternalMember(TEXT("NotEqual_FloatFloat"), UKismetMathLibrary::StaticClass());
-				CompareNode->AllocateDefaultPins();
-				CompareNodeExecPin = CompareNode->GetExecPin();
-				CompareNodeThenPin = CompareNode->FindPin(K2Schema->PN_Then);
-				UEdGraphPin* CompareNodeSelfPin = K2Schema->FindSelfPin(*CompareNode, EGPD_Input);
-				CompareNodeSelfPin->DefaultObject = UKismetMathLibrary::StaticClass()->GetDefaultObject();
-				CompareNodeFirstInputPin = CompareNode->FindPin(TEXT("A"));
-				CompareNodeSecondInputPin = CompareNode->FindPin(TEXT("B"));
-				CompareNodeReturnValuePin = CompareNode->FindPin(TEXT("ReturnValue"));
-			}
-			else if (VariableProperty->IsA<FBoolProperty>())
-			{
-				CompareNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-				CompareNode->FunctionReference.SetExternalMember(TEXT("NotEqual_BoolBool"), UKismetMathLibrary::StaticClass());
-				CompareNode->AllocateDefaultPins();
-				CompareNodeExecPin = CompareNode->GetExecPin();
-				CompareNodeThenPin = CompareNode->FindPin(K2Schema->PN_Then);
-				UEdGraphPin* CompareNodeSelfPin = K2Schema->FindSelfPin(*CompareNode, EGPD_Input);
-				CompareNodeSelfPin->DefaultObject = UKismetMathLibrary::StaticClass()->GetDefaultObject();
-				CompareNodeFirstInputPin = CompareNode->FindPin(TEXT("A"));
-				CompareNodeSecondInputPin = CompareNode->FindPin(TEXT("B"));
-				CompareNodeReturnValuePin = CompareNode->FindPin(TEXT("ReturnValue"));
-			}
-			else if (VariableProperty->IsA<FStrProperty>())
-			{
-				CompareNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-				CompareNode->FunctionReference.SetExternalMember(TEXT("NotEqual_StrStr"), UKismetStringLibrary::StaticClass());
-				CompareNode->AllocateDefaultPins();
-				CompareNodeExecPin = CompareNode->GetExecPin();
-				CompareNodeThenPin = CompareNode->FindPin(K2Schema->PN_Then);
-				UEdGraphPin* CompareNodeSelfPin = K2Schema->FindSelfPin(*CompareNode, EGPD_Input);
-				CompareNodeSelfPin->DefaultObject = UKismetStringLibrary::StaticClass()->GetDefaultObject();
-				CompareNodeFirstInputPin = CompareNode->FindPin(TEXT("A"));
-				CompareNodeSecondInputPin = CompareNode->FindPin(TEXT("B"));
-				CompareNodeReturnValuePin = CompareNode->FindPin(TEXT("ReturnValue"));
-			}
-			else if (VariableProperty->IsA<FTextProperty>())
-			{
-				CompareNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-				CompareNode->FunctionReference.SetExternalMember(TEXT("NotEqual_TextText"), UKismetTextLibrary::StaticClass());
-				CompareNode->AllocateDefaultPins();
-				CompareNodeExecPin = CompareNode->GetExecPin();
-				CompareNodeThenPin = CompareNode->FindPin(K2Schema->PN_Then);
-				UEdGraphPin* CompareNodeSelfPin = K2Schema->FindSelfPin(*CompareNode, EGPD_Input);
-				CompareNodeSelfPin->DefaultObject = UKismetStringLibrary::StaticClass()->GetDefaultObject();
-				CompareNodeFirstInputPin = CompareNode->FindPin(TEXT("A"));
-				CompareNodeSecondInputPin = CompareNode->FindPin(TEXT("B"));
-				CompareNodeReturnValuePin = CompareNode->FindPin(TEXT("ReturnValue"));
-			}
-			else if (VariableProperty->IsA<FObjectProperty>())
-			{
-				CompareNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-				CompareNode->FunctionReference.SetExternalMember(TEXT("NotEqual_ObjectObject"), UKismetMathLibrary::StaticClass());
-				CompareNode->AllocateDefaultPins();
-				CompareNodeExecPin = CompareNode->GetExecPin();
-				CompareNodeThenPin = CompareNode->FindPin(K2Schema->PN_Then);
-				UEdGraphPin* CompareNodeSelfPin = K2Schema->FindSelfPin(*CompareNode, EGPD_Input);
-				CompareNodeSelfPin->DefaultObject = UKismetMathLibrary::StaticClass()->GetDefaultObject();
-				CompareNodeFirstInputPin = CompareNode->FindPin(TEXT("A"));
-				CompareNodeSecondInputPin = CompareNode->FindPin(TEXT("B"));
-				CompareNodeReturnValuePin = CompareNode->FindPin(TEXT("ReturnValue"));
-			}
-			else if (FStructProperty* StructProperty = CastField<FStructProperty>(VariableProperty))
-			{
-				CompareNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-				CompareNode->FunctionReference.SetExternalMember(TEXT("NoesisStruct_NotEqual"), UNoesisFunctionLibrary::StaticClass());
-				CompareNode->AllocateDefaultPins();
-				CompareNodeExecPin = CompareNode->GetExecPin();
-				CompareNodeThenPin = CompareNode->FindPin(K2Schema->PN_Then);
-				UEdGraphPin* CompareNodeSelfPin = K2Schema->FindSelfPin(*CompareNode, EGPD_Input);
-				CompareNodeSelfPin->DefaultObject = UNoesisFunctionLibrary::StaticClass()->GetDefaultObject();
-				CompareNodeFirstInputPin = CompareNode->FindPin(TEXT("A"));
-				CompareNodeSecondInputPin = CompareNode->FindPin(TEXT("B"));
-				CompareNodeReturnValuePin = CompareNode->FindPin(TEXT("ReturnValue"));
+			// Connect the Get and Call Function nodes
+			VariableGetNodeVariablePin->MakeLinkTo(CallFunctionNodePropertyPin);
 
-				CompareNodeFirstInputPin->PinType = VariableSetPin->PinType;
-				CompareNodeSecondInputPin->PinType = VariableSetPin->PinType;
-			}
-			else if (FByteProperty* ByteProperty = CastField<FByteProperty>(VariableProperty))
-			{
-				CompareNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-				CompareNode->FunctionReference.SetExternalMember(TEXT("NotEqual_ByteByte"), UKismetMathLibrary::StaticClass());
-				CompareNode->AllocateDefaultPins();
-				CompareNodeExecPin = CompareNode->GetExecPin();
-				CompareNodeThenPin = CompareNode->FindPin(K2Schema->PN_Then);
-				UEdGraphPin* CompareNodeSelfPin = K2Schema->FindSelfPin(*CompareNode, EGPD_Input);
-				CompareNodeSelfPin->DefaultObject = UKismetMathLibrary::StaticClass()->GetDefaultObject();
-				CompareNodeFirstInputPin = CompareNode->FindPin(TEXT("A"));
-				CompareNodeSecondInputPin = CompareNode->FindPin(TEXT("B"));
-				CompareNodeReturnValuePin = CompareNode->FindPin(TEXT("ReturnValue"));
+			// Input pin types
+			K2Schema->ConvertPropertyToPinType(VariableProperty, CallFunctionNodePropertyPin->PinType);
+			K2Schema->ConvertPropertyToPinType(VariableProperty, CallFunctionNodeValuePin->PinType);
 
-				if (ByteProperty->Enum)
-				{
-					CompareNodeFirstInputPin->PinType = VariableSetPin->PinType;
-					CompareNodeSecondInputPin->PinType = VariableSetPin->PinType;
-				}
-			}
-			else if (FArrayProperty* ArrayProperty = CastField<FArrayProperty>(VariableProperty))
-			{
+			// Execution routing
+			CompilerContext.MovePinLinksToIntermediate(*ExecPin, *CallFunctionNodeExecPin);
+			CompilerContext.MovePinLinksToIntermediate(*ThenPin, *CallFunctionNodeThenPin);
 
-			}
-
-			if (CompareNode)
-			{
-				// Get node
-				UK2Node_VariableGet* GetNode = CompilerContext.SpawnIntermediateNode<UK2Node_VariableGet>(this, SourceGraph);
-				GetNode->VariableReference = VariableReference;
-				GetNode->AllocateDefaultPins();
-				UEdGraphPin* GetNodeExecPin = GetNode->GetExecPin();
-				UEdGraphPin* GetNodeThenPin = GetNode->FindPin(K2Schema->PN_Then);
-				UEdGraphPin* GetNodeSelfPin = K2Schema->FindSelfPin(*GetNode, EGPD_Input);
-				UEdGraphPin* GetNodeVariableGetPin = GetNode->FindPin(GetVarNameString());
-
-				// Branch node
-				UK2Node_IfThenElse* BranchNode = CompilerContext.SpawnIntermediateNode<UK2Node_IfThenElse>(this, SourceGraph);
-				BranchNode->AllocateDefaultPins();
-				UEdGraphPin* BranchNodeExecPin = BranchNode->GetExecPin();
-				UEdGraphPin* BranchNodeThenPin = BranchNode->GetThenPin();
-				UEdGraphPin* BranchNodeElsePin = BranchNode->GetElsePin();
-				UEdGraphPin* BranchNodeConditionPin = BranchNode->GetConditionPin();
-
-				// Execution routing
-				if (GetNodeExecPin)
-				{
-					CompilerContext.MovePinLinksToIntermediate(*ExecPin, *GetNodeExecPin);
-					if (CompareNodeExecPin)
-					{
-						GetNodeThenPin->MakeLinkTo(CompareNodeExecPin);
-						CompareNodeThenPin->MakeLinkTo(BranchNodeExecPin);
-					}
-					else
-					{
-						GetNodeThenPin->MakeLinkTo(BranchNodeExecPin);
-					}
-				}
-				else if (CompareNodeExecPin)
-				{
-					CompilerContext.MovePinLinksToIntermediate(*ExecPin, *CompareNodeExecPin);
-					CompareNodeThenPin->MakeLinkTo(BranchNodeExecPin);
-				}
-				else
-				{
-					CompilerContext.MovePinLinksToIntermediate(*ExecPin, *BranchNodeExecPin);
-				}
-				BranchNodeThenPin->MakeLinkTo(SetNodeExecPin);
-				CompilerContext.CopyPinLinksToIntermediate(*ThenPin, *BranchNodeElsePin);
-				SetNodeThenPin->MakeLinkTo(NotifyNodeExecPin);
-				CompilerContext.CopyPinLinksToIntermediate(*ThenPin, *NotifyNodeThenPin);
-
-				// Data routing
-				CompilerContext.CopyPinLinksToIntermediate(*VariableSetPin, *CompareNodeFirstInputPin);
-				GetNodeVariableGetPin->MakeLinkTo(CompareNodeSecondInputPin);
-				CompareNodeReturnValuePin->MakeLinkTo(BranchNodeConditionPin);
-				CompilerContext.CopyPinLinksToIntermediate(*VariableSetPin, *SetNodeVariableSetPin);
-				CompilerContext.MovePinLinksToIntermediate(*VariableGetPin, *SetNodeVariableGetPin);
-				NotifyNodePropertyNamePin->DefaultValue = GetVarNameString();
-
-				// Self assignment
-				CompilerContext.CopyPinLinksToIntermediate(*SelfPin, *GetNodeSelfPin);
-				CompilerContext.CopyPinLinksToIntermediate(*SelfPin, *SetNodeSelfPin);
-				if (SelfPin->LinkedTo.Num())
-				{
-					CompilerContext.CopyPinLinksToIntermediate(*SelfPin, *NotifyNodeOwnerPin);
-				}
-				else
-				{
-					// Self node
-					UK2Node_Self* SelfNode = CompilerContext.SpawnIntermediateNode<UK2Node_Self>(this, SourceGraph);
-					SelfNode->AllocateDefaultPins();
-					UEdGraphPin* SelfNodeSelfPin = K2Schema->FindSelfPin(*SelfNode, EGPD_Output);
-					SelfNodeSelfPin->MakeLinkTo(NotifyNodeOwnerPin);
-				}
-			}
-			else
-			{
-				// Execution routing
-				CompilerContext.MovePinLinksToIntermediate(*ExecPin, *SetNodeExecPin);
-				SetNodeThenPin->MakeLinkTo(NotifyNodeExecPin);
-				CompilerContext.CopyPinLinksToIntermediate(*ThenPin, *NotifyNodeThenPin);
-
-				// Data routing
-				CompilerContext.CopyPinLinksToIntermediate(*VariableSetPin, *SetNodeVariableSetPin);
-				CompilerContext.MovePinLinksToIntermediate(*VariableGetPin, *SetNodeVariableGetPin);
-				NotifyNodePropertyNamePin->DefaultValue = GetVarNameString();
-
-				// Self assignment
-				CompilerContext.CopyPinLinksToIntermediate(*SelfPin, *SetNodeSelfPin);
-				if (SelfPin->LinkedTo.Num())
-				{
-					CompilerContext.CopyPinLinksToIntermediate(*SelfPin, *NotifyNodeOwnerPin);
-				}
-				else
-				{
-					// Self node
-					UK2Node_Self* SelfNode = CompilerContext.SpawnIntermediateNode<UK2Node_Self>(this, SourceGraph);
-					SelfNode->AllocateDefaultPins();
-					UEdGraphPin* SelfNodeSelfPin = K2Schema->FindSelfPin(*SelfNode, EGPD_Output);
-					SelfNodeSelfPin->MakeLinkTo(NotifyNodeOwnerPin);
-				}
-			}
+			// Input and output routing
+			CompilerContext.MovePinLinksToIntermediate(*SelfPin, *VariableGetNodeSelfPin);
+			CompilerContext.MovePinLinksToIntermediate(*VariableGetPin, *VariableGetNodeVariablePin);
+			CompilerContext.MovePinLinksToIntermediate(*VariableSetPin, *CallFunctionNodeValuePin);
 
 			BreakAllNodeLinks();
 		}

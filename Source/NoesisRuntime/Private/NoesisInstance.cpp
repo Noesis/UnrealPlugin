@@ -101,7 +101,8 @@ DECLARE_CYCLE_STAT(TEXT("TouchMove"), STAT_NoesisInstance_OnTouchMoved, STATGROU
 DECLARE_CYCLE_STAT(TEXT("TouchUp"), STAT_NoesisInstance_OnTouchEnded, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("MouseDoubleClick"), STAT_NoesisInstance_OnMouseButtonDoubleClick, STATGROUP_Noesis);
 
-DECLARE_GPU_STAT_NAMED(NoesisDraw, TEXT("Noesis"));
+DECLARE_GPU_STAT_NAMED(NoesisOnscreen, TEXT("NoesisOnscreen"));
+DECLARE_GPU_STAT_NAMED(NoesisOffscreen, TEXT("NoesisOffscreen"));
 
 // Only to be modified from the render thread. Enqueue any operation needed to the render thread.
 TArray<FNoesisSlateElement*> GNoesis3DSlateElements;
@@ -137,6 +138,9 @@ Noesis::Matrix4 UnrealToNoesisViewProj(const FMatrix& UnrealViewProj, float Widt
 	return ViewProj;
 }
 
+FIntRect GViewRect;
+FMatrix GViewProjectionMatrix;
+
 class FNoesisSlateElement : public ICustomSlateElement
 {
 public:
@@ -147,9 +151,9 @@ public:
 	// End of ICustomSlateElement interface
 
 	void EnqueueRenderOffscreen() const;
-	void RenderOnscreen(FRHICommandListImmediate& RHICmdList, bool WithViewProj) const;
+	void RenderOnscreen(FRHICommandList& RHICmdList, bool WithViewProj) const;
 
-	void RenderView(FRHICommandListImmediate& RHICmdList, const FViewInfo* View);
+	void RenderView(FRHICommandList& RHICmdList, const FViewInfo* View);
 
 	Noesis::Ptr<Noesis::IRenderer> Renderer;
 	FTexture2DRHIRef DepthStencilTarget;
@@ -158,10 +162,7 @@ public:
 	float Top;
 	float Right;
 	float Bottom;
-	float ViewLeft;
-	float ViewTop;
-	float ViewRight;
-	float ViewBottom;
+	FIntRect ViewRect;
 	FSceneInterface* Scene;
 	FGameTime WorldTime;
 	bool IsMobileMultiView = false;
@@ -170,6 +171,7 @@ public:
 	Noesis::Matrix4 LeftEyeViewProj;
 	Noesis::Matrix4 RightEyeViewProj;
 	FMatrix ViewProjectionMatrix;
+	FNoesisRenderDevice* RenderDevice = nullptr;
 };
 
 FNoesisSlateElement::FNoesisSlateElement(Noesis::Ptr<Noesis::IRenderer> InRenderer)
@@ -228,9 +230,12 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 
 void FNoesisSlateElement::EnqueueRenderOffscreen() const
 {
+	if (Renderer == nullptr || RenderDevice == nullptr)
+		return;
+
 	ENQUEUE_RENDER_COMMAND(FNoesisInstance_DrawOffscreen)
 	(
-		[Renderer = Renderer,
+		[Renderer = Renderer, RenderDevice = RenderDevice,
 		WorldTime = WorldTime, Scene = Scene](FRHICommandListImmediate& RHICmdList)
 		{
 			// Make sure dynamic material cached uniform expressions are up to date before doing any rendering
@@ -243,8 +248,7 @@ void FNoesisSlateElement::EnqueueRenderOffscreen() const
 			{
 				SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_DrawOffscreen);
 				SCOPED_DRAW_EVENT(RHICmdList, Noesis_Offscreen);
-				SCOPED_GPU_STAT(RHICmdList, NoesisDraw);
-				FNoesisRenderDevice* RenderDevice = FNoesisRenderDevice::Get();
+				SCOPED_GPU_STAT(RHICmdList, NoesisOffscreen);
 				RenderDevice->SetWorldTime(WorldTime);
 				RenderDevice->SetScene(Scene);
 				RenderDevice->SetRHICmdList(&RHICmdList);
@@ -255,15 +259,14 @@ void FNoesisSlateElement::EnqueueRenderOffscreen() const
 	);
 }
 
-void FNoesisSlateElement::RenderOnscreen(FRHICommandListImmediate& RHICmdList, bool WithViewProj) const
+void FNoesisSlateElement::RenderOnscreen(FRHICommandList& RHICmdList, bool WithViewProj) const
 {
 	SCOPED_DRAW_EVENT(RHICmdList, Noesis);
-	SCOPED_GPU_STAT(RHICmdList, NoesisDraw);
-	FNoesisRenderDevice* RenderDevice = FNoesisRenderDevice::Get();
+	SCOPED_GPU_STAT(RHICmdList, NoesisOnscreen);
 	RenderDevice->SetWorldTime(WorldTime);
 	RenderDevice->SetScene(Scene);
 	RenderDevice->SetRHICmdList(&RHICmdList);
-	RenderDevice->CreateView(ViewLeft, ViewTop, ViewRight, ViewBottom);
+	RenderDevice->CreateView(Left, Top, Right, Bottom, ViewRect, ViewProjectionMatrix);
 	Renderer->SetRenderRegion(0.f, 0.f, Right - Left, Bottom - Top);
 	if (WithViewProj)
 	{
@@ -284,14 +287,14 @@ void FNoesisSlateElement::RenderOnscreen(FRHICommandListImmediate& RHICmdList, b
 	RenderDevice->SetRHICmdList(nullptr);
 }
 
-void FNoesisSlateElement::RenderView(FRHICommandListImmediate& RHICmdList, const FViewInfo* View)
+void FNoesisSlateElement::RenderView(FRHICommandList& RHICmdList, const FViewInfo* View)
 {
 	if ((View->bIsMobileMultiViewEnabled || View->bIsInstancedStereoEnabled) && (View == View->GetInstancedSceneView()))
 		return;
 
 	const auto ViewFamily = View->Family;
 
-	const auto& ViewRect = View->ViewRect;
+	ViewRect = View->ViewRect;
 	Left = ViewRect.Min.X;
 	Top = ViewRect.Min.Y;
 	Right = ViewRect.Max.X;
@@ -481,6 +484,7 @@ UNoesisInstance::UNoesisInstance(const FObjectInitializer& ObjectInitializer)
 	EmulateTouch = false;
 	EnableTouch = true;
 	EnableActions = false;
+	PixelDepthBias = -1.0f;
 
 	DataContext = Noesis::Ptr<Noesis::BaseComponent>(NoesisCreateComponentForUObject(this));
 }
@@ -512,15 +516,17 @@ void UNoesisInstance::InitInstance()
 
 			Noesis::Ptr<Noesis::IRenderer> Renderer(XamlView->GetRenderer());
 
-			ENQUEUE_RENDER_COMMAND(FNoesisInstance_InitRenderer)
-			(
-				[Renderer](FRHICommandListImmediate& RHICmdList)
-				{
-					Renderer->Init(FNoesisRenderDevice::Get());
-				}
-			);
-
 			NoesisSlateElement = MakeShared<FNoesisSlateElement, ESPMode::ThreadSafe>(Renderer);
+
+			ENQUEUE_RENDER_COMMAND(FNoesisInstance_InitRenderer)
+				(
+					[Renderer, Is3DWidget = Is3DWidget, NoesisSlateElement = NoesisSlateElement](FRHICommandListImmediate& RHICmdList)
+					{
+						FNoesisRenderDevice* RenderDevice = Is3DWidget ? FNoesisRenderDevice::GetLinear() : FNoesisRenderDevice::Get();
+						Renderer->Init(RenderDevice);
+						NoesisSlateElement->RenderDevice = RenderDevice;
+					}
+			);
 
 			CurrentTime = 0.0f;
 
@@ -742,6 +748,24 @@ void UNoesisInstance::Update()
 	if (Xaml && XamlView)
 	{
 		XamlView->SetSize(Width, Height);
+		
+		if (PixelDepthBias >= 0.f)
+		{
+			float D = PixelDepthBias / 1000.f;
+			float W = D * Width;
+			float H = D * Height;
+
+			Noesis::Matrix4 Projection
+			(
+				PixelDepthBias,             0.0f, 0.0f, 0.0f,
+				            0.0f, PixelDepthBias, 0.0f, 0.0f,
+				        0.5f * W,         0.5f * H, 0.0f, D,
+				            0.0f,             0.0f, 10.f, PixelDepthBias
+			);
+
+			XamlView->SetProjectionMatrix(Projection);
+		}
+
 		Noesis::TessellationMaxPixelError mpe = Noesis::TessellationMaxPixelError::MediumQuality();
 		switch (TessellationQuality)
 		{
@@ -796,13 +820,16 @@ void UNoesisInstance::Init3DWidget(UWorld* World)
 	FWorldDelegates::OnWorldBeginTearDown.AddUObject(this, &UNoesisInstance::Term3DWidget);
 	FCoreDelegates::OnSafeFrameChangedEvent.AddUObject(this, &UNoesisInstance::ViewportResized3DWidget);
 	InitInstance();
-	ENQUEUE_RENDER_COMMAND(FNoesisInstance_Add3DSlateElement)
-	(
-		[NoesisSlateElement = NoesisSlateElement](FRHICommandListImmediate& RHICmdList)
-		{
-			GNoesis3DSlateElements.AddUnique(NoesisSlateElement.Get());
-		}
-	);
+	if (XamlView != nullptr)
+	{
+		ENQUEUE_RENDER_COMMAND(FNoesisInstance_Add3DSlateElement)
+		(
+			[NoesisSlateElement = NoesisSlateElement](FRHICommandListImmediate& RHICmdList)
+			{
+				GNoesis3DSlateElements.AddUnique(NoesisSlateElement.Get());
+			}
+		);
+	}
 }
 
 void UNoesisInstance::Term3DWidget(UWorld* World)
@@ -812,13 +839,16 @@ void UNoesisInstance::Term3DWidget(UWorld* World)
 	if (GetWorld() != World)
 		return;
 
-	ENQUEUE_RENDER_COMMAND(FNoesisInstance_Add3DSlateElement)
-	(
-		[NoesisSlateElement = NoesisSlateElement](FRHICommandListImmediate& RHICmdList)
-		{
-			GNoesis3DSlateElements.Remove(NoesisSlateElement.Get());
-		}
-	);
+	if (XamlView != nullptr)
+	{
+		ENQUEUE_RENDER_COMMAND(FNoesisInstance_Add3DSlateElement)
+		(
+			[NoesisSlateElement = NoesisSlateElement](FRHICommandListImmediate& RHICmdList)
+			{
+				GNoesis3DSlateElements.Remove(NoesisSlateElement.Get());
+			}
+		);
+	}
 	TermInstance();
 	FCoreDelegates::OnSafeFrameChangedEvent.RemoveAll(this);
 	FWorldDelegates::OnWorldPostActorTick.RemoveAll(this);
@@ -844,65 +874,65 @@ void UNoesisInstance::Tick3DWidget(UWorld* World, ELevelTick TickType, float Del
 			if (LocalPlayer)
 			{
 				UGameViewportClient* ViewportClient = GWorld->GetGameViewport();
-				FSceneViewport* Viewport = ViewportClient->GetGameViewport();
-				FSceneViewProjectionData ViewProjectionData;
-				LocalPlayer->GetProjectionData(Viewport, ViewProjectionData, INDEX_NONE);
-				auto UnscaledViewRect = ViewProjectionData.GetConstrainedViewRect();
-				//auto UnconstrainedViewRect = ViewProjectionData.GetViewRect();
-				Left = UnscaledViewRect.Min.X;
-				Top = UnscaledViewRect.Min.Y;
-				Width = (UnscaledViewRect.Max.X - Left);
-				Height = (UnscaledViewRect.Max.Y - Top);
 
-				auto StereoRenderingDevice = GEngine->StereoRenderingDevice.Get();
-				if (GEngine->IsStereoscopic3D() && StereoRenderingDevice != nullptr)
+				if (ViewportClient != nullptr)
 				{
-					auto WorldToMetersScale = PlayerController->GetWorldSettings()->WorldToMeters;
-					FVector MonoLocation;
-					FRotator MonoRotation;
-					PlayerController->GetPlayerViewPoint(MonoLocation, MonoRotation);
-					StereoRenderingDevice->CalculateStereoViewOffset(eSSE_MONOSCOPIC, MonoRotation, WorldToMetersScale, MonoLocation);
-					const FMatrix ViewRotationMatrix = FInverseRotationMatrix(MonoRotation) * FMatrix(
-						FPlane(0, 0, 1, 0),
-						FPlane(1, 0, 0, 0),
-						FPlane(0, 1, 0, 0),
-						FPlane(0, 0, 0, 1));
-					const FMatrix ViewMatrixForCulling = FTranslationMatrix(-MonoLocation) * ViewRotationMatrix;
-					const FMatrix ViewProjForCulling = ViewMatrixForCulling * StereoRenderingDevice->GetStereoProjectionMatrix(eSSE_MONOSCOPIC);
+					FSceneViewport* Viewport = ViewportClient->GetGameViewport();
+					FSceneViewProjectionData ViewProjectionData;
+					LocalPlayer->GetProjectionData(Viewport, ViewProjectionData, INDEX_NONE);
+					auto UnscaledViewRect = ViewProjectionData.GetConstrainedViewRect();
+					//auto UnconstrainedViewRect = ViewProjectionData.GetViewRect();
+					Left = UnscaledViewRect.Min.X;
+					Top = UnscaledViewRect.Min.Y;
+					Width = (UnscaledViewRect.Max.X - Left);
+					Height = (UnscaledViewRect.Max.Y - Top);
 
-					Noesis::Matrix4 ViewProj = UnrealToNoesisViewProj(ViewProjForCulling, Width, Height);
+					auto StereoRenderingDevice = GEngine->StereoRenderingDevice.Get();
+					if (GEngine->IsStereoscopic3D() && StereoRenderingDevice != nullptr)
+					{
+						auto WorldToMetersScale = PlayerController->GetWorldSettings()->WorldToMeters;
+						FVector MonoLocation;
+						FRotator MonoRotation;
+						PlayerController->GetPlayerViewPoint(MonoLocation, MonoRotation);
+						StereoRenderingDevice->CalculateStereoViewOffset(eSSE_MONOSCOPIC, MonoRotation, WorldToMetersScale, MonoLocation);
+						const FMatrix ViewRotationMatrix = FInverseRotationMatrix(MonoRotation) * FMatrix(
+							FPlane(0, 0, 1, 0),
+							FPlane(1, 0, 0, 0),
+							FPlane(0, 1, 0, 0),
+							FPlane(0, 0, 0, 1));
+						const FMatrix ViewMatrixForCulling = FTranslationMatrix(-MonoLocation) * ViewRotationMatrix;
+						const FMatrix ViewProjForCulling = ViewMatrixForCulling * StereoRenderingDevice->GetStereoProjectionMatrix(eSSE_MONOSCOPIC);
 
-					ENQUEUE_RENDER_COMMAND(CopyViewProj)
-					(
-						[NoesisSlateElement = NoesisSlateElement, ViewProjectionMatrix = ViewProjForCulling](FRHICommandListImmediate& RHICmdList) mutable
-						{
-							NoesisSlateElement->ViewProjectionMatrix = ViewProjectionMatrix;
-						}
-					);
-					XamlView->SetProjectionMatrix(ViewProj);
+						Noesis::Matrix4 ViewProj = UnrealToNoesisViewProj(ViewProjForCulling, Width, Height);
+
+						ENQUEUE_RENDER_COMMAND(CopyViewProj)
+						(
+							[NoesisSlateElement = NoesisSlateElement, ViewProjectionMatrix = ViewProjForCulling](FRHICommandListImmediate& RHICmdList) mutable
+							{
+								NoesisSlateElement->ViewProjectionMatrix = ViewProjectionMatrix;
 							}
-				else
-				{
-					Noesis::Matrix4 ViewProj = UnrealToNoesisViewProj(ViewProjectionData.ComputeViewProjectionMatrix(), Width, Height);
+						);
+						XamlView->SetProjectionMatrix(ViewProj);
+								}
+					else
+					{
+						Noesis::Matrix4 ViewProj = UnrealToNoesisViewProj(ViewProjectionData.ComputeViewProjectionMatrix(), Width, Height);
 
-					ENQUEUE_RENDER_COMMAND(CopyViewProj)
-					(
-						[NoesisSlateElement = NoesisSlateElement, ViewProjectionMatrix = ViewProjectionData.ComputeViewProjectionMatrix()](FRHICommandListImmediate& RHICmdList) mutable
-						{
-							NoesisSlateElement->ViewProjectionMatrix = ViewProjectionMatrix;
-						}
-					);
-					XamlView->SetProjectionMatrix(ViewProj);
+						ENQUEUE_RENDER_COMMAND(CopyViewProj)
+						(
+							[NoesisSlateElement = NoesisSlateElement, ViewProjectionMatrix = ViewProjectionData.ComputeViewProjectionMatrix()](FRHICommandListImmediate& RHICmdList) mutable
+							{
+								NoesisSlateElement->ViewProjectionMatrix = ViewProjectionMatrix;
+							}
+						);
+						XamlView->SetProjectionMatrix(ViewProj);
+					}
 				}
 			}
 		}
 
 		Update();
 
-		NoesisSlateElement->ViewLeft = Left;
-		NoesisSlateElement->ViewTop = Top;
-		NoesisSlateElement->ViewRight = Left + Width;
-		NoesisSlateElement->ViewBottom = Top + Height;
 		NoesisSlateElement->Scene = Scene;
 		NoesisSlateElement->WorldTime = WorldTime;
 		NoesisSlateElement->EnqueueRenderOffscreen();
@@ -1255,26 +1285,30 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 		{
 			UWorld* World = GetWorld();
 			UGameViewportClient* ViewportClient = World->GetGameViewport();
-			FSceneViewport* Viewport = ViewportClient->GetGameViewport();
-			auto ViewportWidget = Viewport->GetViewportWidget();
-			auto PinnedViewportWidget = ViewportWidget.Pin();
-			if (PinnedViewportWidget.IsValid())
-			{
-				auto ViewportGeometry = PinnedViewportWidget->GetTickSpaceGeometry();
-				FVector2D HitTestPosition = ViewportGeometry.AbsoluteToLocal(PlatformCursor->GetPosition()) * ViewportGeometry.Scale;
-				FHitResult HitResult;
-				if (GetHitResultAtScreenPositionAndCache(OwningPlayer, HitTestPosition, HitResult))
-				{
-					if ((UPrimitiveComponent*)WidgetComponent == HitResult.GetComponent())
-					{
-						// Get the "forward" vector based on the current rotation system.
-						const FVector ForwardVector = WidgetComponent->GetForwardVector();
 
-						// Make sure the player is interacting with the front of the widget
-						if (FVector::DotProduct(ForwardVector, HitResult.ImpactPoint - HitResult.TraceStart) < 0.f)
+			if (ViewportClient != nullptr)
+			{
+				FSceneViewport* Viewport = ViewportClient->GetGameViewport();
+				auto ViewportWidget = Viewport->GetViewportWidget();
+				auto PinnedViewportWidget = ViewportWidget.Pin();
+				if (PinnedViewportWidget.IsValid())
+				{
+					auto ViewportGeometry = PinnedViewportWidget->GetTickSpaceGeometry();
+					FVector2D HitTestPosition = ViewportGeometry.AbsoluteToLocal(PlatformCursor->GetPosition()) * ViewportGeometry.Scale;
+					FHitResult HitResult;
+					if (GetHitResultAtScreenPositionAndCache(OwningPlayer, HitTestPosition, HitResult))
+					{
+						if ((UPrimitiveComponent*)WidgetComponent == HitResult.GetComponent())
 						{
-							WidgetComponent->GetLocalHitLocation(HitResult.Location, Position);
-							WidgetComponentHit = true;
+							// Get the "forward" vector based on the current rotation system.
+							const FVector ForwardVector = WidgetComponent->GetForwardVector();
+
+							// Make sure the player is interacting with the front of the widget
+							if (FVector::DotProduct(ForwardVector, HitResult.ImpactPoint - HitResult.TraceStart) < 0.f)
+							{
+								WidgetComponent->GetLocalHitLocation(HitResult.Location, Position);
+								WidgetComponentHit = true;
+							}
 						}
 					}
 				}
@@ -1322,16 +1356,8 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 		NoesisSlateElement->Top = SlateRect.Top;
 		NoesisSlateElement->Right = SlateRect.Right;
 		NoesisSlateElement->Bottom = SlateRect.Bottom;
-
-		UGameViewportClient* ViewportClient = GetWorld()->GetGameViewport();
-		FSceneViewport* Viewport = ViewportClient->GetGameViewport();
-		auto ViewportPosition = Viewport->GetInitialPositionXY();
-		auto ViewportSize = Viewport->GetSizeXY();
-		auto UnscaledViewRect = FIntRect(ViewportPosition.X, ViewportPosition.Y, ViewportPosition.X + ViewportSize.X, ViewportPosition.Y + ViewportSize.Y);
-		NoesisSlateElement->ViewLeft = UnscaledViewRect.Min.X;
-		NoesisSlateElement->ViewTop = UnscaledViewRect.Min.Y;
-		NoesisSlateElement->ViewRight = UnscaledViewRect.Max.X;
-		NoesisSlateElement->ViewBottom = UnscaledViewRect.Max.Y;
+		NoesisSlateElement->ViewRect = GViewRect;
+		NoesisSlateElement->ViewProjectionMatrix = GViewProjectionMatrix;
 
 		NoesisSlateElement->Scene = Scene;
 		NoesisSlateElement->IsMobileMultiView = false;
@@ -1891,8 +1917,34 @@ public:
 	{
 	}
 
-	virtual void PrePostProcessPass_RenderThread(FRDGBuilder& GraphBuilder, const FSceneView& View, const FPostProcessingInputs& Inputs) override
+	virtual void PrePostProcessPass_RenderThread(FRDGBuilder& GraphBuilder, const FSceneView& InView, const FPostProcessingInputs& Inputs) override
 	{
+		const auto& View = (const FViewInfo&)InView;
+
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
+		if (!View.bIsSceneCapture)
+#else
+		if (!View.bIsSceneCapture && !View.bIsSceneCaptureCube)
+#endif
+		{
+			GViewRect = View.ViewRect;
+			GViewProjectionMatrix = View.ViewMatrices.GetProjectionMatrix();
+
+			FPostProcessMaterialParameters* PostProcessMaterialParameters = GraphBuilder.AllocParameters<FPostProcessMaterialParameters>();
+			PostProcessMaterialParameters->SceneTextures.SceneTextures = Inputs.SceneTextures;
+			PostProcessMaterialParameters->View = View.ViewUniformBuffer;
+			GraphBuilder.AddPass(RDG_EVENT_NAME("NoesisPostProcessInputsPass"), PostProcessMaterialParameters, ERDGPassFlags::Raster | ERDGPassFlags::SkipRenderPass | ERDGPassFlags::NeverCull,
+				[SceneTextures = Inputs.SceneTextures](FRHICommandListImmediate& RHICmdList)
+				{
+					FNoesisRenderDevice* RenderDevice = FNoesisRenderDevice::Get();
+					RenderDevice->SetSceneTexturesUniformBuffer(SceneTextures->GetRHIRef());
+
+					FNoesisRenderDevice* LinearRenderDevice = FNoesisRenderDevice::GetLinear();
+					LinearRenderDevice->SetSceneTexturesUniformBuffer(SceneTextures->GetRHIRef());
+				}
+			);
+		}
+
 		if (View.Family->Scene->IsEditorScene())
 			return;
 
@@ -1915,13 +1967,13 @@ public:
 		GraphBuilder.AddPass(RDG_EVENT_NAME("NoesisTranslucentPass"), PassParameters, ERDGPassFlags::Raster | ERDGPassFlags::NeverCull,
 			[&View](FRHICommandListImmediate& RHICmdList)
 			{
-				FNoesisRenderDevice* RenderDevice = FNoesisRenderDevice::Get();
-				RenderDevice->IsWorldUI = true;
 				for (auto NoesisSlateElement : GNoesis3DSlateElements)
 				{
+					FNoesisRenderDevice* RenderDevice = NoesisSlateElement->RenderDevice;
+					RenderDevice->IsWorldUI = true;
 					NoesisSlateElement->RenderView(RHICmdList, (FViewInfo*)&View);
+					RenderDevice->IsWorldUI = false;
 				}
-				RenderDevice->IsWorldUI = false;
 			}
 		);
 	}
@@ -1969,8 +2021,10 @@ public:
 
 #if UE_VERSION_OLDER_THAN(5, 1, 0)
 	virtual void PostRenderBasePass_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView) override
-#else
+#elif UE_VERSION_OLDER_THAN(5, 3, 0)
 	virtual void PostRenderBasePassMobile_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView) override
+#else
+	virtual void PostRenderBasePassMobile_RenderThread(FRHICommandList& RHICmdList, FSceneView& InView) override
 #endif
 	{
 		if (GNoesis3DSlateElements.Num() == 0)

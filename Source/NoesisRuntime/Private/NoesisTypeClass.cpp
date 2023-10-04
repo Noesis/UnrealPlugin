@@ -31,6 +31,9 @@
 #include "MaterialDomain.h"
 #endif
 
+// MediaAsset includes
+#include "MediaTexture.h"
+
 // Slate includes
 #include "Framework/Text/TextLayout.h"
 
@@ -46,6 +49,7 @@
 #include "NoesisBaseComponent.h"
 #include "NoesisRive.h"
 #include "NoesisXaml.h"
+#include "NoesisWorldUIComponent.h"
 
 // Noesis includes
 #include "NoesisSDK.h"
@@ -369,7 +373,19 @@ struct NoesisTypeTraits<ETextFlowDirection>
 	typedef Noesis::FlowDirection NoesisType;
 	static Noesis::FlowDirection ToNoesis(const ETextFlowDirection& Value)
 	{
-		return (Value == ETextFlowDirection::RightToLeft) ? Noesis::FlowDirection_RightToLeft : Noesis::FlowDirection_LeftToRight;
+		switch (Value)
+		{
+		case ETextFlowDirection::Auto:
+			{
+				EFlowDirection FlowDirection = FLayoutLocalization::GetLocalizedLayoutDirection();
+				return (FlowDirection == EFlowDirection::RightToLeft) ? Noesis::FlowDirection_RightToLeft : Noesis::FlowDirection_LeftToRight;
+			}
+		case ETextFlowDirection::LeftToRight:
+			return Noesis::FlowDirection_LeftToRight;
+		case ETextFlowDirection::RightToLeft:
+			return Noesis::FlowDirection_RightToLeft;
+		}
+		return Noesis::FlowDirection_LeftToRight;
 	}
 	static ETextFlowDirection ToUnreal(const Noesis::FlowDirection& Value)
 	{
@@ -408,6 +424,25 @@ struct NoesisTypeTraits<UTextureRenderTarget2D*>
 	{
 		check(Value == nullptr || Value->IsA<UTextureRenderTarget2D>());
 		return NoesisCreateComponentForUTexture((UTextureRenderTarget2D*)Value);
+	}
+	static UObject* ToUnreal(Noesis::BaseComponent* Value)
+	{
+		return nullptr;
+	}
+	static bool Equals(UObject* Left, UObject* Right)
+	{
+		return Left == Right;
+	}
+};
+
+template<>
+struct NoesisTypeTraits<UMediaTexture*>
+{
+	typedef Noesis::TextureSource* NoesisType;
+	static Noesis::Ptr<Noesis::BaseComponent> ToNoesis(UObject* Value)
+	{
+		check(Value == nullptr || Value->IsA<UMediaTexture>());
+		return NoesisCreateComponentForUTexture((UMediaTexture*)Value);
 	}
 	static UObject* ToUnreal(Noesis::BaseComponent* Value)
 	{
@@ -465,6 +500,11 @@ Noesis::Ptr<Noesis::BaseComponent> StructGetter(void* BasePointer, FProperty* Pr
 {
 	check(Property->IsA<FStructProperty>());
 	FStructProperty* StructProperty = (FStructProperty*)Property;
+	NoesisTypeInfo* TypeInfo = StructTypeInfos.Find(StructProperty->Struct);
+	if (TypeInfo != nullptr)
+	{
+		return (*TypeInfo->Getter)(BasePointer, Property);
+	}
 	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
 	return NoesisCreateComponentForUStruct(StructProperty->Struct, Value);
 }
@@ -473,6 +513,11 @@ bool StructSetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Pr
 {
 	check(Property->IsA<FStructProperty>());
 	FStructProperty* StructProperty = (FStructProperty*)Property;
+	NoesisTypeInfo* TypeInfo = StructTypeInfos.Find(StructProperty->Struct);
+	if (TypeInfo != nullptr)
+	{
+		return (*TypeInfo->Setter)(Input, BasePointer, Property);
+	}
 	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
 	return AssignStruct(Value, StructProperty->Struct, Input);
 }
@@ -486,11 +531,8 @@ const Noesis::Type* StructGetType(FProperty* Property)
 	{
 		return (*TypeInfo->GetType)(Property);
 	}
-	else
-	{
-		return NoesisGetTypeForUStruct(StructProperty->Struct);
-		//return NoesisCreateTypeClassForUStruct(StructProperty->Struct);
-	}
+	return NoesisGetTypeForUStruct(StructProperty->Struct);
+	//return NoesisCreateTypeClassForUStruct(StructProperty->Struct);
 }
 
 Noesis::Ptr<Noesis::BaseComponent> EnumGetter(void* BasePointer, FProperty* Property)
@@ -607,8 +649,8 @@ Noesis::Ptr<Noesis::BaseComponent> ObjectGetter(void* BasePointer, FProperty* Pr
 	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
 	UObject*& Object = *(UObject**)Value;
 	check(Property->IsA<FObjectProperty>());
-	FObjectProperty* ObjectProperty = (FObjectProperty*)Property;
-	NoesisClassConversion* ClassConversion = ClassConversions.Find(ObjectProperty->PropertyClass);
+	UClass* Class = Object != nullptr ? Object->GetClass() : nullptr;
+	NoesisClassConversion* ClassConversion = Class != nullptr ? ClassConversions.Find(Class) : nullptr;
 	if (ClassConversion != nullptr)
 	{
 		return (*ClassConversion->Wrapper)(Object);
@@ -624,8 +666,9 @@ bool ObjectSetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Pr
 	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
 	UObject*& Object = *(UObject**)Value;
 	check(Property->IsA<FObjectProperty>());
-	FObjectProperty* ObjectProperty = (FObjectProperty*)Property;
-	NoesisClassConversion* ClassConversion = ClassConversions.Find(ObjectProperty->PropertyClass); 
+	UObject* InputObject = NoesisFindUObjectForComponent(Input);
+	UClass* Class = InputObject != nullptr ? InputObject->GetClass() : nullptr;
+	NoesisClassConversion* ClassConversion = Class != nullptr ? ClassConversions.Find(Class) : nullptr;
 	if (ClassConversion != nullptr)
 	{
 		UObject* NewObject = (*ClassConversion->Unwrapper)(Input);
@@ -748,7 +791,9 @@ void NoesisInitTypeTables()
 {
 	ClassConversions =
 	{
-		{UTexture2D::StaticClass(), NoesisClassConversion::FromType<UTexture2D*>() }
+		{UTexture2D::StaticClass(), NoesisClassConversion::FromType<UTexture2D*>() },
+		{UTextureRenderTarget2D::StaticClass(), NoesisClassConversion::FromType<UTextureRenderTarget2D*>() },
+		{UMediaTexture::StaticClass(), NoesisClassConversion::FromType<UMediaTexture*>() }
 	};
 
 	UScriptStruct* TimespanStruct = nullptr;
@@ -1006,24 +1051,8 @@ Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUEnum(class UEnum* En
 Noesis::Ptr<Noesis::BaseComponent> GetPropertyByRef(void* BasePointer, FProperty* Property)
 {
 	FFieldClass* PropertyClass = Property->GetClass();
-	if (PropertyClass == FStructProperty::StaticClass())
-	{
-		FStructProperty* StructProperty = (FStructProperty*)Property;
-		NoesisTypeInfo* TypeInfo = StructTypeInfos.Find(StructProperty->Struct);
-		if (TypeInfo != nullptr)
-		{
-			return (*TypeInfo->Getter)(BasePointer, Property);
-		}
-		else
-		{
-			return StructGetter(BasePointer, Property);
-		}
-	}
-	else
-	{
-		NoesisTypeInfo* TypeInfo = TypeInfos.Find(Property->GetClass());
-		return (*TypeInfo->Getter)(BasePointer, Property);
-	}
+	NoesisTypeInfo* TypeInfo = TypeInfos.Find(Property->GetClass());
+	return (*TypeInfo->Getter)(BasePointer, Property);
 }
 
 bool SetPropertyByRef(void* BasePointer, FProperty* Property, Noesis::BaseComponent* Input)
@@ -1037,24 +1066,8 @@ bool SetPropertyByRef(void* BasePointer, FProperty* Property, Noesis::BaseCompon
 	if (Input == nullptr && PropertyClass != FObjectProperty::StaticClass())
 		return false;
 
-	if (PropertyClass == FStructProperty::StaticClass())
-	{
-		FStructProperty* StructProperty = (FStructProperty*)Property;
-		NoesisTypeInfo* TypeInfo = StructTypeInfos.Find(StructProperty->Struct);
-		if (TypeInfo != nullptr)
-		{
-			return (*TypeInfo->Setter)(Input, BasePointer, Property);
-		}
-		else
-		{
-			return StructSetter(Input, BasePointer, Property);
-		}
-	}
-	else
-	{
-		NoesisTypeInfo* TypeInfo = TypeInfos.Find(Property->GetClass());
-		return (*TypeInfo->Setter)(Input, BasePointer, Property);
-	}
+	NoesisTypeInfo* TypeInfo = TypeInfos.Find(Property->GetClass());
+	return (*TypeInfo->Setter)(Input, BasePointer, Property);
 }
 
 const Noesis::Type* GetPropertyType(FProperty* Property)
@@ -2137,6 +2150,11 @@ NoesisObjectWrapper::~NoesisObjectWrapper()
 	{
 		ObjectMap.Remove(Object);
 	}
+
+	for (auto Pairs : EventMap)
+	{
+		check(Pairs.Value.Empty());
+	}
 }
 
 class NoesisMaterialWrapper
@@ -2153,18 +2171,21 @@ public:
 			MaterialInstanceDynamic = UMaterialInstanceDynamic::Create(InMaterial, GetTransientPackage());
 		}
 		MaterialInstanceDynamic->AddToRoot();
-		Material = NoesisCreateMaterial(MaterialInstanceDynamic);
+		Material = NoesisCreateMaterial(MaterialInstanceDynamic.Get());
 	}
 
 	virtual ~NoesisMaterialWrapper()
 	{
 		NoesisDestroyMaterial(Material);
-		MaterialInstanceDynamic->RemoveFromRoot();
+		if (MaterialInstanceDynamic.IsValid())
+		{
+			MaterialInstanceDynamic->RemoveFromRoot();
+		}
 	}
 
 	void SetScalarParameterValue(FName ParamName, float Value)
 	{
-		if (MaterialInstanceDynamic != nullptr)
+		if (MaterialInstanceDynamic.IsValid())
 		{
 			MaterialInstanceDynamic->SetScalarParameterValue(ParamName, Value);
 		}
@@ -2172,7 +2193,7 @@ public:
 
 	void SetVectorParameterValue(FName ParamName, FLinearColor Value)
 	{
-		if (MaterialInstanceDynamic != nullptr)
+		if (MaterialInstanceDynamic.IsValid())
 		{
 			MaterialInstanceDynamic->SetVectorParameterValue(ParamName, Value);
 		}
@@ -2180,7 +2201,7 @@ public:
 
 	void SetTextureParameterValue(FName ParamName, UTexture* Value)
 	{
-		if (MaterialInstanceDynamic != nullptr)
+		if (MaterialInstanceDynamic.IsValid())
 		{
 			MaterialInstanceDynamic->SetTextureParameterValue(ParamName, Value);
 		}
@@ -2189,7 +2210,7 @@ public:
 protected:
 
 	NoesisTypeClass* TypeClass = nullptr;
-	UMaterialInstanceDynamic* MaterialInstanceDynamic = nullptr;
+	TWeakObjectPtr<UMaterialInstanceDynamic> MaterialInstanceDynamic;
 	void* Material = nullptr;
 };
 
@@ -2252,7 +2273,17 @@ public:
 
 Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUTexture(UTexture* Texture)
 {
-	return *new NoesisTextureWrapper(Texture);
+	NoesisTextureWrapper** TextureSourcePtr = TextureMap.Find(Texture);
+	if (TextureSourcePtr != nullptr)
+	{
+		return Noesis::Ptr<Noesis::BaseComponent>(*TextureSourcePtr);
+	}
+	else
+	{
+		NoesisTextureWrapper* TextureSource = new NoesisTextureWrapper(Texture);
+		TextureMap.Add(Texture, TextureSource);
+		return Noesis::Ptr<Noesis::BaseComponent>(*TextureSource);
+	}
 }
 
 Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForTArray(void* ArrayPtr, FArrayProperty* ArrayProperty)
@@ -2482,6 +2513,21 @@ void* NoesisTypePropertyObjectWrapperEvent::GetContent(const void* Ptr) const
 		return nullptr;
 	}
 
+	auto CountEvents = [](const Noesis::TypeClass* TypeClass)
+	{
+		int32 Count = 0;
+		do
+		{
+			Count += (int32)TypeClass->GetNumEvents();
+			TypeClass = TypeClass->GetBase();
+		} while (TypeClass != nullptr);
+		return Count;
+	};
+
+	const Noesis::TypeClass* TypeClass = Wrapper->GetClassType();
+	int32 EventCount = CountEvents(TypeClass);
+	Wrapper->EventMap.Reserve(EventCount);
+
 	auto Found = Wrapper->EventMap.Find(Property);
 	if (Found == nullptr)
 	{
@@ -2492,6 +2538,7 @@ void* NoesisTypePropertyObjectWrapperEvent::GetContent(const void* Ptr) const
 		if (ObjectClass->FindFunctionByName(*DelegateName) == nullptr)
 		{
 			auto NoesisDelegateFunc = NewObject<UFunction>(ObjectClass, *DelegateName);
+			NoesisDelegateFunc->AddToRoot();
 			NoesisDelegateFunc->SetNativeFunc(&execNoesisDelegate);
 			NoesisDelegateFunc->FunctionFlags |= FUNC_Native;
 			ObjectClass->AddFunctionToFunctionMap(NoesisDelegateFunc, *DelegateName);
@@ -2843,17 +2890,31 @@ Noesis::TypeClass* NoesisCreateTypeClassForUClass(UClass* Class)
 
 Noesis::BaseComponent* CallbackCreateMaterialWrapper(Noesis::Symbol Name)
 {
-	NoesisTypeClass* TypeClass = (NoesisTypeClass*)Noesis::Reflection::GetType(Name);
-	UMaterialInterface* Material = TypeClass->Material;
-	UMaterial* BaseMaterial = Material->GetBaseMaterial();
-	if (BaseMaterial->MaterialDomain == MD_UI)
+	FString UnrealTypeName = UTF8_TO_TCHAR(Name.Str());
+	FString GamePath = PathFromRegisterName_GameAsset(UnrealTypeName);
+	UMaterialInterface* Material = LoadObject<UMaterialInterface>(nullptr, *GamePath, nullptr, LOAD_NoWarn);
+	if (Material == nullptr)
 	{
-		return new NoesisUIMaterialWrapper(Material);
+		FString ModulePath = PathFromRegisterName_ModuleAsset(UnrealTypeName);
+		if (!ModulePath.IsEmpty())
+		{
+			Material = LoadObject<UMaterialInterface>(nullptr, *ModulePath, nullptr, LOAD_NoWarn);
+		}
 	}
-	else if (BaseMaterial->MaterialDomain == MD_PostProcess)
+
+	if (Material != nullptr)
 	{
-		return new NoesisPostProcessMaterialWrapper(Material);
+		UMaterial* BaseMaterial = Material->GetBaseMaterial();
+		if (BaseMaterial->MaterialDomain == MD_UI)
+		{
+			return new NoesisUIMaterialWrapper(Material);
+		}
+		else if (BaseMaterial->MaterialDomain == MD_PostProcess)
+		{
+			return new NoesisPostProcessMaterialWrapper(Material);
+		}
 	}
+
 	return nullptr;
 }
 
@@ -3109,26 +3170,54 @@ void NoesisDestroyViews()
 		Rive->DestroyThumbnailRenderData();
 	}
 
+	
+	for (TObjectIterator<UNoesisWorldUIComponent> It; It; ++It)
+	{
+		UNoesisWorldUIComponent* WorldUIComponent = *It;
+		WorldUIComponent->Remove3DElement();
+	}
+
 	// We keep track of the rest of initialized views, and their DataContexts, as those may be running in game.
 	TArray<UNoesisInstance*> InstancesToRecreate;
-	Noesis::Vector<Noesis::Ptr<Noesis::BaseComponent>> DataContexts;
+	TArray<bool> IsInstance3DWidget;
 	for (TObjectIterator<UNoesisInstance> It; It; ++It)
 	{
 		UNoesisInstance* Instance = *It;
 		if (Instance->XamlView != nullptr)
 		{
-			DataContexts.PushBack(Noesis::Ptr<Noesis::BaseComponent>(Instance->Xaml->GetDataContext()));
 			InstancesToRecreate.Add(Instance);
-			Instance->TermInstance();
+			bool Is3DWidget = Instance->Is3DWidget;
+			if (Is3DWidget)
+			{
+				Instance->Term3DWidget(Instance->GetWorld());
+			}
+			else
+			{
+				Instance->TermInstance();
+			}
+			IsInstance3DWidget.Add(Is3DWidget);
 		}
 	}
 
 	// Reinitialize the Views that are in game
-	auto It = DataContexts.Begin();
-	for (auto Instance : InstancesToRecreate)
+	for (int32 InstanceIndex = 0; InstanceIndex != InstancesToRecreate.Num(); ++InstanceIndex)
 	{
-		Instance->InitInstance();
-		Instance->Xaml->SetDataContext(*It++);
+		auto Instance = InstancesToRecreate[InstanceIndex];
+		bool Is3DWidget = IsInstance3DWidget[InstanceIndex];
+		if (Is3DWidget)
+		{
+			Instance->Init3DWidget(Instance->GetWorld());
+		}
+		else
+		{
+			Instance->InitInstance();
+		}
+	}
+
+	for (TObjectIterator<UNoesisWorldUIComponent> It; It; ++It)
+	{
+		UNoesisWorldUIComponent* WorldUIComponent = *It;
+		WorldUIComponent->Add3DElement();
 	}
 }
 
@@ -3570,20 +3659,6 @@ NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUOb
 		else if (BaseMaterial->MaterialDomain == MD_PostProcess)
 		{
 			Wrapper = *new NoesisPostProcessMaterialWrapper(Material);
-		}
-	}
-	else if (Class->IsChildOf(UTexture2D::StaticClass()) || Class->IsChildOf(UTextureRenderTarget2D::StaticClass()))
-	{
-		NoesisTextureWrapper** TextureSourcePtr = TextureMap.Find(Object);
-		if (TextureSourcePtr != nullptr)
-		{
-			Wrapper = Noesis::Ptr<Noesis::BaseComponent>(*TextureSourcePtr);
-		}
-		else
-		{
-			NoesisTextureWrapper* TextureSource = new NoesisTextureWrapper((UTexture*)Object);
-			TextureMap.Add(Object, TextureSource);
-			Wrapper = *TextureSource;
 		}
 	}
 	else

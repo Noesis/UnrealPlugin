@@ -113,7 +113,7 @@ void FNoesisThumbnailRenderer::RenderView(Noesis::IView* View, UWorld* World, FI
 
 			DrawClearQuad(RHICmdList, true, FLinearColor(0.0f, 0.0f, 0.0f, 0.0f), false, 0.f, false, 0);
 
-			RenderDevice->CreateView(0, 0, SizeX, SizeY);
+			RenderDevice->CreateView(0, 0, SizeX, SizeY, FIntRect(0, 0, SizeX, SizeY), FMatrix::Identity);
 			Renderer->Render();
 			RenderDevice->DestroyView();
 			RenderDevice->SetRHICmdList(nullptr);

@@ -170,6 +170,9 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	bool EnableActions;
 
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	float PixelDepthBias;
+
 	UFUNCTION(BlueprintCallable, Category = "NoesisGUI")
 	void InitInstance();
 

@@ -62,5 +62,6 @@ void FNoesisBlueprintCompilerContext::CopyTermDefaultsToDefaultObject(UObject* D
 		DefaultInstance->EmulateTouch = NoesisBlueprint->EmulateTouch;
 		DefaultInstance->EnableTouch = NoesisBlueprint->EnableTouch;
 		DefaultInstance->EnableActions = NoesisBlueprint->EnableActions;
+		DefaultInstance->PixelDepthBias = NoesisBlueprint->PixelDepthBias;
 	}
 }

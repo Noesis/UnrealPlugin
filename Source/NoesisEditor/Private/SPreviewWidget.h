@@ -17,6 +17,8 @@ class SPreviewWidget : public SCompoundWidget
 	SLATE_BEGIN_ARGS(SPreviewWidget) {}
 	SLATE_END_ARGS()
 
+	virtual ~SPreviewWidget();
+
 	void Construct(const FArguments& InArg, TSharedPtr<class FNoesisBlueprintEditor> InBlueprintEditor);
 
 	// SWidget interface
@@ -31,4 +33,5 @@ class SPreviewWidget : public SCompoundWidget
 	class UNoesisBlueprint* PreviewBlueprint;
 	class UNoesisInstance* PreviewInstance;
 	TWeakPtr<class SWidget> PreviewSlateWidget;
+	FDelegateHandle InvalidatePreviewDelegateHandle;
 };

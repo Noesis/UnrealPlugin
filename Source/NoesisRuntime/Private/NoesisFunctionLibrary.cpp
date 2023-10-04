@@ -6,6 +6,7 @@
 #include "NoesisFunctionLibrary.h"
 
 // Core includes
+#include "Misc/EngineVersionComparison.h"
 #include "UObject/PropertyPortFlags.h"
 #include "Net/Core/PushModel/PushModel.h"
 
@@ -85,6 +86,81 @@ UObject* UNoesisFunctionLibrary::LoadXaml(class UNoesisXaml* Xaml)
 		return NoesisCreateUObjectForComponent(Xaml->LoadXaml());
 	}
 	return nullptr;
+}
+
+DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisSetWithNotify)
+{
+	// Step to get the property
+	Stack.MostRecentProperty = nullptr;
+	Stack.MostRecentPropertyAddress = nullptr;
+	Stack.StepCompiledIn<FProperty>(nullptr);
+
+	FProperty* Property = Stack.MostRecentProperty;
+	void* PropertyAddress = Stack.MostRecentPropertyAddress;
+
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
+	UObject* Object = (UObject*)(Stack.MostRecentPropertyAddress - Property->GetOffset_ForInternal());
+#else
+	UObject* Object = (UObject*)Stack.MostRecentPropertyContainer;
+#endif
+
+	// Sanity checks
+	check(Object != nullptr);
+	check(Property != nullptr);
+	check(PropertyAddress != nullptr);
+	check(Property->ContainerPtrToValuePtr<void>(Object) == PropertyAddress);
+
+	// Allocate and initialize the return value
+	const int32 PropertySize = Property->GetSize();
+	void* StorageSpace = FMemory_Alloca(PropertySize);
+	Property->InitializeValue(StorageSpace);
+
+	// Step to get the value
+	Stack.MostRecentProperty = nullptr;
+	Stack.MostRecentPropertyAddress = nullptr;
+	Stack.StepCompiledIn<FProperty>(StorageSpace);
+	FProperty* ValueProperty = Stack.MostRecentProperty;
+	void* ValueAddress = Stack.MostRecentPropertyAddress;
+
+	// More sanity checks
+	check(ValueProperty == nullptr || ValueProperty->IsA(Property->GetClass()));
+	check(ValueAddress == nullptr || Property->Identical(StorageSpace, ValueAddress));
+
+	// Step to get the setter
+	Stack.MostRecentProperty = nullptr;
+	Stack.MostRecentPropertyAddress = nullptr;
+	UFunction* Setter = nullptr;
+	Stack.StepCompiledIn<FProperty>(&Setter);
+
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	if (!Property->Identical(PropertyAddress, StorageSpace, PPF_None))
+	{
+		if (Setter == nullptr)
+		{
+			Property->CopyCompleteValue(PropertyAddress, StorageSpace);
+		}
+		else
+		{
+			check(PropertySize == Setter->GetStructureSize());
+			Object->ProcessEvent(Setter, StorageSpace);
+		}
+		if (Property->IsA<FArrayProperty>())
+		{
+			NoesisNotifyArrayPropertyPostReset(PropertyAddress);
+		}
+		else if (Property->IsA<FMapProperty>())
+		{
+			NoesisNotifyMapPropertyPostReset(PropertyAddress);
+		}
+		else
+		{
+			NoesisNotifyPropertyChanged(Object, Property->GetFName());
+		}
+	}
+	P_NATIVE_END;
+
+	Property->DestroyValue(StorageSpace);
 }
 
 DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisStruct_NotEqual)

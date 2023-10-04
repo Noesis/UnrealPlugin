@@ -18,10 +18,8 @@ UNoesisWorldUIComponent::UNoesisWorldUIComponent(): Xaml(nullptr), Scale(1.0f), 
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-void UNoesisWorldUIComponent::BeginPlay()
+void UNoesisWorldUIComponent::Add3DElement()
 {
-	Super::BeginPlay();
-
 	Element = Noesis::DynamicPtrCast<Noesis::FrameworkElement>(Xaml->LoadXaml());
 	if (Element != nullptr)
 	{
@@ -39,7 +37,7 @@ void UNoesisWorldUIComponent::BeginPlay()
 	}
 }
 
-void UNoesisWorldUIComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void UNoesisWorldUIComponent::Remove3DElement()
 {
 	if (Element != nullptr)
 	{
@@ -47,6 +45,19 @@ void UNoesisWorldUIComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		TransformUpdated.Remove(TransformUpdatedDelegateHandle);
 		Element.Reset();
 	}
+}
+
+void UNoesisWorldUIComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	Add3DElement();
+}
+
+void UNoesisWorldUIComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Remove3DElement();
+
 	Super::EndPlay(EndPlayReason);
 }
 

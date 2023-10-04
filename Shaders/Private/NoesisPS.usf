@@ -460,6 +460,9 @@ Out NoesisPS(in In i)
         #if PATTERN_SRGB
             paint.xyz = LinearToSrgb(paint.xyz);
         #endif
+        #if PATTERN_LINEAR
+            paint.xyz = sRGBToLinear(paint.xyz);
+        #endif
         half opacity_ = NoesisPSOpacityConstants.opacity;
     #endif
 

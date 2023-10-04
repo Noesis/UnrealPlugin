@@ -35,6 +35,7 @@ static float2 PostProcessInput_0_UVViewportSizeInverse;
 static float2 PostProcessInput_0_UVViewportBilinearMin;
 static float2 PostProcessInput_0_UVViewportBilinearMax;
 
+SCREEN_PASS_TEXTURE_VIEWPORT(PostProcessInput)
 SCREEN_PASS_TEXTURE_VIEWPORT(PostProcessInput_1)
 SCREEN_PASS_TEXTURE_VIEWPORT(PostProcessInput_2)
 SCREEN_PASS_TEXTURE_VIEWPORT(PostProcessInput_3)
@@ -93,11 +94,11 @@ Out NoesisPS(in In i)
     ResolvedView = ResolveView();
     FMaterialPixelParameters Parameters = MakeInitializedMaterialPixelParameters();
 
-    PostProcessInput_0_Extent = PostProcessInput_1_Extent;
-    PostProcessInput_0_ExtentInverse = PostProcessInput_1_ExtentInverse;
+    PostProcessInput_0_Extent = PostProcessInput_Extent;
+    PostProcessInput_0_ExtentInverse = PostProcessInput_ExtentInverse;
 
-    PostProcessInput_0_ScreenPosToViewportScale = PostProcessInput_1_ScreenPosToViewportScale;
-    PostProcessInput_0_ScreenPosToViewportBias = PostProcessInput_1_ScreenPosToViewportBias;
+    PostProcessInput_0_ScreenPosToViewportScale = PostProcessInput_ScreenPosToViewportScale;
+    PostProcessInput_0_ScreenPosToViewportBias = PostProcessInput_ScreenPosToViewportBias;
 
     PostProcessInput_0_UVViewportBilinearMin = i.rect.xy;
     PostProcessInput_0_UVViewportBilinearMax = i.rect.zw;

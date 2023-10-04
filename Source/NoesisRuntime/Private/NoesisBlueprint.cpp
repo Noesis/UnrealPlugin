@@ -20,6 +20,7 @@ UNoesisBlueprint::UNoesisBlueprint(const FObjectInitializer& ObjectInitializer)
 	EmulateTouch = false;
 	EnableTouch = true;
 	EnableActions = false;
+	PixelDepthBias = -1.0f;
 }
 
 #if WITH_EDITOR

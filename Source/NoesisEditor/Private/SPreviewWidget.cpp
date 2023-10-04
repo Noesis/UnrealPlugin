@@ -12,6 +12,15 @@
 #include "NoesisBlueprint.h"
 #include "NoesisInstance.h"
 
+SPreviewWidget::~SPreviewWidget()
+{
+	auto PinnedBlueprintEditor = BlueprintEditor.Pin();
+	if (PinnedBlueprintEditor.IsValid())
+	{
+		PinnedBlueprintEditor->OnBlueprintPreviewUpdated.Remove(InvalidatePreviewDelegateHandle);
+	}
+}
+
 void SPreviewWidget::Construct(const FArguments& InArg, TSharedPtr<class FNoesisBlueprintEditor> InBlueprintEditor)
 {
 	BlueprintEditor = InBlueprintEditor;
@@ -26,7 +35,7 @@ void SPreviewWidget::Construct(const FArguments& InArg, TSharedPtr<class FNoesis
 		]
 	];
 
-	BlueprintEditor.Pin()->OnBlueprintPreviewUpdated.AddRaw(this, &SPreviewWidget::InvalidatePreviewWidget);
+	InvalidatePreviewDelegateHandle = BlueprintEditor.Pin()->OnBlueprintPreviewUpdated.AddRaw(this, &SPreviewWidget::InvalidatePreviewWidget);
 }
 
 void SPreviewWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)

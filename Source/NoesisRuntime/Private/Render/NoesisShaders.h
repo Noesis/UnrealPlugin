@@ -19,7 +19,9 @@
 
 // Renderer includes
 #include "MaterialShader.h"
+#if UE_VERSION_OLDER_THAN(5, 3, 0)
 #include "Runtime/Renderer/Private/ScreenPass.h"
+#endif
 #include "Runtime/Renderer/Private/PostProcess/PostProcessMaterial.h"
 
 // Engine includes
@@ -28,6 +30,10 @@
 #else
 #include "MaterialDomain.h"
 #include "Materials/MaterialRenderProxy.h"
+#endif
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
+#else
+#include "SceneTexturesConfig.h"
 #endif
 
 // Noesis includes
@@ -53,7 +59,11 @@ public:
 	{
 	}
 
+#if UE_VERSION_OLDER_THAN(5, 3, 0)
 	virtual void InitRHI() override
+#else
+	virtual void InitRHI(FRHICommandListBase& RHICmdList) override
+#endif
 	{
 		const uint16 Stride = (uint16)Noesis::SizeForFormat[VertexFormat];
 		const uint8 Attributes = (uint8)Noesis::AttributesForFormat[VertexFormat];
@@ -162,9 +172,15 @@ public:
 	FNoesisVSBase(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FGlobalShader(Initializer)
 	{
+#if UE_VERSION_OLDER_THAN(5, 3, 0)
 		VSConstantsBuffer.Bind(Initializer.ParameterMap, FNoesisVSConstants::StaticStructMetadata.GetShaderVariableName());
 		VSConstantsBufferRightEye.Bind(Initializer.ParameterMap, FNoesisVSConstantsRightEye::StaticStructMetadata.GetShaderVariableName());
 		TextureSizeBuffer.Bind(Initializer.ParameterMap, FNoesisTextureSize::StaticStructMetadata.GetShaderVariableName());
+#else
+		VSConstantsBuffer.Bind(Initializer.ParameterMap, FNoesisVSConstants::GetStructMetadata()->GetShaderVariableName());
+		VSConstantsBufferRightEye.Bind(Initializer.ParameterMap, FNoesisVSConstantsRightEye::GetStructMetadata()->GetShaderVariableName());
+		TextureSizeBuffer.Bind(Initializer.ParameterMap, FNoesisTextureSize::GetStructMetadata()->GetShaderVariableName());
+#endif
 	}
 
 	FNoesisVSBase()
@@ -178,15 +194,27 @@ public:
 		FRHIVertexShader* ShaderRHI = RHICmdList.GetBoundVertexShader();
 
 		check(VSConstantsBuffer.IsBound());
+#if UE_VERSION_OLDER_THAN(5, 3, 0)
 		SetUniformBufferParameter(RHICmdList, ShaderRHI, VSConstantsBuffer, VSConstants);
+#else
+		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
+		BatchedParameters.SetShaderUniformBuffer(VSConstantsBuffer.GetBaseIndex(), VSConstants);
+		RHICmdList.SetBatchedShaderParameters(ShaderRHI, BatchedParameters);
+#endif
 	}
 
-	void SetVSConstantsRightEye(FRHICommandList& RHICmdList, const FUniformBufferRHIRef& VSConstants)
+	void SetVSConstantsRightEye(FRHICommandList& RHICmdList, const FUniformBufferRHIRef& VSConstantsRightEye)
 	{
 		FRHIVertexShader* ShaderRHI = RHICmdList.GetBoundVertexShader();
 
 		check(VSConstantsBufferRightEye.IsBound());
-		SetUniformBufferParameter(RHICmdList, ShaderRHI, VSConstantsBufferRightEye, VSConstants);
+#if UE_VERSION_OLDER_THAN(5, 3, 0)
+		SetUniformBufferParameter(RHICmdList, ShaderRHI, VSConstantsBufferRightEye, VSConstantsRightEye);
+#else
+		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
+		BatchedParameters.SetShaderUniformBuffer(VSConstantsBufferRightEye.GetBaseIndex(), VSConstantsRightEye);
+		RHICmdList.SetBatchedShaderParameters(ShaderRHI, BatchedParameters);
+#endif
 	}
 
 	void SetTextureSize(FRHICommandList& RHICmdList, const FUniformBufferRHIRef& TextureSize)
@@ -194,7 +222,13 @@ public:
 		FRHIVertexShader* ShaderRHI = RHICmdList.GetBoundVertexShader();
 
 		check(TextureSizeBuffer.IsBound());
+#if UE_VERSION_OLDER_THAN(5, 3, 0)
 		SetUniformBufferParameter(RHICmdList, ShaderRHI, TextureSizeBuffer, TextureSize);
+#else
+		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
+		BatchedParameters.SetShaderUniformBuffer(TextureSizeBuffer.GetBaseIndex(), TextureSize);
+		RHICmdList.SetBatchedShaderParameters(ShaderRHI, BatchedParameters);
+#endif
 	}
 
 	LAYOUT_FIELD(FShaderUniformBufferParameter, VSConstantsBuffer);
@@ -202,7 +236,13 @@ public:
 	LAYOUT_FIELD(FShaderUniformBufferParameter, TextureSizeBuffer)
 };
 
-template<Noesis::Shader::Vertex::Enum VertexShader>
+enum class NoesisColorSpace
+{
+	sRGB,
+	Linear
+};
+
+template<Noesis::Shader::Vertex::Enum VertexShader, NoesisColorSpace ColorSpace = NoesisColorSpace::sRGB, bool Stereo = false>
 class FNoesisVS : public FNoesisVSBase
 {
 	DECLARE_SHADER_TYPE(FNoesisVS, Global);
@@ -218,6 +258,7 @@ class FNoesisVS : public FNoesisVSBase
 	static const constexpr bool HasImagePos = (Attributes & (1 << Noesis::Shader::Vertex::Format::Attr::ImagePos)) != 0;
 	static const constexpr bool Downsample = (VertexShader == Noesis::Shader::Vertex::PosTex0Tex1_Downsample);
 	static const constexpr bool SDF = (VertexShader >= Noesis::Shader::Vertex::PosColorTex1_SDF) && (VertexShader <= Noesis::Shader::Vertex::PosTex0Tex1RectTile_SDF);
+	static const constexpr bool LinearColor = ColorSpace == NoesisColorSpace::Linear;
 
 	FNoesisVS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FNoesisVSBase(Initializer)
@@ -245,6 +286,8 @@ class FNoesisVS : public FNoesisVSBase
 		OutEnvironment.SetDefine(TEXT("HAS_IMAGE_POSITION"), HasImagePos);
 		OutEnvironment.SetDefine(TEXT("DOWNSAMPLE"), Downsample);
 		OutEnvironment.SetDefine(TEXT("SDF"), SDF);
+		OutEnvironment.SetDefine(TEXT("LINEAR_COLOR"), LinearColor);
+		OutEnvironment.SetDefine(TEXT("WITH_STEREO"), Stereo);
 	}
 };
 
@@ -270,6 +313,44 @@ typedef FNoesisVS<Noesis::Shader::Vertex::PosTex0Tex1_Downsample> FNoesisPosTex0
 typedef FNoesisVS<Noesis::Shader::Vertex::PosColorTex1Rect> FNoesisPosColorTex1RectVS;
 typedef FNoesisVS<Noesis::Shader::Vertex::PosColorTex0RectImagePos> FNoesisPosColorTex0RectImagePosVS;
 
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColor, NoesisColorSpace::Linear> FNoesisPosLinearColorVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorCoverage, NoesisColorSpace::Linear> FNoesisPosLinearColorCoverageVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorTex1_SDF, NoesisColorSpace::Linear> FNoesisPosLinearColorTex1SDFVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorTex1, NoesisColorSpace::Linear> FNoesisPosLinearColorTex1VS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorTex0Tex1, NoesisColorSpace::Linear> FNoesisPosLinearColorTex0Tex1VS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorTex1Rect, NoesisColorSpace::Linear> FNoesisPosLinearColorTex1RectVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorTex0RectImagePos, NoesisColorSpace::Linear> FNoesisPosLinearColorTex0RectImagePosVS;
+
+typedef FNoesisVS<Noesis::Shader::Vertex::Pos, NoesisColorSpace::sRGB, true> FNoesisPosStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColor, NoesisColorSpace::sRGB, true> FNoesisPosColorStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosTex0, NoesisColorSpace::sRGB, true> FNoesisPosTex0StereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosTex0Rect, NoesisColorSpace::sRGB, true> FNoesisPosTex0RectStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosTex0RectTile, NoesisColorSpace::sRGB, true> FNoesisPosTex0RectTileStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorCoverage, NoesisColorSpace::sRGB, true> FNoesisPosColorCoverageStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosTex0Coverage, NoesisColorSpace::sRGB, true> FNoesisPosTex0CoverageStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosTex0CoverageRect, NoesisColorSpace::sRGB, true> FNoesisPosTex0CoverageRectStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosTex0CoverageRectTile, NoesisColorSpace::sRGB, true> FNoesisPosTex0CoverageRectTileStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorTex1_SDF, NoesisColorSpace::sRGB, true> FNoesisPosColorTex1SDFStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosTex0Tex1_SDF, NoesisColorSpace::sRGB, true> FNoesisPosTex0Tex1SDFStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosTex0Tex1Rect_SDF, NoesisColorSpace::sRGB, true> FNoesisPosTex0Tex1RectSDFStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosTex0Tex1RectTile_SDF, NoesisColorSpace::sRGB, true> FNoesisPosTex0Tex1RectTileSDFStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorTex1, NoesisColorSpace::sRGB, true> FNoesisPosColorTex1StereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosTex0Tex1, NoesisColorSpace::sRGB, true> FNoesisPosTex0Tex1StereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosTex0Tex1Rect, NoesisColorSpace::sRGB, true> FNoesisPosTex0Tex1RectStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosTex0Tex1RectTile, NoesisColorSpace::sRGB, true> FNoesisPosTex0Tex1RectTileStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorTex0Tex1, NoesisColorSpace::sRGB, true> FNoesisPosColorTex0Tex1StereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosTex0Tex1_Downsample, NoesisColorSpace::sRGB, true> FNoesisPosTex0Tex1DownsampleStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorTex1Rect, NoesisColorSpace::sRGB, true> FNoesisPosColorTex1RectStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorTex0RectImagePos, NoesisColorSpace::sRGB, true> FNoesisPosColorTex0RectImagePosStereoVS;
+
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColor, NoesisColorSpace::Linear, true> FNoesisPosLinearColorStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorCoverage, NoesisColorSpace::Linear, true> FNoesisPosLinearColorCoverageStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorTex1_SDF, NoesisColorSpace::Linear, true> FNoesisPosLinearColorTex1SDFStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorTex1, NoesisColorSpace::Linear, true> FNoesisPosLinearColorTex1StereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorTex0Tex1, NoesisColorSpace::Linear, true> FNoesisPosLinearColorTex0Tex1StereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorTex1Rect, NoesisColorSpace::Linear, true> FNoesisPosLinearColorTex1RectStereoVS;
+typedef FNoesisVS<Noesis::Shader::Vertex::PosColorTex0RectImagePos, NoesisColorSpace::Linear, true> FNoesisPosLinearColorTex0RectImagePosStereoVS;
+
 class FNoesisPSBase : public FGlobalShader
 {
 	DECLARE_INLINE_TYPE_LAYOUT(FNoesisPSBase, NonVirtual);
@@ -278,6 +359,7 @@ public:
 	FNoesisPSBase(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FGlobalShader(Initializer)
 	{
+#if UE_VERSION_OLDER_THAN(5, 3, 0)
 		if (Initializer.ParameterMap.ContainsParameterAllocation(FNoesisPSRgbaConstants::StaticStructMetadata.GetShaderVariableName()))
 		{
 			PSConstantsBuffer.Bind(Initializer.ParameterMap, FNoesisPSRgbaConstants::StaticStructMetadata.GetShaderVariableName());
@@ -299,6 +381,29 @@ public:
 		{
 			EffectsBuffer.Bind(Initializer.ParameterMap, FNoesisShadowConstants::StaticStructMetadata.GetShaderVariableName());
 		}
+#else
+		if (Initializer.ParameterMap.ContainsParameterAllocation(FNoesisPSRgbaConstants::GetStructMetadata()->GetShaderVariableName()))
+		{
+			PSConstantsBuffer.Bind(Initializer.ParameterMap, FNoesisPSRgbaConstants::GetStructMetadata()->GetShaderVariableName());
+		}
+		else if (Initializer.ParameterMap.ContainsParameterAllocation(FNoesisPSOpacityConstants::GetStructMetadata()->GetShaderVariableName()))
+		{
+			PSConstantsBuffer.Bind(Initializer.ParameterMap, FNoesisPSOpacityConstants::GetStructMetadata()->GetShaderVariableName());
+		}
+		else if (Initializer.ParameterMap.ContainsParameterAllocation(FNoesisPSRadialGradConstants::GetStructMetadata()->GetShaderVariableName()))
+		{
+			PSConstantsBuffer.Bind(Initializer.ParameterMap, FNoesisPSRadialGradConstants::GetStructMetadata()->GetShaderVariableName());
+		}
+
+		if (Initializer.ParameterMap.ContainsParameterAllocation(FNoesisBlurConstants::GetStructMetadata()->GetShaderVariableName()))
+		{
+			EffectsBuffer.Bind(Initializer.ParameterMap, FNoesisBlurConstants::GetStructMetadata()->GetShaderVariableName());
+		}
+		else if (Initializer.ParameterMap.ContainsParameterAllocation(FNoesisShadowConstants::GetStructMetadata()->GetShaderVariableName()))
+		{
+			EffectsBuffer.Bind(Initializer.ParameterMap, FNoesisShadowConstants::GetStructMetadata()->GetShaderVariableName());
+		}
+#endif
 
 		PatternTexture.Bind(Initializer.ParameterMap, TEXT("patternTex"));
 		PatternSampler.Bind(Initializer.ParameterMap, TEXT("patternSampler"));
@@ -323,7 +428,14 @@ public:
 		FRHIPixelShader* ShaderRHI = RHICmdList.GetBoundPixelShader();
 
 		check(PSConstantsBuffer.IsBound());
+#if UE_VERSION_OLDER_THAN(5, 3, 0)
 		SetUniformBufferParameter(RHICmdList, ShaderRHI, PSConstantsBuffer, PSConstants);
+#else
+		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
+		BatchedParameters.SetShaderUniformBuffer(PSConstantsBuffer.GetBaseIndex(), PSConstants);
+		RHICmdList.SetBatchedShaderParameters(ShaderRHI, BatchedParameters);
+#endif
+
 	}
 
 	void SetEffects(FRHICommandList& RHICmdList, const FUniformBufferRHIRef& Effects)
@@ -331,7 +443,13 @@ public:
 		FRHIPixelShader* ShaderRHI = RHICmdList.GetBoundPixelShader();
 
 		check(EffectsBuffer.IsBound());
+#if UE_VERSION_OLDER_THAN(5, 3, 0)
 		SetUniformBufferParameter(RHICmdList, ShaderRHI, EffectsBuffer, Effects);
+#else
+		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
+		BatchedParameters.SetShaderUniformBuffer(EffectsBuffer.GetBaseIndex(), Effects);
+		RHICmdList.SetBatchedShaderParameters(ShaderRHI, BatchedParameters);
+#endif
 	}
 
 	void SetPatternTexture(FRHICommandList& RHICmdList, FRHITexture* PatternTextureResource, FRHISamplerState* PatternSamplerResource)
@@ -383,7 +501,7 @@ public:
 	LAYOUT_FIELD(FShaderResourceParameter, ShadowSampler)
 };
 
-template<Noesis::Shader::Enum Effect, bool PatternSRGB = false>
+template<Noesis::Shader::Enum Effect>
 class FNoesisPS : public FNoesisPSBase
 {
 	DECLARE_SHADER_TYPE(FNoesisPS, Global);
@@ -413,7 +531,74 @@ class FNoesisPS : public FNoesisPSBase
 		// The shaders that need to do this conversion are more expensive, so we are still
 		// setting SRGB to false when we import textures. But at least this means that
 		// user textures should work regardless.
-		OutEnvironment.SetDefine(TEXT("PATTERN_SRGB"), PatternSRGB);
+		OutEnvironment.SetDefine(TEXT("PATTERN_SRGB"), false);
+
+		// TODO: Add comment
+		OutEnvironment.SetDefine(TEXT("PATTERN_LINEAR"), false);
+	}
+};
+
+template<Noesis::Shader::Enum Effect>
+class FNoesisPatternSRGBPS : public FNoesisPSBase
+{
+	DECLARE_SHADER_TYPE(FNoesisPatternSRGBPS, Global);
+
+	FNoesisPatternSRGBPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FNoesisPSBase(Initializer)
+	{
+	}
+
+	FNoesisPatternSRGBPS()
+	{
+	}
+
+	static bool ShouldCache(EShaderPlatform Platform)
+	{
+		return true;
+	}
+
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		FGlobalShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+		OutEnvironment.SetDefine(TEXT("EFFECT"), Effect);
+
+		// Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
+		OutEnvironment.SetDefine(TEXT("PATTERN_SRGB"), true);
+
+		// Read the comment next to PATTERN_LINEAR in FNoesisPS::ModifyCompilationEnvironment
+		OutEnvironment.SetDefine(TEXT("PATTERN_LINEAR"), false);
+	}
+};
+
+template<Noesis::Shader::Enum Effect>
+class FNoesisPatternLinearPS : public FNoesisPSBase
+{
+	DECLARE_SHADER_TYPE(FNoesisPatternLinearPS, Global);
+
+	FNoesisPatternLinearPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FNoesisPSBase(Initializer)
+	{
+	}
+
+	FNoesisPatternLinearPS()
+	{
+	}
+
+	static bool ShouldCache(EShaderPlatform Platform)
+	{
+		return true;
+	}
+
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		FGlobalShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+		OutEnvironment.SetDefine(TEXT("EFFECT"), Effect);
+
+		// Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
+		OutEnvironment.SetDefine(TEXT("PATTERN_SRGB"), false);
+
+		// Read the comment next to PATTERN_LINEAR in FNoesisPS::ModifyCompilationEnvironment
+		OutEnvironment.SetDefine(TEXT("PATTERN_LINEAR"), true);
 	}
 };
 
@@ -479,40 +664,76 @@ typedef FNoesisPS<Noesis::Shader::Shadow> FNoesisShadowPS;
 typedef FNoesisPS<Noesis::Shader::Blur> FNoesisBlurPS;
 
 // Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
-typedef FNoesisPS<Noesis::Shader::Path_Pattern, true> FNoesisPathPatternSRGBPS;
-typedef FNoesisPS<Noesis::Shader::Path_Pattern_Clamp, true> FNoesisPathPatternClampSRGBPS;
-typedef FNoesisPS<Noesis::Shader::Path_Pattern_Repeat, true> FNoesisPathPatternRepeatSRGBPS;
-typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorU, true> FNoesisPathPatternMirrorUSRGBPS;
-typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorV, true> FNoesisPathPatternMirrorVSRGBPS;
-typedef FNoesisPS<Noesis::Shader::Path_Pattern_Mirror, true> FNoesisPathPatternMirrorSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_Pattern> FNoesisPathPatternSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_Pattern_Clamp> FNoesisPathPatternClampSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_Pattern_Repeat> FNoesisPathPatternRepeatSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_Pattern_MirrorU> FNoesisPathPatternMirrorUSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_Pattern_MirrorV> FNoesisPathPatternMirrorVSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_Pattern_Mirror> FNoesisPathPatternMirrorSRGBPS;
 
-typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern, true> FNoesisPathAAPatternSRGBPS;
-typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Clamp, true> FNoesisPathAAPatternClampSRGBPS;
-typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Repeat, true> FNoesisPathAAPatternRepeatSRGBPS;
-typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorU, true> FNoesisPathAAPatternMirrorUSRGBPS;
-typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorV, true> FNoesisPathAAPatternMirrorVSRGBPS;
-typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Mirror, true> FNoesisPathAAPatternMirrorSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_AA_Pattern> FNoesisPathAAPatternSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_AA_Pattern_Clamp> FNoesisPathAAPatternClampSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_AA_Pattern_Repeat> FNoesisPathAAPatternRepeatSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_AA_Pattern_MirrorU> FNoesisPathAAPatternMirrorUSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_AA_Pattern_MirrorV> FNoesisPathAAPatternMirrorVSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_AA_Pattern_Mirror> FNoesisPathAAPatternMirrorSRGBPS;
 
-typedef FNoesisPS<Noesis::Shader::SDF_Pattern, true> FNoesisSDFPatternSRGBPS;
-typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Clamp, true> FNoesisSDFPatternClampSRGBPS;
-typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Repeat, true> FNoesisSDFPatternRepeatSRGBPS;
-typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorU, true> FNoesisSDFPatternMirrorUSRGBPS;
-typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorV, true> FNoesisSDFPatternMirrorVSRGBPS;
-typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Mirror, true> FNoesisSDFPatternMirrorSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_Pattern> FNoesisSDFPatternSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_Pattern_Clamp> FNoesisSDFPatternClampSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_Pattern_Repeat> FNoesisSDFPatternRepeatSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_Pattern_MirrorU> FNoesisSDFPatternMirrorUSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_Pattern_MirrorV> FNoesisSDFPatternMirrorVSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_Pattern_Mirror> FNoesisSDFPatternMirrorSRGBPS;
 
-typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern, true> FNoesisSDFLCDPatternSRGBPS;
-typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Clamp, true> FNoesisSDFLCDPatternClampSRGBPS;
-typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Repeat, true> FNoesisSDFLCDPatternRepeatSRGBPS;
-typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU, true> FNoesisSDFLCDPatternMirrorUSRGBPS;
-typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV, true> FNoesisSDFLCDPatternMirrorVSRGBPS;
-typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Mirror, true> FNoesisSDFLCDPatternMirrorSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_LCD_Pattern> FNoesisSDFLCDPatternSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_LCD_Pattern_Clamp> FNoesisSDFLCDPatternClampSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_LCD_Pattern_Repeat> FNoesisSDFLCDPatternRepeatSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU> FNoesisSDFLCDPatternMirrorUSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV> FNoesisSDFLCDPatternMirrorVSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_LCD_Pattern_Mirror> FNoesisSDFLCDPatternMirrorSRGBPS;
 
-typedef FNoesisPS<Noesis::Shader::Opacity_Pattern, true> FNoesisOpacityPatternSRGBPS;
-typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Clamp, true> FNoesisOpacityPatternClampSRGBPS;
-typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Repeat, true> FNoesisOpacityPatternRepeatSRGBPS;
-typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorU, true> FNoesisOpacityPatternMirrorUSRGBPS;
-typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorV, true> FNoesisOpacityPatternMirrorVSRGBPS;
-typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Mirror, true> FNoesisOpacityPatternMirrorSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Opacity_Pattern> FNoesisOpacityPatternSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Opacity_Pattern_Clamp> FNoesisOpacityPatternClampSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Opacity_Pattern_Repeat> FNoesisOpacityPatternRepeatSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Opacity_Pattern_MirrorU> FNoesisOpacityPatternMirrorUSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Opacity_Pattern_MirrorV> FNoesisOpacityPatternMirrorVSRGBPS;
+typedef FNoesisPatternSRGBPS<Noesis::Shader::Opacity_Pattern_Mirror> FNoesisOpacityPatternMirrorSRGBPS;
+
+// Read the comment next to PATTERN_LINEAR in FNoesisPS::ModifyCompilationEnvironment
+typedef FNoesisPatternLinearPS<Noesis::Shader::Path_Pattern> FNoesisPathPatternLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::Path_Pattern_Clamp> FNoesisPathPatternClampLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::Path_Pattern_Repeat> FNoesisPathPatternRepeatLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::Path_Pattern_MirrorU> FNoesisPathPatternMirrorULinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::Path_Pattern_MirrorV> FNoesisPathPatternMirrorVLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::Path_Pattern_Mirror> FNoesisPathPatternMirrorLinearPS;
+
+typedef FNoesisPatternLinearPS<Noesis::Shader::Path_AA_Pattern> FNoesisPathAAPatternLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::Path_AA_Pattern_Clamp> FNoesisPathAAPatternClampLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::Path_AA_Pattern_Repeat> FNoesisPathAAPatternRepeatLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::Path_AA_Pattern_MirrorU> FNoesisPathAAPatternMirrorULinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::Path_AA_Pattern_MirrorV> FNoesisPathAAPatternMirrorVLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::Path_AA_Pattern_Mirror> FNoesisPathAAPatternMirrorLinearPS;
+
+typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_Pattern> FNoesisSDFPatternLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_Pattern_Clamp> FNoesisSDFPatternClampLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_Pattern_Repeat> FNoesisSDFPatternRepeatLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_Pattern_MirrorU> FNoesisSDFPatternMirrorULinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_Pattern_MirrorV> FNoesisSDFPatternMirrorVLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_Pattern_Mirror> FNoesisSDFPatternMirrorLinearPS;
+
+typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_LCD_Pattern> FNoesisSDFLCDPatternLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_LCD_Pattern_Clamp> FNoesisSDFLCDPatternClampLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_LCD_Pattern_Repeat> FNoesisSDFLCDPatternRepeatLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU> FNoesisSDFLCDPatternMirrorULinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV> FNoesisSDFLCDPatternMirrorVLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_LCD_Pattern_Mirror> FNoesisSDFLCDPatternMirrorLinearPS;
+
+typedef FNoesisPatternLinearPS<Noesis::Shader::Opacity_Pattern> FNoesisOpacityPatternLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::Opacity_Pattern_Clamp> FNoesisOpacityPatternClampLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::Opacity_Pattern_Repeat> FNoesisOpacityPatternRepeatLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::Opacity_Pattern_MirrorU> FNoesisOpacityPatternMirrorULinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::Opacity_Pattern_MirrorV> FNoesisOpacityPatternMirrorVLinearPS;
+typedef FNoesisPatternLinearPS<Noesis::Shader::Opacity_Pattern_Mirror> FNoesisOpacityPatternMirrorLinearPS;
 
 class FNoesisMaterialPSBase : public FMaterialShader
 {
@@ -522,7 +743,11 @@ public:
 	FNoesisMaterialPSBase(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FMaterialShader(Initializer)
 	{
+#if UE_VERSION_OLDER_THAN(5, 3, 0)
 		PSConstantsBuffer.Bind(Initializer.ParameterMap, FNoesisPSOpacityConstants::StaticStructMetadata.GetShaderVariableName());
+#else
+		PSConstantsBuffer.Bind(Initializer.ParameterMap, FNoesisPSOpacityConstants::GetStructMetadata()->GetShaderVariableName());
+#endif
 
 		ImageTexture.Bind(Initializer.ParameterMap, TEXT("imageTex"));
 		ImageSampler.Bind(Initializer.ParameterMap, TEXT("imageSampler"));
@@ -544,7 +769,13 @@ public:
 		FRHIPixelShader* ShaderRHI = RHICmdList.GetBoundPixelShader();
 
 		check(PSConstantsBuffer.IsBound());
+#if UE_VERSION_OLDER_THAN(5, 3, 0)
 		SetUniformBufferParameter(RHICmdList, ShaderRHI, PSConstantsBuffer, PSConstants);
+#else
+		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
+		BatchedParameters.SetShaderUniformBuffer(PSConstantsBuffer.GetBaseIndex(), PSConstants);
+		RHICmdList.SetBatchedShaderParameters(ShaderRHI, BatchedParameters);
+#endif
 	}
 
 	void SetEffects(FRHICommandList& RHICmdList, const FUniformBufferRHIRef& Effects)
@@ -614,6 +845,34 @@ class FNoesisMaterialPS : public FNoesisMaterialPSBase
 	}
 };
 
+template<Noesis::Shader::Enum Effect>
+class FNoesisMaterialLinearColorPS : public FNoesisMaterialPSBase
+{
+	DECLARE_SHADER_TYPE(FNoesisMaterialLinearColorPS, Material);
+
+	FNoesisMaterialLinearColorPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FNoesisMaterialPSBase(Initializer)
+	{
+	}
+
+	FNoesisMaterialLinearColorPS()
+	{
+	}
+
+	static bool ShouldCache(EShaderPlatform Platform)
+	{
+		return true;
+	}
+
+	static void ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		FMaterialShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+		OutEnvironment.SetDefine(TEXT("EFFECT"), Effect);
+
+		OutEnvironment.SetDefine(TEXT("PATTERN_LINEAR"), true);
+	}
+};
+
 // The commas in the template parameter list break the IMPLEMENT_SHADER_TYPE macro, so we need typedefs.
 typedef FNoesisMaterialPS<Noesis::Shader::Path_Pattern> FNoesisPathMaterialPS;
 typedef FNoesisMaterialPS<Noesis::Shader::Path_Pattern_Clamp> FNoesisPathMaterialClampPS;
@@ -650,58 +909,45 @@ typedef FNoesisMaterialPS<Noesis::Shader::Opacity_Pattern_MirrorU> FNoesisOpacit
 typedef FNoesisMaterialPS<Noesis::Shader::Opacity_Pattern_MirrorV> FNoesisOpacityMaterialMirrorVPS;
 typedef FNoesisMaterialPS<Noesis::Shader::Opacity_Pattern_Mirror> FNoesisOpacityMaterialMirrorPS;
 
+// The commas in the template parameter list break the IMPLEMENT_SHADER_TYPE macro, so we need typedefs.
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_Pattern> FNoesisPathMaterialLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_Pattern_Clamp> FNoesisPathMaterialClampLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_Pattern_Repeat> FNoesisPathMaterialRepeatLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_Pattern_MirrorU> FNoesisPathMaterialMirrorULinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_Pattern_MirrorV> FNoesisPathMaterialMirrorVLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_Pattern_Mirror> FNoesisPathMaterialMirrorLinearColorPS;
 
-BEGIN_SHADER_PARAMETER_STRUCT(FNoesisSceneTextureUniformParameters, )
-	// Scene Color / Depth
-	SHADER_PARAMETER_TEXTURE(Texture2D, SceneColorTexture)
-	SHADER_PARAMETER_TEXTURE(Texture2D, SceneDepthTexture)
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_AA_Pattern> FNoesisPathAAMaterialLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_AA_Pattern_Clamp> FNoesisPathAAMaterialClampLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_AA_Pattern_Repeat> FNoesisPathAAMaterialRepeatLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_AA_Pattern_MirrorU> FNoesisPathAAMaterialMirrorULinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_AA_Pattern_MirrorV> FNoesisPathAAMaterialMirrorVLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_AA_Pattern_Mirror> FNoesisPathAAMaterialMirrorLinearColorPS;
 
-	// GBuffer
-	SHADER_PARAMETER_TEXTURE(Texture2D, GBufferATexture)
-	SHADER_PARAMETER_TEXTURE(Texture2D, GBufferBTexture)
-	SHADER_PARAMETER_TEXTURE(Texture2D, GBufferCTexture)
-	SHADER_PARAMETER_TEXTURE(Texture2D, GBufferDTexture)
-	SHADER_PARAMETER_TEXTURE(Texture2D, GBufferETexture)
-	SHADER_PARAMETER_TEXTURE(Texture2D, GBufferFTexture)
-	SHADER_PARAMETER_TEXTURE(Texture2D, GBufferVelocityTexture)
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_Pattern> FNoesisSDFMaterialLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_Pattern_Clamp> FNoesisSDFMaterialClampLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_Pattern_Repeat> FNoesisSDFMaterialRepeatLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_Pattern_MirrorU> FNoesisSDFMaterialMirrorULinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_Pattern_MirrorV> FNoesisSDFMaterialMirrorVLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_Pattern_Mirror> FNoesisSDFMaterialMirrorLinearColorPS;
 
-	// SSAO
-	SHADER_PARAMETER_TEXTURE(Texture2D, ScreenSpaceAOTexture)
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_LCD_Pattern> FNoesisSDFLCDMaterialLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_LCD_Pattern_Clamp> FNoesisSDFLCDMaterialClampLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_LCD_Pattern_Repeat> FNoesisSDFLCDMaterialRepeatLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU> FNoesisSDFLCDMaterialMirrorULinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV> FNoesisSDFLCDMaterialMirrorVLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_LCD_Pattern_Mirror> FNoesisSDFLCDMaterialMirrorLinearColorPS;
 
-	// Custom Depth / Stencil
-	SHADER_PARAMETER_TEXTURE(Texture2D, CustomDepthTexture)
-	SHADER_PARAMETER_SRV(Texture2D<uint2>, CustomStencilTexture)
-
-	// Misc
-	SHADER_PARAMETER_SAMPLER(SamplerState, PointClampSampler)
-END_GLOBAL_SHADER_PARAMETER_STRUCT()
-
-BEGIN_SHADER_PARAMETER_STRUCT(FNoesisMobileSceneTextureUniformParameters, )
-	SHADER_PARAMETER_TEXTURE(Texture2D, SceneColorTexture)
-	SHADER_PARAMETER_SAMPLER(SamplerState, SceneColorTextureSampler)
-	SHADER_PARAMETER_TEXTURE(Texture2D, SceneDepthTexture)
-	SHADER_PARAMETER_SAMPLER(SamplerState, SceneDepthTextureSampler)
-	SHADER_PARAMETER_TEXTURE(Texture2D, CustomDepthTexture)
-	SHADER_PARAMETER_SAMPLER(SamplerState, CustomDepthTextureSampler)
-	SHADER_PARAMETER_TEXTURE(Texture2D, MobileCustomStencilTexture)
-	SHADER_PARAMETER_SAMPLER(SamplerState, MobileCustomStencilTextureSampler)
-	SHADER_PARAMETER_UAV(RWBuffer<uint>, VirtualTextureFeedbackUAV)
-	// GBuffer
-	SHADER_PARAMETER_TEXTURE(Texture2D, GBufferATexture)
-	SHADER_PARAMETER_TEXTURE(Texture2D, GBufferBTexture)
-	SHADER_PARAMETER_TEXTURE(Texture2D, GBufferCTexture)
-	SHADER_PARAMETER_TEXTURE(Texture2D, GBufferDTexture)
-	SHADER_PARAMETER_TEXTURE(Texture2D, SceneDepthAuxTexture)
-	SHADER_PARAMETER_SAMPLER(SamplerState, GBufferATextureSampler)
-	SHADER_PARAMETER_SAMPLER(SamplerState, GBufferBTextureSampler)
-	SHADER_PARAMETER_SAMPLER(SamplerState, GBufferCTextureSampler)
-	SHADER_PARAMETER_SAMPLER(SamplerState, GBufferDTextureSampler)
-	SHADER_PARAMETER_SAMPLER(SamplerState, SceneDepthAuxTextureSampler)
-END_GLOBAL_SHADER_PARAMETER_STRUCT()
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Opacity_Pattern> FNoesisOpacityMaterialLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Opacity_Pattern_Clamp> FNoesisOpacityMaterialClampLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Opacity_Pattern_Repeat> FNoesisOpacityMaterialRepeatLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Opacity_Pattern_MirrorU> FNoesisOpacityMaterialMirrorULinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Opacity_Pattern_MirrorV> FNoesisOpacityMaterialMirrorVLinearColorPS;
+typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Opacity_Pattern_Mirror> FNoesisOpacityMaterialMirrorLinearColorPS;
 
 BEGIN_SHADER_PARAMETER_STRUCT(FNoesisSceneTextureShaderParameters, )
-	SHADER_PARAMETER_STRUCT_INCLUDE(FNoesisSceneTextureUniformParameters, SceneTextures)
-	SHADER_PARAMETER_STRUCT_INCLUDE(FNoesisMobileSceneTextureUniformParameters, MobileSceneTextures)
+	SHADER_PARAMETER_STRUCT_REF(FSceneTextureUniformParameters, SceneTextures)
+	SHADER_PARAMETER_STRUCT_REF(FMobileSceneTextureUniformParameters, MobileSceneTextures)
 END_SHADER_PARAMETER_STRUCT()
 
 BEGIN_SHADER_PARAMETER_STRUCT(FNoesisScreenPassTextureInput, )
@@ -713,6 +959,7 @@ END_SHADER_PARAMETER_STRUCT()
 BEGIN_SHADER_PARAMETER_STRUCT(FNoesisPostProcessMaterialParameters, )
 	SHADER_PARAMETER_STRUCT_REF(FViewUniformShaderParameters, View)
 	SHADER_PARAMETER_STRUCT_INCLUDE(FNoesisSceneTextureShaderParameters, SceneTextures)
+	SHADER_PARAMETER_STRUCT(FScreenPassTextureViewportParameters, PostProcessInput)
 	SHADER_PARAMETER_STRUCT(FScreenPassTextureViewportParameters, PostProcessOutput)
 	SHADER_PARAMETER_TEXTURE(Texture2D, PostProcessInput_0_Texture)
 	SHADER_PARAMETER_SAMPLER(SamplerState, PostProcessInput_0_Sampler)

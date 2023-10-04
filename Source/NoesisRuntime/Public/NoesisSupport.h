@@ -86,3 +86,9 @@ NOESISRUNTIME_API void NoesisDestroyMaterial(void* Material);
 NOESISRUNTIME_API void CollectElements(Noesis::FrameworkElement* Element, TArray<Noesis::FrameworkElement*>& Elements);
 
 bool NOESISRUNTIME_API NoesisIsViewportHovered(class UGameViewportClient* ViewportClient);
+
+template<typename T>
+inline uint32 GetTypeHash(const Noesis::Ptr<T>& Pointer)
+{
+	return PointerHash(Pointer.GetPtr());
+}

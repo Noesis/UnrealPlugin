@@ -673,6 +673,8 @@ public:
 	{
 		NoesisRuntimeModuleInterface = nullptr;
 
+		Noesis::GUI::SetApplicationResources(nullptr);
+
 		BackgroundImage::NoesisBackgroundTexture.Reset();
 
 		NoesisUnregisterOverlayRender(OverlayRenderDelegateHandle);

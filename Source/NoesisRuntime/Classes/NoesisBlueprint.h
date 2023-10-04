@@ -61,4 +61,8 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Noesis View")
 	bool EnableActions;
+
+	/** Set to a positive value, this property is added to the values returned by the PixelDepth node in a Material. */
+	UPROPERTY(EditAnywhere, Category = "Noesis View", meta = (DisplayName = "Material PixelDepth Bias"))
+	float PixelDepthBias;
 };
