@@ -27,7 +27,7 @@
 #include "NoesisSDK/Src/Packages/App/LangServer/Src/LangServer.cpp"
 #include "NoesisSDK/Src/Packages/App/LangServer/Src/LangServerReflectionHelper.cpp"
 #include "NoesisSDK/Src/Packages/App/LangServer/Src/LenientXamlParser.cpp"
-#include "NoesisSDK/Src/Packages/App/LangServer/Src/LSPErrorCodes.cpp"
+#include "NoesisSDK/Src/Packages/App/LangServer/Src/LangServerSocket.cpp"
 #include "NoesisSDK/Src/Packages/App/LangServer/Src/MessageBuffer.cpp"
 #include "NoesisSDK/Src/Packages/App/LangServer/Src/MessageReader.cpp"
 #include "NoesisSDK/Src/Packages/App/LangServer/Src/MessageWriter.cpp"

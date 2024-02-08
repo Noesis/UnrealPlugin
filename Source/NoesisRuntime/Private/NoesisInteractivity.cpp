@@ -57,6 +57,7 @@
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/TriggerActionCollection.cpp"
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/TriggerBase.Interactivity.cpp"
 #include "NoesisSDK/Src/Packages/App/Interactivity/Src/TriggerCollection.cpp"
+#include "NoesisSDK/Src/Packages/App/Interactivity/Src/LineDecorationBehavior.cpp"
 
 #if defined(_MSC_VER)
 #pragma warning(pop)

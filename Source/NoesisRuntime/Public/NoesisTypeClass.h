@@ -19,8 +19,8 @@
 /// Notifies that the specified property value has changed
 //@{
 NOESISRUNTIME_API void NoesisNotifyPropertyChanged(class UObject* Object, FName PropertyName);
-UE_DEPRECATED(3.1.5, "This function is deprecated. Use NoesisNotifyArrayPropertyPostReset instead.")
 NOESISRUNTIME_API void NoesisNotifyArrayPropertyChanged(class UObject* Object, FName ArrayPropertyName);
+NOESISRUNTIME_API void NoesisNotifyMapPropertyChanged(UObject* Owner, FName MapPropertyName);
 //@}
 
 /// Raises the *CanExecuteChanged* event for the Command stored in the specified property

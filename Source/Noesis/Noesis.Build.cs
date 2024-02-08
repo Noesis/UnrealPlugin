@@ -20,6 +20,7 @@ public class Noesis : ModuleRules
 		string NoesisRiveBaseIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "RiveBase", "Include");
 		string NoesisRiveIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "Rive", "Include");
 		string RiveIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "RiveBase", "Src", "rive", "include");
+		string RiveSheenBidiIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "RiveBase", "Src", "SheenBidi", "Headers");
 
 		// In monolithic builds we don't want the Interactivity and MediaElement functions
 		// dllexported or dllimported from any modules.
@@ -44,6 +45,7 @@ public class Noesis : ModuleRules
 		PublicIncludePaths.Add(NoesisRiveBaseIncludePath);
 		PublicIncludePaths.Add(NoesisRiveIncludePath);
 		PublicIncludePaths.Add(RiveIncludePath);
+		PublicIncludePaths.Add(RiveSheenBidiIncludePath);
 
 		if (Target.Type == TargetType.Editor)
 		{

@@ -126,6 +126,7 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	Noesis::Ptr<Noesis::FrameworkElement> Xaml;
 	Noesis::Ptr<Noesis::IView> XamlView;
 	Noesis::Ptr<Noesis::BaseComponent> DataContext;
+	FDelegateHandle PreTickDelegateHandle;
 	float Left;
 	float Top;
 	float Width;
@@ -205,6 +206,7 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	void Init3DWidget(UWorld* World);
 	void Term3DWidget(UWorld* World);
 	void Tick3DWidget(UWorld* World, ELevelTick TickType, float DeltaTime);
+	void ViewportResized();
 	void ViewportResized3DWidget();
 	static void Add3DElement(UWorld* World, Noesis::FrameworkElement* Element);
 	static void Remove3DElement(UWorld* World, Noesis::FrameworkElement* Element);
@@ -217,6 +219,8 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	bool HitTest(FVector2D Position) const;
 
 	void TermInstance();
+
+	void PreTick(float DeltaTime);
 
 	// UObject interface
 	virtual void BeginDestroy() override;
@@ -246,6 +250,7 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 #endif
 
 	// UUserWidget interface
+	virtual bool Initialize() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 	//virtual FVector2D ComputeDesiredSize(float LayoutScaleMultiplier) const override;

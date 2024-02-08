@@ -24,10 +24,36 @@
 #include "NoesisSupport.h"
 #include "NoesisRive.h"
 
-// LangServer includes
-#if WITH_EDITOR
-#include "NsApp/LangServer.h"
+static Noesis::Ptr<Noesis::Stream> LoadFont(const UFontFace* FontFace)
+{
+	class FontArrayMemoryStream : public Noesis::MemoryStream
+	{
+	public:
+		FontArrayMemoryStream(TArray<uint8>&& InFileData)
+			: Noesis::MemoryStream(InFileData.GetData(), (uint32)InFileData.Num()),
+			FileData(MoveTemp(InFileData))
+		{
+		}
+
+	private:
+		TArray<uint8> FileData;
+	};
+#if !WITH_EDITORONLY_DATA
+	if (FontFace->GetLoadingPolicy() != EFontLoadingPolicy::Inline)
+	{
+		TArray<uint8> FileData;
+		FFileHelper::LoadFileToArray(FileData, *FontFace->GetFontFilename());
+		return *new FontArrayMemoryStream(MoveTemp(FileData));
+	}
+	else
 #endif
+	{
+		const FFontFaceDataRef FontFaceDataRef = FontFace->FontFaceData;
+		const FFontFaceData& FontFaceData = FontFaceDataRef.Get();
+		const TArray<uint8>& FontFaceDataArray = FontFaceData.GetData();
+		return *new FontArrayMemoryStream(CopyTemp(FontFaceDataArray));
+	}
+}
 
 void FNoesisXamlProvider::OnXamlChanged(UNoesisXaml* Xaml)
 {
@@ -44,19 +70,6 @@ void FNoesisXamlProvider::OnXamlChanged(UNoesisXaml* Xaml)
 
 Noesis::Ptr<Noesis::Stream> FNoesisXamlProvider::LoadXaml(const Noesis::Uri& Uri)
 {
-#if WITH_EDITOR
-	Noesis::String Scheme;
-	Uri.GetScheme(Scheme);
-	if (Scheme == "lsfile")
-	{
-		Noesis::Ptr<Noesis::Stream> stream = Noesis::LangServer::GetXaml(Uri, true);
-		if (stream != nullptr)
-		{
-			return stream;
-		}
-	}
-#endif
-
 	FString Path = NsProviderUriToAssetPath(Uri);
 	UObject* Asset = LoadObject<UObject>(nullptr, *Path, nullptr, LOAD_NoWarn);
 
@@ -78,6 +91,12 @@ Noesis::Ptr<Noesis::Stream> FNoesisXamlProvider::LoadXaml(const Noesis::Uri& Uri
 	if (Rive)
 	{
 		return *new Noesis::MemoryStream(Rive->Content.GetData(), (uint32)Rive->Content.Num());
+	}
+
+	UFontFace* FontFace = Cast<UFontFace>(Asset);
+	if (FontFace)
+	{
+		return LoadFont(FontFace);
 	}
 
 	return nullptr;
@@ -105,20 +124,6 @@ Noesis::TextureInfo FNoesisTextureProvider::GetTextureInfo(const Noesis::Uri& Ur
 #endif
 		return Noesis::TextureInfo { (uint32)Texture->GetSizeX(), (uint32)Texture->GetSizeY() };
 	}
-
-#if WITH_EDITOR
-	Noesis::String Scheme;
-	Uri.GetScheme(Scheme);
-	if (Scheme == "lsfile")
-	{
-		Noesis::FixedString<512> Path;
-		Uri.GetPath(Path);
-		if (FPaths::FileExists(Path.Str()))
-		{
-			return Noesis::TextureInfo{ 1, 1 };
-		}
-	}
-#endif
 
 	return Noesis::TextureInfo {};
 }
@@ -180,17 +185,6 @@ Noesis::FontSource FNoesisFontProvider::MatchFont(const Noesis::Uri& BaseUri, co
 
 bool FNoesisFontProvider::FamilyExists(const Noesis::Uri& BaseUri, const char* FamilyName)
 {
-#if WITH_EDITOR
-	Noesis::String Scheme;
-	BaseUri.GetScheme(Scheme);
-	if (Scheme == "lsfile")
-	{
-		if (Noesis::LangServer::FolderHasFontFamily(BaseUri, FamilyName))
-		{
-			return true;
-		}
-	}
-#endif
 	return Noesis::CachedFontProvider::FamilyExists(GetUnrealUri(BaseUri), FamilyName);
 }
 
@@ -209,33 +203,7 @@ Noesis::Ptr<Noesis::Stream> FNoesisFontProvider::OpenFont(const Noesis::Uri& InF
 
 	if (FontFace != nullptr)
 	{
-		class FontArrayMemoryStream : public Noesis::MemoryStream
-		{
-		public:
-			FontArrayMemoryStream(TArray<uint8>&& InFileData)
-				: Noesis::MemoryStream(InFileData.GetData(), (uint32)InFileData.Num()),
-				FileData(MoveTemp(InFileData))
-			{
-			}
-
-		private:
-			TArray<uint8> FileData;
-		};
-#if !WITH_EDITORONLY_DATA
-		if (FontFace->GetLoadingPolicy() != EFontLoadingPolicy::Inline)
-		{
-			TArray<uint8> FileData;
-			FFileHelper::LoadFileToArray(FileData, *FontFace->GetFontFilename());
-			return *new FontArrayMemoryStream(MoveTemp(FileData));
-		}
-		else
-#endif
-		{
-			const FFontFaceDataRef FontFaceDataRef = FontFace->FontFaceData;
-			const FFontFaceData& FontFaceData = FontFaceDataRef.Get();
-			const TArray<uint8>& FontFaceDataArray = FontFaceData.GetData();
-			return *new FontArrayMemoryStream(CopyTemp(FontFaceDataArray));
-		}
+		return LoadFont(FontFace);
 	}
 
 	return nullptr;

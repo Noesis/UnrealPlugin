@@ -10,6 +10,7 @@
 #include "InputAction.h"
 
 // NoesisRuntime includes
+#include "NoesisRuntimeModule.h"
 #include "NoesisSupport.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -88,10 +89,13 @@ void EnhancedInputActionTrigger::RegisterAction()
             FString ActionPath = NsProviderUriToAssetPath(ActionUri);
             UInputAction* Action = LoadObject<UInputAction>(nullptr, *ActionPath, nullptr, LOAD_NoWarn);
             ETriggerEvent TriggerEvent = (ETriggerEvent)GetTriggerEvent();
-            if (Action != nullptr)
+            if (Action == nullptr)
             {
-                InputBindingHandle = EnhancedInputComponent->BindAction(Action, TriggerEvent, GetMutableDefault<UNoesisEnhancedInputDelegateHandler>(), &UNoesisEnhancedInputDelegateHandler::ForwardAction, this).GetHandle();
+                NS_LOG("InputAction %s not found (URI: %s)", *ActionPath, UTF8_TO_TCHAR(ActionUri.Str()));
+                return;
             }
+
+            InputBindingHandle = EnhancedInputComponent->BindAction(Action, TriggerEvent, GetMutableDefault<UNoesisEnhancedInputDelegateHandler>(), &UNoesisEnhancedInputDelegateHandler::ForwardAction, this).GetHandle();
         }
     }
 }

@@ -363,6 +363,8 @@ SamplerState glyphsSampler;
 Texture2D shadowTex;
 SamplerState shadowSampler;
 
+half4 gammaAndAlphaValues;
+
 struct In
 {
     float4 position: SV_POSITION;
@@ -557,6 +559,19 @@ Out NoesisPS(in In i)
     #elif EFFECT_UPSAMPLE
         o.color = lerp(Texture2DSample(imageTex, imageSampler, i.uv1), Texture2DSample(patternTex, patternSampler, i.uv0), paint.a);
 
+    #endif
+
+    #if GAMMA_CORRECTION
+        #if !LINEAR_COLOR
+            o.color.rgb = sRGBToLinear(o.color.rgb);
+        #endif
+        float contrastMidpoint = 0.25; //TODO We may want to make the midpoint configurable so that users can pick a different one, based on the overall saturation of their UI.
+        o.color.rgb = saturate(((o.color.rgb - contrastMidpoint) * gammaAndAlphaValues.w) + contrastMidpoint);
+        #if LINEAR_COLOR
+            o.color.rgb = pow(o.color.rgb, gammaAndAlphaValues.x);
+        #else
+            o.color.rgb = ApplyGammaCorrection(o.color.rgb, gammaAndAlphaValues.x);
+        #endif
     #endif
 
     return o;

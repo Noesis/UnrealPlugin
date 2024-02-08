@@ -355,6 +355,8 @@ SamplerState imageSampler;
 Texture2D glyphsTex;
 SamplerState glyphsSampler;
 
+half4 gammaAndAlphaValues;
+
 struct In
 {
     float4 position: SV_POSITION;
@@ -436,7 +438,7 @@ Out NoesisPS(in In i)
 
         half4 paint = half4(Color * Opacity, Opacity); // Premultiplied alpha
         half opacity_ = NoesisPSOpacityConstants.opacity;
-        #if PATTERN_LINEAR
+        #if LINEAR_COLOR
             paint.xyz = sRGBToLinear(paint.xyz);
         #endif
     #endif
@@ -502,6 +504,19 @@ Out NoesisPS(in In i)
         o.color = half4(opacity_ * paint.rgb * alpha.rgb, alpha.g);
         o.alpha = half4((opacity_ * paint.a) * alpha.rgb, alpha.g);
 
+    #endif
+
+    #if GAMMA_CORRECTION
+        #if !LINEAR_COLOR
+            o.color.rgb = sRGBToLinear(o.color.rgb);
+        #endif
+        float contrastMidpoint = 0.25; //TODO We may want to make the midpoint configurable so that users can pick a different one, based on the overall saturation of their UI.
+        o.color.rgb = saturate(((o.color.rgb - contrastMidpoint) * gammaAndAlphaValues.w) + contrastMidpoint);
+        #if LINEAR_COLOR
+            o.color.rgb = pow(o.color.rgb, gammaAndAlphaValues.x);
+        #else
+            o.color.rgb = ApplyGammaCorrection(o.color.rgb, gammaAndAlphaValues.x);
+        #endif
     #endif
 
     return o;

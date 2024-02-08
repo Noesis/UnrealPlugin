@@ -1,4 +1,5 @@
 #include "/Engine/Private/Common.ush"
+#include "/Engine/Private/GammaCorrectionCommon.ush"
 #include "/Engine/Private/ScreenPass.ush"
 
 #ifndef POST_PROCESS_MATERIAL
@@ -73,6 +74,8 @@ SamplerState PostProcessInput_BilinearSampler;
 
 #include "/Engine/Generated/Material.ush"
 
+half4 gammaAndAlphaValues;
+
 struct In
 {
     float4 position: SV_POSITION;
@@ -138,6 +141,19 @@ Out NoesisPS(in In i)
     Out o;
 
     o.color = half4(Color * Opacity, Opacity); // Premultiplied alpha
+
+    #if GAMMA_CORRECTION
+        #if !LINEAR_COLOR
+            o.color.rgb = sRGBToLinear(o.color.rgb);
+        #endif
+        float contrastMidpoint = 0.25; //TODO We may want to make the midpoint configurable so that users can pick a different one, based on the overall saturation of their UI.
+        o.color.rgb = saturate(((o.color.rgb - contrastMidpoint) * gammaAndAlphaValues.w) + contrastMidpoint);
+        #if LINEAR_COLOR
+            o.color.rgb = pow(o.color.rgb, gammaAndAlphaValues.x);
+        #else
+            o.color.rgb = ApplyGammaCorrection(o.color.rgb, gammaAndAlphaValues.x);
+        #endif
+    #endif
 
     return o;
 }

@@ -26,6 +26,12 @@ class NOESISRUNTIME_API UNoesisRive : public UObject
 	UPROPERTY()
 	TArray<uint8> Content;
 
+	UPROPERTY()
+	TArray<class UTexture2D*> Textures;
+
+	UPROPERTY()
+	TArray<class UFontFace*> FontFaces;
+
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Instanced, Category = ImportSettings)
 	class UAssetImportData* AssetImportData;

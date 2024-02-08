@@ -571,6 +571,28 @@
     <Setter Property="FocusVisualStyle" Value="{StaticResource Style.Focus.Outer.Padded}"/>
   </Style>
 
+  <!-- Thumb -->
+  <ControlTemplate x:Key="Template.Thumb" TargetType="Thumb">
+    <Border x:Name="Border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"/>
+    <ControlTemplate.Triggers>
+      <Trigger Property="IsMouseOver" Value="True">
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Over}" TargetName="Border"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource Border.Over}" TargetName="Border"/>
+      </Trigger>
+      <Trigger Property="IsDragging" Value="True">
+        <Setter Property="Background" Value="{DynamicResource Brush.Background.Pressed}" TargetName="Border"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Pressed}" TargetName="Border"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource Border.Normal}" TargetName="Border"/>
+      </Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
+  <Style TargetType="Thumb" BasedOn="{StaticResource {x:Type Control}}">
+    <Setter Property="Background" Value="{DynamicResource Brush.Background.Normal}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Normal}"/>
+    <Setter Property="BorderThickness" Value="{DynamicResource Border.Normal}"/>
+    <Setter Property="Template" Value="{StaticResource Template.Thumb}"/>
+  </Style>
+
   <!-- ProgressBar -->
   <ControlTemplate x:Key="Template.ProgressBar" TargetType="ProgressBar">
     <ControlTemplate.Resources>

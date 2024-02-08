@@ -59,11 +59,11 @@ class NOESISRUNTIME_API UNoesisSettings : public UObject
 	FString LicenseKey;
 
 	/** Sets a collection of application-scope resources, such as styles and brushes. Provides a simple way to support a consistent theme across your application */
-	UPROPERTY(EditAnywhere, Config, Category = "XAML", meta = (AllowedClasses = "NoesisXaml"))
+	UPROPERTY(EditAnywhere, Config, Category = "XAML", meta = (AllowedClasses = "/Script/NoesisRuntime.NoesisXaml"))
 	FSoftObjectPath ApplicationResources;
 
 	/** Default value for FontFamily when it is not specified in a control or text element */
-	UPROPERTY(EditAnywhere, Config, Category = "XAML", meta = (AllowedClasses = "FontFace"))
+	UPROPERTY(EditAnywhere, Config, Category = "XAML", meta = (AllowedClasses = "/Script/Engine.FontFace"))
 	TArray<FSoftObjectPath> DefaultFonts;
 
 	/** Loads platform specific font fallbacks to be able to render a wide range of unicode characters like chinese, korean, japanese or emojis */

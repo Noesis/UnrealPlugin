@@ -1,0 +1,15 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// NoesisGUI - http://www.noesisengine.com
+// Copyright (c) 2013 Noesis Technologies S.L. All Rights Reserved.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable:4426)
+#endif
+
+#include "NoesisSDK/Src/Packages/App/RiveBase/Src/SheenBidi.c"
+
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif

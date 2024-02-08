@@ -106,7 +106,7 @@ void FNoesisThumbnailRenderer::RenderView(Noesis::IView* View, UWorld* World, FI
 			NOESIS_BIND_DEBUG_TEXTURE_LABEL(DepthStencilTarget, Name);
 
 			FRHIRenderPassInfo RPInfo(ColorTarget, ERenderTargetActions::DontLoad_Store, DepthStencilTarget,
-				MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::Clear_DontStore), FExclusiveDepthStencil::DepthNop_StencilWrite);
+				MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::Clear_Store), FExclusiveDepthStencil::DepthNop_StencilWrite);
 
 			check(RHICmdList.IsOutsideRenderPass());
 			RHICmdList.BeginRenderPass(RPInfo, TEXT("NoesisThumbnail"));

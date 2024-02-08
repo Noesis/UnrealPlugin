@@ -175,7 +175,7 @@ public:
 	FTexture2DRHIRef DepthStencilTarget;
 };
 
-static TShaderRef<FNoesisMaterialPSBase> GetMaterialPixelShader(const FMaterial* Material, Noesis::Shader::Enum ShaderType, bool IsLinearColor)
+static TShaderRef<FNoesisMaterialPSBase> GetMaterialPixelShader(const FMaterial* Material, Noesis::Shader::Enum ShaderType, bool IsLinearColor, bool GammaCorrection)
 {
 	TShaderRef<FShader> FoundShader;
 
@@ -384,200 +384,404 @@ static TShaderRef<FNoesisMaterialPSBase> GetMaterialPixelShader(const FMaterial*
 	FMaterialShaderTypes ShaderTypes;
 	if (IsLinearColor)
 	{
-		switch (ShaderType)
+		if (GammaCorrection)
 		{
-		case Noesis::Shader::Path_Pattern:
-			ShaderTypes.AddShaderType<FNoesisPathMaterialLinearColorPS>();
-			break;
-		case Noesis::Shader::Path_Pattern_Clamp:
-			ShaderTypes.AddShaderType<FNoesisPathMaterialClampLinearColorPS>();
-			break;
-		case Noesis::Shader::Path_Pattern_Repeat:
-			ShaderTypes.AddShaderType<FNoesisPathMaterialRepeatLinearColorPS>();
-			break;
-		case Noesis::Shader::Path_Pattern_MirrorU:
-			ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorULinearColorPS>();
-			break;
-		case Noesis::Shader::Path_Pattern_MirrorV:
-			ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorVLinearColorPS>();
-			break;
-		case Noesis::Shader::Path_Pattern_Mirror:
-			ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorLinearColorPS>();
-			break;
-		case Noesis::Shader::Path_AA_Pattern:
-			ShaderTypes.AddShaderType<FNoesisPathAAMaterialLinearColorPS>();
-			break;
-		case Noesis::Shader::Path_AA_Pattern_Clamp:
-			ShaderTypes.AddShaderType<FNoesisPathAAMaterialClampLinearColorPS>();
-			break;
-		case Noesis::Shader::Path_AA_Pattern_Repeat:
-			ShaderTypes.AddShaderType<FNoesisPathAAMaterialRepeatLinearColorPS>();
-			break;
-		case Noesis::Shader::Path_AA_Pattern_MirrorU:
-			ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorULinearColorPS>();
-			break;
-		case Noesis::Shader::Path_AA_Pattern_MirrorV:
-			ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorVLinearColorPS>();
-			break;
-		case Noesis::Shader::Path_AA_Pattern_Mirror:
-			ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorLinearColorPS>();
-			break;
-		case Noesis::Shader::SDF_Pattern:
-			ShaderTypes.AddShaderType<FNoesisSDFMaterialLinearColorPS>();
-			break;
-		case Noesis::Shader::SDF_Pattern_Clamp:
-			ShaderTypes.AddShaderType<FNoesisSDFMaterialClampLinearColorPS>();
-			break;
-		case Noesis::Shader::SDF_Pattern_Repeat:
-			ShaderTypes.AddShaderType<FNoesisSDFMaterialRepeatLinearColorPS>();
-			break;
-		case Noesis::Shader::SDF_Pattern_MirrorU:
-			ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorULinearColorPS>();
-			break;
-		case Noesis::Shader::SDF_Pattern_MirrorV:
-			ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorVLinearColorPS>();
-			break;
-		case Noesis::Shader::SDF_Pattern_Mirror:
-			ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorLinearColorPS>();
-			break;
-		case Noesis::Shader::SDF_LCD_Pattern:
-			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialLinearColorPS>();
-			break;
-		case Noesis::Shader::SDF_LCD_Pattern_Clamp:
-			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialClampLinearColorPS>();
-			break;
-		case Noesis::Shader::SDF_LCD_Pattern_Repeat:
-			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialRepeatLinearColorPS>();
-			break;
-		case Noesis::Shader::SDF_LCD_Pattern_MirrorU:
-			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorULinearColorPS>();
-			break;
-		case Noesis::Shader::SDF_LCD_Pattern_MirrorV:
-			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorVLinearColorPS>();
-			break;
-		case Noesis::Shader::SDF_LCD_Pattern_Mirror:
-			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorLinearColorPS>();
-			break;
-		case Noesis::Shader::Opacity_Pattern:
-			ShaderTypes.AddShaderType<FNoesisOpacityMaterialLinearColorPS>();
-			break;
-		case Noesis::Shader::Opacity_Pattern_Clamp:
-			ShaderTypes.AddShaderType<FNoesisOpacityMaterialClampLinearColorPS>();
-			break;
-		case Noesis::Shader::Opacity_Pattern_Repeat:
-			ShaderTypes.AddShaderType<FNoesisOpacityMaterialRepeatLinearColorPS>();
-			break;
-		case Noesis::Shader::Opacity_Pattern_MirrorU:
-			ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorULinearColorPS>();
-			break;
-		case Noesis::Shader::Opacity_Pattern_MirrorV:
-			ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorVLinearColorPS>();
-			break;
-		case Noesis::Shader::Opacity_Pattern_Mirror:
-			ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorLinearColorPS>();
-			break;
-		default:
-			// Only pattern shaders should be requested
-			check(false);
+			switch (ShaderType)
+			{
+			case Noesis::Shader::Path_Pattern:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialClampLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialRepeatLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorULinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorVLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialClampLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialRepeatLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorULinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorVLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialClampLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialRepeatLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorULinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorVLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialClampLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialRepeatLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorULinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorVLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialClampLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialRepeatLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorULinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorVLinearColorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorLinearColorGammaCorrectionPS>();
+				break;
+			default:
+				// Only pattern shaders should be requested
+				check(false);
+			}
+		}
+		else
+		{
+			switch (ShaderType)
+			{
+			case Noesis::Shader::Path_Pattern:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialClampLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialRepeatLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorULinearColorPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorVLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialClampLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialRepeatLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorULinearColorPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorVLinearColorPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialClampLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialRepeatLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorULinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorVLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialClampLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialRepeatLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorULinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorVLinearColorPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorLinearColorPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialLinearColorPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialClampLinearColorPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialRepeatLinearColorPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorULinearColorPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorVLinearColorPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorLinearColorPS>();
+				break;
+			default:
+				// Only pattern shaders should be requested
+				check(false);
+			}
 		}
 	}
 	else
 	{
-		switch (ShaderType)
+		if (GammaCorrection)
 		{
-		case Noesis::Shader::Path_Pattern:
-			ShaderTypes.AddShaderType<FNoesisPathMaterialPS>();
-			break;
-		case Noesis::Shader::Path_Pattern_Clamp:
-			ShaderTypes.AddShaderType<FNoesisPathMaterialClampPS>();
-			break;
-		case Noesis::Shader::Path_Pattern_Repeat:
-			ShaderTypes.AddShaderType<FNoesisPathMaterialRepeatPS>();
-			break;
-		case Noesis::Shader::Path_Pattern_MirrorU:
-			ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorUPS>();
-			break;
-		case Noesis::Shader::Path_Pattern_MirrorV:
-			ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorVPS>();
-			break;
-		case Noesis::Shader::Path_Pattern_Mirror:
-			ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorPS>();
-			break;
-		case Noesis::Shader::Path_AA_Pattern:
-			ShaderTypes.AddShaderType<FNoesisPathAAMaterialPS>();
-			break;
-		case Noesis::Shader::Path_AA_Pattern_Clamp:
-			ShaderTypes.AddShaderType<FNoesisPathAAMaterialClampPS>();
-			break;
-		case Noesis::Shader::Path_AA_Pattern_Repeat:
-			ShaderTypes.AddShaderType<FNoesisPathAAMaterialRepeatPS>();
-			break;
-		case Noesis::Shader::Path_AA_Pattern_MirrorU:
-			ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorUPS>();
-			break;
-		case Noesis::Shader::Path_AA_Pattern_MirrorV:
-			ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorVPS>();
-			break;
-		case Noesis::Shader::Path_AA_Pattern_Mirror:
-			ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorPS>();
-			break;
-		case Noesis::Shader::SDF_Pattern:
-			ShaderTypes.AddShaderType<FNoesisSDFMaterialPS>();
-			break;
-		case Noesis::Shader::SDF_Pattern_Clamp:
-			ShaderTypes.AddShaderType<FNoesisSDFMaterialClampPS>();
-			break;
-		case Noesis::Shader::SDF_Pattern_Repeat:
-			ShaderTypes.AddShaderType<FNoesisSDFMaterialRepeatPS>();
-			break;
-		case Noesis::Shader::SDF_Pattern_MirrorU:
-			ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorUPS>();
-			break;
-		case Noesis::Shader::SDF_Pattern_MirrorV:
-			ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorVPS>();
-			break;
-		case Noesis::Shader::SDF_Pattern_Mirror:
-			ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorPS>();
-			break;
-		case Noesis::Shader::SDF_LCD_Pattern:
-			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialPS>();
-			break;
-		case Noesis::Shader::SDF_LCD_Pattern_Clamp:
-			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialClampPS>();
-			break;
-		case Noesis::Shader::SDF_LCD_Pattern_Repeat:
-			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialRepeatPS>();
-			break;
-		case Noesis::Shader::SDF_LCD_Pattern_MirrorU:
-			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorUPS>();
-			break;
-		case Noesis::Shader::SDF_LCD_Pattern_MirrorV:
-			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorVPS>();
-			break;
-		case Noesis::Shader::SDF_LCD_Pattern_Mirror:
-			ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorPS>();
-			break;
-		case Noesis::Shader::Opacity_Pattern:
-			ShaderTypes.AddShaderType<FNoesisOpacityMaterialPS>();
-			break;
-		case Noesis::Shader::Opacity_Pattern_Clamp:
-			ShaderTypes.AddShaderType<FNoesisOpacityMaterialClampPS>();
-			break;
-		case Noesis::Shader::Opacity_Pattern_Repeat:
-			ShaderTypes.AddShaderType<FNoesisOpacityMaterialRepeatPS>();
-			break;
-		case Noesis::Shader::Opacity_Pattern_MirrorU:
-			ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorUPS>();
-			break;
-		case Noesis::Shader::Opacity_Pattern_MirrorV:
-			ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorVPS>();
-			break;
-		case Noesis::Shader::Opacity_Pattern_Mirror:
-			ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorPS>();
-			break;
-		default:
-			// Only pattern shaders should be requested
-			check(false);
+			switch (ShaderType)
+			{
+			case Noesis::Shader::Path_Pattern:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialClampGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialRepeatGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorUGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorVGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialClampGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialRepeatGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorUGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorVGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialClampGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialRepeatGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorUGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorVGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialClampGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialRepeatGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorUGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorVGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialClampGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialRepeatGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorUGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorVGammaCorrectionPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorGammaCorrectionPS>();
+				break;
+			default:
+				// Only pattern shaders should be requested
+				check(false);
+			}
+		}
+		else
+		{
+			switch (ShaderType)
+			{
+			case Noesis::Shader::Path_Pattern:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialClampPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialRepeatPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorUPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorVPS>();
+				break;
+			case Noesis::Shader::Path_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisPathMaterialMirrorPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialClampPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialRepeatPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorUPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorVPS>();
+				break;
+			case Noesis::Shader::Path_AA_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisPathAAMaterialMirrorPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialClampPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialRepeatPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorUPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorVPS>();
+				break;
+			case Noesis::Shader::SDF_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisSDFMaterialMirrorPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialClampPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialRepeatPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorUPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorVPS>();
+				break;
+			case Noesis::Shader::SDF_LCD_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisSDFLCDMaterialMirrorPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Clamp:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialClampPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Repeat:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialRepeatPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_MirrorU:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorUPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_MirrorV:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorVPS>();
+				break;
+			case Noesis::Shader::Opacity_Pattern_Mirror:
+				ShaderTypes.AddShaderType<FNoesisOpacityMaterialMirrorPS>();
+				break;
+			default:
+				// Only pattern shaders should be requested
+				check(false);
+			}
 		}
 	}
 	FMaterialShaders Shaders;
@@ -734,6 +938,41 @@ FNoesisRenderDevice::FNoesisRenderDevice(bool LinearColor)
 		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern_MirrorU] = TShaderMapRef<FNoesisOpacityPatternMirrorULinearPS>(GetGlobalShaderMap(FeatureLevel));
 		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern_MirrorV] = TShaderMapRef<FNoesisOpacityPatternMirrorVLinearPS>(GetGlobalShaderMap(FeatureLevel));
 		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern_Mirror] = TShaderMapRef<FNoesisOpacityPatternMirrorLinearPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_Pattern] = TShaderMapRef<FNoesisPathPatternLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_Pattern_Clamp] = TShaderMapRef<FNoesisPathPatternClampLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_Pattern_Repeat] = TShaderMapRef<FNoesisPathPatternRepeatLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_Pattern_MirrorU] = TShaderMapRef<FNoesisPathPatternMirrorULinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_Pattern_MirrorV] = TShaderMapRef<FNoesisPathPatternMirrorVLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_Pattern_Mirror] = TShaderMapRef<FNoesisPathPatternMirrorLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_AA_Pattern] = TShaderMapRef<FNoesisPathAAPatternLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_AA_Pattern_Clamp] = TShaderMapRef<FNoesisPathAAPatternClampLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_AA_Pattern_Repeat] = TShaderMapRef<FNoesisPathAAPatternRepeatLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_AA_Pattern_MirrorU] = TShaderMapRef<FNoesisPathAAPatternMirrorULinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_AA_Pattern_MirrorV] = TShaderMapRef<FNoesisPathAAPatternMirrorVLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_AA_Pattern_Mirror] = TShaderMapRef<FNoesisPathAAPatternMirrorLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_Pattern] = TShaderMapRef<FNoesisSDFPatternLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_Pattern_Clamp] = TShaderMapRef<FNoesisSDFPatternClampLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_Pattern_Repeat] = TShaderMapRef<FNoesisSDFPatternRepeatLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_Pattern_MirrorU] = TShaderMapRef<FNoesisSDFPatternMirrorULinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_Pattern_MirrorV] = TShaderMapRef<FNoesisSDFPatternMirrorVLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_Pattern_Mirror] = TShaderMapRef<FNoesisSDFPatternMirrorLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_LCD_Pattern] = TShaderMapRef<FNoesisSDFLCDPatternLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_LCD_Pattern_Clamp] = TShaderMapRef<FNoesisSDFLCDPatternClampLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_LCD_Pattern_Repeat] = TShaderMapRef<FNoesisSDFLCDPatternRepeatLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_LCD_Pattern_MirrorU] = TShaderMapRef<FNoesisSDFLCDPatternMirrorULinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_LCD_Pattern_MirrorV] = TShaderMapRef<FNoesisSDFLCDPatternMirrorVLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_LCD_Pattern_Mirror] = TShaderMapRef<FNoesisSDFLCDPatternMirrorLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Opacity_Pattern] = TShaderMapRef<FNoesisOpacityPatternLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Opacity_Pattern_Clamp] = TShaderMapRef<FNoesisOpacityPatternClampLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Opacity_Pattern_Repeat] = TShaderMapRef<FNoesisOpacityPatternRepeatLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Opacity_Pattern_MirrorU] = TShaderMapRef<FNoesisOpacityPatternMirrorULinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Opacity_Pattern_MirrorV] = TShaderMapRef<FNoesisOpacityPatternMirrorVLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Opacity_Pattern_Mirror] = TShaderMapRef<FNoesisOpacityPatternMirrorLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
 	}
 	else
 	{
@@ -816,6 +1055,41 @@ FNoesisRenderDevice::FNoesisRenderDevice(bool LinearColor)
 		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern_MirrorU] = TShaderMapRef<FNoesisOpacityPatternMirrorUSRGBPS>(GetGlobalShaderMap(FeatureLevel));
 		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern_MirrorV] = TShaderMapRef<FNoesisOpacityPatternMirrorVSRGBPS>(GetGlobalShaderMap(FeatureLevel));
 		PixelShadersPatternConvertColor[Noesis::Shader::Opacity_Pattern_Mirror] = TShaderMapRef<FNoesisOpacityPatternMirrorSRGBPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_Pattern] = TShaderMapRef<FNoesisPathPatternSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_Pattern_Clamp] = TShaderMapRef<FNoesisPathPatternClampSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_Pattern_Repeat] = TShaderMapRef<FNoesisPathPatternRepeatSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_Pattern_MirrorU] = TShaderMapRef<FNoesisPathPatternMirrorUSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_Pattern_MirrorV] = TShaderMapRef<FNoesisPathPatternMirrorVSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_Pattern_Mirror] = TShaderMapRef<FNoesisPathPatternMirrorSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_AA_Pattern] = TShaderMapRef<FNoesisPathAAPatternSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_AA_Pattern_Clamp] = TShaderMapRef<FNoesisPathAAPatternClampSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_AA_Pattern_Repeat] = TShaderMapRef<FNoesisPathAAPatternRepeatSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_AA_Pattern_MirrorU] = TShaderMapRef<FNoesisPathAAPatternMirrorUSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_AA_Pattern_MirrorV] = TShaderMapRef<FNoesisPathAAPatternMirrorVSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Path_AA_Pattern_Mirror] = TShaderMapRef<FNoesisPathAAPatternMirrorSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_Pattern] = TShaderMapRef<FNoesisSDFPatternSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_Pattern_Clamp] = TShaderMapRef<FNoesisSDFPatternClampSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_Pattern_Repeat] = TShaderMapRef<FNoesisSDFPatternRepeatSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_Pattern_MirrorU] = TShaderMapRef<FNoesisSDFPatternMirrorUSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_Pattern_MirrorV] = TShaderMapRef<FNoesisSDFPatternMirrorVSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_Pattern_Mirror] = TShaderMapRef<FNoesisSDFPatternMirrorSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_LCD_Pattern] = TShaderMapRef<FNoesisSDFLCDPatternSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_LCD_Pattern_Clamp] = TShaderMapRef<FNoesisSDFLCDPatternClampSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_LCD_Pattern_Repeat] = TShaderMapRef<FNoesisSDFLCDPatternRepeatSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_LCD_Pattern_MirrorU] = TShaderMapRef<FNoesisSDFLCDPatternMirrorUSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_LCD_Pattern_MirrorV] = TShaderMapRef<FNoesisSDFLCDPatternMirrorVSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::SDF_LCD_Pattern_Mirror] = TShaderMapRef<FNoesisSDFLCDPatternMirrorSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Opacity_Pattern] = TShaderMapRef<FNoesisOpacityPatternSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Opacity_Pattern_Clamp] = TShaderMapRef<FNoesisOpacityPatternClampSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Opacity_Pattern_Repeat] = TShaderMapRef<FNoesisOpacityPatternRepeatSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Opacity_Pattern_MirrorU] = TShaderMapRef<FNoesisOpacityPatternMirrorUSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Opacity_Pattern_MirrorV] = TShaderMapRef<FNoesisOpacityPatternMirrorVSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+		PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Opacity_Pattern_Mirror] = TShaderMapRef<FNoesisOpacityPatternMirrorSRGBGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
 	}
 
 	PixelShaders[Noesis::Shader::RGBA] = TShaderMapRef<FNoesisRgbaPS>(GetGlobalShaderMap(FeatureLevel));
@@ -871,6 +1145,60 @@ FNoesisRenderDevice::FNoesisRenderDevice(bool LinearColor)
 	PixelShaders[Noesis::Shader::Shadow] = TShaderMapRef<FNoesisShadowPS>(GetGlobalShaderMap(FeatureLevel));
 	PixelShaders[Noesis::Shader::Blur] = TShaderMapRef<FNoesisBlurPS>(GetGlobalShaderMap(FeatureLevel));
 	//PixelShaders[Noesis::Shader::Custom_Effect] = nullptr;
+
+	PixelShadersGammaCorrection[Noesis::Shader::RGBA] = TShaderMapRef<FNoesisRgbaGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Mask] = TShaderMapRef<FNoesisMaskGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Clear] = TShaderMapRef<FNoesisClearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_Solid] = TShaderMapRef<FNoesisPathSolidGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_Linear] = TShaderMapRef<FNoesisPathLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_Radial] = TShaderMapRef<FNoesisPathRadialGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_Pattern] = TShaderMapRef<FNoesisPathPatternGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_Pattern_Clamp] = TShaderMapRef<FNoesisPathPatternClampGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_Pattern_Repeat] = TShaderMapRef<FNoesisPathPatternRepeatGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_Pattern_MirrorU] = TShaderMapRef<FNoesisPathPatternMirrorUGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_Pattern_MirrorV] = TShaderMapRef<FNoesisPathPatternMirrorVGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_Pattern_Mirror] = TShaderMapRef<FNoesisPathPatternMirrorGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_AA_Solid] = TShaderMapRef<FNoesisPathAASolidGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_AA_Linear] = TShaderMapRef<FNoesisPathAALinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_AA_Radial] = TShaderMapRef<FNoesisPathAARadialGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_AA_Pattern] = TShaderMapRef<FNoesisPathAAPatternGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_AA_Pattern_Clamp] = TShaderMapRef<FNoesisPathAAPatternClampGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_AA_Pattern_Repeat] = TShaderMapRef<FNoesisPathAAPatternRepeatGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_AA_Pattern_MirrorU] = TShaderMapRef<FNoesisPathAAPatternMirrorUGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_AA_Pattern_MirrorV] = TShaderMapRef<FNoesisPathAAPatternMirrorVGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Path_AA_Pattern_Mirror] = TShaderMapRef<FNoesisPathAAPatternMirrorGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_Solid] = TShaderMapRef<FNoesisSDFSolidGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_Linear] = TShaderMapRef<FNoesisSDFLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_Radial] = TShaderMapRef<FNoesisSDFRadialGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_Pattern] = TShaderMapRef<FNoesisSDFPatternGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_Pattern_Clamp] = TShaderMapRef<FNoesisSDFPatternClampGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_Pattern_Repeat] = TShaderMapRef<FNoesisSDFPatternRepeatGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_Pattern_MirrorU] = TShaderMapRef<FNoesisSDFPatternMirrorUGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_Pattern_MirrorV] = TShaderMapRef<FNoesisSDFPatternMirrorVGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_Pattern_Mirror] = TShaderMapRef<FNoesisSDFPatternMirrorGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_LCD_Solid] = TShaderMapRef<FNoesisSDFLCDSolidGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_LCD_Linear] = TShaderMapRef<FNoesisSDFLCDLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_LCD_Radial] = TShaderMapRef<FNoesisSDFLCDRadialGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_LCD_Pattern] = TShaderMapRef<FNoesisSDFLCDPatternGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_LCD_Pattern_Clamp] = TShaderMapRef<FNoesisSDFLCDPatternClampGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_LCD_Pattern_Repeat] = TShaderMapRef<FNoesisSDFLCDPatternRepeatGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_LCD_Pattern_MirrorU] = TShaderMapRef<FNoesisSDFLCDPatternMirrorUGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_LCD_Pattern_MirrorV] = TShaderMapRef<FNoesisSDFLCDPatternMirrorVGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::SDF_LCD_Pattern_Mirror] = TShaderMapRef<FNoesisSDFLCDPatternMirrorGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Opacity_Solid] = TShaderMapRef<FNoesisOpacitySolidGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Opacity_Linear] = TShaderMapRef<FNoesisOpacityLinearGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Opacity_Radial] = TShaderMapRef<FNoesisOpacityRadialGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Opacity_Pattern] = TShaderMapRef<FNoesisOpacityPatternGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Opacity_Pattern_Clamp] = TShaderMapRef<FNoesisOpacityPatternClampGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Opacity_Pattern_Repeat] = TShaderMapRef<FNoesisOpacityPatternRepeatGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Opacity_Pattern_MirrorU] = TShaderMapRef<FNoesisOpacityPatternMirrorUGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Opacity_Pattern_MirrorV] = TShaderMapRef<FNoesisOpacityPatternMirrorVGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Opacity_Pattern_Mirror] = TShaderMapRef<FNoesisOpacityPatternMirrorGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Upsample] = TShaderMapRef<FNoesisUpsampleGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Downsample] = TShaderMapRef<FNoesisDownsampleGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Shadow] = TShaderMapRef<FNoesisShadowGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	PixelShadersGammaCorrection[Noesis::Shader::Blur] = TShaderMapRef<FNoesisBlurGammaCorrectionPS>(GetGlobalShaderMap(FeatureLevel));
+	//PixelShadersGammaCorrection[Noesis::Shader::Custom_Effect] = nullptr;
 
 	PixelShaderConstantBuffer0[Noesis::Shader::RGBA] = &PSRgbaConstantBuffer;
 	PixelShaderConstantBuffer0[Noesis::Shader::Mask] = nullptr;
@@ -1287,6 +1615,12 @@ void FNoesisRenderDevice::SetRHITexture(Noesis::Texture* InTexture, FTexture2DRH
 	Texture->ShaderResourceTexture = TextureRef;
 }
 
+FTexture2DRHIRef FNoesisRenderDevice::GetRHITexture(Noesis::Texture* InTexture)
+{
+	FNoesisTexture* Texture = (FNoesisTexture*)InTexture;
+	return Texture->ShaderResourceTexture;
+}
+
 Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InTexture)
 {
 #if UE_VERSION_OLDER_THAN(4, 27, 0)
@@ -1313,9 +1647,9 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 		FTexture2DRHIRef TextureRef = Resource->GetTexture2DRHI();
 		if (TextureRef)
 		{
-			check(Texture->Width == TextureRef->GetSizeX());
-			check(Texture->Height == TextureRef->GetSizeY());
-			check(Texture->NumMipMaps == TextureRef->GetNumMips());
+			check(Texture->Width >= TextureRef->GetSizeX());
+			check(Texture->Height >= TextureRef->GetSizeY());
+			check(Texture->NumMipMaps >= TextureRef->GetNumMips());
 			Texture->ShaderResourceTexture = TextureRef;
 		}
 		else
@@ -1327,9 +1661,9 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(UTexture* InText
 					FTexture2DRHIRef TextureRef = Resource->GetTexture2DRHI();
 					if (TextureRef)
 					{
-						check(Texture->Width == TextureRef->GetSizeX());
-						check(Texture->Height == TextureRef->GetSizeY());
-						check(Texture->NumMipMaps == TextureRef->GetNumMips());
+						check(Texture->Width >= TextureRef->GetSizeX());
+						check(Texture->Height >= TextureRef->GetSizeY());
+						check(Texture->NumMipMaps >= TextureRef->GetNumMips());
 						Texture->ShaderResourceTexture = TextureRef;
 					}
 				}
@@ -1641,6 +1975,7 @@ void FNoesisRenderDevice::BeginOffscreenRender()
 {
 	FUniformBufferStaticBindings StaticUniformBufferBindings;
 	StaticUniformBufferBindings.TryAddUniformBuffer(SceneTexturesUniformBuffer);
+	StaticUniformBufferBindings.TryAddUniformBuffer(MobileSceneTexturesUniformBuffer);
 	StaticUniformBufferBindings.TryAddUniformBuffer(ViewUniformBuffer);
 	RHICmdList->SetStaticUniformBuffers(MoveTemp(StaticUniformBufferBindings));
 }
@@ -1654,6 +1989,7 @@ void FNoesisRenderDevice::BeginOnscreenRender()
 {
 	FUniformBufferStaticBindings StaticUniformBufferBindings;
 	StaticUniformBufferBindings.TryAddUniformBuffer(SceneTexturesUniformBuffer);
+	StaticUniformBufferBindings.TryAddUniformBuffer(MobileSceneTexturesUniformBuffer);
 	StaticUniformBufferBindings.TryAddUniformBuffer(ViewUniformBuffer);
 	RHICmdList->SetStaticUniformBuffers(MoveTemp(StaticUniformBufferBindings));
 }
@@ -1675,8 +2011,9 @@ void FNoesisRenderDevice::SetRenderTarget(Noesis::RenderTarget* Surface)
 	constexpr uint8 DontLoad_Resolve = (((uint8)ERenderTargetLoadAction::ENoAction << (uint8)ERenderTargetActions::LoadOpMask) | (uint8)ERenderTargetStoreAction::EMultisampleResolve);
 	ERenderTargetActions ColorTargetActions = NeedsResolve ? (ERenderTargetActions)DontLoad_Resolve : ERenderTargetActions::DontLoad_Store;
 
+	bool HasStencil = RenderTarget->DepthStencilTarget != nullptr;
 	EDepthStencilTargetActions DepthStencilTargetActions =
-		MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::DontLoad_DontStore);
+		MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, HasStencil ? ERenderTargetActions::Clear_Store : ERenderTargetActions::DontLoad_DontStore);
 
 	check(RHICmdList->IsOutsideRenderPass());
 	if (RenderTarget->ColorTarget == RenderTarget->Texture->ShaderResourceTexture)
@@ -1919,6 +2256,7 @@ void FNoesisRenderDevice::SetPixelShaderParameters<FNoesisCustomEffectPS>(const 
 	FNoesisPostProcessMaterialParameters Params = {};
 	Params.View = ViewUniformBuffer;
 	Params.SceneTextures.SceneTextures = SceneTexturesUniformBuffer;
+    Params.SceneTextures.MobileSceneTextures = MobileSceneTexturesUniformBuffer;
 	Params.PostProcessInput_BilinearSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp>::GetRHI();
 	Params.PostProcessInput_0_Texture = PatternTexture;
 	Params.PostProcessInput_0_Sampler = PatternSamplerState;
@@ -2057,6 +2395,7 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 
 	Noesis::Shader::Enum ShaderCode = (Noesis::Shader::Enum)Batch.shader.v;
 
+	bool GammaCorrection = !FMath::IsNearlyEqual(Gamma, 2.2f) || !FMath::IsNearlyEqual(Contrast, 1.0f);
 	bool UsingMaterialShader = Batch.pixelShader != nullptr;
 	bool UsingCustomEffect = ShaderCode == Noesis::Shader::Custom_Effect;
 	TShaderRef<FNoesisMaterialPSBase> MaterialPixelShader;
@@ -2079,7 +2418,21 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 				CustomEffectPixelShader = MaterialShaderMap->GetShader<FNoesisCustomEffectPS>();
 #else
 				FMaterialShaderTypes ShaderTypes;
-				ShaderTypes.AddShaderType<FNoesisCustomEffectPS>();
+				if (!GammaCorrection)
+				{
+					ShaderTypes.AddShaderType<FNoesisCustomEffectPS>();
+				}
+				else
+				{
+					if (IsLinearColor)
+					{
+						ShaderTypes.AddShaderType<FNoesisCustomEffectLinearColorGammaCorrectionPS>();
+					}
+					else
+					{
+						ShaderTypes.AddShaderType<FNoesisCustomEffectGammaCorrectionPS>();
+					}
+				}
 				FMaterialShaders Shaders;
 				Material->TryGetShaders(ShaderTypes, nullptr, Shaders);
 				Shaders.TryGetPixelShader(CustomEffectPixelShader);
@@ -2087,7 +2440,7 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 			}
 			else
 			{
-				MaterialPixelShader = GetMaterialPixelShader(Material, ShaderCode, IsLinearColor);
+				MaterialPixelShader = GetMaterialPixelShader(Material, ShaderCode, IsLinearColor, GammaCorrection);
 			}
 		}
 	}
@@ -2108,7 +2461,9 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 	uint32 VertexFormatCode = Noesis::FormatForVertex[VertexShaderCode];
 	FVertexDeclarationRHIRef& VertexDeclaration = VertexDeclarations[VertexFormatCode];
 	TShaderRef<FNoesisVSBase> VertexShader = Batch.singlePassStereo ? VertexShadersStereo[VertexShaderCode] : VertexShaders[VertexShaderCode];
-	TShaderRef<FNoesisPSBase> PixelShader = PatternConvertColor ? PixelShadersPatternConvertColor[ShaderCode] : PixelShaders[ShaderCode];
+	TShaderRef<FNoesisPSBase> PixelShaderNoGammaCorrection = PatternConvertColor ? PixelShadersPatternConvertColor[ShaderCode] : PixelShaders[ShaderCode];
+	TShaderRef<FNoesisPSBase> PixelShaderGammaCorrection = PatternConvertColor ? PixelShadersPatternConvertColorGammaCorrection[ShaderCode] : PixelShadersGammaCorrection[ShaderCode];
+	TShaderRef<FNoesisPSBase> PixelShader = GammaCorrection ? PixelShaderGammaCorrection : PixelShaderNoGammaCorrection;
 	FUniformBufferRHIRef& PSUniformBuffer0 = *PixelShaderConstantBuffer0[ShaderCode];
 	FUniformBufferRHIRef& PSUniformBuffer1 = *PixelShaderConstantBuffer1[ShaderCode];
 	uint32& PSUniformBuffer0Hash = *PixelShaderConstantBuffer0Hash[ShaderCode];
@@ -2124,7 +2479,7 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 
 	if (UsingCustomEffect)
 	{
-		if (!CustomEffectPixelShader.IsValid() || !ViewUniformBuffer.IsValid() || !SceneTexturesUniformBuffer.IsValid())
+		if (!CustomEffectPixelShader.IsValid() || !ViewUniformBuffer.IsValid() || (!SceneTexturesUniformBuffer.IsValid() && !MobileSceneTexturesUniformBuffer.IsValid()))
 			return;
 	}
 	else if (UsingMaterialShader)
@@ -2190,14 +2545,26 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 
 	if (UsingCustomEffect)
 	{
+		if (GammaCorrection)
+		{
+			CustomEffectPixelShader->SetDisplayGammaAndInvertAlphaAndContrast(*RHICmdList, Gamma, 0.0f, Contrast);
+		}
 		SetPixelShaderParameters(Batch, CustomEffectPixelShader, PSUniformBuffer0, PSUniformBuffer1);
 	}
 	else if (UsingMaterialShader)
 	{
+		if (GammaCorrection)
+		{
+			MaterialPixelShader->SetDisplayGammaAndInvertAlphaAndContrast(*RHICmdList, Gamma, 0.0f, Contrast);
+		}
 		SetPixelShaderParameters(Batch, MaterialPixelShader, PSUniformBuffer0, PSUniformBuffer1);
 	}
 	else
 	{
+		if (GammaCorrection)
+		{
+			PixelShader->SetDisplayGammaAndInvertAlphaAndContrast(*RHICmdList, Gamma, 0.0f, Contrast);
+		}
 		SetPixelShaderParameters(Batch, PixelShader, PSUniformBuffer0, PSUniformBuffer1);
 	}
 

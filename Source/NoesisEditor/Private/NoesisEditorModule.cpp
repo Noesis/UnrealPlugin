@@ -44,6 +44,7 @@
 #include "NoesisXamlThumbnailRenderer.h"
 #include "NoesisRiveThumbnailRenderer.h"
 #include "NoesisStyle.h"
+#include "NoesisLangServerResourceProvider.h"
 
 // KismetCompiler includes
 #include "KismetCompiler.h"
@@ -116,6 +117,15 @@ void PremultiplyAlpha(UTexture2D* Texture)
 		UE_LOG(LogNoesisEditor, Warning, TEXT("Texture %s format invalid"), *Texture->GetPathName());
 		break;
 	}
+}
+
+static void SetLangServerCallbacks(FNoesisLangServerTextureProvider* textureProvider)
+{
+	NoesisApp::LangServer::SetDocumentClosedCallback(textureProvider, [](void* user, const Noesis::Uri& uri)
+		{
+			FNoesisLangServerTextureProvider* provider = (FNoesisLangServerTextureProvider*)user;
+			provider->ClearShrinkTextures();
+		});
 }
 
 static void DestroyThumbnails()
@@ -264,9 +274,18 @@ public:
 		// Register slate style overrides
 		FNoesisStyle::Initialize();
 
+		Noesis::Ptr<FNoesisLangServerTextureProvider> LangTextureProvider = Noesis::MakePtr<FNoesisLangServerTextureProvider>();
+
+		// Set LangServer Scheme Providers
+		NoesisApp::LangServer::SetXamlProvider(Noesis::MakePtr<FNoesisLangServerXamlProvider>());
+		NoesisApp::LangServer::SetTextureProvider(LangTextureProvider);
+		NoesisApp::LangServer::SetFontProvider(Noesis::MakePtr<FNoesisLangServerFontProvider>());
+
+		SetLangServerCallbacks(LangTextureProvider);
+
 		// Initialize LangServer
-		Noesis::LangServer::SetDetails("Unreal", 1000);
-        Noesis::LangServer::Run();
+		NoesisApp::LangServer::SetName("Unreal");
+		NoesisApp::LangServer::Init();
 
 		// Register asset type actions
 		IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
@@ -319,7 +338,7 @@ public:
 		TickerHandle = FTSTicker::GetCoreTicker().AddTicker(TEXT("NoesisEditor"), 0.0f, [this](float DeltaTime)
 		{
 			Noesis::GUI::UpdateInspector();
-			Noesis::LangServer::Tick();
+			NoesisApp::LangServer::RunTick();
 			return true;
 		});
 
@@ -401,7 +420,7 @@ public:
 		FNoesisStyle::Shutdown();
 
 		// Disable LangServer
-		Noesis::LangServer::Shutdown();
+		NoesisApp::LangServer::Shutdown();
 
 		// Unregister asset type actions
 		if (FModuleManager::Get().IsModuleLoaded("AssetTools"))

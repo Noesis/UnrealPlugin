@@ -7,6 +7,7 @@
 
 // Core includes
 #include "Misc/FileHelper.h"
+#include "Misc/App.h"
 
 // CoreUObject includes
 #include "Misc/PackageName.h"
@@ -57,6 +58,11 @@ void UNoesisSettings::SetApplicationResources() const
 		ApplicationResourcesRef->RemoveFromRoot();
 	}
 	ApplicationResourcesRef = LoadObject<UNoesisXaml>(nullptr, *ApplicationResources.GetAssetPathString(), nullptr, LOAD_NoWarn);
+
+	// Avoid loading XAMLs if the application cannot render
+	if (!FApp::CanEverRender())
+		return;
+
 	if (ApplicationResourcesRef)
 	{
 		ApplicationResourcesRef->AddToRoot();

@@ -59,12 +59,26 @@
 #include "Editor.h"
 #include "Kismet2/EnumEditorUtils.h"
 #include "Kismet2/StructureEditorUtils.h"
+
+// LangServer includes
+#include "NsApp/LangServer.h"
+#include "NoesisLangServerRenderer.h"
 #endif
 
 extern "C" void NsRegisterReflectionAppInteractivity();
 extern "C" void NsRegisterReflectionAppMediaElement();
 extern "C" void NsRegisterReflectionAppRiveBase();
 extern "C" void NsRegisterReflectionAppRive();
+
+extern "C" void NsInitPackageAppInteractivity();
+extern "C" void NsInitPackageAppMediaElement();
+extern "C" void NsInitPackageAppRiveBase();
+extern "C" void NsInitPackageAppRive();
+
+extern "C" void NsShutdownPackageAppInteractivity();
+extern "C" void NsShutdownPackageAppMediaElement();
+extern "C" void NsShutdownPackageAppRiveBase();
+extern "C" void NsShutdownPackageAppRive();
 
 void NoesisInitTypeTables();
 void NoesisGarbageCollected();
@@ -105,6 +119,16 @@ static void NoesisLogHandler(const char* File, uint32_t Line, uint32_t Level, co
 		}
 	}
 }
+
+#if WITH_EDITOR
+static void SetLangServerRenderCallback()
+{
+	NoesisApp::LangServer::SetRenderCallback(0, [](void*, Noesis::UIElement* content, int renderWidth, int renderHeight, double renderTime, const char* savePath)
+	{
+		Noesis::NoesisLangServerRenderer::Capture(content, renderWidth, renderHeight, renderTime, savePath);
+	});
+}
+#endif
 
 void NoesisLog(const char* File, uint32_t Line, uint32_t Level, const char* Channel, const char* Format, ...)
 {
@@ -516,10 +540,20 @@ public:
 
 		Noesis::GUI::Init();
 
+#if WITH_EDITOR
+		SetLangServerRenderCallback();
+#endif
+
 		NsRegisterReflectionAppInteractivity();
 		NsRegisterReflectionAppMediaElement();
 		NsRegisterReflectionAppRiveBase();
 		NsRegisterReflectionAppRive();
+
+		NsInitPackageAppInteractivity();
+		NsInitPackageAppMediaElement();
+		NsInitPackageAppRiveBase();
+		NsInitPackageAppRive();
+
 		Noesis::RegisterComponent<LocTextExtension>();
 		Noesis::RegisterComponent<LocTableExtension>();
 		Noesis::RegisterComponent<InputActionTrigger>();
@@ -640,6 +674,30 @@ public:
 		InputPreProcessor = NoesisRegisterInputPreProcessor();
 
 		ViewExtension = NoesisRegisterSceneViewExtension();
+
+		// The D3D11 viewport complains if there are extra references to its back buffer.
+		if (FSlateApplication::IsInitialized())
+		{
+			FSlateRenderer* SlateRenderer = FSlateApplication::Get().GetRenderer();
+			SlateRenderer->OnPreResizeWindowBackBuffer().AddLambda([](void*)
+			{
+				BackgroundImage::BackgroundColorTexture = nullptr;
+				if (BackgroundImage::NoesisBackgroundTexture != nullptr)
+				{
+					FNoesisRenderDevice::SetRHITexture(BackgroundImage::NoesisBackgroundTexture, nullptr);
+				}
+			});
+		}
+
+		// Avoid creating the DynamicTextureSource in BackgroundImage with a 0x0 size.
+		FViewport::ViewportResizedEvent.AddLambda([](FViewport* Viewport, uint32)
+		{
+			if (Viewport != nullptr)
+			{
+				const FIntPoint ViewportSize = Viewport->GetSizeXY();
+				BackgroundImage::BackgroundViewportSize = ViewportSize;
+			}
+		});
 	}
 
 	void OnEnginePreExit()
@@ -696,6 +754,11 @@ public:
 		NoesisXamlProvider.Reset();
 		NoesisTextureProvider.Reset();
 		NoesisFontProvider.Reset();
+
+		NsShutdownPackageAppInteractivity();
+		NsShutdownPackageAppMediaElement();
+		NsShutdownPackageAppRiveBase();
+		NsShutdownPackageAppRive();
 
 #if WITH_ENHANCED_INPUT
 		Noesis::UnregisterComponent<Noesis::EnumConverter<TriggerEvent>>();

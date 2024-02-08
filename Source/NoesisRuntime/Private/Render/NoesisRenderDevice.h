@@ -81,11 +81,15 @@ public:
 	uint32 ViewLeft, ViewTop, ViewRight, ViewBottom;
 	bool IsWorldUI = false;
 	bool IsLinearColor = false;
+	float Gamma = 2.2f;
+	float Contrast = 1.0f;
 	FVertexDeclarationRHIRef VertexDeclarations[Noesis::Shader::Vertex::Format::Count];
 	TShaderRef<FNoesisVSBase> VertexShaders[Noesis::Shader::Vertex::Count];
 	TShaderRef<FNoesisVSBase> VertexShadersStereo[Noesis::Shader::Vertex::Count];
 	TShaderRef<FNoesisPSBase> PixelShaders[Noesis::Shader::Count];
 	TShaderRef<FNoesisPSBase> PixelShadersPatternConvertColor[Noesis::Shader::Count];
+	TShaderRef<FNoesisPSBase> PixelShadersGammaCorrection[Noesis::Shader::Count];
+	TShaderRef<FNoesisPSBase> PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Count];
 	FUniformBufferRHIRef* PixelShaderConstantBuffer0[Noesis::Shader::Count];
 	FUniformBufferRHIRef* PixelShaderConstantBuffer1[Noesis::Shader::Count];
 	uint32* PixelShaderConstantBuffer0Hash[Noesis::Shader::Count];
@@ -96,9 +100,11 @@ public:
 	//FRHISamplerState* SamplerStates[Noesis::WrapMode::Count * Noesis::MinMagFilter::Count * Noesis::MipFilter::Count];
 	FRHISamplerState* SamplerStates[64];
 	TUniformBufferRef<FSceneTextureUniformParameters> SceneTexturesUniformBuffer;
+	TUniformBufferRef<FMobileSceneTextureUniformParameters> MobileSceneTexturesUniformBuffer;
 	TUniformBufferRef<FViewUniformShaderParameters> ViewUniformBuffer;
 
 	void SetSceneTexturesUniformBuffer(const TUniformBufferRef<FSceneTextureUniformParameters>& Params) { SceneTexturesUniformBuffer = Params; }
+	void SetMobileSceneTexturesUniformBuffer(const TUniformBufferRef<FMobileSceneTextureUniformParameters>& Params) { MobileSceneTexturesUniformBuffer = Params; }
 
 	static FNoesisRenderDevice* Get();
 	static FNoesisRenderDevice* GetLinear();
@@ -106,6 +112,7 @@ public:
 
 	static Noesis::Ptr<Noesis::Texture> CreateTexture(uint32 InWidth, uint32 InHeight, uint32 InNumMipMaps, bool InAlpha);
 	static void SetRHITexture(Noesis::Texture* Texture, FTexture2DRHIRef TextureRef);
+	static FTexture2DRHIRef GetRHITexture(Noesis::Texture* Texture);
 	static Noesis::Ptr<Noesis::Texture> CreateTexture(class UTexture* Texture);
 	static void* CreateMaterial(class UMaterialInterface* Material);
 	static void DestroyMaterial(void* Material);
@@ -113,6 +120,7 @@ public:
 	void SetRHICmdList(class FRHICommandList* RHICmdList);
 	void SetWorldTime(FGameTime InWorldTime);
 	void SetScene(FSceneInterface* InScene);
+	void SetGammaAndContrast(float InGamma, float InContrast) { Gamma = InGamma; Contrast = InContrast; }
 
 	void CreateView(uint32 Left, uint32 Top, uint32 Right, uint32 Bottom, const FIntRect& ViewRect, const FMatrix& ViewProjectionMatrix);
 	void DestroyView();

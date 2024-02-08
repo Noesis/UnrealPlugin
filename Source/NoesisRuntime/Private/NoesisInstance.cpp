@@ -58,6 +58,7 @@
 
 // SlateCore includes
 #include "Input/HitTestGrid.h"
+#include "Types/SlateConstants.h"
 
 // UMG includes
 #include "Components/WidgetComponent.h"
@@ -145,6 +146,11 @@ class FNoesisSlateElement : public ICustomSlateElement
 {
 public:
 	FNoesisSlateElement(Noesis::Ptr<Noesis::IRenderer> InRenderer);
+	~FNoesisSlateElement()
+	{
+		check(IsInRenderingThread());
+		Renderer->Shutdown();
+	}
 
 	// ICustomSlateElement interface
 	virtual void DrawRenderThread(FRHICommandListImmediate& RHICmdList, const void* InWindowBackBuffer) override;
@@ -172,6 +178,8 @@ public:
 	Noesis::Matrix4 RightEyeViewProj;
 	FMatrix ViewProjectionMatrix;
 	FNoesisRenderDevice* RenderDevice = nullptr;
+	float EngineGamma = 2.2f;
+	float SlateContrast = 1.0f;
 };
 
 FNoesisSlateElement::FNoesisSlateElement(Noesis::Ptr<Noesis::IRenderer> InRenderer)
@@ -179,10 +187,30 @@ FNoesisSlateElement::FNoesisSlateElement(Noesis::Ptr<Noesis::IRenderer> InRender
 {
 }
 
+static void RenderOffscreen(Noesis::Ptr<Noesis::IRenderer> Renderer, FNoesisRenderDevice* RenderDevice,
+	FGameTime WorldTime, FSceneInterface* Scene, FRHICommandListImmediate& RHICmdList)
+{
+	// Make sure dynamic material cached uniform expressions are up to date before doing any rendering
+	FMaterialRenderProxy::UpdateDeferredCachedUniformExpressions();
+
+	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_DrawOffscreen);
+	SCOPED_DRAW_EVENT(RHICmdList, Noesis_Offscreen);
+	SCOPED_GPU_STAT(RHICmdList, NoesisOffscreen);
+	RenderDevice->SetWorldTime(WorldTime);
+	RenderDevice->SetScene(Scene);
+	RenderDevice->SetRHICmdList(&RHICmdList);
+	RenderDevice->SetGammaAndContrast(2.2f, 1.0f);
+	Renderer->RenderOffscreen();
+	RenderDevice->SetRHICmdList(nullptr);
+}
+
 void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList, const void* InWindowBackBuffer)
 {
 	if (Renderer)
 	{
+		ViewRect = GViewRect;
+		ViewProjectionMatrix = GViewProjectionMatrix;
+
 		FTexture2DRHIRef ColorTarget = *(FTexture2DRHIRef*)InWindowBackBuffer;
 
 		if (!DepthStencilTarget.IsValid() || DepthStencilTarget->GetSizeX() != ColorTarget->GetSizeX() || DepthStencilTarget->GetSizeY() != ColorTarget->GetSizeY() || DepthStencilTarget->GetNumSamples() != ColorTarget->GetNumSamples())
@@ -218,11 +246,12 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 		// Clear the stencil buffer
 		SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
 		FRHIRenderPassInfo RPInfo(ColorTarget, ERenderTargetActions::Load_Store, DepthStencilTarget,
-			MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::Clear_DontStore), FExclusiveDepthStencil::DepthNop_StencilWrite);
+			MakeDepthStencilTargetActions(ERenderTargetActions::DontLoad_DontStore, ERenderTargetActions::Clear_Store), FExclusiveDepthStencil::DepthNop_StencilWrite);
 
 		check(RHICmdList.IsOutsideRenderPass());
 		RHICmdList.BeginRenderPass(RPInfo, TEXT("NoesisOnScreen"));
 		RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
+		EngineGamma = (!GIsEditor && (ColorTarget->GetFormat() == PF_FloatRGBA)/* && (Params.bIsHDR == false)*/) ? 1.0f : EngineGamma;
 		RenderOnscreen(RHICmdList, false);
 		RHICmdList.EndRenderPass();
 	}
@@ -238,35 +267,26 @@ void FNoesisSlateElement::EnqueueRenderOffscreen() const
 		[Renderer = Renderer, RenderDevice = RenderDevice,
 		WorldTime = WorldTime, Scene = Scene](FRHICommandListImmediate& RHICmdList)
 		{
-			// Make sure dynamic material cached uniform expressions are up to date before doing any rendering
-			FMaterialRenderProxy::UpdateDeferredCachedUniformExpressions();
-
-			{
-				SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_UpdateRenderTree);
-				Renderer->UpdateRenderTree();
-			}
-			{
-				SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_DrawOffscreen);
-				SCOPED_DRAW_EVENT(RHICmdList, Noesis_Offscreen);
-				SCOPED_GPU_STAT(RHICmdList, NoesisOffscreen);
-				RenderDevice->SetWorldTime(WorldTime);
-				RenderDevice->SetScene(Scene);
-				RenderDevice->SetRHICmdList(&RHICmdList);
-				Renderer->RenderOffscreen();
-				RenderDevice->SetRHICmdList(nullptr);
-			}
+			RenderOffscreen(Renderer, RenderDevice, WorldTime, Scene, RHICmdList);
 		}
 	);
 }
 
 void FNoesisSlateElement::RenderOnscreen(FRHICommandList& RHICmdList, bool WithViewProj) const
 {
+	if (ViewRect.Width() <= 0 || ViewRect.Height() <= 0)
+	{
+		NS_LOG("Invalid ViewRect, skipping render");
+		return;
+	}
+
 	SCOPED_DRAW_EVENT(RHICmdList, Noesis);
 	SCOPED_GPU_STAT(RHICmdList, NoesisOnscreen);
 	RenderDevice->SetWorldTime(WorldTime);
 	RenderDevice->SetScene(Scene);
 	RenderDevice->SetRHICmdList(&RHICmdList);
 	RenderDevice->CreateView(Left, Top, Right, Bottom, ViewRect, ViewProjectionMatrix);
+	RenderDevice->SetGammaAndContrast(EngineGamma, SlateContrast);
 	Renderer->SetRenderRegion(0.f, 0.f, Right - Left, Bottom - Top);
 	if (WithViewProj)
 	{
@@ -485,8 +505,6 @@ UNoesisInstance::UNoesisInstance(const FObjectInitializer& ObjectInitializer)
 	EnableTouch = true;
 	EnableActions = false;
 	PixelDepthBias = -1.0f;
-
-	DataContext = Noesis::Ptr<Noesis::BaseComponent>(NoesisCreateComponentForUObject(this));
 }
 
 void UNoesisInstance::InitInstance()
@@ -519,13 +537,13 @@ void UNoesisInstance::InitInstance()
 			NoesisSlateElement = MakeShared<FNoesisSlateElement, ESPMode::ThreadSafe>(Renderer);
 
 			ENQUEUE_RENDER_COMMAND(FNoesisInstance_InitRenderer)
-				(
-					[Renderer, Is3DWidget = Is3DWidget, NoesisSlateElement = NoesisSlateElement](FRHICommandListImmediate& RHICmdList)
-					{
-						FNoesisRenderDevice* RenderDevice = Is3DWidget ? FNoesisRenderDevice::GetLinear() : FNoesisRenderDevice::Get();
-						Renderer->Init(RenderDevice);
-						NoesisSlateElement->RenderDevice = RenderDevice;
-					}
+			(
+				[Renderer, Is3DWidget = Is3DWidget, NoesisSlateElement = NoesisSlateElement](FRHICommandListImmediate& RHICmdList)
+				{
+					FNoesisRenderDevice* RenderDevice = Is3DWidget ? FNoesisRenderDevice::GetLinear() : FNoesisRenderDevice::Get();
+					Renderer->Init(RenderDevice);
+					NoesisSlateElement->RenderDevice = RenderDevice;
+				}
 			);
 
 			CurrentTime = 0.0f;
@@ -533,6 +551,8 @@ void UNoesisInstance::InitInstance()
 			Xaml->Measure(Noesis::Size(FLT_INF, FLT_INF));
 			auto DesiredSize = Xaml->GetDesiredSize();
 			SetMinimumDesiredSize(FVector2D(DesiredSize.width, DesiredSize.height));
+
+			FCoreDelegates::OnSafeFrameChangedEvent.AddUObject(this, &UNoesisInstance::ViewportResized);
 		}
 
 		Xaml->PreviewGotKeyboardFocus() += Noesis::MakeDelegate(this, &UNoesisInstance::OnPreviewGotKeyboardFocus);
@@ -816,10 +836,10 @@ void UNoesisInstance::Init3DWidget(UWorld* World)
 	EnablePPAA = true;
 	TessellationQuality = ENoesisTessellationQuality::High;
 	SetPlayerContext(FLocalPlayerContext(World->GetFirstLocalPlayerFromController(), World));
+	InitInstance();
 	FWorldDelegates::OnWorldPostActorTick.AddUObject(this, &UNoesisInstance::Tick3DWidget);
 	FWorldDelegates::OnWorldBeginTearDown.AddUObject(this, &UNoesisInstance::Term3DWidget);
 	FCoreDelegates::OnSafeFrameChangedEvent.AddUObject(this, &UNoesisInstance::ViewportResized3DWidget);
-	InitInstance();
 	if (XamlView != nullptr)
 	{
 		ENQUEUE_RENDER_COMMAND(FNoesisInstance_Add3DSlateElement)
@@ -932,11 +952,17 @@ void UNoesisInstance::Tick3DWidget(UWorld* World, ELevelTick TickType, float Del
 		}
 
 		Update();
+		PreTick(0.0f);
 
 		NoesisSlateElement->Scene = Scene;
 		NoesisSlateElement->WorldTime = WorldTime;
 		NoesisSlateElement->EnqueueRenderOffscreen();
 	}
+}
+
+void UNoesisInstance::ViewportResized()
+{
+	PreTick(0.0f);
 }
 
 void UNoesisInstance::ViewportResized3DWidget()
@@ -1132,7 +1158,6 @@ void UNoesisInstance::TermInstance()
 		(
 			[Renderer, NoesisSlateElement = MoveTemp(NoesisSlateElement)](FRHICommandListImmediate& RHICmdList) mutable
 			{
-				Renderer->Shutdown();
 				NoesisSlateElement.Reset();
 			}
 		);
@@ -1151,6 +1176,25 @@ void UNoesisInstance::TermInstance()
 			TextInputMethodSystem->UnregisterContext(TextInputMethodContext.ToSharedRef());
 		}
 		TextInputMethodContexts.Empty();
+	}
+}
+
+void UNoesisInstance::PreTick(float DeltaTime)
+{
+	if (XamlView != nullptr)
+	{
+		ENQUEUE_RENDER_COMMAND(FNoesisInstance_RegisterScreenElement)
+		(
+			[NoesisSlateElement = NoesisSlateElement](FRHICommandListImmediate& RHICmdList)
+			{
+				auto Renderer = NoesisSlateElement->Renderer.GetPtr();
+				if (Renderer != nullptr)
+				{
+					SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_UpdateRenderTree);
+					Renderer->UpdateRenderTree();
+				}
+			}
+		);
 	}
 }
 
@@ -1218,6 +1262,13 @@ void UNoesisInstance::SetDesignerFlags(EWidgetDesignFlags NewFlags)
 	Super::SetDesignerFlags(NewFlags);
 }
 #endif // WITH_EDITOR
+
+bool UNoesisInstance::Initialize()
+{
+	SetDataContext(this);
+
+	return Super::Initialize();
+}
 
 void UNoesisInstance::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
@@ -1351,13 +1402,14 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 
 	if (XamlView != nullptr)
 	{
+		NoesisSlateElement->EngineGamma = GEngine ? GEngine->GetDisplayGamma() : 2.2f;
+		NoesisSlateElement->SlateContrast = GSlateContrast;
+
 		FSlateRect SlateRect = AllottedGeometry.GetLayoutBoundingRect().Round();
 		NoesisSlateElement->Left = SlateRect.Left;
 		NoesisSlateElement->Top = SlateRect.Top;
 		NoesisSlateElement->Right = SlateRect.Right;
 		NoesisSlateElement->Bottom = SlateRect.Bottom;
-		NoesisSlateElement->ViewRect = GViewRect;
-		NoesisSlateElement->ViewProjectionMatrix = GViewProjectionMatrix;
 
 		NoesisSlateElement->Scene = Scene;
 		NoesisSlateElement->IsMobileMultiView = false;
@@ -1580,18 +1632,22 @@ FReply UNoesisInstance::NativeOnMouseButtonDown(const FGeometry& MyGeometry, con
 
 		if (IsGamepadSimulatedClick)
 		{
-			XamlView->KeyDown(Noesis::Key_GamepadAccept);
-			return FReply::Handled().PreventThrottling().CaptureMouse(MyWidget.Pin().ToSharedRef());
+			bool Handled = XamlView->KeyDown(Noesis::Key_GamepadAccept);
+
+			if (Handled)
+			{
+				return FReply::Handled().PreventThrottling().CaptureMouse(MyWidget.Pin().ToSharedRef());
+			}
 		}
 		else
 		{
 			FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
-			bool hit = HitTest(Position);
+			bool Hit = HitTest(Position);
 
 			Noesis::MouseButton MouseButton = GetNoesisMouseButton(MouseEvent.GetEffectingButton());
-			XamlView->MouseButtonDown(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
+			bool Handled = XamlView->MouseButtonDown(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
 
-			if (hit)
+			if (Handled && Hit)
 			{
 				return FReply::Handled().PreventThrottling();
 			}
@@ -1609,18 +1665,22 @@ FReply UNoesisInstance::NativeOnMouseButtonUp(const FGeometry& MyGeometry, const
 		if (IsGamepadSimulatedClick)
 		{
 			IsGamepadSimulatedClick = false;
-			XamlView->KeyUp(Noesis::Key_GamepadAccept);
-			return FReply::Handled().PreventThrottling();
+			bool Handled = XamlView->KeyUp(Noesis::Key_GamepadAccept);
+
+			if (Handled)
+			{
+				return FReply::Handled().PreventThrottling();
+			}
 		}
 		else
 		{
 			FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
-			bool hit = HitTest(Position);
+			bool Hit = HitTest(Position);
 
 			Noesis::MouseButton MouseButton = GetNoesisMouseButton(MouseEvent.GetEffectingButton());
-			XamlView->MouseButtonUp(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
+			bool Handled = XamlView->MouseButtonUp(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
 
-			if (hit)
+			if (Handled && Hit)
 			{
 				return FReply::Handled().PreventThrottling();
 			}
@@ -1636,11 +1696,11 @@ FReply UNoesisInstance::NativeOnMouseMove(const FGeometry& MyGeometry, const FPo
 	if (EnableMouse && XamlView && !MouseEvent.GetCursorDelta().IsZero()) // Ignore synthetic events that are messing with the tooltip code.
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
-		bool hit = HitTest(Position);
+		bool Hit = HitTest(Position);
 
-		XamlView->MouseMove(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y));
+		bool Handled = XamlView->MouseMove(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y));
 
-		if (hit)
+		if (Handled && Hit)
 		{
 			return FReply::Handled().PreventThrottling();
 		}
@@ -1655,12 +1715,12 @@ FReply UNoesisInstance::NativeOnMouseWheel(const FGeometry& MyGeometry, const FP
 	if (EnableMouse && XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
-		bool hit = HitTest(Position);
+		bool Hit = HitTest(Position);
 
 		float WheelDelta = MouseEvent.GetWheelDelta();
-		XamlView->MouseWheel(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), FPlatformMath::RoundToInt(WheelDelta * 120.f));
+		bool Handled = XamlView->MouseWheel(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), FPlatformMath::RoundToInt(WheelDelta * 120.f));
 
-		if (hit)
+		if (Handled && Hit)
 		{
 			return FReply::Handled().PreventThrottling();
 		}
@@ -1675,12 +1735,12 @@ FReply UNoesisInstance::NativeOnTouchStarted(const FGeometry& MyGeometry, const 
 	if (EnableTouch && XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(TouchEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
-		bool hit = HitTest(Position);
+		bool Hit = HitTest(Position);
 
 		uint32 PointerIndex = TouchEvent.GetPointerIndex();
-		XamlView->TouchDown(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
+		bool Handled = XamlView->TouchDown(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
 
-		if (hit)
+		if (Handled && Hit)
 		{
 			return FReply::Handled().PreventThrottling();
 		}
@@ -1695,12 +1755,12 @@ FReply UNoesisInstance::NativeOnTouchMoved(const FGeometry& MyGeometry, const FP
 	if (EnableTouch && XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(TouchEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
-		bool hit = HitTest(Position);
+		bool Hit = HitTest(Position);
 
 		uint32 PointerIndex = TouchEvent.GetPointerIndex();
-		XamlView->TouchMove(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
+		bool Handled = XamlView->TouchMove(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
 
-		if (hit)
+		if (Handled && Hit)
 		{
 			return FReply::Handled().PreventThrottling();
 		}
@@ -1715,12 +1775,12 @@ FReply UNoesisInstance::NativeOnTouchEnded(const FGeometry& MyGeometry, const FP
 	if (EnableTouch && XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(TouchEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
-		bool hit = HitTest(Position);
+		bool Hit = HitTest(Position);
 
 		uint32 PointerIndex = TouchEvent.GetPointerIndex();
-		XamlView->TouchUp(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
+		bool Handled = XamlView->TouchUp(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), PointerIndex);
 
-		if (hit)
+		if (Handled && Hit)
 		{
 			return FReply::Handled().PreventThrottling();
 		}
@@ -1740,12 +1800,12 @@ FReply UNoesisInstance::NativeOnMouseButtonDoubleClick(const FGeometry& MyGeomet
 	if (EnableMouse && XamlView)
 	{
 		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
-		bool hit = HitTest(Position);
+		bool Hit = HitTest(Position);
 
 		Noesis::MouseButton MouseButton = GetNoesisMouseButton(MouseEvent.GetEffectingButton());
-		XamlView->MouseDoubleClick(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
+		bool Handled = XamlView->MouseDoubleClick(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
 
-		if (hit)
+		if (Handled && Hit)
 		{
 			return FReply::Handled().PreventThrottling();
 		}
@@ -1770,10 +1830,15 @@ void UNoesisInstance::NativeConstruct()
 	Super::NativeConstruct();
 
 	InitInstance();
+
+	PreTickDelegateHandle = FSlateApplication::Get().OnPreTick().AddUObject(this, &UNoesisInstance::PreTick);
 }
 
 void UNoesisInstance::NativeDestruct()
 {
+	FSlateApplication::Get().OnPreTick().Remove(PreTickDelegateHandle);
+	PreTickDelegateHandle.Reset();
+
 	TermInstance();
 
 	Super::NativeDestruct();
@@ -1915,6 +1980,8 @@ public:
 
 	virtual void PreRenderView_RenderThread(FRDGBuilder& GraphBuilder, FSceneView& InView) override
 	{
+		// Figure out if any of our post process materials uses custom depth/stencil
+		// Check GetCustomDepthStencilUsage in MobileShadingRenderer.cpp
 	}
 
 	virtual void PrePostProcessPass_RenderThread(FRDGBuilder& GraphBuilder, const FSceneView& InView, const FPostProcessingInputs& Inputs) override
@@ -1929,20 +1996,6 @@ public:
 		{
 			GViewRect = View.ViewRect;
 			GViewProjectionMatrix = View.ViewMatrices.GetProjectionMatrix();
-
-			FPostProcessMaterialParameters* PostProcessMaterialParameters = GraphBuilder.AllocParameters<FPostProcessMaterialParameters>();
-			PostProcessMaterialParameters->SceneTextures.SceneTextures = Inputs.SceneTextures;
-			PostProcessMaterialParameters->View = View.ViewUniformBuffer;
-			GraphBuilder.AddPass(RDG_EVENT_NAME("NoesisPostProcessInputsPass"), PostProcessMaterialParameters, ERDGPassFlags::Raster | ERDGPassFlags::SkipRenderPass | ERDGPassFlags::NeverCull,
-				[SceneTextures = Inputs.SceneTextures](FRHICommandListImmediate& RHICmdList)
-				{
-					FNoesisRenderDevice* RenderDevice = FNoesisRenderDevice::Get();
-					RenderDevice->SetSceneTexturesUniformBuffer(SceneTextures->GetRHIRef());
-
-					FNoesisRenderDevice* LinearRenderDevice = FNoesisRenderDevice::GetLinear();
-					LinearRenderDevice->SetSceneTexturesUniformBuffer(SceneTextures->GetRHIRef());
-				}
-			);
 		}
 
 		if (View.Family->Scene->IsEditorScene())
@@ -2027,18 +2080,28 @@ public:
 	virtual void PostRenderBasePassMobile_RenderThread(FRHICommandList& RHICmdList, FSceneView& InView) override
 #endif
 	{
+		check(InView.bIsViewInfo);
+		const auto& View = (const FViewInfo&)InView;
+
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
+		if (!View.bIsSceneCapture)
+#else
+		if (!View.bIsSceneCapture && !View.bIsSceneCaptureCube)
+#endif
+		{
+			GViewRect = View.ViewRect;
+			GViewProjectionMatrix = View.ViewMatrices.GetProjectionMatrix();
+		}
+
 		if (GNoesis3DSlateElements.Num() == 0)
 			return;
 
-		check(InView.bIsViewInfo);
-		const FViewInfo* View = (FViewInfo*)&InView;
-
-		FRendererInfo RendererInfo = GetRendererInfo(View);
+		FRendererInfo RendererInfo = GetRendererInfo(&View);
 		if (Render3DPostOpaque(RendererInfo))
 			return;
 
 		// We need to clear the stencil buffer, since we're in the SceneColor pass
-		const auto& ViewRect = View->ViewRect;
+		const auto& ViewRect = View.ViewRect;
 		auto Left = ViewRect.Min.X;
 		auto Top = ViewRect.Min.Y;
 		auto Right = ViewRect.Max.X;
@@ -2047,7 +2110,7 @@ public:
 		DrawClearQuad(RHICmdList, false, FLinearColor(), false, 0.f, true, 0);
 		for (auto NoesisSlateElement : GNoesis3DSlateElements)
 		{
-			NoesisSlateElement->RenderView(RHICmdList, View);
+			NoesisSlateElement->RenderView(RHICmdList, (FViewInfo*)&View);
 		}
 	}
 
@@ -2064,8 +2127,33 @@ protected:
 	}
 };
 
+static void StaticPreTick(float)
+{
+	ENQUEUE_RENDER_COMMAND(StaticPreTick)
+	(
+		[](FRHICommandListImmediate& RHICmdList)
+		{
+			auto& SceneTextureExtracts = GetSceneTextureExtracts();
+			auto SceneTexturesUniformBuffer = SceneTextureExtracts.GetUniformBufferRef();
+			auto MobileSceneTexturesUniformBuffer = SceneTextureExtracts.GetMobileUniformBufferRef();
+
+			FNoesisRenderDevice* RenderDevice = FNoesisRenderDevice::Get();
+			RenderDevice->SetSceneTexturesUniformBuffer(SceneTexturesUniformBuffer);
+			RenderDevice->SetMobileSceneTexturesUniformBuffer(MobileSceneTexturesUniformBuffer);
+
+			FNoesisRenderDevice* LinearRenderDevice = FNoesisRenderDevice::GetLinear();
+			LinearRenderDevice->SetSceneTexturesUniformBuffer(SceneTexturesUniformBuffer);
+			LinearRenderDevice->SetMobileSceneTexturesUniformBuffer(MobileSceneTexturesUniformBuffer);
+		}
+	);
+}
+
 TSharedPtr<ISceneViewExtension> NoesisRegisterSceneViewExtension()
 {
+	if (FSlateApplication::IsInitialized())
+	{
+		FSlateApplication::Get().OnPreTick().AddStatic(&StaticPreTick);
+	}
 	return FSceneViewExtensions::NewExtension<FNoesisSceneViewExtension>();
 }
 

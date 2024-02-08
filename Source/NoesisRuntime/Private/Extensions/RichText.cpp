@@ -23,10 +23,7 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-namespace
-{
-typedef Noesis::Pair<Noesis::FixedString<8>, Noesis::FixedString<128>> Parameter;
-}
+static RichText::TryCreateInlineCallback gTryCreateInline = nullptr;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 static const char* TryParse(const char* begin, const char* end, const Noesis::TextBlock* parent, 
@@ -42,55 +39,96 @@ static const char* TryParse(const char* begin, const char* end, const Noesis::Te
 /// If a Span has been created, return a pointer to that Span's InlineCollection. If no Span has
 /// been created, return nullptr.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-static Noesis::InlineCollection* TryCreateSpanForTag(const char* tagName,
-    Noesis::ArrayRef<Parameter> , const Noesis::TextBlock* parent,
-    Noesis::InlineCollection* inlineCollection)
-{
-    Noesis::Style* style = parent->FindResource<Noesis::Style>(tagName);
-    if (style != nullptr)
-    {
-        const Noesis::Ptr<Noesis::Span> span = Noesis::MakePtr<Noesis::Span>();
-        span->SetStyle(style);
-        inlineCollection->Add(span);
-        return span->GetInlines();
-    }
-    return nullptr;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// This method allows for the creation of Inlines for RichText tags which do not act as containers
-/// for other Inlines.
-/// 
-/// Extend this method to add new non-container RichText tags, creating an Inline derived type for
-/// each.
-////////////////////////////////////////////////////////////////////////////////////////////////////
-static void TryCreateInlineForTag(const char* tagName, const char* ,
-    Noesis::ArrayRef<Parameter> parameters, const Noesis::TextBlock* parent,
-    Noesis::InlineCollection* inlineCollection)
+static Noesis::InlineCollection* TryCreateInlineForTag(const char* tagName,
+    Noesis::ArrayRef<RichText::Parameter> parameters, const Noesis::TextBlock* parent,
+    Noesis::InlineCollection* inlineCollection, bool isSelfClosing)
 {
     if (Noesis::StrCaseEquals(tagName, "img"))
     {
         Noesis::Ptr<Noesis::Image> image = Noesis::MakePtr<Noesis::Image>();
-        for (const Parameter& element : parameters)
+        for (const RichText::Parameter& element : parameters)
         {
             if (element.first == "id")
             {
                 Noesis::Style* style = parent->FindResource<Noesis::Style>(element.second.Str());
                 if (style == nullptr)
                 {
-                    NS_ERROR("Invalid value for RichText img tag id parameter");
-                    return;
+                    NS_ERROR("RichText tag 'img' has an invalid value for 'id' parameter");
+                    return nullptr;
                 }
                 image->SetStyle(style);
                 inlineCollection->Add(Noesis::MakePtr<Noesis::InlineUIContainer>(image));
-                return;
+                return nullptr;
             }
         }
-        NS_ERROR("RichText img tag is missing an id parameter");
-        return;
+        NS_ERROR("RichText tag 'img' is missing an 'id' parameter");
+        return nullptr;
     }
-    
-    NS_ERROR("RichText tag '%s' is not currently supported", tagName);
+
+    // TryCreateInlineCallback is used to support custom tags
+    if (gTryCreateInline != nullptr)
+    {
+        Noesis::Ptr<Noesis::Inline> in = gTryCreateInline(tagName, parameters, parent);
+        if (in != nullptr)
+        {
+            inlineCollection->Add(in);
+
+            // If it is a Span, return it's InlineCollection, allowing for embedded content
+            Noesis::Span* span = Noesis::DynamicCast<Noesis::Span*>(in.GetPtr());
+            if (span != nullptr)
+            {
+                return span->GetInlines();
+            }
+            return nullptr;
+        }
+    }
+
+    Noesis::Style* style = parent->FindResource<Noesis::Style>(tagName);
+    if (style != nullptr)
+    {
+        const Noesis::Type* targetType = style->GetTargetType();
+        if (targetType == nullptr || targetType == Noesis::TypeOf<Noesis::Inline>()
+            || !Noesis::TypeOf<Noesis::FrameworkElement>()->IsAssignableFrom(targetType))
+        {
+            targetType = Noesis::TypeOf<Noesis::Span>();
+        }
+
+        Noesis::Ptr<Noesis::FrameworkElement> el =
+            Noesis::StaticPtrCast<Noesis::FrameworkElement>(Noesis::Factory::CreateComponent(
+                targetType->GetTypeId()));
+
+        el->SetStyle(style);
+
+        Noesis::Inline* in = Noesis::DynamicCast<Noesis::Inline*>(el.GetPtr());
+        if (in != nullptr)
+        {
+            inlineCollection->Add(in);
+            Noesis::Span* span = Noesis::DynamicCast<Noesis::Span*>(in);
+            if (span != nullptr)
+            {
+                return span->GetInlines();
+            }
+        }
+        else
+        {
+            Noesis::Ptr<Noesis::InlineUIContainer> container =
+                Noesis::MakePtr<Noesis::InlineUIContainer>(el);
+            inlineCollection->Add(container);
+
+            Noesis::ContentControl* content = Noesis::DynamicCast<Noesis::ContentControl*>(
+                el.GetPtr());
+            if (!isSelfClosing && content != nullptr)
+            {
+                Noesis::Ptr<Noesis::TextBlock> textBlock = Noesis::MakePtr<Noesis::TextBlock>();
+                content->SetContent(textBlock);
+                return textBlock->GetInlines();
+            }
+        }
+    }
+
+    NS_ERROR("RichText tag '%s' is not supported", tagName);
+
+    return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -215,7 +253,7 @@ static const char* ParseName(const char* begin, const char* end, Noesis::BaseStr
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 static const char* ParseKeyValuePair(const char* begin, const char* end,
-    Noesis::BaseVector<Parameter>& parameters)
+    Noesis::BaseVector<RichText::Parameter>& parameters)
 {
     const char* current = begin;
     while (isspace(*current) && current != end)
@@ -276,7 +314,7 @@ static const char* ParseTag(const char* begin, const char* end, const Noesis::Te
         return end;
     }
 
-    Noesis::Vector<Parameter, 2> parameters;
+    Noesis::Vector<RichText::Parameter, 2> parameters;
 
     if (*current == '=')
     {
@@ -294,8 +332,7 @@ static const char* ParseTag(const char* begin, const char* end, const Noesis::Te
 
     if (*current == '/' && *(current + 1) == '>')
     {
-        Noesis::String content;
-        TryCreateInlineForTag(tagName.Str(), "", parameters, parent, inlineCollection);
+        TryCreateInlineForTag(tagName.Str(), parameters, parent, inlineCollection, true);
         return current + 2;
     }
 
@@ -305,8 +342,8 @@ static const char* ParseTag(const char* begin, const char* end, const Noesis::Te
         return end;
     }
 
-    Noesis::InlineCollection* newCollection = TryCreateSpanForTag(tagName.Str(), parameters,
-        parent, inlineCollection);
+    Noesis::InlineCollection* newCollection = TryCreateInlineForTag(tagName.Str(), parameters,
+        parent, inlineCollection, false);
     if (newCollection != nullptr)
     {
         inlineCollection = newCollection;
@@ -316,8 +353,7 @@ static const char* ParseTag(const char* begin, const char* end, const Noesis::Te
     {
         Noesis::String content;
         current = ParseContent(current + 1, end, content) + 1;
-        TryCreateInlineForTag(tagName.Str(), content.Str(), parameters, parent,
-            inlineCollection);
+        NS_ERROR("RichText tag '%s' has unsupported content", tagName.Str());
     }
 
     if (current == end)
@@ -394,6 +430,12 @@ static void OnSourceChanged(Noesis::DependencyObject* obj,
 
         TryParse(text.Begin(), text.End(), textBlock, inlineCollection);
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void RichText::SetTryCreateInlineCallback(TryCreateInlineCallback callback)
+{
+    gTryCreateInline = callback;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

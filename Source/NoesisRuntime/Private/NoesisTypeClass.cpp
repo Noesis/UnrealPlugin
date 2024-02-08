@@ -2256,6 +2256,7 @@ public:
 	NoesisTextureWrapper(UTexture* InTexture)
 		: Noesis::TextureSource(NoesisCreateTexture(InTexture)), Texture(InTexture)
 	{
+		TextureMap.Add(Texture, this);
 	}
 
 	~NoesisTextureWrapper()
@@ -2281,7 +2282,6 @@ Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUTexture(UTexture* Te
 	else
 	{
 		NoesisTextureWrapper* TextureSource = new NoesisTextureWrapper(Texture);
-		TextureMap.Add(Texture, TextureSource);
 		return Noesis::Ptr<Noesis::BaseComponent>(*TextureSource);
 	}
 }
@@ -3049,7 +3049,7 @@ Noesis::TypeClass* NoesisCreateTypeClassForUMaterial(UMaterialInterface* Materia
 			if (BaseMaterial->MaterialDomain == MD_UI)
 			{
 				Data->RegisterProperty<Noesis::Ptr<Noesis::BitmapSource>>(DependencyProperty, TCHAR_TO_UTF8(*Param.Name.ToString()),
-					Noesis::FrameworkPropertyMetadata::Create(NoesisCreateComponentForUObject(Value),
+					Noesis::FrameworkPropertyMetadata::Create(Noesis::StaticPtrCast<Noesis::BitmapSource>(NoesisCreateComponentForUObject(Value)),
 						Noesis::FrameworkPropertyMetadataOptions_None, Noesis::PropertyChangedCallback(
 							[ParamName = Param.Name](Noesis::DependencyObject* Object, const Noesis::DependencyPropertyChangedEventArgs& Args)
 							{
@@ -3073,8 +3073,8 @@ Noesis::TypeClass* NoesisCreateTypeClassForUMaterial(UMaterialInterface* Materia
 			}
 			else
 			{
-				Data->RegisterProperty<Noesis::Ptr<Noesis::BaseComponent>>(DependencyProperty, TCHAR_TO_UTF8(*Param.Name.ToString()),
-					Noesis::FrameworkPropertyMetadata::Create(NoesisCreateComponentForUObject(Value),
+				Data->RegisterProperty<Noesis::Ptr<Noesis::BitmapSource>>(DependencyProperty, TCHAR_TO_UTF8(*Param.Name.ToString()),
+					Noesis::FrameworkPropertyMetadata::Create(Noesis::StaticPtrCast<Noesis::BitmapSource>(NoesisCreateComponentForUObject(Value)),
 						Noesis::FrameworkPropertyMetadataOptions_None, Noesis::PropertyChangedCallback(
 							[ParamName = Param.Name](Noesis::DependencyObject* Object, const Noesis::DependencyPropertyChangedEventArgs& Args)
 							{
@@ -3661,6 +3661,11 @@ NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUOb
 			Wrapper = *new NoesisPostProcessMaterialWrapper(Material);
 		}
 	}
+	else if (Class->IsChildOf(UTexture2D::StaticClass()) || Class->IsChildOf(UTextureRenderTarget2D::StaticClass()) || Class->IsChildOf(UMediaTexture::StaticClass()))
+	{
+		UTexture* Texture = (UTexture*)Object;
+		return NoesisCreateComponentForUTexture(Texture);
+	}
 	else
 	{
 		Wrapper = *new NoesisObjectWrapper(Object);
@@ -3741,9 +3746,34 @@ void NoesisNotifyArrayPropertyChanged(UObject* Owner, FName ArrayPropertyName)
 #if DO_CHECK // Skip in shipping build
 	else
 	{
-		NS_LOG("Couldn't resolve property %s::%s",
+		NS_LOG("Couldn't resolve Array property %s::%s",
 			TCHARToNsString(*Owner->GetClass()->GetFName().ToString()).Str(),
 			TCHARToNsString(*ArrayPropertyName.ToString()).Str());
+	}
+#endif
+}
+
+void NoesisNotifyMapPropertyChanged(UObject* Owner, FName MapPropertyName)
+{
+	//SCOPE_CYCLE_COUNTER(STAT_NoesisNotifyArrayPropertyChanged);
+	if (!IsValid(Owner))
+		return;
+
+	// NoesisArrayWrappers can only come from properties of the class, not from Getters, so this is equivalent to the
+	// previous code, except that we don't create a temporary wrapper if one didn't already exist.
+	UClass* OwnerClass = Owner->GetClass();
+	FProperty* MapProperty = OwnerClass->FindPropertyByName(MapPropertyName);
+	if (MapProperty != nullptr)
+	{
+		void* MapPointer = MapProperty->template ContainerPtrToValuePtr<void>(Owner);
+		NoesisNotifyMapPropertyPostReset(MapPointer);
+	}
+#if DO_CHECK // Skip in shipping build
+	else
+	{
+		NS_LOG("Couldn't resolve Map property %s::%s",
+			TCHARToNsString(*Owner->GetClass()->GetFName().ToString()).Str(),
+			TCHARToNsString(*MapPropertyName.ToString()).Str());
 	}
 #endif
 }
