@@ -21,6 +21,10 @@ public:
     void SetKey(const char* value);
     const char* GetSource() const;
     void SetSource(const char* value);
+    Noesis::IValueConverter* GetConverter() const;
+    void SetConverter(Noesis::IValueConverter* value);
+    BaseComponent* GetConverterParameter() const;
+    void SetConverterParameter(BaseComponent* value);
 
     /// From MarkupExtension
     //@{
@@ -39,6 +43,8 @@ private:
     Noesis::String mId;
     Noesis::String mKey;
     Noesis::String mSource;
+    Noesis::Ptr<Noesis::IValueConverter> mConverter;
+    Noesis::Ptr<BaseComponent> mConverterParameter;
 
     NS_DECLARE_REFLECTION(LocTableExtension, Noesis::MarkupExtension)
 };

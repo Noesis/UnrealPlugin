@@ -50,7 +50,7 @@ class FNoesisRenderDevice : public Noesis::RenderDevice
 	FBufferRHIRef DynamicIndexBuffer;
 #endif
 	FUniformBufferRHIRef VSConstantBuffer;
-	FUniformBufferRHIRef VSConstantBufferRightEye;
+	FUniformBufferRHIRef VSConstantBufferStereo;
 	FUniformBufferRHIRef TextureSizeBuffer;
 	FUniformBufferRHIRef PSRgbaConstantBuffer;
 	FUniformBufferRHIRef PSOpacityConstantBuffer;
@@ -90,6 +90,10 @@ public:
 	TShaderRef<FNoesisPSBase> PixelShadersPatternConvertColor[Noesis::Shader::Count];
 	TShaderRef<FNoesisPSBase> PixelShadersGammaCorrection[Noesis::Shader::Count];
 	TShaderRef<FNoesisPSBase> PixelShadersPatternConvertColorGammaCorrection[Noesis::Shader::Count];
+	TShaderRef<FNoesisPSBase> PixelShadersIgnoreAlpha[Noesis::Shader::Count];
+	TShaderRef<FNoesisPSBase> PixelShadersPatternConvertColorIgnoreAlpha[Noesis::Shader::Count];
+	TShaderRef<FNoesisPSBase> PixelShadersIgnoreAlphaGammaCorrection[Noesis::Shader::Count];
+	TShaderRef<FNoesisPSBase> PixelShadersPatternConvertColorIgnoreAlphaGammaCorrection[Noesis::Shader::Count];
 	FUniformBufferRHIRef* PixelShaderConstantBuffer0[Noesis::Shader::Count];
 	FUniformBufferRHIRef* PixelShaderConstantBuffer1[Noesis::Shader::Count];
 	uint32* PixelShaderConstantBuffer0Hash[Noesis::Shader::Count];
@@ -110,10 +114,9 @@ public:
 	static FNoesisRenderDevice* GetLinear();
 	static void Destroy();
 
-	static Noesis::Ptr<Noesis::Texture> CreateTexture(uint32 InWidth, uint32 InHeight, uint32 InNumMipMaps, bool InAlpha);
-	static void SetRHITexture(Noesis::Texture* Texture, FTexture2DRHIRef TextureRef);
-	static FTexture2DRHIRef GetRHITexture(Noesis::Texture* Texture);
+	static Noesis::Ptr<Noesis::Texture> CreateTexture(FRHITexture* RHITexture, bool IgnoreAlpha);
 	static Noesis::Ptr<Noesis::Texture> CreateTexture(class UTexture* Texture);
+	static FRHITexture2D* GetRHITexture(Noesis::Texture* Texture); // You need to add a reference if you want to keep the object.
 	static void* CreateMaterial(class UMaterialInterface* Material);
 	static void DestroyMaterial(void* Material);
 

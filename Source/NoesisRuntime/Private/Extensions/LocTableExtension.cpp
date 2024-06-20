@@ -7,11 +7,45 @@
 #include "NsGui/ContentPropertyMetaData.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+static void DynamicConvert(const Noesis::Type* targetType, Noesis::Ptr<Noesis::BaseComponent>& sourceVal)
+{
+    NS_ASSERT(sourceVal != nullptr);
+    const Noesis::Type* sourceType = sourceVal->GetClassType();
+    if (!targetType->IsAssignableFrom(sourceType))
+    {
+        Noesis::BoxedValue* boxed = Noesis::DynamicCast<Noesis::BoxedValue*>(sourceVal.GetPtr());
+        if (boxed != nullptr)
+        {
+            sourceType = boxed->GetValueType();
+        }
+
+        if (!targetType->IsAssignableFrom(sourceType))
+        {
+            Noesis::TypeConverter* converter = Noesis::TypeConverter::Get(targetType);
+            if (converter != nullptr && converter->CanConvertFrom(sourceType))
+            {
+                converter->TryConvertFrom(sourceVal, sourceVal);
+            }
+            else
+            {
+                converter = Noesis::TypeConverter::Get(sourceType);
+                if (converter != nullptr && converter->CanConvertTo(targetType))
+                {
+                    converter->TryConvertTo(sourceVal, targetType, sourceVal);
+                }
+            }
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 class LocTableExpression : public Noesis::Expression
 {
 public:
-    LocTableExpression(LocTableExtension* extension, Noesis::DependencyObject* targetObject, const Noesis::DependencyProperty* targetProperty)
-        : mExtension(extension), mTargetObject(targetObject), mTargetProperty(targetProperty)
+    LocTableExpression(LocTableExtension* extension, Noesis::DependencyObject* targetObject, const Noesis::DependencyProperty* targetProperty,
+        Noesis::Ptr<Noesis::IValueConverter> converter, Noesis::Ptr<BaseComponent> converterParameter)
+        : mExtension(extension), mTargetObject(targetObject), mTargetProperty(targetProperty),
+        mConverter(converter), mConverterParameter(converterParameter)
     {
         CultureChangedHandle = FTextLocalizationManager::Get().OnTextRevisionChangedEvent.AddRaw(this, &LocTableExpression::OnCultureChanged);
     }
@@ -24,7 +58,21 @@ public:
     Noesis::Ptr<Noesis::BaseComponent> Evaluate() const
     {
         FString DisplayString = mExtension->GetDisplayString(mTargetObject);
-        return Noesis::Boxing::Box(TCHAR_TO_UTF8(*DisplayString));
+
+        Noesis::String(TCHAR_TO_UTF8(*DisplayString));
+
+        Noesis::Ptr<Noesis::BaseComponent> sourceVal = Noesis::Boxing::Box(TCHAR_TO_UTF8(*DisplayString));
+
+        Noesis::Ptr<BaseComponent> convertedVal;
+        if (mConverter && mConverter->TryConvert(sourceVal, mTargetProperty->GetType(),
+            mConverterParameter, convertedVal))
+        {
+            sourceVal = convertedVal;
+        }
+
+        DynamicConvert(mTargetProperty->GetType(), sourceVal);
+
+        return sourceVal;
     }
 
     Noesis::Ptr<Noesis::Expression> Reapply(Noesis::DependencyObject* targetObject, const Noesis::DependencyProperty* targetProperty) const
@@ -35,7 +83,7 @@ public:
         }
         else
         {
-            return *new LocTableExpression(mExtension, targetObject, targetProperty);
+            return *new LocTableExpression(mExtension, targetObject, targetProperty, nullptr, nullptr);
         }
     }
 
@@ -57,6 +105,8 @@ private:
     Noesis::Ptr<LocTableExtension> mExtension;
     Noesis::DependencyObject* mTargetObject;
     const Noesis::DependencyProperty* mTargetProperty;
+    Noesis::Ptr<Noesis::IValueConverter> mConverter;
+    Noesis::Ptr<BaseComponent> mConverterParameter;
     FDelegateHandle CultureChangedHandle;
 
     NS_IMPLEMENT_INLINE_REFLECTION_(LocTableExpression, Noesis::Expression)
@@ -99,6 +149,30 @@ void LocTableExtension::SetSource(const char* value)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+Noesis::IValueConverter* LocTableExtension::GetConverter() const
+{
+    return mConverter;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void LocTableExtension::SetConverter(Noesis::IValueConverter* value)
+{
+    mConverter.Reset(value);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+Noesis::BaseComponent* LocTableExtension::GetConverterParameter() const
+{
+    return mConverterParameter;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void LocTableExtension::SetConverterParameter(BaseComponent* value)
+{
+    mConverterParameter.Reset(value);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 FString LocTableExtension::GetDisplayString(Noesis::DependencyObject* object)
 {
     const char* id = GetId();
@@ -114,7 +188,7 @@ Noesis::Ptr<Noesis::BaseComponent> LocTableExtension::ProvideValue(const Noesis:
 {
     return *new LocTableExpression(this,
         Noesis::DynamicCast<Noesis::DependencyObject*>(provider->GetTargetObject()),
-        provider->GetTargetProperty());
+        provider->GetTargetProperty(), mConverter, mConverterParameter);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,6 +199,10 @@ NS_IMPLEMENT_REFLECTION(LocTableExtension, "NoesisGUIExtensions.LocTable")
     NsProp("Id", &LocTableExtension::GetId, &LocTableExtension::SetId);
     NsProp("Key", &LocTableExtension::GetKey, &LocTableExtension::SetKey);
     NsProp("Source", &LocTableExtension::GetSource, &LocTableExtension::SetSource);
+    NsProp("Converter", &LocTableExtension::GetConverter,
+        &LocTableExtension::SetConverter);
+    NsProp("ConverterParameter", &LocTableExtension::GetConverterParameter,
+        &LocTableExtension::SetConverterParameter);
 
     Noesis::UIElementData* data = NsMeta<Noesis::UIElementData>(Noesis::TypeOf<SelfClass>());
     data->RegisterProperty<Noesis::String>(IdProperty, "Id",

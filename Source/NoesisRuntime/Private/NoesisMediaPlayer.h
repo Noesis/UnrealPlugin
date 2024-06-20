@@ -61,7 +61,6 @@ private:
 private:
 	class UMediaPlayer* MediaPlayer;
 	class UMediaTexture* MediaTexture;
-	class FRHITexture* MediaTextureRHI;
 	class UMediaSoundComponent* SoundComponent;
 
 	Noesis::Ptr<Noesis::TextureSource> TextureSource;

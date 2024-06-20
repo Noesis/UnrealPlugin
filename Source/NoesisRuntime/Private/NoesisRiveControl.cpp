@@ -19,6 +19,9 @@
 
 #define _SILENCE_CXX20_IS_POD_DEPRECATION_WARNING
 
+// Define to 0 to avoid appending the unique asset ID at the end of Rive assets.
+#define NS_USE_RIVE_UNIQUE_FILENAME 1
+
 #include "NoesisSDK/Src/Packages/App/RiveBase/Src/App.RiveBase.cpp"
 #include "NoesisSDK/Src/Packages/App/RiveBase/Src/Rive.cpp"
 #include "NoesisSDK/Src/Packages/App/RiveBase/Src/RiveRun.cpp"

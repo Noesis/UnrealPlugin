@@ -755,7 +755,6 @@ Noesis::Ptr<Noesis::BaseComponent> MapGetter(void* BasePointer, FProperty* Prope
 	{
 		return NoesisCreateComponentForTMapStruct(Value, MapProperty, BasePointer);
 	}
-	return nullptr;
 }
 
 bool MapSetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)

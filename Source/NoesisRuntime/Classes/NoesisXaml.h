@@ -7,6 +7,7 @@
 
 // Core includes
 #include "CoreMinimal.h"
+#include "Misc/EngineVersionComparison.h"
 
 // Noesis includes
 #include "NoesisSDK.h"
@@ -63,7 +64,11 @@ class NOESISRUNTIME_API UNoesisXaml : public UObject
 
 	// UObject interface
 	virtual void PostInitProperties() override;
+#if UE_VERSION_OLDER_THAN(5, 4, 0)
 	virtual void GetAssetRegistryTags(TArray<FAssetRegistryTag>& OutTags) const override;
+#else
+	virtual void GetAssetRegistryTags(FAssetRegistryTagsContext Context) const override;
+#endif
 	// End of UObject interface
 #endif
 

@@ -143,16 +143,10 @@ Out NoesisPS(in In i)
     o.color = half4(Color * Opacity, Opacity); // Premultiplied alpha
 
     #if GAMMA_CORRECTION
-        #if !LINEAR_COLOR
-            o.color.rgb = sRGBToLinear(o.color.rgb);
-        #endif
+        o.color.rgb = sRGBToLinear(o.color.rgb);
         float contrastMidpoint = 0.25; //TODO We may want to make the midpoint configurable so that users can pick a different one, based on the overall saturation of their UI.
         o.color.rgb = saturate(((o.color.rgb - contrastMidpoint) * gammaAndAlphaValues.w) + contrastMidpoint);
-        #if LINEAR_COLOR
-            o.color.rgb = pow(o.color.rgb, gammaAndAlphaValues.x);
-        #else
-            o.color.rgb = ApplyGammaCorrection(o.color.rgb, gammaAndAlphaValues.x);
-        #endif
+        o.color.rgb = ApplyGammaCorrection(o.color.rgb, gammaAndAlphaValues.x);
     #endif
 
     return o;

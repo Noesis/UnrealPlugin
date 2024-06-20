@@ -126,7 +126,6 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	Noesis::Ptr<Noesis::FrameworkElement> Xaml;
 	Noesis::Ptr<Noesis::IView> XamlView;
 	Noesis::Ptr<Noesis::BaseComponent> DataContext;
-	FDelegateHandle PreTickDelegateHandle;
 	float Left;
 	float Top;
 	float Width;
@@ -219,8 +218,6 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	bool HitTest(FVector2D Position) const;
 
 	void TermInstance();
-
-	void PreTick(float DeltaTime);
 
 	// UObject interface
 	virtual void BeginDestroy() override;

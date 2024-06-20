@@ -43,7 +43,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NoesisMediaPlayer::NoesisMediaPlayer(NoesisApp::MediaElement* Owner, const Noesis::Uri& Uri, void*):
-	MediaPlayer(nullptr), MediaTexture(nullptr), MediaTextureRHI(nullptr), SoundComponent(nullptr),
+	MediaPlayer(nullptr), MediaTexture(nullptr), SoundComponent(nullptr),
 	TextureSource(*new Noesis::TextureSource()), View(nullptr), Volume(0.5f), Position(0.0),
 	Opened(false), Ended(false), KeepPlaying(false), IsBuffering(false)
 {
@@ -245,32 +245,13 @@ Noesis::ImageSource* NoesisMediaPlayer::GetTextureSource() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-static FRHITexture* GetMediaTextureRHI(UMediaTexture* MediaTexture)
-{
-#if UE_VERSION_OLDER_THAN(4, 27, 0)
-	FTextureResource* Resource = (FTextureResource*)MediaTexture->Resource;
-#else
-	FTextureResource* Resource = (FTextureResource*)MediaTexture->GetResource();
-#endif
-	FTextureRHIRef TextureRHI = Resource->TextureRHI;
-	return TextureRHI ? TextureRHI->GetTexture2D() : nullptr;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 void NoesisMediaPlayer::OnRendering(Noesis::IView*)
 {
-	// Each time the MediaPlayer finishes a loop, it updates the MediaTexture internal texture,
-	// so we have to update our TextureSource too
-	FRHITexture* texRHI = GetMediaTextureRHI(MediaTexture);
-	if (MediaTextureRHI != texRHI && MediaTexture->GetWidth() > 2 && MediaTexture->GetHeight() > 2)
-	{
-		MediaTextureRHI = texRHI;
-		TextureSource->SetTexture(FNoesisRenderDevice::CreateTexture(MediaTexture));
-	}
-
 	// Raise MediaOpened when texture is correctly created
 	if (Opened && MediaTexture->GetWidth() > 2 && MediaTexture->GetHeight() > 2)
 	{
+		TextureSource->SetTexture(FNoesisRenderDevice::CreateTexture(MediaTexture));
+
 		// Some platforms need looping to be enabled in order to work correctly:
 		// Windows: The texture resource is discarded when the media ends.
 		// PS4/5: sceAvPlayerStop is called when the media ends, leaving the player in an unrecoverable state.

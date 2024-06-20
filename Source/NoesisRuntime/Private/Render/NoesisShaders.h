@@ -135,8 +135,8 @@ BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisVSConstants, )
 SHADER_PARAMETER(FMatrix44f, projectionMtx)
 END_GLOBAL_SHADER_PARAMETER_STRUCT()
 
-BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisVSConstantsRightEye, )
-SHADER_PARAMETER(FMatrix44f, projectionMtx)
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisVSConstantsStereo, )
+SHADER_PARAMETER_ARRAY(FMatrix44f, projectionMtx, [2])
 END_GLOBAL_SHADER_PARAMETER_STRUCT()
 
 BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisTextureSize, )
@@ -174,11 +174,11 @@ public:
 	{
 #if UE_VERSION_OLDER_THAN(5, 3, 0)
 		VSConstantsBuffer.Bind(Initializer.ParameterMap, FNoesisVSConstants::StaticStructMetadata.GetShaderVariableName());
-		VSConstantsBufferRightEye.Bind(Initializer.ParameterMap, FNoesisVSConstantsRightEye::StaticStructMetadata.GetShaderVariableName());
+		VSConstantsBufferStereo.Bind(Initializer.ParameterMap, FNoesisVSConstantsStereo::StaticStructMetadata.GetShaderVariableName());
 		TextureSizeBuffer.Bind(Initializer.ParameterMap, FNoesisTextureSize::StaticStructMetadata.GetShaderVariableName());
 #else
 		VSConstantsBuffer.Bind(Initializer.ParameterMap, FNoesisVSConstants::GetStructMetadata()->GetShaderVariableName());
-		VSConstantsBufferRightEye.Bind(Initializer.ParameterMap, FNoesisVSConstantsRightEye::GetStructMetadata()->GetShaderVariableName());
+		VSConstantsBufferStereo.Bind(Initializer.ParameterMap, FNoesisVSConstantsStereo::GetStructMetadata()->GetShaderVariableName());
 		TextureSizeBuffer.Bind(Initializer.ParameterMap, FNoesisTextureSize::GetStructMetadata()->GetShaderVariableName());
 #endif
 	}
@@ -203,16 +203,16 @@ public:
 #endif
 	}
 
-	void SetVSConstantsRightEye(FRHICommandList& RHICmdList, const FUniformBufferRHIRef& VSConstantsRightEye)
+	void SetVSConstantsStereo(FRHICommandList& RHICmdList, const FUniformBufferRHIRef& VSConstantsStereo)
 	{
 		FRHIVertexShader* ShaderRHI = RHICmdList.GetBoundVertexShader();
 
-		check(VSConstantsBufferRightEye.IsBound());
+		check(VSConstantsBufferStereo.IsBound());
 #if UE_VERSION_OLDER_THAN(5, 3, 0)
-		SetUniformBufferParameter(RHICmdList, ShaderRHI, VSConstantsBufferRightEye, VSConstantsRightEye);
+		SetUniformBufferParameter(RHICmdList, ShaderRHI, VSConstantsBufferStereo, VSConstantsStereo);
 #else
 		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
-		BatchedParameters.SetShaderUniformBuffer(VSConstantsBufferRightEye.GetBaseIndex(), VSConstantsRightEye);
+		BatchedParameters.SetShaderUniformBuffer(VSConstantsBufferStereo.GetBaseIndex(), VSConstantsStereo);
 		RHICmdList.SetBatchedShaderParameters(ShaderRHI, BatchedParameters);
 #endif
 	}
@@ -232,7 +232,7 @@ public:
 	}
 
 	LAYOUT_FIELD(FShaderUniformBufferParameter, VSConstantsBuffer);
-	LAYOUT_FIELD(FShaderUniformBufferParameter, VSConstantsBufferRightEye);
+	LAYOUT_FIELD(FShaderUniformBufferParameter, VSConstantsBufferStereo);
 	LAYOUT_FIELD(FShaderUniformBufferParameter, TextureSizeBuffer)
 };
 
@@ -529,7 +529,22 @@ public:
 	LAYOUT_FIELD(FShaderParameter, GammaAndAlphaValues)
 };
 
-template<Noesis::Shader::Enum Effect>
+enum class NoesisPatternTextureAction : uint8
+{
+	NoAction = 0,
+	PatternSRGB = 1,
+	PatternLinear = 2,
+	PatternIgnoreAlpha = 4,
+	PatternSRGBIgnoreAlpha = PatternSRGB | PatternIgnoreAlpha,
+	PatternLinearIgnoreAlpha = PatternLinear | PatternIgnoreAlpha
+};
+
+static constexpr bool HasFlag(NoesisPatternTextureAction value, NoesisPatternTextureAction flag)
+{
+	return ((uint8)value & (uint8)flag) != 0;
+}
+
+template<Noesis::Shader::Enum Effect, NoesisPatternTextureAction PatternTextureAction = NoesisPatternTextureAction::NoAction, bool GammaCorrection = false>
 class FNoesisPS : public FNoesisPSBase
 {
 	DECLARE_SHADER_TYPE(FNoesisPS, Global);
@@ -559,230 +574,13 @@ class FNoesisPS : public FNoesisPSBase
 		// The shaders that need to do this conversion are more expensive, so we are still
 		// setting SRGB to false when we import textures. But at least this means that
 		// user textures should work regardless.
-		OutEnvironment.SetDefine(TEXT("PATTERN_SRGB"), false);
+		OutEnvironment.SetDefine(TEXT("PATTERN_SRGB"), HasFlag(PatternTextureAction, NoesisPatternTextureAction::PatternSRGB));
 
 		// TODO: Add comment
-		OutEnvironment.SetDefine(TEXT("PATTERN_LINEAR"), false);
-	}
-};
+		OutEnvironment.SetDefine(TEXT("PATTERN_LINEAR"), HasFlag(PatternTextureAction, NoesisPatternTextureAction::PatternLinear));
+		OutEnvironment.SetDefine(TEXT("PATTERN_IGNORE_ALPHA"), HasFlag(PatternTextureAction, NoesisPatternTextureAction::PatternIgnoreAlpha));
 
-template<Noesis::Shader::Enum Effect>
-class FNoesisPatternSRGBPS : public FNoesisPSBase
-{
-	DECLARE_SHADER_TYPE(FNoesisPatternSRGBPS, Global);
-
-	FNoesisPatternSRGBPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FNoesisPSBase(Initializer)
-	{
-	}
-
-	FNoesisPatternSRGBPS()
-	{
-	}
-
-	static bool ShouldCache(EShaderPlatform Platform)
-	{
-		return true;
-	}
-
-	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
-	{
-		FNoesisPSBase::ModifyCompilationEnvironment(Parameters, OutEnvironment);
-		OutEnvironment.SetDefine(TEXT("EFFECT"), Effect);
-
-		// Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
-		OutEnvironment.SetDefine(TEXT("PATTERN_SRGB"), true);
-
-		// Read the comment next to PATTERN_LINEAR in FNoesisPS::ModifyCompilationEnvironment
-		OutEnvironment.SetDefine(TEXT("PATTERN_LINEAR"), false);
-	}
-};
-
-template<Noesis::Shader::Enum Effect>
-class FNoesisPatternLinearPS : public FNoesisPSBase
-{
-	DECLARE_SHADER_TYPE(FNoesisPatternLinearPS, Global);
-
-	FNoesisPatternLinearPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FNoesisPSBase(Initializer)
-	{
-	}
-
-	FNoesisPatternLinearPS()
-	{
-	}
-
-	static bool ShouldCache(EShaderPlatform Platform)
-	{
-		return true;
-	}
-
-	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
-	{
-		FNoesisPSBase::ModifyCompilationEnvironment(Parameters, OutEnvironment);
-		OutEnvironment.SetDefine(TEXT("EFFECT"), Effect);
-
-		// Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
-		OutEnvironment.SetDefine(TEXT("PATTERN_SRGB"), false);
-
-		// Read the comment next to PATTERN_LINEAR in FNoesisPS::ModifyCompilationEnvironment
-		OutEnvironment.SetDefine(TEXT("PATTERN_LINEAR"), true);
-	}
-};
-
-template<Noesis::Shader::Enum Effect>
-class FNoesisGammaCorrectionPS : public FNoesisPS<Effect>
-{
-	DECLARE_SHADER_TYPE(FNoesisGammaCorrectionPS, Global);
-
-	FNoesisGammaCorrectionPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FNoesisPS<Effect>(Initializer)
-	{
-	}
-
-	FNoesisGammaCorrectionPS()
-	{
-	}
-
-	static bool ShouldCache(EShaderPlatform Platform)
-	{
-		return true;
-	}
-
-	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
-	{
-		FNoesisPS<Effect>::ModifyCompilationEnvironment(Parameters, OutEnvironment);
-		OutEnvironment.SetDefine(TEXT("GAMMA_CORRECTION"), true);
-	}
-};
-
-template<Noesis::Shader::Enum Effect>
-class FNoesisPatternSRGBGammaCorrectionPS : public FNoesisPatternSRGBPS<Effect>
-{
-	DECLARE_SHADER_TYPE(FNoesisPatternSRGBGammaCorrectionPS, Global);
-
-	FNoesisPatternSRGBGammaCorrectionPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FNoesisPatternSRGBPS<Effect>(Initializer)
-	{
-	}
-
-	FNoesisPatternSRGBGammaCorrectionPS()
-	{
-	}
-
-	static bool ShouldCache(EShaderPlatform Platform)
-	{
-		return true;
-	}
-
-	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
-	{
-		FNoesisPatternSRGBPS<Effect>::ModifyCompilationEnvironment(Parameters, OutEnvironment);
-		OutEnvironment.SetDefine(TEXT("GAMMA_CORRECTION"), true);
-	}
-};
-
-template<Noesis::Shader::Enum Effect>
-class FNoesisPatternLinearGammaCorrectionPS : public FNoesisPatternLinearPS<Effect>
-{
-	DECLARE_SHADER_TYPE(FNoesisPatternLinearGammaCorrectionPS, Global);
-
-	FNoesisPatternLinearGammaCorrectionPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FNoesisPatternLinearPS<Effect>(Initializer)
-	{
-	}
-
-	FNoesisPatternLinearGammaCorrectionPS()
-	{
-	}
-
-	static bool ShouldCache(EShaderPlatform Platform)
-	{
-		return true;
-	}
-
-	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
-	{
-		FNoesisPatternLinearPS<Effect>::ModifyCompilationEnvironment(Parameters, OutEnvironment);
-		OutEnvironment.SetDefine(TEXT("GAMMA_CORRECTION"), true);
-	}
-};
-
-template<Noesis::Shader::Enum Effect>
-class FNoesisLinearColorGammaCorrectionPS : public FNoesisGammaCorrectionPS<Effect>
-{
-	DECLARE_SHADER_TYPE(FNoesisLinearColorGammaCorrectionPS, Global);
-
-	FNoesisLinearColorGammaCorrectionPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FNoesisGammaCorrectionPS<Effect>(Initializer)
-	{
-	}
-
-	FNoesisLinearColorGammaCorrectionPS()
-	{
-	}
-
-	static bool ShouldCache(EShaderPlatform Platform)
-	{
-		return true;
-	}
-
-	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
-	{
-		FNoesisGammaCorrectionPS<Effect>::ModifyCompilationEnvironment(Parameters, OutEnvironment);
-		OutEnvironment.SetDefine(TEXT("LINEAR_COLOR"), true);
-	}
-};
-
-template<Noesis::Shader::Enum Effect>
-class FNoesisPatternSRGBLinearColorGammaCorrectionPS : public FNoesisPatternSRGBGammaCorrectionPS<Effect>
-{
-	DECLARE_SHADER_TYPE(FNoesisPatternSRGBLinearColorGammaCorrectionPS, Global);
-
-	FNoesisPatternSRGBLinearColorGammaCorrectionPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FNoesisPatternSRGBGammaCorrectionPS<Effect>(Initializer)
-	{
-	}
-
-	FNoesisPatternSRGBLinearColorGammaCorrectionPS()
-	{
-	}
-
-	static bool ShouldCache(EShaderPlatform Platform)
-	{
-		return true;
-	}
-
-	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
-	{
-		FNoesisPatternSRGBGammaCorrectionPS<Effect>::ModifyCompilationEnvironment(Parameters, OutEnvironment);
-		OutEnvironment.SetDefine(TEXT("LINEAR_COLOR"), true);
-	}
-};
-
-template<Noesis::Shader::Enum Effect>
-class FNoesisPatternLinearLinearColorGammaCorrectionPS : public FNoesisPatternLinearGammaCorrectionPS<Effect>
-{
-	DECLARE_SHADER_TYPE(FNoesisPatternLinearLinearColorGammaCorrectionPS, Global);
-
-	FNoesisPatternLinearLinearColorGammaCorrectionPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FNoesisPatternLinearGammaCorrectionPS<Effect>(Initializer)
-	{
-	}
-
-	FNoesisPatternLinearLinearColorGammaCorrectionPS()
-	{
-	}
-
-	static bool ShouldCache(EShaderPlatform Platform)
-	{
-		return true;
-	}
-
-	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
-	{
-		FNoesisPatternLinearGammaCorrectionPS<Effect>::ModifyCompilationEnvironment(Parameters, OutEnvironment);
-		OutEnvironment.SetDefine(TEXT("LINEAR_COLOR"), true);
+		OutEnvironment.SetDefine(TEXT("GAMMA_CORRECTION"), GammaCorrection);
 	}
 };
 
@@ -848,342 +646,354 @@ typedef FNoesisPS<Noesis::Shader::Shadow> FNoesisShadowPS;
 typedef FNoesisPS<Noesis::Shader::Blur> FNoesisBlurPS;
 
 // Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_Pattern> FNoesisPathPatternSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_Pattern_Clamp> FNoesisPathPatternClampSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_Pattern_Repeat> FNoesisPathPatternRepeatSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_Pattern_MirrorU> FNoesisPathPatternMirrorUSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_Pattern_MirrorV> FNoesisPathPatternMirrorVSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_Pattern_Mirror> FNoesisPathPatternMirrorSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern, NoesisPatternTextureAction::PatternSRGB> FNoesisPathPatternSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGB> FNoesisPathPatternClampSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGB> FNoesisPathPatternRepeatSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGB> FNoesisPathPatternMirrorUSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGB> FNoesisPathPatternMirrorVSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGB> FNoesisPathPatternMirrorSRGBPS;
 
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_AA_Pattern> FNoesisPathAAPatternSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_AA_Pattern_Clamp> FNoesisPathAAPatternClampSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_AA_Pattern_Repeat> FNoesisPathAAPatternRepeatSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_AA_Pattern_MirrorU> FNoesisPathAAPatternMirrorUSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_AA_Pattern_MirrorV> FNoesisPathAAPatternMirrorVSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Path_AA_Pattern_Mirror> FNoesisPathAAPatternMirrorSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern, NoesisPatternTextureAction::PatternSRGB> FNoesisPathAAPatternSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGB> FNoesisPathAAPatternClampSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGB> FNoesisPathAAPatternRepeatSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGB> FNoesisPathAAPatternMirrorUSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGB> FNoesisPathAAPatternMirrorVSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGB> FNoesisPathAAPatternMirrorSRGBPS;
 
-typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_Pattern> FNoesisSDFPatternSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_Pattern_Clamp> FNoesisSDFPatternClampSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_Pattern_Repeat> FNoesisSDFPatternRepeatSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_Pattern_MirrorU> FNoesisSDFPatternMirrorUSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_Pattern_MirrorV> FNoesisSDFPatternMirrorVSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_Pattern_Mirror> FNoesisSDFPatternMirrorSRGBPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern, NoesisPatternTextureAction::PatternSRGB> FNoesisSDFPatternSRGBPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGB> FNoesisSDFPatternClampSRGBPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGB> FNoesisSDFPatternRepeatSRGBPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGB> FNoesisSDFPatternMirrorUSRGBPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGB> FNoesisSDFPatternMirrorVSRGBPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGB> FNoesisSDFPatternMirrorSRGBPS;
 
-typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_LCD_Pattern> FNoesisSDFLCDPatternSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_LCD_Pattern_Clamp> FNoesisSDFLCDPatternClampSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_LCD_Pattern_Repeat> FNoesisSDFLCDPatternRepeatSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU> FNoesisSDFLCDPatternMirrorUSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV> FNoesisSDFLCDPatternMirrorVSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::SDF_LCD_Pattern_Mirror> FNoesisSDFLCDPatternMirrorSRGBPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern, NoesisPatternTextureAction::PatternSRGB> FNoesisSDFLCDPatternSRGBPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGB> FNoesisSDFLCDPatternClampSRGBPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGB> FNoesisSDFLCDPatternRepeatSRGBPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGB> FNoesisSDFLCDPatternMirrorUSRGBPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGB> FNoesisSDFLCDPatternMirrorVSRGBPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGB> FNoesisSDFLCDPatternMirrorSRGBPS;
 
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Opacity_Pattern> FNoesisOpacityPatternSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Opacity_Pattern_Clamp> FNoesisOpacityPatternClampSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Opacity_Pattern_Repeat> FNoesisOpacityPatternRepeatSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Opacity_Pattern_MirrorU> FNoesisOpacityPatternMirrorUSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Opacity_Pattern_MirrorV> FNoesisOpacityPatternMirrorVSRGBPS;
-typedef FNoesisPatternSRGBPS<Noesis::Shader::Opacity_Pattern_Mirror> FNoesisOpacityPatternMirrorSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern, NoesisPatternTextureAction::PatternSRGB> FNoesisOpacityPatternSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGB> FNoesisOpacityPatternClampSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGB> FNoesisOpacityPatternRepeatSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGB> FNoesisOpacityPatternMirrorUSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGB> FNoesisOpacityPatternMirrorVSRGBPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGB> FNoesisOpacityPatternMirrorSRGBPS;
 
 // Read the comment next to PATTERN_LINEAR in FNoesisPS::ModifyCompilationEnvironment
-typedef FNoesisPatternLinearPS<Noesis::Shader::Path_Pattern> FNoesisPathPatternLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::Path_Pattern_Clamp> FNoesisPathPatternClampLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::Path_Pattern_Repeat> FNoesisPathPatternRepeatLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::Path_Pattern_MirrorU> FNoesisPathPatternMirrorULinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::Path_Pattern_MirrorV> FNoesisPathPatternMirrorVLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::Path_Pattern_Mirror> FNoesisPathPatternMirrorLinearPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern, NoesisPatternTextureAction::PatternLinear> FNoesisPathPatternLinearPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Clamp, NoesisPatternTextureAction::PatternLinear> FNoesisPathPatternClampLinearPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Repeat, NoesisPatternTextureAction::PatternLinear> FNoesisPathPatternRepeatLinearPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorU, NoesisPatternTextureAction::PatternLinear> FNoesisPathPatternMirrorULinearPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorV, NoesisPatternTextureAction::PatternLinear> FNoesisPathPatternMirrorVLinearPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Mirror, NoesisPatternTextureAction::PatternLinear> FNoesisPathPatternMirrorLinearPS;
 
-typedef FNoesisPatternLinearPS<Noesis::Shader::Path_AA_Pattern> FNoesisPathAAPatternLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::Path_AA_Pattern_Clamp> FNoesisPathAAPatternClampLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::Path_AA_Pattern_Repeat> FNoesisPathAAPatternRepeatLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::Path_AA_Pattern_MirrorU> FNoesisPathAAPatternMirrorULinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::Path_AA_Pattern_MirrorV> FNoesisPathAAPatternMirrorVLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::Path_AA_Pattern_Mirror> FNoesisPathAAPatternMirrorLinearPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern, NoesisPatternTextureAction::PatternLinear> FNoesisPathAAPatternLinearPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Clamp, NoesisPatternTextureAction::PatternLinear> FNoesisPathAAPatternClampLinearPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Repeat, NoesisPatternTextureAction::PatternLinear> FNoesisPathAAPatternRepeatLinearPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorU, NoesisPatternTextureAction::PatternLinear> FNoesisPathAAPatternMirrorULinearPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorV, NoesisPatternTextureAction::PatternLinear> FNoesisPathAAPatternMirrorVLinearPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Mirror, NoesisPatternTextureAction::PatternLinear> FNoesisPathAAPatternMirrorLinearPS;
 
-typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_Pattern> FNoesisSDFPatternLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_Pattern_Clamp> FNoesisSDFPatternClampLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_Pattern_Repeat> FNoesisSDFPatternRepeatLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_Pattern_MirrorU> FNoesisSDFPatternMirrorULinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_Pattern_MirrorV> FNoesisSDFPatternMirrorVLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_Pattern_Mirror> FNoesisSDFPatternMirrorLinearPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern, NoesisPatternTextureAction::PatternLinear> FNoesisSDFPatternLinearPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Clamp, NoesisPatternTextureAction::PatternLinear> FNoesisSDFPatternClampLinearPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Repeat, NoesisPatternTextureAction::PatternLinear> FNoesisSDFPatternRepeatLinearPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorU, NoesisPatternTextureAction::PatternLinear> FNoesisSDFPatternMirrorULinearPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorV, NoesisPatternTextureAction::PatternLinear> FNoesisSDFPatternMirrorVLinearPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Mirror, NoesisPatternTextureAction::PatternLinear> FNoesisSDFPatternMirrorLinearPS;
 
-typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_LCD_Pattern> FNoesisSDFLCDPatternLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_LCD_Pattern_Clamp> FNoesisSDFLCDPatternClampLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_LCD_Pattern_Repeat> FNoesisSDFLCDPatternRepeatLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU> FNoesisSDFLCDPatternMirrorULinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV> FNoesisSDFLCDPatternMirrorVLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::SDF_LCD_Pattern_Mirror> FNoesisSDFLCDPatternMirrorLinearPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern, NoesisPatternTextureAction::PatternLinear> FNoesisSDFLCDPatternLinearPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Clamp, NoesisPatternTextureAction::PatternLinear> FNoesisSDFLCDPatternClampLinearPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Repeat, NoesisPatternTextureAction::PatternLinear> FNoesisSDFLCDPatternRepeatLinearPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU, NoesisPatternTextureAction::PatternLinear> FNoesisSDFLCDPatternMirrorULinearPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV, NoesisPatternTextureAction::PatternLinear> FNoesisSDFLCDPatternMirrorVLinearPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Mirror, NoesisPatternTextureAction::PatternLinear> FNoesisSDFLCDPatternMirrorLinearPS;
 
-typedef FNoesisPatternLinearPS<Noesis::Shader::Opacity_Pattern> FNoesisOpacityPatternLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::Opacity_Pattern_Clamp> FNoesisOpacityPatternClampLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::Opacity_Pattern_Repeat> FNoesisOpacityPatternRepeatLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::Opacity_Pattern_MirrorU> FNoesisOpacityPatternMirrorULinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::Opacity_Pattern_MirrorV> FNoesisOpacityPatternMirrorVLinearPS;
-typedef FNoesisPatternLinearPS<Noesis::Shader::Opacity_Pattern_Mirror> FNoesisOpacityPatternMirrorLinearPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern, NoesisPatternTextureAction::PatternLinear> FNoesisOpacityPatternLinearPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Clamp, NoesisPatternTextureAction::PatternLinear> FNoesisOpacityPatternClampLinearPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Repeat, NoesisPatternTextureAction::PatternLinear> FNoesisOpacityPatternRepeatLinearPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorU, NoesisPatternTextureAction::PatternLinear> FNoesisOpacityPatternMirrorULinearPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorV, NoesisPatternTextureAction::PatternLinear> FNoesisOpacityPatternMirrorVLinearPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Mirror, NoesisPatternTextureAction::PatternLinear> FNoesisOpacityPatternMirrorLinearPS;
 
 // The commas in the template parameter list break the IMPLEMENT_SHADER_TYPE macro, so we need typedefs.
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::RGBA> FNoesisRgbaGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Mask> FNoesisMaskGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Clear> FNoesisClearGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::RGBA, NoesisPatternTextureAction::NoAction, true> FNoesisRgbaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Mask, NoesisPatternTextureAction::NoAction, true> FNoesisMaskGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Clear, NoesisPatternTextureAction::NoAction, true> FNoesisClearGammaCorrectionPS;
 
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_Solid> FNoesisPathSolidGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_Linear> FNoesisPathLinearGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_Radial> FNoesisPathRadialGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_Pattern> FNoesisPathPatternGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_Pattern_Clamp> FNoesisPathPatternClampGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_Pattern_Repeat> FNoesisPathPatternRepeatGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_Pattern_MirrorU> FNoesisPathPatternMirrorUGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_Pattern_MirrorV> FNoesisPathPatternMirrorVGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_Pattern_Mirror> FNoesisPathPatternMirrorGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Solid, NoesisPatternTextureAction::NoAction, true> FNoesisPathSolidGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Linear, NoesisPatternTextureAction::NoAction, true> FNoesisPathLinearGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Radial, NoesisPatternTextureAction::NoAction, true> FNoesisPathRadialGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern, NoesisPatternTextureAction::NoAction, true> FNoesisPathPatternGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Clamp, NoesisPatternTextureAction::NoAction, true> FNoesisPathPatternClampGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Repeat, NoesisPatternTextureAction::NoAction, true> FNoesisPathPatternRepeatGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorU, NoesisPatternTextureAction::NoAction, true> FNoesisPathPatternMirrorUGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorV, NoesisPatternTextureAction::NoAction, true> FNoesisPathPatternMirrorVGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Mirror, NoesisPatternTextureAction::NoAction, true> FNoesisPathPatternMirrorGammaCorrectionPS;
 
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_AA_Solid> FNoesisPathAASolidGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_AA_Linear> FNoesisPathAALinearGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_AA_Radial> FNoesisPathAARadialGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern> FNoesisPathAAPatternGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Clamp> FNoesisPathAAPatternClampGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Repeat> FNoesisPathAAPatternRepeatGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_MirrorU> FNoesisPathAAPatternMirrorUGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_MirrorV> FNoesisPathAAPatternMirrorVGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Mirror> FNoesisPathAAPatternMirrorGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Solid, NoesisPatternTextureAction::NoAction, true> FNoesisPathAASolidGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Linear, NoesisPatternTextureAction::NoAction, true> FNoesisPathAALinearGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Radial, NoesisPatternTextureAction::NoAction, true> FNoesisPathAARadialGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern, NoesisPatternTextureAction::NoAction, true> FNoesisPathAAPatternGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Clamp, NoesisPatternTextureAction::NoAction, true> FNoesisPathAAPatternClampGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Repeat, NoesisPatternTextureAction::NoAction, true> FNoesisPathAAPatternRepeatGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorU, NoesisPatternTextureAction::NoAction, true> FNoesisPathAAPatternMirrorUGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorV, NoesisPatternTextureAction::NoAction, true> FNoesisPathAAPatternMirrorVGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Mirror, NoesisPatternTextureAction::NoAction, true> FNoesisPathAAPatternMirrorGammaCorrectionPS;
 
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_Solid> FNoesisSDFSolidGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_Linear> FNoesisSDFLinearGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_Radial> FNoesisSDFRadialGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_Pattern> FNoesisSDFPatternGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Clamp> FNoesisSDFPatternClampGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Repeat> FNoesisSDFPatternRepeatGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_Pattern_MirrorU> FNoesisSDFPatternMirrorUGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_Pattern_MirrorV> FNoesisSDFPatternMirrorVGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Mirror> FNoesisSDFPatternMirrorGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Solid, NoesisPatternTextureAction::NoAction, true> FNoesisSDFSolidGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Linear, NoesisPatternTextureAction::NoAction, true> FNoesisSDFLinearGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Radial, NoesisPatternTextureAction::NoAction, true> FNoesisSDFRadialGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern, NoesisPatternTextureAction::NoAction, true> FNoesisSDFPatternGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Clamp, NoesisPatternTextureAction::NoAction, true> FNoesisSDFPatternClampGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Repeat, NoesisPatternTextureAction::NoAction, true> FNoesisSDFPatternRepeatGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorU, NoesisPatternTextureAction::NoAction, true> FNoesisSDFPatternMirrorUGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorV, NoesisPatternTextureAction::NoAction, true> FNoesisSDFPatternMirrorVGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Mirror, NoesisPatternTextureAction::NoAction, true> FNoesisSDFPatternMirrorGammaCorrectionPS;
 
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_LCD_Solid> FNoesisSDFLCDSolidGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_LCD_Linear> FNoesisSDFLCDLinearGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_LCD_Radial> FNoesisSDFLCDRadialGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern> FNoesisSDFLCDPatternGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Clamp> FNoesisSDFLCDPatternClampGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Repeat> FNoesisSDFLCDPatternRepeatGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU> FNoesisSDFLCDPatternMirrorUGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV> FNoesisSDFLCDPatternMirrorVGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Mirror> FNoesisSDFLCDPatternMirrorGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Solid, NoesisPatternTextureAction::NoAction, true> FNoesisSDFLCDSolidGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Linear, NoesisPatternTextureAction::NoAction, true> FNoesisSDFLCDLinearGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Radial, NoesisPatternTextureAction::NoAction, true> FNoesisSDFLCDRadialGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern, NoesisPatternTextureAction::NoAction, true> FNoesisSDFLCDPatternGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Clamp, NoesisPatternTextureAction::NoAction, true> FNoesisSDFLCDPatternClampGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Repeat, NoesisPatternTextureAction::NoAction, true> FNoesisSDFLCDPatternRepeatGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU, NoesisPatternTextureAction::NoAction, true> FNoesisSDFLCDPatternMirrorUGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV, NoesisPatternTextureAction::NoAction, true> FNoesisSDFLCDPatternMirrorVGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Mirror, NoesisPatternTextureAction::NoAction, true> FNoesisSDFLCDPatternMirrorGammaCorrectionPS;
 
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Opacity_Solid> FNoesisOpacitySolidGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Opacity_Linear> FNoesisOpacityLinearGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Opacity_Radial> FNoesisOpacityRadialGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Opacity_Pattern> FNoesisOpacityPatternGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Clamp> FNoesisOpacityPatternClampGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Repeat> FNoesisOpacityPatternRepeatGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_MirrorU> FNoesisOpacityPatternMirrorUGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_MirrorV> FNoesisOpacityPatternMirrorVGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Mirror> FNoesisOpacityPatternMirrorGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Solid, NoesisPatternTextureAction::NoAction, true> FNoesisOpacitySolidGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Linear, NoesisPatternTextureAction::NoAction, true> FNoesisOpacityLinearGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Radial, NoesisPatternTextureAction::NoAction, true> FNoesisOpacityRadialGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern, NoesisPatternTextureAction::NoAction, true> FNoesisOpacityPatternGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Clamp, NoesisPatternTextureAction::NoAction, true> FNoesisOpacityPatternClampGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Repeat, NoesisPatternTextureAction::NoAction, true> FNoesisOpacityPatternRepeatGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorU, NoesisPatternTextureAction::NoAction, true> FNoesisOpacityPatternMirrorUGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorV, NoesisPatternTextureAction::NoAction, true> FNoesisOpacityPatternMirrorVGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Mirror, NoesisPatternTextureAction::NoAction, true> FNoesisOpacityPatternMirrorGammaCorrectionPS;
 
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Upsample> FNoesisUpsampleGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Downsample> FNoesisDownsampleGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Upsample, NoesisPatternTextureAction::NoAction, true> FNoesisUpsampleGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Downsample, NoesisPatternTextureAction::NoAction, true> FNoesisDownsampleGammaCorrectionPS;
 
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Shadow> FNoesisShadowGammaCorrectionPS;
-typedef FNoesisGammaCorrectionPS<Noesis::Shader::Blur> FNoesisBlurGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Shadow, NoesisPatternTextureAction::NoAction, true> FNoesisShadowGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Blur, NoesisPatternTextureAction::NoAction, true> FNoesisBlurGammaCorrectionPS;
 
 // Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Path_Pattern> FNoesisPathPatternSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Path_Pattern_Clamp> FNoesisPathPatternClampSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Path_Pattern_Repeat> FNoesisPathPatternRepeatSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Path_Pattern_MirrorU> FNoesisPathPatternMirrorUSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Path_Pattern_MirrorV> FNoesisPathPatternMirrorVSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Path_Pattern_Mirror> FNoesisPathPatternMirrorSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern, NoesisPatternTextureAction::PatternSRGB, true> FNoesisPathPatternSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGB, true> FNoesisPathPatternClampSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGB, true> FNoesisPathPatternRepeatSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGB, true> FNoesisPathPatternMirrorUSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGB, true> FNoesisPathPatternMirrorVSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGB, true> FNoesisPathPatternMirrorSRGBGammaCorrectionPS;
 
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern> FNoesisPathAAPatternSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Clamp> FNoesisPathAAPatternClampSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Repeat> FNoesisPathAAPatternRepeatSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_MirrorU> FNoesisPathAAPatternMirrorUSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_MirrorV> FNoesisPathAAPatternMirrorVSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Mirror> FNoesisPathAAPatternMirrorSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern, NoesisPatternTextureAction::PatternSRGB, true> FNoesisPathAAPatternSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGB, true> FNoesisPathAAPatternClampSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGB, true> FNoesisPathAAPatternRepeatSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGB, true> FNoesisPathAAPatternMirrorUSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGB, true> FNoesisPathAAPatternMirrorVSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGB, true> FNoesisPathAAPatternMirrorSRGBGammaCorrectionPS;
 
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::SDF_Pattern> FNoesisSDFPatternSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Clamp> FNoesisSDFPatternClampSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Repeat> FNoesisSDFPatternRepeatSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::SDF_Pattern_MirrorU> FNoesisSDFPatternMirrorUSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::SDF_Pattern_MirrorV> FNoesisSDFPatternMirrorVSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Mirror> FNoesisSDFPatternMirrorSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern, NoesisPatternTextureAction::PatternSRGB, true> FNoesisSDFPatternSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGB, true> FNoesisSDFPatternClampSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGB, true> FNoesisSDFPatternRepeatSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGB, true> FNoesisSDFPatternMirrorUSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGB, true> FNoesisSDFPatternMirrorVSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGB, true> FNoesisSDFPatternMirrorSRGBGammaCorrectionPS;
 
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern> FNoesisSDFLCDPatternSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Clamp> FNoesisSDFLCDPatternClampSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Repeat> FNoesisSDFLCDPatternRepeatSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU> FNoesisSDFLCDPatternMirrorUSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV> FNoesisSDFLCDPatternMirrorVSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Mirror> FNoesisSDFLCDPatternMirrorSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern, NoesisPatternTextureAction::PatternSRGB, true> FNoesisSDFLCDPatternSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGB, true> FNoesisSDFLCDPatternClampSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGB, true> FNoesisSDFLCDPatternRepeatSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGB, true> FNoesisSDFLCDPatternMirrorUSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGB, true> FNoesisSDFLCDPatternMirrorVSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGB, true> FNoesisSDFLCDPatternMirrorSRGBGammaCorrectionPS;
 
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Opacity_Pattern> FNoesisOpacityPatternSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Clamp> FNoesisOpacityPatternClampSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Repeat> FNoesisOpacityPatternRepeatSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_MirrorU> FNoesisOpacityPatternMirrorUSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_MirrorV> FNoesisOpacityPatternMirrorVSRGBGammaCorrectionPS;
-typedef FNoesisPatternSRGBGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Mirror> FNoesisOpacityPatternMirrorSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern, NoesisPatternTextureAction::PatternSRGB, true> FNoesisOpacityPatternSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGB, true> FNoesisOpacityPatternClampSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGB, true> FNoesisOpacityPatternRepeatSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGB, true> FNoesisOpacityPatternMirrorUSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGB, true> FNoesisOpacityPatternMirrorVSRGBGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGB, true> FNoesisOpacityPatternMirrorSRGBGammaCorrectionPS;
+
+// 
+typedef FNoesisPS<Noesis::Shader::Path_Pattern, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisPathPatternIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Clamp, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisPathPatternClampIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Repeat, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisPathPatternRepeatIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorU, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisPathPatternMirrorUIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorV, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisPathPatternMirrorVIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Mirror, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisPathPatternMirrorIgnoreAlphaPS;
+
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisPathAAPatternIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Clamp, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisPathAAPatternClampIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Repeat, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisPathAAPatternRepeatIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorU, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisPathAAPatternMirrorUIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorV, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisPathAAPatternMirrorVIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Mirror, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisPathAAPatternMirrorIgnoreAlphaPS;
+
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisSDFPatternIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Clamp, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisSDFPatternClampIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Repeat, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisSDFPatternRepeatIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorU, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisSDFPatternMirrorUIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorV, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisSDFPatternMirrorVIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Mirror, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisSDFPatternMirrorIgnoreAlphaPS;
+
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisSDFLCDPatternIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Clamp, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisSDFLCDPatternClampIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Repeat, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisSDFLCDPatternRepeatIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisSDFLCDPatternMirrorUIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisSDFLCDPatternMirrorVIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Mirror, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisSDFLCDPatternMirrorIgnoreAlphaPS;
+
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisOpacityPatternIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Clamp, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisOpacityPatternClampIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Repeat, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisOpacityPatternRepeatIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorU, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisOpacityPatternMirrorUIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorV, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisOpacityPatternMirrorVIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Mirror, NoesisPatternTextureAction::PatternIgnoreAlpha, false> FNoesisOpacityPatternMirrorIgnoreAlphaPS;
+
+//
+typedef FNoesisPS<Noesis::Shader::Path_Pattern, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisPathPatternSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisPathPatternClampSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisPathPatternRepeatSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisPathPatternMirrorUSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisPathPatternMirrorVSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisPathPatternMirrorSRGBIgnoreAlphaPS;
+
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisPathAAPatternSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisPathAAPatternClampSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisPathAAPatternRepeatSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisPathAAPatternMirrorUSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisPathAAPatternMirrorVSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisPathAAPatternMirrorSRGBIgnoreAlphaPS;
+
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisSDFPatternSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisSDFPatternClampSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisSDFPatternRepeatSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisSDFPatternMirrorUSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisSDFPatternMirrorVSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisSDFPatternMirrorSRGBIgnoreAlphaPS;
+
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisSDFLCDPatternSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisSDFLCDPatternClampSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisSDFLCDPatternRepeatSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisSDFLCDPatternMirrorUSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisSDFLCDPatternMirrorVSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisSDFLCDPatternMirrorSRGBIgnoreAlphaPS;
+
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisOpacityPatternSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisOpacityPatternClampSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisOpacityPatternRepeatSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisOpacityPatternMirrorUSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisOpacityPatternMirrorVSRGBIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, false> FNoesisOpacityPatternMirrorSRGBIgnoreAlphaPS;
 
 // Read the comment next to PATTERN_LINEAR in FNoesisPS::ModifyCompilationEnvironment
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Path_Pattern> FNoesisPathPatternLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Path_Pattern_Clamp> FNoesisPathPatternClampLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Path_Pattern_Repeat> FNoesisPathPatternRepeatLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Path_Pattern_MirrorU> FNoesisPathPatternMirrorULinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Path_Pattern_MirrorV> FNoesisPathPatternMirrorVLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Path_Pattern_Mirror> FNoesisPathPatternMirrorLinearGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisPathPatternLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Clamp, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisPathPatternClampLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Repeat, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisPathPatternRepeatLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorU, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisPathPatternMirrorULinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorV, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisPathPatternMirrorVLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Mirror, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisPathPatternMirrorLinearIgnoreAlphaPS;
 
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern> FNoesisPathAAPatternLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Clamp> FNoesisPathAAPatternClampLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Repeat> FNoesisPathAAPatternRepeatLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_MirrorU> FNoesisPathAAPatternMirrorULinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_MirrorV> FNoesisPathAAPatternMirrorVLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Mirror> FNoesisPathAAPatternMirrorLinearGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisPathAAPatternLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Clamp, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisPathAAPatternClampLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Repeat, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisPathAAPatternRepeatLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorU, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisPathAAPatternMirrorULinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorV, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisPathAAPatternMirrorVLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Mirror, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisPathAAPatternMirrorLinearIgnoreAlphaPS;
 
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::SDF_Pattern> FNoesisSDFPatternLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Clamp> FNoesisSDFPatternClampLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Repeat> FNoesisSDFPatternRepeatLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::SDF_Pattern_MirrorU> FNoesisSDFPatternMirrorULinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::SDF_Pattern_MirrorV> FNoesisSDFPatternMirrorVLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Mirror> FNoesisSDFPatternMirrorLinearGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisSDFPatternLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Clamp, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisSDFPatternClampLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Repeat, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisSDFPatternRepeatLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorU, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisSDFPatternMirrorULinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorV, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisSDFPatternMirrorVLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Mirror, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisSDFPatternMirrorLinearIgnoreAlphaPS;
 
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern> FNoesisSDFLCDPatternLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Clamp> FNoesisSDFLCDPatternClampLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Repeat> FNoesisSDFLCDPatternRepeatLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU> FNoesisSDFLCDPatternMirrorULinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV> FNoesisSDFLCDPatternMirrorVLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Mirror> FNoesisSDFLCDPatternMirrorLinearGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisSDFLCDPatternLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Clamp, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisSDFLCDPatternClampLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Repeat, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisSDFLCDPatternRepeatLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisSDFLCDPatternMirrorULinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisSDFLCDPatternMirrorVLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Mirror, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisSDFLCDPatternMirrorLinearIgnoreAlphaPS;
 
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Opacity_Pattern> FNoesisOpacityPatternLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Clamp> FNoesisOpacityPatternClampLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Repeat> FNoesisOpacityPatternRepeatLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_MirrorU> FNoesisOpacityPatternMirrorULinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_MirrorV> FNoesisOpacityPatternMirrorVLinearGammaCorrectionPS;
-typedef FNoesisPatternLinearGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Mirror> FNoesisOpacityPatternMirrorLinearGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisOpacityPatternLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Clamp, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisOpacityPatternClampLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Repeat, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisOpacityPatternRepeatLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorU, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisOpacityPatternMirrorULinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorV, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisOpacityPatternMirrorVLinearIgnoreAlphaPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Mirror, NoesisPatternTextureAction::PatternLinearIgnoreAlpha, false> FNoesisOpacityPatternMirrorLinearIgnoreAlphaPS;
 
 // The commas in the template parameter list break the IMPLEMENT_SHADER_TYPE macro, so we need typedefs.
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::RGBA> FNoesisRgbaLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Mask> FNoesisMaskLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Clear> FNoesisClearLinearColorGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisPathPatternIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Clamp, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisPathPatternClampIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Repeat, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisPathPatternRepeatIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorU, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisPathPatternMirrorUIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorV, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisPathPatternMirrorVIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Mirror, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisPathPatternMirrorIgnoreAlphaGammaCorrectionPS;
 
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_Solid> FNoesisPathSolidLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_Linear> FNoesisPathLinearLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_Radial> FNoesisPathRadialLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern> FNoesisPathPatternLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_Clamp> FNoesisPathPatternClampLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_Repeat> FNoesisPathPatternRepeatLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_MirrorU> FNoesisPathPatternMirrorULinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_MirrorV> FNoesisPathPatternMirrorVLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_Mirror> FNoesisPathPatternMirrorLinearColorGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisPathAAPatternIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Clamp, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisPathAAPatternClampIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Repeat, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisPathAAPatternRepeatIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorU, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisPathAAPatternMirrorUIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorV, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisPathAAPatternMirrorVIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Mirror, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisPathAAPatternMirrorIgnoreAlphaGammaCorrectionPS;
 
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Solid> FNoesisPathAASolidLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Linear> FNoesisPathAALinearLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Radial> FNoesisPathAARadialLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern> FNoesisPathAAPatternLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Clamp> FNoesisPathAAPatternClampLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Repeat> FNoesisPathAAPatternRepeatLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_MirrorU> FNoesisPathAAPatternMirrorULinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_MirrorV> FNoesisPathAAPatternMirrorVLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Mirror> FNoesisPathAAPatternMirrorLinearColorGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisSDFPatternIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Clamp, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisSDFPatternClampIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Repeat, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisSDFPatternRepeatIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorU, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisSDFPatternMirrorUIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorV, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisSDFPatternMirrorVIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Mirror, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisSDFPatternMirrorIgnoreAlphaGammaCorrectionPS;
 
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Solid> FNoesisSDFSolidLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Linear> FNoesisSDFLinearLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Radial> FNoesisSDFRadialLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern> FNoesisSDFPatternLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Clamp> FNoesisSDFPatternClampLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Repeat> FNoesisSDFPatternRepeatLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_MirrorU> FNoesisSDFPatternMirrorULinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_MirrorV> FNoesisSDFPatternMirrorVLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Mirror> FNoesisSDFPatternMirrorLinearColorGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisSDFLCDPatternIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Clamp, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisSDFLCDPatternClampIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Repeat, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisSDFLCDPatternRepeatIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisSDFLCDPatternMirrorUIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisSDFLCDPatternMirrorVIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Mirror, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisSDFLCDPatternMirrorIgnoreAlphaGammaCorrectionPS;
 
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Solid> FNoesisSDFLCDSolidLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Linear> FNoesisSDFLCDLinearLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Radial> FNoesisSDFLCDRadialLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern> FNoesisSDFLCDPatternLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Clamp> FNoesisSDFLCDPatternClampLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Repeat> FNoesisSDFLCDPatternRepeatLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU> FNoesisSDFLCDPatternMirrorULinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV> FNoesisSDFLCDPatternMirrorVLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Mirror> FNoesisSDFLCDPatternMirrorLinearColorGammaCorrectionPS;
-
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Solid> FNoesisOpacitySolidLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Linear> FNoesisOpacityLinearLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Radial> FNoesisOpacityRadialLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern> FNoesisOpacityPatternLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Clamp> FNoesisOpacityPatternClampLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Repeat> FNoesisOpacityPatternRepeatLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_MirrorU> FNoesisOpacityPatternMirrorULinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_MirrorV> FNoesisOpacityPatternMirrorVLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Mirror> FNoesisOpacityPatternMirrorLinearColorGammaCorrectionPS;
-
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Upsample> FNoesisUpsampleLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Downsample> FNoesisDownsampleLinearColorGammaCorrectionPS;
-
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Shadow> FNoesisShadowLinearColorGammaCorrectionPS;
-typedef FNoesisLinearColorGammaCorrectionPS<Noesis::Shader::Blur> FNoesisBlurLinearColorGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisOpacityPatternIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Clamp, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisOpacityPatternClampIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Repeat, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisOpacityPatternRepeatIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorU, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisOpacityPatternMirrorUIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorV, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisOpacityPatternMirrorVIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Mirror, NoesisPatternTextureAction::PatternIgnoreAlpha, true> FNoesisOpacityPatternMirrorIgnoreAlphaGammaCorrectionPS;
 
 // Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern> FNoesisPathPatternSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_Clamp> FNoesisPathPatternClampSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_Repeat> FNoesisPathPatternRepeatSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_MirrorU> FNoesisPathPatternMirrorUSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_MirrorV> FNoesisPathPatternMirrorVSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_Mirror> FNoesisPathPatternMirrorSRGBLinearColorGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisPathPatternSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisPathPatternClampSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisPathPatternRepeatSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisPathPatternMirrorUSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisPathPatternMirrorVSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisPathPatternMirrorSRGBIgnoreAlphaGammaCorrectionPS;
 
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern> FNoesisPathAAPatternSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Clamp> FNoesisPathAAPatternClampSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Repeat> FNoesisPathAAPatternRepeatSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_MirrorU> FNoesisPathAAPatternMirrorUSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_MirrorV> FNoesisPathAAPatternMirrorVSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Mirror> FNoesisPathAAPatternMirrorSRGBLinearColorGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisPathAAPatternSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisPathAAPatternClampSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisPathAAPatternRepeatSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisPathAAPatternMirrorUSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisPathAAPatternMirrorVSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Path_AA_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisPathAAPatternMirrorSRGBIgnoreAlphaGammaCorrectionPS;
 
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern> FNoesisSDFPatternSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Clamp> FNoesisSDFPatternClampSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Repeat> FNoesisSDFPatternRepeatSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_MirrorU> FNoesisSDFPatternMirrorUSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_MirrorV> FNoesisSDFPatternMirrorVSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Mirror> FNoesisSDFPatternMirrorSRGBLinearColorGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisSDFPatternSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisSDFPatternClampSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisSDFPatternRepeatSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisSDFPatternMirrorUSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisSDFPatternMirrorVSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisSDFPatternMirrorSRGBIgnoreAlphaGammaCorrectionPS;
 
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern> FNoesisSDFLCDPatternSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Clamp> FNoesisSDFLCDPatternClampSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Repeat> FNoesisSDFLCDPatternRepeatSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU> FNoesisSDFLCDPatternMirrorUSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV> FNoesisSDFLCDPatternMirrorVSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Mirror> FNoesisSDFLCDPatternMirrorSRGBLinearColorGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisSDFLCDPatternSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisSDFLCDPatternClampSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisSDFLCDPatternRepeatSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisSDFLCDPatternMirrorUSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisSDFLCDPatternMirrorVSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::SDF_LCD_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisSDFLCDPatternMirrorSRGBIgnoreAlphaGammaCorrectionPS;
 
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern> FNoesisOpacityPatternSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Clamp> FNoesisOpacityPatternClampSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Repeat> FNoesisOpacityPatternRepeatSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_MirrorU> FNoesisOpacityPatternMirrorUSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_MirrorV> FNoesisOpacityPatternMirrorVSRGBLinearColorGammaCorrectionPS;
-typedef FNoesisPatternSRGBLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Mirror> FNoesisOpacityPatternMirrorSRGBLinearColorGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisOpacityPatternSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Clamp, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisOpacityPatternClampSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Repeat, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisOpacityPatternRepeatSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorU, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisOpacityPatternMirrorUSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_MirrorV, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisOpacityPatternMirrorVSRGBIgnoreAlphaGammaCorrectionPS;
+typedef FNoesisPS<Noesis::Shader::Opacity_Pattern_Mirror, NoesisPatternTextureAction::PatternSRGBIgnoreAlpha, true> FNoesisOpacityPatternMirrorSRGBIgnoreAlphaGammaCorrectionPS;
 
-// Read the comment next to PATTERN_LINEAR in FNoesisPS::ModifyCompilationEnvironment
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern> FNoesisPathPatternLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_Clamp> FNoesisPathPatternClampLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_Repeat> FNoesisPathPatternRepeatLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_MirrorU> FNoesisPathPatternMirrorULinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_MirrorV> FNoesisPathPatternMirrorVLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_Mirror> FNoesisPathPatternMirrorLinearLinearColorGammaCorrectionPS;
-
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern> FNoesisPathAAPatternLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Clamp> FNoesisPathAAPatternClampLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Repeat> FNoesisPathAAPatternRepeatLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_MirrorU> FNoesisPathAAPatternMirrorULinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_MirrorV> FNoesisPathAAPatternMirrorVLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Mirror> FNoesisPathAAPatternMirrorLinearLinearColorGammaCorrectionPS;
-
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern> FNoesisSDFPatternLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Clamp> FNoesisSDFPatternClampLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Repeat> FNoesisSDFPatternRepeatLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_MirrorU> FNoesisSDFPatternMirrorULinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_MirrorV> FNoesisSDFPatternMirrorVLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Mirror> FNoesisSDFPatternMirrorLinearLinearColorGammaCorrectionPS;
-
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern> FNoesisSDFLCDPatternLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Clamp> FNoesisSDFLCDPatternClampLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Repeat> FNoesisSDFLCDPatternRepeatLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU> FNoesisSDFLCDPatternMirrorULinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV> FNoesisSDFLCDPatternMirrorVLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Mirror> FNoesisSDFLCDPatternMirrorLinearLinearColorGammaCorrectionPS;
-
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern> FNoesisOpacityPatternLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Clamp> FNoesisOpacityPatternClampLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Repeat> FNoesisOpacityPatternRepeatLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_MirrorU> FNoesisOpacityPatternMirrorULinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_MirrorV> FNoesisOpacityPatternMirrorVLinearLinearColorGammaCorrectionPS;
-typedef FNoesisPatternLinearLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Mirror> FNoesisOpacityPatternMirrorLinearLinearColorGammaCorrectionPS;
 
 class FNoesisMaterialPSBase : public FMaterialShader
 {
@@ -1299,7 +1109,7 @@ public:
 	LAYOUT_FIELD(FShaderParameter, GammaAndAlphaValues)
 };
 
-template<Noesis::Shader::Enum Effect>
+template<Noesis::Shader::Enum Effect, NoesisColorSpace ColorSpace = NoesisColorSpace::sRGB, bool GammaCorrection = false>
 class FNoesisMaterialPS : public FNoesisMaterialPSBase
 {
 	DECLARE_SHADER_TYPE(FNoesisMaterialPS, Material);
@@ -1322,72 +1132,10 @@ class FNoesisMaterialPS : public FNoesisMaterialPSBase
 	{
 		FNoesisMaterialPSBase::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 		OutEnvironment.SetDefine(TEXT("EFFECT"), Effect);
-	}
-};
 
-template<Noesis::Shader::Enum Effect>
-class FNoesisMaterialLinearColorPS : public FNoesisMaterialPS<Effect>
-{
-	DECLARE_SHADER_TYPE(FNoesisMaterialLinearColorPS, Material);
+		OutEnvironment.SetDefine(TEXT("LINEAR_COLOR"), ColorSpace == NoesisColorSpace::Linear);
 
-	FNoesisMaterialLinearColorPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FNoesisMaterialPS<Effect>(Initializer)
-	{
-	}
-
-	FNoesisMaterialLinearColorPS()
-	{
-	}
-
-	static void ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
-	{
-		FNoesisMaterialPS<Effect>::ModifyCompilationEnvironment(Parameters, OutEnvironment);
-
-		OutEnvironment.SetDefine(TEXT("LINEAR_COLOR"), true);
-	}
-};
-
-template<Noesis::Shader::Enum Effect>
-class FNoesisMaterialGammaCorrectionPS : public FNoesisMaterialPS<Effect>
-{
-	DECLARE_SHADER_TYPE(FNoesisMaterialGammaCorrectionPS, Material);
-
-	FNoesisMaterialGammaCorrectionPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FNoesisMaterialPS<Effect>(Initializer)
-	{
-	}
-
-	FNoesisMaterialGammaCorrectionPS()
-	{
-	}
-
-	static void ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
-	{
-		FNoesisMaterialPS<Effect>::ModifyCompilationEnvironment(Parameters, OutEnvironment);
-
-		OutEnvironment.SetDefine(TEXT("GAMMA_CORRECTION"), true);
-	}
-};
-
-template<Noesis::Shader::Enum Effect>
-class FNoesisMaterialLinearColorGammaCorrectionPS : public FNoesisMaterialLinearColorPS<Effect>
-{
-	DECLARE_SHADER_TYPE(FNoesisMaterialLinearColorGammaCorrectionPS, Material);
-
-	FNoesisMaterialLinearColorGammaCorrectionPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FNoesisMaterialLinearColorPS<Effect>(Initializer)
-	{
-	}
-
-	FNoesisMaterialLinearColorGammaCorrectionPS()
-	{
-	}
-
-	static void ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
-	{
-		FNoesisMaterialLinearColorPS<Effect>::ModifyCompilationEnvironment(Parameters, OutEnvironment);
-
-		OutEnvironment.SetDefine(TEXT("GAMMA_CORRECTION"), true);
+		OutEnvironment.SetDefine(TEXT("GAMMA_CORRECTION"), GammaCorrection);
 	}
 };
 
@@ -1428,112 +1176,76 @@ typedef FNoesisMaterialPS<Noesis::Shader::Opacity_Pattern_MirrorV> FNoesisOpacit
 typedef FNoesisMaterialPS<Noesis::Shader::Opacity_Pattern_Mirror> FNoesisOpacityMaterialMirrorPS;
 
 // The commas in the template parameter list break the IMPLEMENT_SHADER_TYPE macro, so we need typedefs.
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_Pattern> FNoesisPathMaterialLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_Pattern_Clamp> FNoesisPathMaterialClampLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_Pattern_Repeat> FNoesisPathMaterialRepeatLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_Pattern_MirrorU> FNoesisPathMaterialMirrorULinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_Pattern_MirrorV> FNoesisPathMaterialMirrorVLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_Pattern_Mirror> FNoesisPathMaterialMirrorLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_Pattern, NoesisColorSpace::Linear> FNoesisPathMaterialLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_Pattern_Clamp, NoesisColorSpace::Linear> FNoesisPathMaterialClampLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_Pattern_Repeat, NoesisColorSpace::Linear> FNoesisPathMaterialRepeatLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_Pattern_MirrorU, NoesisColorSpace::Linear> FNoesisPathMaterialMirrorULinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_Pattern_MirrorV, NoesisColorSpace::Linear> FNoesisPathMaterialMirrorVLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_Pattern_Mirror, NoesisColorSpace::Linear> FNoesisPathMaterialMirrorLinearColorPS;
 
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_AA_Pattern> FNoesisPathAAMaterialLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_AA_Pattern_Clamp> FNoesisPathAAMaterialClampLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_AA_Pattern_Repeat> FNoesisPathAAMaterialRepeatLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_AA_Pattern_MirrorU> FNoesisPathAAMaterialMirrorULinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_AA_Pattern_MirrorV> FNoesisPathAAMaterialMirrorVLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Path_AA_Pattern_Mirror> FNoesisPathAAMaterialMirrorLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_AA_Pattern, NoesisColorSpace::Linear> FNoesisPathAAMaterialLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_AA_Pattern_Clamp, NoesisColorSpace::Linear> FNoesisPathAAMaterialClampLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_AA_Pattern_Repeat, NoesisColorSpace::Linear> FNoesisPathAAMaterialRepeatLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_AA_Pattern_MirrorU, NoesisColorSpace::Linear> FNoesisPathAAMaterialMirrorULinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_AA_Pattern_MirrorV, NoesisColorSpace::Linear> FNoesisPathAAMaterialMirrorVLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_AA_Pattern_Mirror, NoesisColorSpace::Linear> FNoesisPathAAMaterialMirrorLinearColorPS;
 
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_Pattern> FNoesisSDFMaterialLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_Pattern_Clamp> FNoesisSDFMaterialClampLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_Pattern_Repeat> FNoesisSDFMaterialRepeatLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_Pattern_MirrorU> FNoesisSDFMaterialMirrorULinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_Pattern_MirrorV> FNoesisSDFMaterialMirrorVLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_Pattern_Mirror> FNoesisSDFMaterialMirrorLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_Pattern, NoesisColorSpace::Linear> FNoesisSDFMaterialLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_Pattern_Clamp, NoesisColorSpace::Linear> FNoesisSDFMaterialClampLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_Pattern_Repeat, NoesisColorSpace::Linear> FNoesisSDFMaterialRepeatLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_Pattern_MirrorU, NoesisColorSpace::Linear> FNoesisSDFMaterialMirrorULinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_Pattern_MirrorV, NoesisColorSpace::Linear> FNoesisSDFMaterialMirrorVLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_Pattern_Mirror, NoesisColorSpace::Linear> FNoesisSDFMaterialMirrorLinearColorPS;
 
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_LCD_Pattern> FNoesisSDFLCDMaterialLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_LCD_Pattern_Clamp> FNoesisSDFLCDMaterialClampLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_LCD_Pattern_Repeat> FNoesisSDFLCDMaterialRepeatLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU> FNoesisSDFLCDMaterialMirrorULinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV> FNoesisSDFLCDMaterialMirrorVLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::SDF_LCD_Pattern_Mirror> FNoesisSDFLCDMaterialMirrorLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_LCD_Pattern, NoesisColorSpace::Linear> FNoesisSDFLCDMaterialLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_LCD_Pattern_Clamp, NoesisColorSpace::Linear> FNoesisSDFLCDMaterialClampLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_LCD_Pattern_Repeat, NoesisColorSpace::Linear> FNoesisSDFLCDMaterialRepeatLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU, NoesisColorSpace::Linear> FNoesisSDFLCDMaterialMirrorULinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV, NoesisColorSpace::Linear> FNoesisSDFLCDMaterialMirrorVLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_LCD_Pattern_Mirror, NoesisColorSpace::Linear> FNoesisSDFLCDMaterialMirrorLinearColorPS;
 
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Opacity_Pattern> FNoesisOpacityMaterialLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Opacity_Pattern_Clamp> FNoesisOpacityMaterialClampLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Opacity_Pattern_Repeat> FNoesisOpacityMaterialRepeatLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Opacity_Pattern_MirrorU> FNoesisOpacityMaterialMirrorULinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Opacity_Pattern_MirrorV> FNoesisOpacityMaterialMirrorVLinearColorPS;
-typedef FNoesisMaterialLinearColorPS<Noesis::Shader::Opacity_Pattern_Mirror> FNoesisOpacityMaterialMirrorLinearColorPS;
-
-// The commas in the template parameter list break the IMPLEMENT_SHADER_TYPE macro, so we need typedefs.
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Path_Pattern> FNoesisPathMaterialGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Path_Pattern_Clamp> FNoesisPathMaterialClampGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Path_Pattern_Repeat> FNoesisPathMaterialRepeatGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Path_Pattern_MirrorU> FNoesisPathMaterialMirrorUGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Path_Pattern_MirrorV> FNoesisPathMaterialMirrorVGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Path_Pattern_Mirror> FNoesisPathMaterialMirrorGammaCorrectionPS;
-
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern> FNoesisPathAAMaterialGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Clamp> FNoesisPathAAMaterialClampGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Repeat> FNoesisPathAAMaterialRepeatGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_MirrorU> FNoesisPathAAMaterialMirrorUGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_MirrorV> FNoesisPathAAMaterialMirrorVGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Mirror> FNoesisPathAAMaterialMirrorGammaCorrectionPS;
-
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::SDF_Pattern> FNoesisSDFMaterialGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Clamp> FNoesisSDFMaterialClampGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Repeat> FNoesisSDFMaterialRepeatGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::SDF_Pattern_MirrorU> FNoesisSDFMaterialMirrorUGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::SDF_Pattern_MirrorV> FNoesisSDFMaterialMirrorVGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Mirror> FNoesisSDFMaterialMirrorGammaCorrectionPS;
-
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern> FNoesisSDFLCDMaterialGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Clamp> FNoesisSDFLCDMaterialClampGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Repeat> FNoesisSDFLCDMaterialRepeatGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU> FNoesisSDFLCDMaterialMirrorUGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV> FNoesisSDFLCDMaterialMirrorVGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Mirror> FNoesisSDFLCDMaterialMirrorGammaCorrectionPS;
-
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Opacity_Pattern> FNoesisOpacityMaterialGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Clamp> FNoesisOpacityMaterialClampGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Repeat> FNoesisOpacityMaterialRepeatGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_MirrorU> FNoesisOpacityMaterialMirrorUGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_MirrorV> FNoesisOpacityMaterialMirrorVGammaCorrectionPS;
-typedef FNoesisMaterialGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Mirror> FNoesisOpacityMaterialMirrorGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Opacity_Pattern, NoesisColorSpace::Linear> FNoesisOpacityMaterialLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Opacity_Pattern_Clamp, NoesisColorSpace::Linear> FNoesisOpacityMaterialClampLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Opacity_Pattern_Repeat, NoesisColorSpace::Linear> FNoesisOpacityMaterialRepeatLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Opacity_Pattern_MirrorU, NoesisColorSpace::Linear> FNoesisOpacityMaterialMirrorULinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Opacity_Pattern_MirrorV, NoesisColorSpace::Linear> FNoesisOpacityMaterialMirrorVLinearColorPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Opacity_Pattern_Mirror, NoesisColorSpace::Linear> FNoesisOpacityMaterialMirrorLinearColorPS;
 
 // The commas in the template parameter list break the IMPLEMENT_SHADER_TYPE macro, so we need typedefs.
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern> FNoesisPathMaterialLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_Clamp> FNoesisPathMaterialClampLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_Repeat> FNoesisPathMaterialRepeatLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_MirrorU> FNoesisPathMaterialMirrorULinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_MirrorV> FNoesisPathMaterialMirrorVLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Path_Pattern_Mirror> FNoesisPathMaterialMirrorLinearColorGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_Pattern, NoesisColorSpace::sRGB, true> FNoesisPathMaterialGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_Pattern_Clamp, NoesisColorSpace::sRGB, true> FNoesisPathMaterialClampGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_Pattern_Repeat, NoesisColorSpace::sRGB, true> FNoesisPathMaterialRepeatGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_Pattern_MirrorU, NoesisColorSpace::sRGB, true> FNoesisPathMaterialMirrorUGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_Pattern_MirrorV, NoesisColorSpace::sRGB, true> FNoesisPathMaterialMirrorVGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_Pattern_Mirror, NoesisColorSpace::sRGB, true> FNoesisPathMaterialMirrorGammaCorrectionPS;
 
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern> FNoesisPathAAMaterialLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Clamp> FNoesisPathAAMaterialClampLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Repeat> FNoesisPathAAMaterialRepeatLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_MirrorU> FNoesisPathAAMaterialMirrorULinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_MirrorV> FNoesisPathAAMaterialMirrorVLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Path_AA_Pattern_Mirror> FNoesisPathAAMaterialMirrorLinearColorGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_AA_Pattern, NoesisColorSpace::sRGB, true> FNoesisPathAAMaterialGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_AA_Pattern_Clamp, NoesisColorSpace::sRGB, true> FNoesisPathAAMaterialClampGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_AA_Pattern_Repeat, NoesisColorSpace::sRGB, true> FNoesisPathAAMaterialRepeatGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_AA_Pattern_MirrorU, NoesisColorSpace::sRGB, true> FNoesisPathAAMaterialMirrorUGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_AA_Pattern_MirrorV, NoesisColorSpace::sRGB, true> FNoesisPathAAMaterialMirrorVGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Path_AA_Pattern_Mirror, NoesisColorSpace::sRGB, true> FNoesisPathAAMaterialMirrorGammaCorrectionPS;
 
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern> FNoesisSDFMaterialLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Clamp> FNoesisSDFMaterialClampLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Repeat> FNoesisSDFMaterialRepeatLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_MirrorU> FNoesisSDFMaterialMirrorULinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_MirrorV> FNoesisSDFMaterialMirrorVLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::SDF_Pattern_Mirror> FNoesisSDFMaterialMirrorLinearColorGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_Pattern, NoesisColorSpace::sRGB, true> FNoesisSDFMaterialGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_Pattern_Clamp, NoesisColorSpace::sRGB, true> FNoesisSDFMaterialClampGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_Pattern_Repeat, NoesisColorSpace::sRGB, true> FNoesisSDFMaterialRepeatGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_Pattern_MirrorU, NoesisColorSpace::sRGB, true> FNoesisSDFMaterialMirrorUGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_Pattern_MirrorV, NoesisColorSpace::sRGB, true> FNoesisSDFMaterialMirrorVGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_Pattern_Mirror, NoesisColorSpace::sRGB, true> FNoesisSDFMaterialMirrorGammaCorrectionPS;
 
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern> FNoesisSDFLCDMaterialLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Clamp> FNoesisSDFLCDMaterialClampLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Repeat> FNoesisSDFLCDMaterialRepeatLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU> FNoesisSDFLCDMaterialMirrorULinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV> FNoesisSDFLCDMaterialMirrorVLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::SDF_LCD_Pattern_Mirror> FNoesisSDFLCDMaterialMirrorLinearColorGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_LCD_Pattern, NoesisColorSpace::sRGB, true> FNoesisSDFLCDMaterialGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_LCD_Pattern_Clamp, NoesisColorSpace::sRGB, true> FNoesisSDFLCDMaterialClampGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_LCD_Pattern_Repeat, NoesisColorSpace::sRGB, true> FNoesisSDFLCDMaterialRepeatGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_LCD_Pattern_MirrorU, NoesisColorSpace::sRGB, true> FNoesisSDFLCDMaterialMirrorUGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_LCD_Pattern_MirrorV, NoesisColorSpace::sRGB, true> FNoesisSDFLCDMaterialMirrorVGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::SDF_LCD_Pattern_Mirror, NoesisColorSpace::sRGB, true> FNoesisSDFLCDMaterialMirrorGammaCorrectionPS;
 
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern> FNoesisOpacityMaterialLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Clamp> FNoesisOpacityMaterialClampLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Repeat> FNoesisOpacityMaterialRepeatLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_MirrorU> FNoesisOpacityMaterialMirrorULinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_MirrorV> FNoesisOpacityMaterialMirrorVLinearColorGammaCorrectionPS;
-typedef FNoesisMaterialLinearColorGammaCorrectionPS<Noesis::Shader::Opacity_Pattern_Mirror> FNoesisOpacityMaterialMirrorLinearColorGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Opacity_Pattern, NoesisColorSpace::sRGB, true> FNoesisOpacityMaterialGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Opacity_Pattern_Clamp, NoesisColorSpace::sRGB, true> FNoesisOpacityMaterialClampGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Opacity_Pattern_Repeat, NoesisColorSpace::sRGB, true> FNoesisOpacityMaterialRepeatGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Opacity_Pattern_MirrorU, NoesisColorSpace::sRGB, true> FNoesisOpacityMaterialMirrorUGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Opacity_Pattern_MirrorV, NoesisColorSpace::sRGB, true> FNoesisOpacityMaterialMirrorVGammaCorrectionPS;
+typedef FNoesisMaterialPS<Noesis::Shader::Opacity_Pattern_Mirror, NoesisColorSpace::sRGB, true> FNoesisOpacityMaterialMirrorGammaCorrectionPS;
 
 BEGIN_SHADER_PARAMETER_STRUCT(FNoesisSceneTextureShaderParameters, )
 	SHADER_PARAMETER_STRUCT_REF(FSceneTextureUniformParameters, SceneTextures)
@@ -1661,26 +1373,5 @@ public:
 	{
 		FNoesisCustomEffectPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 		OutEnvironment.SetDefine(TEXT("GAMMA_CORRECTION"), true);
-	}
-};
-
-class FNoesisCustomEffectLinearColorGammaCorrectionPS : public FNoesisCustomEffectGammaCorrectionPS
-{
-public:
-	DECLARE_SHADER_TYPE(FNoesisCustomEffectLinearColorGammaCorrectionPS, Material);
-
-	FNoesisCustomEffectLinearColorGammaCorrectionPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FNoesisCustomEffectGammaCorrectionPS(Initializer)
-	{
-	}
-
-	FNoesisCustomEffectLinearColorGammaCorrectionPS()
-	{
-	}
-
-	static void ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
-	{
-		FNoesisCustomEffectPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
-		OutEnvironment.SetDefine(TEXT("LINEAR_COLOR"), true);
 	}
 };

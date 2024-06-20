@@ -22,9 +22,8 @@ public:
 	BackgroundImage();
 	~BackgroundImage();
 
-	static FTexture2DRHIRef BackgroundColorTexture;
-	static FIntPoint BackgroundViewportSize;
-	static Noesis::Ptr<Noesis::Texture> NoesisBackgroundTexture;
+	static void SetBackgroundImageTexture(FRHITexture2D* Texture);
+	static void SetBackgroundImageSize(const FIntPoint& Size);
 
 private:
 	void OnViewportResized(class FViewport* Viewport, uint32);

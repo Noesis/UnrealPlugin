@@ -6,7 +6,7 @@
 #include "NoesisShaders.h"
 
 IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisVSConstants, "NoesisVSConstants");
-IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisVSConstantsRightEye, "NoesisVSConstantsRightEye");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisVSConstantsStereo, "NoesisVSConstantsStereo");
 IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisTextureSize, "NoesisTextureSize");
 IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisPSRgbaConstants, "NoesisPSRgbaConstants");
 IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FNoesisPSOpacityConstants, "NoesisPSOpacityConstants");
@@ -91,6 +91,7 @@ IMPLEMENT_SHADER_TYPE(template<>, FNoesisPosLinearColorTex0Tex1StereoVS, TEXT("/
 IMPLEMENT_SHADER_TYPE(template<>, FNoesisPosLinearColorTex1RectStereoVS, TEXT("/Plugin/NoesisGUI/Private/NoesisVS.usf"), TEXT("NoesisVS"), SF_Vertex);
 IMPLEMENT_SHADER_TYPE(template<>, FNoesisPosLinearColorTex0RectImagePosStereoVS, TEXT("/Plugin/NoesisGUI/Private/NoesisVS.usf"), TEXT("NoesisVS"), SF_Vertex);
 
+/////////////////
 IMPLEMENT_SHADER_TYPE(template<>, FNoesisRgbaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 IMPLEMENT_SHADER_TYPE(template<>, FNoesisMaskPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 IMPLEMENT_SHADER_TYPE(template<>, FNoesisClearPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
@@ -319,174 +320,187 @@ IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorUSRGBGammaCorrectio
 IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorVSRGBGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorSRGBGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 
-// Read the comment next to PATTERN_LINEAR in FNoesisPS::ModifyCompilationEnvironment
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternClampLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternRepeatLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorULinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorVLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+/////////////////
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternClampIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternRepeatIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorUIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorVIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternClampLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternRepeatLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorULinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorVLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternClampIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternRepeatIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorUIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorVIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternClampLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternRepeatLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorULinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorVLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternClampIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternRepeatIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorUIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorVIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternClampLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternRepeatLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorULinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorVLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternClampIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternRepeatIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorUIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorVIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternClampLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternRepeatLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorULinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorVLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorLinearGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisRgbaLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisMaskLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisClearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathSolidLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathRadialLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternClampLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternRepeatLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorULinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorVLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAASolidLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAALinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAARadialLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternClampLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternRepeatLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorULinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorVLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFSolidLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFRadialLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternClampLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternRepeatLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorULinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorVLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDSolidLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDRadialLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternClampLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternRepeatLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorULinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorVLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacitySolidLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityRadialLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternClampLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternRepeatLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorULinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorVLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisUpsampleLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisDownsampleLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisShadowLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisBlurLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternClampIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternRepeatIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorUIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorVIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 
 // Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternClampSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternRepeatSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorUSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorVSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternClampSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternRepeatSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorUSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorVSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternClampSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternRepeatSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorUSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorVSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternClampSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternRepeatSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorUSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorVSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternClampSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternRepeatSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorUSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorVSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternClampSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternRepeatSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorUSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorVSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternClampSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternRepeatSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorUSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorVSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternClampSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternRepeatSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorUSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorVSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternClampSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternRepeatSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorUSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorVSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorSRGBLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternClampSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternRepeatSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorUSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorVSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorSRGBIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 
 // Read the comment next to PATTERN_LINEAR in FNoesisPS::ModifyCompilationEnvironment
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternClampLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternRepeatLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorULinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorVLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternClampLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternRepeatLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorULinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorVLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternClampLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternRepeatLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorULinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorVLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternClampLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternRepeatLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorULinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorVLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternClampLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternRepeatLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorULinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorVLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternClampLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternRepeatLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorULinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorVLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternClampLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternRepeatLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorULinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorVLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternClampLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternRepeatLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorULinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorVLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternClampLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternRepeatLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorULinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorVLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorLinearLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternClampLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternRepeatLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorULinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorVLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorLinearIgnoreAlphaPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 
+//
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternClampIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternRepeatIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorUIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorVIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternClampIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternRepeatIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorUIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorVIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternClampIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternRepeatIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorUIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorVIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternClampIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternRepeatIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorUIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorVIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternClampIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternRepeatIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorUIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorVIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+
+// Read the comment next to PATTERN_SRGB in FNoesisPS::ModifyCompilationEnvironment
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternClampSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternRepeatSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorUSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorVSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathPatternMirrorSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternClampSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternRepeatSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorUSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorVSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisPathAAPatternMirrorSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternClampSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternRepeatSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorUSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorVSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFPatternMirrorSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternClampSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternRepeatSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorUSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorVSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisSDFLCDPatternMirrorSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternClampSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternRepeatSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorUSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorVSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+IMPLEMENT_SHADER_TYPE(template<>, FNoesisOpacityPatternMirrorSRGBIgnoreAlphaGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisPS.usf"), TEXT("NoesisPS"), SF_Pixel);
+
+// Material shaders
 IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisPathMaterialPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisPathMaterialClampPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisPathMaterialRepeatPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
@@ -592,41 +606,5 @@ IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisOpacityMaterialMirrorUGammaCor
 IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisOpacityMaterialMirrorVGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisOpacityMaterialMirrorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisPathMaterialLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisPathMaterialClampLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisPathMaterialRepeatLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisPathMaterialMirrorULinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisPathMaterialMirrorVLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisPathMaterialMirrorLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisPathAAMaterialLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisPathAAMaterialClampLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisPathAAMaterialRepeatLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisPathAAMaterialMirrorULinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisPathAAMaterialMirrorVLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisPathAAMaterialMirrorLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisSDFMaterialLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisSDFMaterialClampLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisSDFMaterialRepeatLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisSDFMaterialMirrorULinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisSDFMaterialMirrorVLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisSDFMaterialMirrorLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisSDFLCDMaterialLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisSDFLCDMaterialClampLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisSDFLCDMaterialRepeatLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisSDFLCDMaterialMirrorULinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisSDFLCDMaterialMirrorVLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisSDFLCDMaterialMirrorLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisOpacityMaterialLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisOpacityMaterialClampLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisOpacityMaterialRepeatLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisOpacityMaterialMirrorULinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisOpacityMaterialMirrorVLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(template<>, FNoesisOpacityMaterialMirrorLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisMaterialPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FNoesisCustomEffectPS, TEXT("/Plugin/NoesisGUI/Private/NoesisCustomEffectPS.usf"), TEXT("NoesisPS"), SF_Pixel);
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FNoesisCustomEffectGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisCustomEffectPS.usf"), TEXT("NoesisPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(, FNoesisCustomEffectLinearColorGammaCorrectionPS, TEXT("/Plugin/NoesisGUI/Private/NoesisCustomEffectPS.usf"), TEXT("NoesisPS"), SF_Pixel);

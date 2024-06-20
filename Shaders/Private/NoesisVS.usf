@@ -1,5 +1,6 @@
 #include "/Engine/Private/Common.ush"
 #include "/Engine/Private/GammaCorrectionCommon.ush"
+#include "/Engine/Private/InstancedStereo.ush"
 
 struct In
 {
@@ -85,7 +86,11 @@ struct Out
 
 #if WITH_STEREO
 #if INSTANCED_STEREO
+#if MULTI_VIEW
     nointerpolation uint viewportIndex : SV_ViewPortArrayIndex;
+#else
+    float clipDistance : SV_ClipDistance;
+#endif
 #elif MOBILE_MULTI_VIEW
     nointerpolation uint viewId : VIEW_ID;
 #endif
@@ -97,11 +102,17 @@ void NoesisVS(in In i, out Out o)
 {
 #if WITH_STEREO
 #if INSTANCED_STEREO
+    o.position = mul(NoesisVSConstantsStereo.projectionMtx[i.instanceId], float4(i.position, 0, 1));
+#if MULTI_VIEW
     o.viewportIndex = i.instanceId;
-    o.position = mul(i.instanceId == 0 ? NoesisVSConstants.projectionMtx : NoesisVSConstantsRightEye.projectionMtx, float4(i.position, 0, 1));
+#else
+    o.clipDistance = dot(o.position, EyeClipEdge[i.instanceId]);
+    o.position.x *= 0.5/* * ResolvedView.HMDEyePaddingOffset*/;
+    o.position.x += (EyeOffsetScale[i.instanceId] * o.position.w) * (1.0f - 0.5/* * ResolvedView.HMDEyePaddingOffset*/);
+#endif
 #elif MOBILE_MULTI_VIEW
     o.viewId = i.viewId;
-    o.position = mul(i.viewId == 0 ? NoesisVSConstants.projectionMtx : NoesisVSConstantsRightEye.projectionMtx, float4(i.position, 0, 1));
+    o.position = mul(NoesisVSConstantsStereo.projectionMtx[i.viewId], float4(i.position, 0, 1));
 #else
     o.position = mul(NoesisVSConstants.projectionMtx, float4(i.position, 0, 1));
 #endif

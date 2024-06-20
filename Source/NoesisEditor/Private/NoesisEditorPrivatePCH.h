@@ -10,7 +10,7 @@
 #include "Misc/Paths.h"
 #include "Misc/FileHelper.h"
 #include "HAL/FileManager.h"
-#include "HAL/PlatformFilemanager.h"
+#include "HAL/PlatformFileManager.h"
 #include "Internationalization/Regex.h"
 
 // Engine includes
@@ -43,11 +43,6 @@
 
 // BlueprintGraph includes
 #include "K2Node_CallFunction.h"
-// FreeType2 includes
-THIRD_PARTY_INCLUDES_START
-#include "ft2build.h"
-#include FT_FREETYPE_H
-THIRD_PARTY_INCLUDES_END
 
 // BlueprintGraph includes
 #include "BlueprintNodeTemplateCache.h"

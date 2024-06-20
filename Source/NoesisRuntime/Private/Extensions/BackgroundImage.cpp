@@ -11,29 +11,18 @@
 // NoesisRuntime includes
 #include "Render/NoesisRenderDevice.h"
 
-FTexture2DRHIRef BackgroundImage::BackgroundColorTexture;
-FIntPoint BackgroundImage::BackgroundViewportSize;
-Noesis::Ptr<Noesis::Texture> BackgroundImage::NoesisBackgroundTexture;
+static Noesis::Ptr<Noesis::Texture> NoesisBackgroundImageTexture;
+static FIntPoint NoesisBackgroundImageSize;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 static Noesis::Texture* UpdateTextureRenderCallback(Noesis::RenderDevice* device, void* user)
 {
-	if (BackgroundImage::BackgroundColorTexture == nullptr)
-		return nullptr;
-
-	if (BackgroundImage::NoesisBackgroundTexture == nullptr || BackgroundImage::NoesisBackgroundTexture->GetWidth() != BackgroundImage::BackgroundColorTexture->GetSizeX() || BackgroundImage::NoesisBackgroundTexture->GetHeight() != BackgroundImage::BackgroundColorTexture->GetSizeY())
-	{
-		BackgroundImage::NoesisBackgroundTexture = FNoesisRenderDevice::CreateTexture(BackgroundImage::BackgroundColorTexture->GetSizeX(), BackgroundImage::BackgroundColorTexture->GetSizeY(), 1, false);
-	}
-
-	FNoesisRenderDevice::SetRHITexture(BackgroundImage::NoesisBackgroundTexture, BackgroundImage::BackgroundColorTexture);
-
-	return BackgroundImage::NoesisBackgroundTexture;
+	return NoesisBackgroundImageTexture;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 BackgroundImage::BackgroundImage()
-	: Noesis::DynamicTextureSource(BackgroundImage::BackgroundViewportSize.X, BackgroundImage::BackgroundViewportSize.Y, &UpdateTextureRenderCallback, nullptr)
+	: Noesis::DynamicTextureSource(NoesisBackgroundImageSize.X, NoesisBackgroundImageSize.Y, &UpdateTextureRenderCallback, nullptr)
 {
 	mViewportResizedDelegateHandle = FViewport::ViewportResizedEvent.AddRaw(this, &BackgroundImage::OnViewportResized);
 }
@@ -42,6 +31,21 @@ BackgroundImage::BackgroundImage()
 BackgroundImage::~BackgroundImage()
 {
 	FViewport::ViewportResizedEvent.Remove(mViewportResizedDelegateHandle);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void BackgroundImage::SetBackgroundImageTexture(FRHITexture2D* Texture)
+{
+	if (!NoesisBackgroundImageTexture || FNoesisRenderDevice::GetRHITexture(NoesisBackgroundImageTexture) != Texture)
+	{
+		NoesisBackgroundImageTexture = FNoesisRenderDevice::CreateTexture(Texture, true);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void BackgroundImage::SetBackgroundImageSize(const FIntPoint& Size)
+{
+	NoesisBackgroundImageSize = Size;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

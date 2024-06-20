@@ -149,8 +149,10 @@ static void NoesisErrorHandler(const char* Filename, uint32 Line, const char* De
 	{
 #if UE_VERSION_OLDER_THAN(5, 0, 0)
 		LowLevelFatalErrorHandler(Filename, Line, TEXT("%s"), *NsStringToFString(Desc));
-#else
+#elif UE_VERSION_OLDER_THAN(5, 4, 0)
 		LowLevelFatalErrorHandler(Filename, (int32)Line, PLATFORM_RETURN_ADDRESS(), TEXT("%s"), *NsStringToFString(Desc));
+#else
+		LowLevelFatalErrorHandler(Filename, (int32)Line, TEXT("%s"), *NsStringToFString(Desc));
 #endif
 	}
 
@@ -650,7 +652,8 @@ public:
 		// This check is not done inside SetLicense because that is also invoked when user is typing the license and would spam the console
 		if (Settings->LicenseName == "" || Settings->LicenseKey == "")
 		{
-			UE_LOG(LogNoesis, Warning, TEXT("License not set. Get one at https://www.noesisengine.com/trial"));
+			UE_LOG(LogNoesis, Warning, TEXT("No license detected. Noesis views will stop rendering after 10 minutes"));
+			UE_LOG(LogNoesis, Warning, TEXT("More info at https://noesisengine.com/trial"));
 		}
 
 #if WITH_EDITOR
@@ -681,11 +684,7 @@ public:
 			FSlateRenderer* SlateRenderer = FSlateApplication::Get().GetRenderer();
 			SlateRenderer->OnPreResizeWindowBackBuffer().AddLambda([](void*)
 			{
-				BackgroundImage::BackgroundColorTexture = nullptr;
-				if (BackgroundImage::NoesisBackgroundTexture != nullptr)
-				{
-					FNoesisRenderDevice::SetRHITexture(BackgroundImage::NoesisBackgroundTexture, nullptr);
-				}
+				BackgroundImage::SetBackgroundImageTexture(nullptr);
 			});
 		}
 
@@ -695,7 +694,7 @@ public:
 			if (Viewport != nullptr)
 			{
 				const FIntPoint ViewportSize = Viewport->GetSizeXY();
-				BackgroundImage::BackgroundViewportSize = ViewportSize;
+				BackgroundImage::SetBackgroundImageSize(ViewportSize);
 			}
 		});
 	}
@@ -733,7 +732,7 @@ public:
 
 		Noesis::GUI::SetApplicationResources(nullptr);
 
-		BackgroundImage::NoesisBackgroundTexture.Reset();
+		BackgroundImage::SetBackgroundImageTexture(nullptr);
 
 		NoesisUnregisterOverlayRender(OverlayRenderDelegateHandle);
 

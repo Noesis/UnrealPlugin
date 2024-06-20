@@ -15,7 +15,7 @@
 #include "CoreMinimal.h"
 #include "Misc/EngineVersionComparison.h"
 #include "GenericPlatform/GenericPlatformFile.h"
-#include "HAL/PlatformFilemanager.h"
+#include "HAL/PlatformFileManager.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 
@@ -25,12 +25,6 @@
 #include "Engine/Texture2D.h"
 #include "Sound/SoundWave.h"
 #include "Materials/MaterialInterface.h"
-
-// FreeType2 includes
-THIRD_PARTY_INCLUDES_START
-#include "ft2build.h"
-#include FT_FREETYPE_H
-THIRD_PARTY_INCLUDES_END
 
 // MediaAssets includes
 #include "MediaSource.h"
@@ -65,14 +59,6 @@ UNoesisXamlFactory::UNoesisXamlFactory(const FObjectInitializer& ObjectInitializ
 	SupportedClass = UNoesisXaml::StaticClass();
 	Formats.Add(TEXT("xaml;NoesisGUI XAML"));
 }
-
-unsigned long StreamRead(FT_Stream Stream, unsigned long Offset, unsigned char* Buffer, unsigned long Count)
-{
-	FMemory::Memcpy(Buffer, (uint8*)Stream->descriptor.pointer + Offset, Count);
-	return Count;
-}
-
-void StreamClose(FT_Stream) {}
 
 TArray<UFontFace*> ImportFontFamily(FString PackagePath, FString FamilyName, FString Directory)
 {

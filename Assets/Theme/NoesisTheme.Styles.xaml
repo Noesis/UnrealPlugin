@@ -1775,6 +1775,7 @@
     <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
     <Setter Property="VirtualizingPanel.ScrollUnit" Value="Pixel"/>
     <Setter Property="VerticalContentAlignment" Value="Center"/>
+    <Setter Property="Background" Value="Transparent"/>
     <Setter Property="Template" Value="{StaticResource Template.ListBox}"/>
     <Setter Property="FocusVisualStyle" Value="{StaticResource Style.Focus.Outer.Uniform}"/>
     <Style.Triggers>
@@ -1903,6 +1904,7 @@
     <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
     <Setter Property="VirtualizingPanel.ScrollUnit" Value="Pixel"/>
     <Setter Property="VerticalContentAlignment" Value="Center"/>
+    <Setter Property="Background" Value="Transparent"/>
     <Setter Property="Template" Value="{StaticResource Template.ListView}"/>
     <Setter Property="FocusVisualStyle" Value="{StaticResource Style.Focus.Outer.Uniform}"/>
     <Style.Triggers>

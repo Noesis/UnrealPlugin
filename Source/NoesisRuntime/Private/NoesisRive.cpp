@@ -39,6 +39,7 @@ void UNoesisRive::PostInitProperties()
 	Super::PostInitProperties();
 }
 
+#if UE_VERSION_OLDER_THAN(5, 4, 0)
 void UNoesisRive::GetAssetRegistryTags(TArray<FAssetRegistryTag>& OutTags) const
 {
 	if (AssetImportData)
@@ -48,6 +49,17 @@ void UNoesisRive::GetAssetRegistryTags(TArray<FAssetRegistryTag>& OutTags) const
 
 	Super::GetAssetRegistryTags(OutTags);
 }
+#else
+void UNoesisRive::GetAssetRegistryTags(FAssetRegistryTagsContext Context) const
+{
+	if (AssetImportData)
+	{
+		Context.AddTag(FAssetRegistryTag(SourceFileTagName(), AssetImportData->GetSourceData().ToJson(), FAssetRegistryTag::TT_Hidden));
+	}
+
+	Super::GetAssetRegistryTags(Context);
+}
+#endif
 #endif // WITH_EDITORONLY_DATA
 
 #if WITH_EDITOR
