@@ -102,16 +102,20 @@ public:
 	FRHITexture2D* GetTexture2D()
 	{
 #if UE_VERSION_OLDER_THAN(5, 1, 0)
-		auto TextureReference = ShaderResourceTexture->GetTextureReference();
-		if (TextureReference != nullptr)
+		if (ShaderResourceTexture != nullptr)
 		{
-			auto ReferencedTexture = TextureReference->GetReferencedTexture();
-			if (ReferencedTexture != nullptr)
+			auto TextureReference = ShaderResourceTexture->GetTextureReference();
+			if (TextureReference != nullptr)
 			{
-				return ReferencedTexture->GetTexture2D();
+				auto ReferencedTexture = TextureReference->GetReferencedTexture();
+				if (ReferencedTexture != nullptr)
+				{
+					return ReferencedTexture->GetTexture2D();
+				}
 			}
+			return ShaderResourceTexture->GetTexture2D();
 		}
-		return ShaderResourceTexture->GetTexture2D();
+		return nullptr;
 #else
 		return ShaderResourceTexture;
 #endif

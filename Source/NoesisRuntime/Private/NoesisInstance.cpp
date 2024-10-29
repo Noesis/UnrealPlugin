@@ -371,7 +371,11 @@ void FNoesisSlateElement::RenderView(FRHICommandList& RHICmdList, const FViewInf
 	}
 
 	// We shouldn't use the versions of Render that use ViewProj if it's invalid, but we still need to call Render
+#if UE_VERSION_OLDER_THAN(5, 1, 0)
+	bool IsViewProjectionMatrixValid = FMath::Abs(ViewProjectionMatrix.Determinant()) >= KINDA_SMALL_NUMBER;
+#else
 	bool IsViewProjectionMatrixValid = FMath::Abs(ViewProjectionMatrix.Determinant()) >= UE_KINDA_SMALL_NUMBER;
+#endif
 	RenderOnscreen(RHICmdList, IsViewProjectionMatrixValid);
 }
 
@@ -526,6 +530,7 @@ UNoesisInstance::UNoesisInstance(const FObjectInitializer& ObjectInitializer)
 	EnableKeyboard = true;
 	EnableMouse = true;
 	EmulateTouch = false;
+	SetUserFocusToViewport = false;
 	EnableTouch = true;
 	EnableActions = false;
 	PixelDepthBias = -1.0f;
@@ -1162,6 +1167,18 @@ bool UNoesisInstance::HitTest(FVector2D Position) const
 	return HitTester.Hit != nullptr;
 }
 
+bool UNoesisInstance::HasMouseCapture() const
+{
+	if (XamlView && !Is3DWidget)
+	{
+		auto Root = XamlView->GetContent();
+		auto Mouse = Root != nullptr ? Root->GetMouse() : nullptr;
+		return Mouse != nullptr && Mouse->GetCaptured() != nullptr;
+	}
+
+	return false;
+}
+
 void UNoesisInstance::TermInstance()
 {
 	if (XamlView)
@@ -1465,10 +1482,15 @@ FReply UNoesisInstance::NativeOnKeyChar(const FGeometry& MyGeometry, const FChar
 	{
 		TCHAR Character = CharacterEvent.GetCharacter();
 
-		XamlView->Char(CharCast<char>(Character));
+		bool Handled = XamlView->Char(CharCast<char>(Character));
+
+		if (Handled)
+		{
+			return FReply::Handled();
+		}
 	}
 
-	return Super::NativeOnKeyChar(MyGeometry, CharacterEvent);
+	return FReply::Unhandled();
 }
 
 static TMap<FKey, Noesis::Key> InitKeyMap()
@@ -1595,11 +1617,16 @@ FReply UNoesisInstance::NativeOnKeyDown(const FGeometry& MyGeometry, const FKeyE
 		Noesis::Key* NoesisKey = KeyToNoesisKey(Key);
 		if (NoesisKey != nullptr)
 		{
-			XamlView->KeyDown(*NoesisKey);
+			bool Handled = XamlView->KeyDown(*NoesisKey);
+
+			if (Handled)
+			{
+				return FReply::Handled();
+			}
 		}
 	}
 
-	return Super::NativeOnKeyDown(MyGeometry, KeyEvent);
+	return FReply::Unhandled();
 }
 
 FReply UNoesisInstance::NativeOnKeyUp(const FGeometry& MyGeometry, const FKeyEvent& KeyEvent)
@@ -1611,31 +1638,20 @@ FReply UNoesisInstance::NativeOnKeyUp(const FGeometry& MyGeometry, const FKeyEve
 		Noesis::Key* NoesisKey = KeyToNoesisKey(Key);
 		if (NoesisKey != nullptr)
 		{
-			XamlView->KeyUp(*NoesisKey);
+			bool Handled = XamlView->KeyUp(*NoesisKey);
+
+			if (Handled)
+			{
+				return FReply::Handled();
+			}
 		}
 	}
 
-	return Super::NativeOnKeyUp(MyGeometry, KeyEvent);
+	return FReply::Unhandled();
 }
 
 FReply UNoesisInstance::NativeOnAnalogValueChanged(const FGeometry& MyGeometry, const FAnalogInputEvent& InAnalogEvent)
 {
-	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_OnAnalogValueChanged);
-	if (XamlView)
-	{
-		if (FMath::Abs(InAnalogEvent.GetAnalogValue()) > 0.25f)
-		{
-			if (InAnalogEvent.GetKey() == EKeys::Gamepad_RightX)
-			{
-				XamlView->HScroll(InAnalogEvent.GetAnalogValue());
-			}
-			else if (InAnalogEvent.GetKey() == EKeys::Gamepad_RightY)
-			{
-				XamlView->Scroll(InAnalogEvent.GetAnalogValue());
-			}
-		}
-	}
-
 	return Super::NativeOnAnalogValueChanged(MyGeometry, InAnalogEvent);
 }
 
@@ -1670,7 +1686,7 @@ FReply UNoesisInstance::NativeOnMouseButtonDown(const FGeometry& MyGeometry, con
 
 			if (Handled)
 			{
-				return FReply::Handled().PreventThrottling().CaptureMouse(MyWidget.Pin().ToSharedRef());
+				return FReply::Handled().PreventThrottling().CaptureMouse(TakeWidget());
 			}
 		}
 		else
@@ -1679,11 +1695,24 @@ FReply UNoesisInstance::NativeOnMouseButtonDown(const FGeometry& MyGeometry, con
 			bool Hit = HitTest(Position);
 
 			Noesis::MouseButton MouseButton = GetNoesisMouseButton(MouseEvent.GetEffectingButton());
-			bool Handled = XamlView->MouseButtonDown(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
+			bool Handled = XamlView->MouseButtonDown(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton) || HasMouseCapture();
 
 			if (Handled && Hit)
 			{
-				return FReply::Handled().PreventThrottling();
+				auto Reply = FReply::Handled().PreventThrottling();
+				if (SetUserFocusToViewport)
+				{
+					Reply.SetUserFocus(FSlateApplication::Get().GetGameViewport().ToSharedRef());
+				}
+				if (HasMouseCapture())
+				{
+					Reply.CaptureMouse(TakeWidget());
+				}
+				else
+				{
+					Reply.ReleaseMouseCapture();
+				}
+				return Reply;
 			}
 		}
 	}
@@ -1712,11 +1741,24 @@ FReply UNoesisInstance::NativeOnMouseButtonUp(const FGeometry& MyGeometry, const
 			bool Hit = HitTest(Position);
 
 			Noesis::MouseButton MouseButton = GetNoesisMouseButton(MouseEvent.GetEffectingButton());
-			bool Handled = XamlView->MouseButtonUp(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton);
+			bool Handled = XamlView->MouseButtonUp(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y), MouseButton) || HasMouseCapture();
 
 			if (Handled && Hit)
 			{
-				return FReply::Handled().PreventThrottling();
+				auto Reply = FReply::Handled().PreventThrottling();
+				if (SetUserFocusToViewport)
+				{
+					Reply.SetUserFocus(FSlateApplication::Get().GetGameViewport().ToSharedRef());
+				}
+				if (HasMouseCapture())
+				{
+					Reply.CaptureMouse(TakeWidget());
+				}
+				else
+				{
+					Reply.ReleaseMouseCapture();
+				}
+				return Reply;
 			}
 		}
 	}
@@ -1732,11 +1774,24 @@ FReply UNoesisInstance::NativeOnMouseMove(const FGeometry& MyGeometry, const FPo
 		FVector2D Position = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()) * MyGeometry.Scale;
 		bool Hit = HitTest(Position);
 
-		bool Handled = XamlView->MouseMove(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y));
+		bool Handled = XamlView->MouseMove(FPlatformMath::RoundToInt(Position.X), FPlatformMath::RoundToInt(Position.Y)) || HasMouseCapture();
 
 		if (Handled && Hit)
 		{
-			return FReply::Handled().PreventThrottling();
+			auto Reply = FReply::Handled().PreventThrottling();
+			if (SetUserFocusToViewport)
+			{
+				Reply.SetUserFocus(FSlateApplication::Get().GetGameViewport().ToSharedRef());
+			}
+			if (HasMouseCapture())
+			{
+				Reply.CaptureMouse(TakeWidget());
+			}
+			else
+			{
+				Reply.ReleaseMouseCapture();
+			}
+			return Reply;
 		}
 	}
 
@@ -1756,7 +1811,16 @@ FReply UNoesisInstance::NativeOnMouseWheel(const FGeometry& MyGeometry, const FP
 
 		if (Handled && Hit)
 		{
-			return FReply::Handled().PreventThrottling();
+			auto Reply = FReply::Handled().PreventThrottling();
+			if (HasMouseCapture())
+			{
+				Reply.CaptureMouse(TakeWidget());
+			}
+			else
+			{
+				Reply.ReleaseMouseCapture();
+			}
+			return Reply;
 		}
 	}
 
@@ -1776,7 +1840,16 @@ FReply UNoesisInstance::NativeOnTouchStarted(const FGeometry& MyGeometry, const 
 
 		if (Handled && Hit)
 		{
-			return FReply::Handled().PreventThrottling();
+			auto Reply = FReply::Handled().PreventThrottling();
+			if (HasMouseCapture())
+			{
+				Reply.CaptureMouse(TakeWidget());
+			}
+			else
+			{
+				Reply.ReleaseMouseCapture();
+			}
+			return Reply;
 		}
 	}
 
@@ -1796,7 +1869,16 @@ FReply UNoesisInstance::NativeOnTouchMoved(const FGeometry& MyGeometry, const FP
 
 		if (Handled && Hit)
 		{
-			return FReply::Handled().PreventThrottling();
+			auto Reply = FReply::Handled().PreventThrottling();
+			if (HasMouseCapture())
+			{
+				Reply.CaptureMouse(TakeWidget());
+			}
+			else
+			{
+				Reply.ReleaseMouseCapture();
+			}
+			return Reply;
 		}
 	}
 
@@ -1816,7 +1898,16 @@ FReply UNoesisInstance::NativeOnTouchEnded(const FGeometry& MyGeometry, const FP
 
 		if (Handled && Hit)
 		{
-			return FReply::Handled().PreventThrottling();
+			auto Reply = FReply::Handled().PreventThrottling();
+			if (HasMouseCapture())
+			{
+				Reply.CaptureMouse(TakeWidget());
+			}
+			else
+			{
+				Reply.ReleaseMouseCapture();
+			}
+			return Reply;
 		}
 	}
 
@@ -1841,11 +1932,36 @@ FReply UNoesisInstance::NativeOnMouseButtonDoubleClick(const FGeometry& MyGeomet
 
 		if (Handled && Hit)
 		{
-			return FReply::Handled().PreventThrottling();
+			auto Reply = FReply::Handled().PreventThrottling();
+			if (HasMouseCapture())
+			{
+				Reply.CaptureMouse(TakeWidget());
+			}
+			else
+			{
+				Reply.ReleaseMouseCapture();
+			}
+			return Reply;
 		}
 	}
 
 	return FReply::Unhandled();
+}
+
+void UNoesisInstance::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	if (XamlView)
+	{
+		XamlView->Activate();
+	}
+}
+
+void UNoesisInstance::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+{
+	if (XamlView && !HasMouseCapture())
+	{
+		XamlView->Deactivate();
+	}
 }
 
 bool UNoesisInstance::NativeSupportsKeyboardFocus() const

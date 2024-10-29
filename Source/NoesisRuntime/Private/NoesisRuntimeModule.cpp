@@ -538,6 +538,11 @@ public:
 		Noesis::GUI::DisableHotReload();
 		Noesis::GUI::DisableInspector();
 #endif
+
+#if !WITH_CASE_PRESERVING_NAME
+		Noesis::SymbolManager::SetCaseSensitive(false);
+#endif
+
 		Noesis::GUI::DisableSocketInit();
 
 		Noesis::GUI::Init();

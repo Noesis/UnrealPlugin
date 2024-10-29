@@ -165,6 +165,9 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	bool EmulateTouch;
 
 	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
+	bool SetUserFocusToViewport;
+
+	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	bool EnableTouch;
 
 	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
@@ -216,6 +219,7 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	void OnPreviewLostKeyboardFocus(Noesis::BaseComponent* Component, const Noesis::KeyboardFocusChangedEventArgs& Args);
 
 	bool HitTest(FVector2D Position) const;
+	bool HasMouseCapture() const;
 
 	void TermInstance();
 
@@ -264,6 +268,8 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	virtual FReply NativeOnTouchEnded(const FGeometry& MyGeometry, const FPointerEvent& InTouchEvent) override;
 	virtual FCursorReply NativeOnCursorQuery(const FGeometry& MyGeometry, const FPointerEvent& CursorEvent) override;
 	virtual FReply NativeOnMouseButtonDoubleClick(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 	virtual bool NativeSupportsKeyboardFocus() const override;
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;

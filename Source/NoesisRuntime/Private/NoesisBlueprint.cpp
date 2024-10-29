@@ -18,6 +18,7 @@ UNoesisBlueprint::UNoesisBlueprint(const FObjectInitializer& ObjectInitializer)
 	EnableKeyboard = true;
 	EnableMouse = true;
 	EmulateTouch = false;
+	SetUserFocusToViewport = false;
 	EnableTouch = true;
 	EnableActions = false;
 	PixelDepthBias = -1.0f;

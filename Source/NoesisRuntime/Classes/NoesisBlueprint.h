@@ -56,6 +56,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Noesis View", meta = (EditCondition = "EnableMouse"))
 	bool EmulateTouch;
 
+	/** Handled mouse events set user focus to the game viewport. */
+	UPROPERTY(EditAnywhere, Category = "Noesis View", meta = (EditCondition = "EnableMouse"))
+	bool SetUserFocusToViewport;
+
 	UPROPERTY(EditAnywhere, Category = "Noesis View")
 	bool EnableTouch;
 
