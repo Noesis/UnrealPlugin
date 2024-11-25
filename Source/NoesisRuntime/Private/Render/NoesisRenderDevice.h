@@ -129,10 +129,10 @@ public:
 	void DestroyView();
 
 	template<class PixelShaderClass>
-	void SetPatternMaterialParameters(const Noesis::Batch& Batch, TShaderRef<PixelShaderClass>& PixelShader);
+	bool SetPatternMaterialParameters(const Noesis::Batch& Batch, TShaderRef<PixelShaderClass>& PixelShader);
 
 	template<class PixelShaderClass>
-	void SetPixelShaderParameters(const Noesis::Batch& Batch, TShaderRef<PixelShaderClass>& BasePixelShader, FUniformBufferRHIRef& PSUniformBuffer0, FUniformBufferRHIRef& PSUniformBuffer1);
+	bool SetPixelShaderParameters(const Noesis::Batch& Batch, TShaderRef<PixelShaderClass>& BasePixelShader, FUniformBufferRHIRef& PSUniformBuffer0, FUniformBufferRHIRef& PSUniformBuffer1);
 
 	// RenderDevice interface
 	virtual const Noesis::DeviceCaps& GetCaps() const override;

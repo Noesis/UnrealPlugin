@@ -63,18 +63,33 @@ inline FString NsProviderUriToAssetPath(const Noesis::Uri& Uri)
 	Noesis::FixedString<512> Path;
 	Uri.GetPath(Path);
 
-	FString FullPath = FPaths::GetPath(Path.Str());
-	FString Package = FPaths::GetBaseFilename(Path.Str());
+	FString FullPath = FPaths::GetPath((UTF8CHAR*)Path.Str());
+	FString Package = FPaths::GetBaseFilename((UTF8CHAR*)Path.Str());
 	FString SafePath = Package.IsEmpty() ? FullPath : FullPath / SanitizeAssetPath(Package);
 
 	Noesis::String Assembly;
 	Uri.GetAssembly(Assembly);
 
 	FString AssetPath = TEXT("/");
-	AssetPath += GetAssetRoot(Assembly).Str();
+	AssetPath += (UTF8CHAR*)GetAssetRoot(Assembly).Str();
 	AssetPath += TEXT("/") + SafePath;
 
 	return AssetPath;
+}
+
+inline Noesis::String GetAssetAssembly(const FString& Root)
+{
+	return Root == "NoesisGUI" ? "Noesis.GUI.Extensions" : TCHAR_TO_UTF8(*Root);
+}
+
+inline Noesis::Uri NsAssetPathToProviderUri(const FString& AssetPath, const FString& Extension)
+{
+	FString PackageRoot, PackagePath, PackageName;
+	FPackageName::SplitLongPackageName(AssetPath, PackageRoot, PackagePath, PackageName, false);
+	FString Package = FPaths::GetBaseFilename(PackageName);
+	auto Assembly = GetAssetAssembly(PackageRoot.LeftChop(1).RightChop(1));
+	auto Uri = Noesis::Uri::Pack(Assembly.Str(), TCHAR_TO_UTF8(*(PackagePath + Package + Extension)));
+	return Uri;	
 }
 
 NOESISRUNTIME_API Noesis::Ptr<Noesis::Texture> NoesisCreateTexture(class UTexture* Texture);

@@ -192,46 +192,22 @@ class FNoesisMaterial
 {
 public:
 	FNoesisMaterial(UMaterialInterface* InMaterial)
-#if WITH_EDITOR
 		: MaterialPtr(InMaterial)
-#endif
 	{
-		MaterialProxy = InMaterial->GetRenderProxy();
-#if WITH_EDITOR
-		// We need this in the editor to account for material recompilations, which destroy the proxy.
-		TickerHandle = FTSTicker::GetCoreTicker().AddTicker(TEXT("NoesisMaterial"), 0.0f, [this](float DeltaTime)
+	}
+
+	FMaterialRenderProxy* GetRenderProxy() const
+	{
+		if (auto Material = MaterialPtr.Get(); IsValid(Material))
 		{
-			UMaterialInterface* Material = MaterialPtr.Get();
-			if (Material != nullptr)
-			{
-				MaterialProxy = Material->GetRenderProxy();
-			}
-			else
-			{
-				MaterialProxy = nullptr;
-			}
-			return true;
-		});
-#endif
+			return Material->GetRenderProxy();
+		}
+
+		return nullptr;
 	}
 
-	~FNoesisMaterial()
-	{
-#if WITH_EDITOR
-		FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
-#endif
-	}
-
-	FMaterialRenderProxy* MaterialProxy;
-#if WITH_EDITOR
+private:
 	TWeakObjectPtr<UMaterialInterface> MaterialPtr;
-#if UE_VERSION_OLDER_THAN(5, 0, 0)
-	FDelegateHandle TickerHandle;
-#else
-	FTSTicker::FDelegateHandle TickerHandle;
-#endif
-
-#endif
 };
 
 class FNoesisRenderTarget : public Noesis::RenderTarget
@@ -2254,7 +2230,7 @@ void FNoesisRenderDevice::UnmapIndices()
 }
 
 template<>
-void FNoesisRenderDevice::SetPatternMaterialParameters<FNoesisPSBase>(const Noesis::Batch& Batch, TShaderRef<FNoesisPSBase>& PixelShader)
+bool FNoesisRenderDevice::SetPatternMaterialParameters<FNoesisPSBase>(const Noesis::Batch& Batch, TShaderRef<FNoesisPSBase>& PixelShader)
 {
 	if (Batch.pattern != nullptr)
 	{
@@ -2266,12 +2242,16 @@ void FNoesisRenderDevice::SetPatternMaterialParameters<FNoesisPSBase>(const Noes
 			PixelShader->SetPatternTexture(*RHICmdList, PatternTexture, PatternSamplerState);
 		}
 	}
+
+	return true;
 }
 
 template<>
-void FNoesisRenderDevice::SetPatternMaterialParameters<FNoesisMaterialPSBase>(const Noesis::Batch& Batch, TShaderRef<FNoesisMaterialPSBase>& PixelShader)
+bool FNoesisRenderDevice::SetPatternMaterialParameters<FNoesisMaterialPSBase>(const Noesis::Batch& Batch, TShaderRef<FNoesisMaterialPSBase>& PixelShader)
 {
-	FMaterialRenderProxy* MaterialProxy = ((FNoesisMaterial*)Batch.pixelShader)->MaterialProxy;
+	FMaterialRenderProxy* MaterialProxy = ((FNoesisMaterial*)Batch.pixelShader)->GetRenderProxy();
+	if (MaterialProxy == nullptr)
+		return false;
 #if UE_VERSION_OLDER_THAN(4, 27, 0)
 	const FMaterial* Material = MaterialProxy->GetMaterial(GMaxRHIFeatureLevel);
 #else
@@ -2284,10 +2264,12 @@ void FNoesisRenderDevice::SetPatternMaterialParameters<FNoesisMaterialPSBase>(co
 #else
 	PixelShader->SetParameters<FRHIPixelShader, FRHICommandList>(*RHICmdList, ShaderRHI, MaterialProxy, *Material, *View);
 #endif
+
+	return true;
 }
 
 template<class PixelShaderClass>
-void FNoesisRenderDevice::SetPixelShaderParameters(const Noesis::Batch& Batch, TShaderRef<PixelShaderClass>& BasePixelShader, FUniformBufferRHIRef& PSUniformBuffer0, FUniformBufferRHIRef& PSUniformBuffer1)
+bool FNoesisRenderDevice::SetPixelShaderParameters(const Noesis::Batch& Batch, TShaderRef<PixelShaderClass>& BasePixelShader, FUniformBufferRHIRef& PSUniformBuffer0, FUniformBufferRHIRef& PSUniformBuffer1)
 {
 	TShaderRef<PixelShaderClass> PixelShader = TShaderRef<PixelShaderClass>::Cast(BasePixelShader);
 	if (Batch.pixelUniforms[0].values != nullptr)
@@ -2300,7 +2282,8 @@ void FNoesisRenderDevice::SetPixelShaderParameters(const Noesis::Batch& Batch, T
 		PixelShader->SetEffects(*RHICmdList, PSUniformBuffer1);
 	}
 
-	SetPatternMaterialParameters(Batch, PixelShader);
+	if (!SetPatternMaterialParameters(Batch, PixelShader))
+		return false;
 
 	if (Batch.ramps != nullptr)
 	{
@@ -2333,12 +2316,16 @@ void FNoesisRenderDevice::SetPixelShaderParameters(const Noesis::Batch& Batch, T
 		FRHISamplerState* ShadowSamplerState = SamplerStates[Batch.shadowSampler.v];
 		PixelShader->SetShadowTexture(*RHICmdList, ShadowTexture, ShadowSamplerState);
 	}
+
+	return true;
 }
 
 template<>
-void FNoesisRenderDevice::SetPixelShaderParameters<FNoesisCustomEffectPS>(const Noesis::Batch& Batch, TShaderRef<FNoesisCustomEffectPS>& PixelShader, FUniformBufferRHIRef& PSUniformBuffer0, FUniformBufferRHIRef& PSUniformBuffer1)
+bool FNoesisRenderDevice::SetPixelShaderParameters<FNoesisCustomEffectPS>(const Noesis::Batch& Batch, TShaderRef<FNoesisCustomEffectPS>& PixelShader, FUniformBufferRHIRef& PSUniformBuffer0, FUniformBufferRHIRef& PSUniformBuffer1)
 {
-	FMaterialRenderProxy* MaterialProxy = ((FNoesisMaterial*)Batch.pixelShader)->MaterialProxy;
+	FMaterialRenderProxy* MaterialProxy = ((FNoesisMaterial*)Batch.pixelShader)->GetRenderProxy();
+	if (MaterialProxy == nullptr)
+		return false;
 #if UE_VERSION_OLDER_THAN(4, 27, 0)
 	const FMaterial* Material = MaterialProxy->GetMaterial(GMaxRHIFeatureLevel);
 #else
@@ -2420,6 +2407,8 @@ void FNoesisRenderDevice::SetPixelShaderParameters<FNoesisCustomEffectPS>(const 
 	}
 
 	PixelShader->SetParameters(*RHICmdList, PixelShader, *View, MaterialProxy, Params);
+
+	return true;
 }
 
 static inline bool BufferNeedsUpdate(uint32& BufferHash, const Noesis::UniformData& UniformData)
@@ -2500,40 +2489,40 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 	TShaderRef<FNoesisCustomEffectPS> CustomEffectPixelShader;
 	if (UsingMaterialShader)
 	{
-		FMaterialRenderProxy* MaterialProxy = ((FNoesisMaterial*)Batch.pixelShader)->MaterialProxy;
-		if (MaterialProxy != nullptr)
+		FMaterialRenderProxy* MaterialProxy = ((FNoesisMaterial*)Batch.pixelShader)->GetRenderProxy();
+		if (MaterialProxy == nullptr)
+			return;
+
+#if UE_VERSION_OLDER_THAN(4, 27, 0)
+		const FMaterial* Material = MaterialProxy->GetMaterial(GMaxRHIFeatureLevel);
+#else
+		const FMaterial* Material = &MaterialProxy->GetIncompleteMaterialWithFallback(GMaxRHIFeatureLevel);
+#endif
+		if (UsingCustomEffect)
 		{
+			UsingMaterialShader = false;
 #if UE_VERSION_OLDER_THAN(4, 27, 0)
-			const FMaterial* Material = MaterialProxy->GetMaterial(GMaxRHIFeatureLevel);
+			const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
+			CustomEffectPixelShader = MaterialShaderMap->GetShader<FNoesisCustomEffectPS>();
 #else
-			const FMaterial* Material = &MaterialProxy->GetIncompleteMaterialWithFallback(GMaxRHIFeatureLevel);
-#endif
-			if (UsingCustomEffect)
+			FMaterialShaderTypes ShaderTypes;
+			if (!GammaCorrection)
 			{
-				UsingMaterialShader = false;
-#if UE_VERSION_OLDER_THAN(4, 27, 0)
-				const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
-				CustomEffectPixelShader = MaterialShaderMap->GetShader<FNoesisCustomEffectPS>();
-#else
-				FMaterialShaderTypes ShaderTypes;
-				if (!GammaCorrection)
-				{
-					ShaderTypes.AddShaderType<FNoesisCustomEffectPS>();
-				}
-				else
-				{
-					check(!IsLinearColor);
-					ShaderTypes.AddShaderType<FNoesisCustomEffectGammaCorrectionPS>();
-				}
-				FMaterialShaders Shaders;
-				Material->TryGetShaders(ShaderTypes, nullptr, Shaders);
-				Shaders.TryGetPixelShader(CustomEffectPixelShader);
-#endif
+				ShaderTypes.AddShaderType<FNoesisCustomEffectPS>();
 			}
 			else
 			{
-				MaterialPixelShader = GetMaterialPixelShader(Material, ShaderCode, IsLinearColor, GammaCorrection);
+				check(!IsLinearColor);
+				ShaderTypes.AddShaderType<FNoesisCustomEffectGammaCorrectionPS>();
 			}
+			FMaterialShaders Shaders;
+			Material->TryGetShaders(ShaderTypes, nullptr, Shaders);
+			Shaders.TryGetPixelShader(CustomEffectPixelShader);
+#endif
+		}
+		else
+		{
+			MaterialPixelShader = GetMaterialPixelShader(Material, ShaderCode, IsLinearColor, GammaCorrection);
 		}
 	}
 
@@ -2635,7 +2624,8 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 		{
 			CustomEffectPixelShader->SetDisplayGammaAndInvertAlphaAndContrast(*RHICmdList, Gamma, 0.0f, Contrast);
 		}
-		SetPixelShaderParameters(Batch, CustomEffectPixelShader, PSUniformBuffer0, PSUniformBuffer1);
+		if (!SetPixelShaderParameters(Batch, CustomEffectPixelShader, PSUniformBuffer0, PSUniformBuffer1))
+			return;
 	}
 	else if (UsingMaterialShader)
 	{
@@ -2643,7 +2633,8 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 		{
 			MaterialPixelShader->SetDisplayGammaAndInvertAlphaAndContrast(*RHICmdList, Gamma, 0.0f, Contrast);
 		}
-		SetPixelShaderParameters(Batch, MaterialPixelShader, PSUniformBuffer0, PSUniformBuffer1);
+		if (!SetPixelShaderParameters(Batch, MaterialPixelShader, PSUniformBuffer0, PSUniformBuffer1))
+			return;
 	}
 	else
 	{
@@ -2651,7 +2642,8 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 		{
 			PixelShader->SetDisplayGammaAndInvertAlphaAndContrast(*RHICmdList, Gamma, 0.0f, Contrast);
 		}
-		SetPixelShaderParameters(Batch, PixelShader, PSUniformBuffer0, PSUniformBuffer1);
+		if (!SetPixelShaderParameters(Batch, PixelShader, PSUniformBuffer0, PSUniformBuffer1))
+			return;
 	}
 
 	RHICmdList->SetStencilRef(Batch.stencilRef);

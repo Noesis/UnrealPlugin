@@ -33,6 +33,7 @@
 
 // MediaAsset includes
 #include "MediaTexture.h"
+#include "MediaSource.h"
 
 // Slate includes
 #include "Framework/Text/TextLayout.h"
@@ -454,6 +455,52 @@ struct NoesisTypeTraits<UMediaTexture*>
 	}
 };
 
+template<>
+struct NoesisTypeTraits<UMediaSource*>
+{
+	typedef Noesis::Uri NoesisType;
+	static Noesis::Ptr<Noesis::BaseComponent> ToNoesis(UObject* Value)
+	{
+		check(Value == nullptr || Value->IsA<UMediaSource>());
+		if (Value == nullptr)
+		{
+			return Noesis::Boxing::Box<Noesis::Uri>(Noesis::Uri());
+		}
+		return Noesis::Boxing::Box<Noesis::Uri>(NsAssetPathToProviderUri(Value->GetPathName(), ".mp4"));
+	}
+	static UObject* ToUnreal(Noesis::BaseComponent* Value)
+	{
+		return nullptr;
+	}
+	static bool Equals(UObject* Left, UObject* Right)
+	{
+		return Left == Right;
+	}
+};
+
+template<>
+struct NoesisTypeTraits<UNoesisRive*>
+{
+	typedef Noesis::Uri NoesisType;
+	static Noesis::Ptr<Noesis::BaseComponent> ToNoesis(UObject* Value)
+	{
+		check(Value == nullptr || Value->IsA<UNoesisRive>());
+		if (Value == nullptr)
+		{
+			return Noesis::Boxing::Box<Noesis::Uri>(Noesis::Uri());
+		}
+		return Noesis::Boxing::Box<Noesis::Uri>(NsAssetPathToProviderUri(Value->GetPathName(), ".riv"));
+	}
+	static UObject* ToUnreal(Noesis::BaseComponent* Value)
+	{
+		return nullptr;
+	}
+	static bool Equals(UObject* Left, UObject* Right)
+	{
+		return Left == Right;
+	}
+};
+
 template<class T>
 Noesis::Ptr<Noesis::BaseComponent> GenericGetter(void* BasePointer, FProperty* Property)
 {
@@ -792,7 +839,9 @@ void NoesisInitTypeTables()
 	{
 		{UTexture2D::StaticClass(), NoesisClassConversion::FromType<UTexture2D*>() },
 		{UTextureRenderTarget2D::StaticClass(), NoesisClassConversion::FromType<UTextureRenderTarget2D*>() },
-		{UMediaTexture::StaticClass(), NoesisClassConversion::FromType<UMediaTexture*>() }
+		{UMediaTexture::StaticClass(), NoesisClassConversion::FromType<UMediaTexture*>() },
+		{UMediaSource::StaticClass(), NoesisClassConversion::FromType<UMediaSource*>() },
+		{UNoesisRive::StaticClass(), NoesisClassConversion::FromType<UNoesisRive*>() }
 	};
 
 	UScriptStruct* TimespanStruct = nullptr;
@@ -3664,6 +3713,14 @@ NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUOb
 	{
 		UTexture* Texture = (UTexture*)Object;
 		return NoesisCreateComponentForUTexture(Texture);
+	}
+	else if (Class->IsChildOf(UMediaSource::StaticClass()))
+	{
+		return NoesisTypeTraits<UMediaSource*>::ToNoesis(Object);
+	}
+	else if (Class->IsChildOf(UNoesisRive::StaticClass()))
+	{
+		return NoesisTypeTraits<UNoesisRive*>::ToNoesis(Object);
 	}
 	else
 	{
