@@ -22,7 +22,7 @@ public:
 	BackgroundImage();
 	~BackgroundImage();
 
-	static void SetBackgroundImageTexture(FRHITexture2D* Texture);
+	static void SetBackgroundImageTexture(FRHITexture* Texture);
 	static void SetBackgroundImageSize(const FIntPoint& Size);
 
 private:

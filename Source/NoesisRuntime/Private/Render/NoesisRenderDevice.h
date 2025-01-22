@@ -65,8 +65,14 @@ class FNoesisRenderDevice : public Noesis::RenderDevice
 	uint32 BlurConstantsHash = 0;
 	uint32 ShadowConstantsHash = 0;
 
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
 #if WANTS_DRAW_MESH_EVENTS
 	FDrawEvent SetRenderTargetEvent;
+#endif
+#else
+#if WITH_RHI_BREADCRUMBS
+	TOptional<FRHIBreadcrumbEventManual> SetRenderTargetBreadcrumb;
+#endif
 #endif
 
 	FNoesisRenderDevice(bool LinearColor);
@@ -116,7 +122,7 @@ public:
 
 	static Noesis::Ptr<Noesis::Texture> CreateTexture(FRHITexture* RHITexture, bool IgnoreAlpha);
 	static Noesis::Ptr<Noesis::Texture> CreateTexture(class UTexture* Texture);
-	static FRHITexture2D* GetRHITexture(Noesis::Texture* Texture); // You need to add a reference if you want to keep the object.
+	static FRHITexture* GetRHITexture(Noesis::Texture* Texture); // You need to add a reference if you want to keep the object.
 	static void* CreateMaterial(class UMaterialInterface* Material);
 	static void DestroyMaterial(void* Material);
 

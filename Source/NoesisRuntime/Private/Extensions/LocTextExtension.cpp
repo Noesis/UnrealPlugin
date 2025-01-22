@@ -6,6 +6,9 @@
 #include "Extensions/LocTextExtension.h"
 #include "NsGui/ContentPropertyMetaData.h"
 
+// Core includes
+#include "Misc/EngineVersionComparison.h"
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class LocTextExpression : public Noesis::Expression
 {
@@ -108,7 +111,11 @@ FString LocTextExtension::GetDisplayString(Noesis::DependencyObject* object)
     }
     FText Text;
     FString Source(UTF8_TO_TCHAR(GetSource()));
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
     FText::FindText(UTF8_TO_TCHAR(ns), UTF8_TO_TCHAR(GetKey()), Text, &Source);
+#else
+    FText::FindTextInLiveTable_Advanced(UTF8_TO_TCHAR(ns), UTF8_TO_TCHAR(GetKey()), Text, &Source);
+#endif
     return Text.ToString();
 }
 

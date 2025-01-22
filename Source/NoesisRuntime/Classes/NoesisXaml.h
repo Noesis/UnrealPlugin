@@ -76,7 +76,7 @@ class NOESISRUNTIME_API UNoesisXaml : public UObject
 	FString GetXamlUri() const;
 
 #if WITH_EDITOR
-	void RenderThumbnail(FIntRect, const FTexture2DRHIRef&);
+	void RenderThumbnail(FIntRect, const FTextureRHIRef&);
 	void DestroyThumbnailRenderData();
 #endif
 

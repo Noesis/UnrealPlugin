@@ -15,6 +15,10 @@
 #include "UObject/UObjectThreadContext.h"
 #include "UObject/FieldIterator.h"
 #include "UObject/Package.h"
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
+#else
+#include "StructUtils/UserDefinedStruct.h"
+#endif
 
 // Engine includes
 #include "Engine/Texture2D.h"
@@ -29,6 +33,10 @@
 #include "MaterialShared.h"
 #else
 #include "MaterialDomain.h"
+#endif
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
+#include "Engine/UserDefinedStruct.h"
+#else
 #endif
 
 // MediaAsset includes
@@ -3173,7 +3181,7 @@ void NoesisFillTypeEnumForUEnum(NoesisTypeEnum* TypeEnum, UEnum* Enum)
 	for (int32 Index = 0; Index != Enum->NumEnums(); ++Index)
 	{
 		FString EnumValueName = Enum->GetAuthoredNameStringByIndex(Index);
-		TypeEnum->AddValue(Noesis::Symbol(TCHAR_TO_UTF8(*EnumValueName)), (int)Enum->GetValueByIndex(Index));
+		TypeEnum->AddValue(Noesis::Symbol(TCHAR_TO_UTF8(*EnumValueName)), (uint64)Enum->GetValueByIndex(Index));
 	}
 }
 
@@ -3558,7 +3566,7 @@ bool AssignEnum(void* Value, UEnum* Enum, FNumericProperty* ValueProperty, Noesi
 	if (((NoesisTypeEnum*)TypeEnum)->Enum != Enum)
 		return false;
 
-	int64 InputValue = (int64)Noesis::Boxing::Unbox<int32>(Input);
+	int64 InputValue = (int64)Noesis::Boxing::Unbox<int64_t>(Input);
 	int64 IntValue = ValueProperty->GetSignedIntPropertyValue(Value);
 	bool Changed = (InputValue != IntValue);
 	ValueProperty->SetIntPropertyValue(Value, InputValue);

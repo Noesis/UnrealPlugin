@@ -48,7 +48,7 @@ class NOESISRUNTIME_API UNoesisRive : public UObject
 #endif
 
 #if WITH_EDITOR
-	void RenderThumbnail(FIntRect ViewportRect, const FTexture2DRHIRef& BackBuffer);
+	void RenderThumbnail(FIntRect ViewportRect, const FTextureRHIRef& BackBuffer);
 	void DestroyThumbnailRenderData();
 #endif
 

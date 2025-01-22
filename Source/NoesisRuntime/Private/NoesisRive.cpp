@@ -63,7 +63,7 @@ void UNoesisRive::GetAssetRegistryTags(FAssetRegistryTagsContext Context) const
 #endif // WITH_EDITORONLY_DATA
 
 #if WITH_EDITOR
-void UNoesisRive::RenderThumbnail(FIntRect ViewportRect, const FTexture2DRHIRef& BackBuffer)
+void UNoesisRive::RenderThumbnail(FIntRect ViewportRect, const FTextureRHIRef& BackBuffer)
 {
 	if (ThumbnailView == nullptr)
 	{

@@ -32,7 +32,7 @@ void UNoesisXamlThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint3
 	if (Xaml != nullptr)
 	{
 		FIntRect ViewportRect(X, Y, X + Width, Y + Height);
-		const FTexture2DRHIRef& BackBuffer = Viewport->GetRenderTargetTexture();
+		const FTextureRHIRef& BackBuffer = Viewport->GetRenderTargetTexture();
 		Xaml->RenderThumbnail(ViewportRect, BackBuffer);
 	}
 }

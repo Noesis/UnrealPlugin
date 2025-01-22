@@ -19,7 +19,7 @@ struct FNoesisThumbnailRenderer
 {
     static Noesis::Ptr<Noesis::IView> CreateView(Noesis::FrameworkElement* Content);
     static void RenderView(Noesis::IView* View, UWorld* World, FIntRect ViewportRect,
-        const FTexture2DRHIRef& BackBuffer);
+        const FTextureRHIRef& BackBuffer);
 };
 
 

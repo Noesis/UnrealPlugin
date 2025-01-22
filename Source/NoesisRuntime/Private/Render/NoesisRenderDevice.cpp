@@ -99,7 +99,7 @@ public:
 		ShaderResourceTexture = Texture;
 	}
 
-	FRHITexture2D* GetTexture2D()
+	FRHITexture* GetTexture2D()
 	{
 #if UE_VERSION_OLDER_THAN(5, 1, 0)
 		if (ShaderResourceTexture != nullptr)
@@ -166,10 +166,6 @@ private:
 				auto& TextureRef = TextureReference.TextureReferenceRHI;
 				if (TextureRef != nullptr && TextureRef->IsValid())
 				{
-					auto TextureRefSize = TextureRef->GetSizeXYZ();
-					check(TexturePtr->Width >= (uint32)TextureRefSize.X);
-					check(TexturePtr->Height >= (uint32)TextureRefSize.Y);
-					check(TexturePtr->NumMipMaps >= TextureRef->GetNumMips());
 					TexturePtr->ShaderResourceTexture = TextureRef;
 				}
 			}
@@ -214,29 +210,29 @@ class FNoesisRenderTarget : public Noesis::RenderTarget
 {
 public:
 
-	FNoesisRenderTarget(FRHITexture2D* InShaderResourceTexture, FRHITexture2D* InColorTarget, FRHITexture2D* InDepthStencilTarget)
+	FNoesisRenderTarget(FRHITexture* InShaderResourceTexture, FRHITexture* InColorTarget, FRHITexture* InDepthStencilTarget)
 		: Texture(Noesis::MakePtr<FNoesisTexture>(InShaderResourceTexture)), ColorTarget(InColorTarget), DepthStencilTarget(InDepthStencilTarget)
 	{
 	}
 
-	FRHITexture2D* GetShaderResourceTexture()
+	FRHITexture* GetShaderResourceTexture()
 	{
 		return Texture->GetTexture2D();
 	}
 
-	FRHITexture2D* GetColorTarget()
+	FRHITexture* GetColorTarget()
 	{
 		return ColorTarget;
 	}
 
-	FRHITexture2D* GetDepthStencilTarget()
+	FRHITexture* GetDepthStencilTarget()
 	{
 		return DepthStencilTarget;
 	}
 
 	void SetRenderTarget(FRHICommandList* RHICmdList)
 	{
-		FRHITexture2D* ShaderResourceTexture = Texture->GetTexture2D();
+		FRHITexture* ShaderResourceTexture = Texture->GetTexture2D();
 		bool NeedsResolve = (ColorTarget != ShaderResourceTexture) && ColorTarget->IsMultisampled();
 		if (ColorTarget == ShaderResourceTexture)
 		{
@@ -292,7 +288,7 @@ public:
 	void ResolveRenderTarget(FRHICommandList* RHICmdList, const Noesis::Tile* Tiles, uint32 NumTiles)
 	{
 		RHICmdList->EndRenderPass();
-		FRHITexture2D* ShaderResourceTexture = Texture->GetTexture2D();
+		FRHITexture* ShaderResourceTexture = Texture->GetTexture2D();
 		if (ColorTarget != ShaderResourceTexture)
 		{
 			if (!ColorTarget->IsMultisampled())
@@ -336,8 +332,8 @@ public:
 private:
 
 	Noesis::Ptr<FNoesisTexture> Texture;
-	FTexture2DRHIRef ColorTarget;
-	FTexture2DRHIRef DepthStencilTarget;
+	FTextureRHIRef ColorTarget;
+	FTextureRHIRef DepthStencilTarget;
 };
 
 static TShaderRef<FNoesisMaterialPSBase> GetMaterialPixelShader(const FMaterial* Material, Noesis::Shader::Enum ShaderType, bool IsLinearColor, bool GammaCorrection)
@@ -1810,7 +1806,7 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(FRHITexture* Tex
 	return Noesis::MakePtr<FNoesisTexture>(Texture, IgnoreAlpha);
 }
 
-FRHITexture2D* FNoesisRenderDevice::GetRHITexture(Noesis::Texture* InTexture)
+FRHITexture* FNoesisRenderDevice::GetRHITexture(Noesis::Texture* InTexture)
 {
 	FNoesisTexture* Texture = (FNoesisTexture*)InTexture;
 	return Texture->GetTexture2D();
@@ -1895,8 +1891,8 @@ static void NoesisCreateTargetableShaderResource2D(
 	bool bForceSeparateTargetAndShaderResource,
 	bool bForceSharedTargetAndShaderResource,
 	FClearValueBinding ClearValue,
-	FTexture2DRHIRef& OutTargetableTexture,
-	FTexture2DRHIRef& OutShaderResourceTexture,
+	FTextureRHIRef& OutTargetableTexture,
+	FTextureRHIRef& OutShaderResourceTexture,
 	uint32 NumSamples = 1
 )
 {
@@ -1981,7 +1977,7 @@ static void NoesisCreateTargetableShaderResource2D(
 	}
 }
 
-static Noesis::Ptr<Noesis::RenderTarget> CreateRenderTarget(const TCHAR* Name, uint32 Width, uint32 Height, uint32 SampleCount, FRHITexture2D* DepthStencilTarget, bool IsLinearColor)
+static Noesis::Ptr<Noesis::RenderTarget> CreateRenderTarget(const TCHAR* Name, uint32 Width, uint32 Height, uint32 SampleCount, FRHITexture* DepthStencilTarget, bool IsLinearColor)
 {
 	EPixelFormat Format = PF_R8G8B8A8;
 	uint32 NumMips = 1;
@@ -1989,8 +1985,8 @@ static Noesis::Ptr<Noesis::RenderTarget> CreateRenderTarget(const TCHAR* Name, u
 	ETextureCreateFlags TargetableTextureFlags = TexCreate_RenderTargetable | (IsLinearColor ? TexCreate_SRGB : TexCreate_None);
 	bool bForceSeparateTargetAndShaderResource = false;
 	FClearValueBinding ClearValue;
-	FTexture2DRHIRef ColorTarget;
-	FTexture2DRHIRef ShaderResourceTexture;
+	FTextureRHIRef ColorTarget;
+	FTextureRHIRef ShaderResourceTexture;
 	NoesisCreateTargetableShaderResource2D(Name, Width, Height, Format, NumMips, Flags, TargetableTextureFlags, bForceSeparateTargetAndShaderResource, false, ClearValue, ColorTarget, ShaderResourceTexture, SampleCount);
 
 	FNoesisRenderTarget* RenderTarget = new FNoesisRenderTarget(ShaderResourceTexture, ColorTarget, DepthStencilTarget);
@@ -2002,7 +1998,7 @@ Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CreateRenderTarget(const 
 {
 	TStringBuilder<64> Name;
 	Name.Append(TEXT("Noesis.RenderTarget.")).Append(UTF8_TO_TCHAR(Label));
-	FTexture2DRHIRef DepthStencilTarget;
+	FTextureRHIRef DepthStencilTarget;
 
 	if (NeedsStencil)
 	{
@@ -2040,11 +2036,11 @@ Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CloneRenderTarget(const c
 	Name.Append(TEXT("Noesis.RenderTarget.")).Append(UTF8_TO_TCHAR(Label));
 	FNoesisRenderTarget* SharedRenderTarget = (FNoesisRenderTarget*)InSharedRenderTarget;
 
-	FRHITexture2D* ColorTarget = SharedRenderTarget->GetColorTarget();
+	FRHITexture* ColorTarget = SharedRenderTarget->GetColorTarget();
 	uint32 Width = ColorTarget->GetSizeX();
 	uint32 Height = ColorTarget->GetSizeY();
 	uint32 SampleCount = ColorTarget->GetNumSamples();
-	FRHITexture2D* DepthStencilTarget = SharedRenderTarget->GetDepthStencilTarget();
+	FRHITexture* DepthStencilTarget = SharedRenderTarget->GetDepthStencilTarget();
 
 	return ::CreateRenderTarget(*Name, Width, Height, SampleCount, DepthStencilTarget, IsLinearColor);
 }
@@ -2063,7 +2059,7 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(const char* Labe
 	ERHIAccess Access = ERHIAccess::SRVGraphics;
 #if UE_VERSION_OLDER_THAN(5, 1, 0)
 	FRHIResourceCreateInfo CreateInfo(*Name);
-	FTexture2DRHIRef ShaderResourceTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, Flags, Access, CreateInfo);
+	FTextureRHIRef ShaderResourceTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, Flags, Access, CreateInfo);
 #else
 	auto ShaderResourceTextureDesc = FRHITextureCreateDesc::Create2D(*Name)
 		.SetExtent(SizeX, SizeY)
@@ -2072,7 +2068,7 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(const char* Labe
 		.SetNumSamples(NumSamples)
 		.SetFlags(Flags)
 		.SetInitialState(Access);
-	FTexture2DRHIRef ShaderResourceTexture = RHICreateTexture(ShaderResourceTextureDesc);
+	FTextureRHIRef ShaderResourceTexture = RHICreateTexture(ShaderResourceTextureDesc);
 #endif
 	NOESIS_BIND_DEBUG_TEXTURE_LABEL(ShaderResourceTexture, *Name);
 
@@ -2140,8 +2136,14 @@ void FNoesisRenderDevice::EndOnscreenRender()
 void FNoesisRenderDevice::SetRenderTarget(Noesis::RenderTarget* Surface)
 {
 	check(RHICmdList);
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
 #if WANTS_DRAW_MESH_EVENTS
 	BEGIN_DRAW_EVENTF(*RHICmdList, SetRenderTarget, SetRenderTargetEvent, TEXT("SetRenderTarget"));
+#endif
+#else
+#if WITH_RHI_BREADCRUMBS
+	SetRenderTargetBreadcrumb.Emplace(*RHICmdList, FRHIBreadcrumbData(__FILE__, __LINE__, TStatId(), NAME_None), TEXT("SetRenderTarget"));
+#endif
 #endif
 	check(Surface);
 	FNoesisRenderTarget* RenderTarget = (FNoesisRenderTarget*)Surface;
@@ -2149,7 +2151,7 @@ void FNoesisRenderDevice::SetRenderTarget(Noesis::RenderTarget* Surface)
 	check(RHICmdList->IsOutsideRenderPass());
 	RenderTarget->SetRenderTarget(RHICmdList);
 
-	FRHITexture2D* ColorTarget = RenderTarget->GetColorTarget();
+	FRHITexture* ColorTarget = RenderTarget->GetColorTarget();
 	auto ColorTargetSize = ColorTarget->GetSizeXY();
 	CreateView(0, 0, ColorTargetSize.X, ColorTargetSize.Y, FIntRect(0, 0, ColorTargetSize.X, ColorTargetSize.Y), FMatrix::Identity);
 }
@@ -2176,8 +2178,15 @@ void FNoesisRenderDevice::ResolveRenderTarget(Noesis::RenderTarget* Surface, con
 	FNoesisRenderTarget* RenderTarget = (FNoesisRenderTarget*)Surface;
 	RenderTarget->ResolveRenderTarget(RHICmdList, Tiles, NumTiles);
 
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
 #if WANTS_DRAW_MESH_EVENTS
 	STOP_DRAW_EVENT(SetRenderTargetEvent);
+#endif
+#else
+#if WITH_RHI_BREADCRUMBS
+	SetRenderTargetBreadcrumb->End(*RHICmdList);
+	SetRenderTargetBreadcrumb.Reset();
+#endif
 #endif
 
 	DestroyView();
@@ -2236,11 +2245,12 @@ bool FNoesisRenderDevice::SetPatternMaterialParameters<FNoesisPSBase>(const Noes
 	{
 		FNoesisTexture* Texture = (FNoesisTexture*)(Batch.pattern);
 		FRHITexture* PatternTexture = Texture->GetTexture2D();
-		if (PatternTexture != nullptr)
-		{
-			FRHISamplerState* PatternSamplerState = SamplerStates[Batch.patternSampler.v];
-			PixelShader->SetPatternTexture(*RHICmdList, PatternTexture, PatternSamplerState);
-		}
+
+		if (PatternTexture == nullptr)
+			return false;
+
+		FRHISamplerState* PatternSamplerState = SamplerStates[Batch.patternSampler.v];
+		PixelShader->SetPatternTexture(*RHICmdList, PatternTexture, PatternSamplerState);
 	}
 
 	return true;

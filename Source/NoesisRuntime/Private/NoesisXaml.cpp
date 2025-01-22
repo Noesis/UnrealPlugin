@@ -116,7 +116,7 @@ FString UNoesisXaml::GetXamlUri() const
 }
 
 #if WITH_EDITOR
-void UNoesisXaml::RenderThumbnail(FIntRect ViewportRect, const FTexture2DRHIRef& BackBuffer)
+void UNoesisXaml::RenderThumbnail(FIntRect ViewportRect, const FTextureRHIRef& BackBuffer)
 {
 	if (ThumbnailView == nullptr)
 	{

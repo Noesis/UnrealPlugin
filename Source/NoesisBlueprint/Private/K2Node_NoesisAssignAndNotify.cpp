@@ -114,7 +114,11 @@ static FText GetPropertyTooltip(FProperty const* VariableProperty)
 				// See if the native property has a tooltip
 				SubTooltip = PropertyTooltip;
 				FString TooltipName = FString::Printf(TEXT("%s.%s"), *VarName.ToString(), *TooltipMetaKey.ToString());
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
 				FText::FindText(*VariableProperty->GetFullGroupName(true), *TooltipName, SubTooltip);
+#else
+				FText::FindTextInLiveTable_Advanced(*VariableProperty->GetFullGroupName(true), *TooltipName, SubTooltip);
+#endif
 			}
 		}
 		else if (SourceClass)

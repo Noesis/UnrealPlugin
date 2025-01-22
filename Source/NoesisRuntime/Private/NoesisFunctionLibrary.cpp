@@ -195,7 +195,11 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Add)
 
 	// Since NewItem isn't really an int, step the stack manually
 	const FProperty* InnerProp = ArrayProperty->Inner;
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
 	const int32 PropertySize = InnerProp->ElementSize * InnerProp->ArrayDim;
+#else
+	const int32 PropertySize = InnerProp->GetElementSize() * InnerProp->ArrayDim;
+#endif
 	void* StorageSpace = FMemory_Alloca(PropertySize);
 	InnerProp->InitializeValue(StorageSpace);
 
@@ -226,7 +230,11 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_AddUnique)
 
 	// Since NewItem isn't really an int, step the stack manually
 	const FProperty* InnerProp = ArrayProperty->Inner;
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
 	const int32 PropertySize = InnerProp->ElementSize * InnerProp->ArrayDim;
+#else
+	const int32 PropertySize = InnerProp->GetElementSize() * InnerProp->ArrayDim;
+#endif
 	void* StorageSpace = FMemory_Alloca(PropertySize);
 	InnerProp->InitializeValue(StorageSpace);
 
@@ -314,7 +322,11 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Insert)
 
 	// Since NewItem isn't really an int, step the stack manually
 	const FProperty* InnerProp = ArrayProperty->Inner;
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
 	const int32 PropertySize = InnerProp->ElementSize * InnerProp->ArrayDim;
+#else
+	const int32 PropertySize = InnerProp->GetElementSize() * InnerProp->ArrayDim;
+#endif
 	void* StorageSpace = FMemory_Alloca(PropertySize);
 	InnerProp->InitializeValue(StorageSpace);
 
@@ -372,7 +384,11 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_RemoveItem)
 	}
 	// Since Item isn't really an int, step the stack manually
 	const FProperty* InnerProp = ArrayProperty->Inner;
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
 	const int32 PropertySize = InnerProp->ElementSize * InnerProp->ArrayDim;
+#else
+	const int32 PropertySize = InnerProp->GetElementSize() * InnerProp->ArrayDim;
+#endif
 	void* StorageSpace = FMemory_Alloca(PropertySize);
 	InnerProp->InitializeValue(StorageSpace);
 
@@ -385,7 +401,11 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_RemoveItem)
 	const FBoolProperty* BoolProperty = CastField<const FBoolProperty>(InnerProp);
 	if (BoolProperty)
 	{
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
 		ensure((BoolProperty->ElementSize * BoolProperty->ArrayDim) == sizeof(uint8));
+#else
+		ensure((BoolProperty->GetElementSize() * BoolProperty->ArrayDim) == sizeof(uint8));
+#endif
 		BoolProperty->SetPropertyValue(ItemPtr, 0 != *(reinterpret_cast<uint8*>(ItemPtr)));
 	}
 	P_NATIVE_BEGIN;
@@ -478,7 +498,11 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_Set)
 
 	// Since NewItem isn't really an int, step the stack manually
 	const FProperty* InnerProp = ArrayProperty->Inner;
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
 	const int32 PropertySize = InnerProp->ElementSize * InnerProp->ArrayDim;
+#else
+	const int32 PropertySize = InnerProp->GetElementSize() * InnerProp->ArrayDim;
+#endif
 	void* StorageSpace = FMemory_Alloca(PropertySize);
 	InnerProp->InitializeValue(StorageSpace);
 
@@ -523,7 +547,11 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisMap_Add)
 
 	// Since Key and Value aren't really an int, step the stack manually
 	const FProperty* CurrKeyProp = MapProperty->KeyProp;
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
 	const int32 KeyPropertySize = CurrKeyProp->ElementSize * CurrKeyProp->ArrayDim;
+#else
+	const int32 KeyPropertySize = CurrKeyProp->GetElementSize() * CurrKeyProp->ArrayDim;
+#endif
 	void* KeyStorageSpace = FMemory_Alloca(KeyPropertySize);
 	CurrKeyProp->InitializeValue(KeyStorageSpace);
 
@@ -531,7 +559,11 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisMap_Add)
 	Stack.StepCompiledIn<FProperty>(KeyStorageSpace);
 
 	const FProperty* CurrValueProp = MapProperty->ValueProp;
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
 	const int32 ValuePropertySize = CurrValueProp->ElementSize * CurrValueProp->ArrayDim;
+#else
+	const int32 ValuePropertySize = CurrValueProp->GetElementSize() * CurrValueProp->ArrayDim;
+#endif
 	void* ValueStorageSpace = FMemory_Alloca(ValuePropertySize);
 	CurrValueProp->InitializeValue(ValueStorageSpace);
 
@@ -567,7 +599,11 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisMap_Remove)
 
 	// Since Key and Value aren't really an int, step the stack manually
 	const FProperty* CurrKeyProp = MapProperty->KeyProp;
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
 	const int32 KeyPropertySize = CurrKeyProp->ElementSize * CurrKeyProp->ArrayDim;
+#else
+	const int32 KeyPropertySize = CurrKeyProp->GetElementSize() * CurrKeyProp->ArrayDim;
+#endif
 	void* KeyStorageSpace = FMemory_Alloca(KeyPropertySize);
 	CurrKeyProp->InitializeValue(KeyStorageSpace);
 

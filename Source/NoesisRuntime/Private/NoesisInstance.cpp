@@ -142,7 +142,11 @@ static Noesis::Matrix4 UnrealToNoesisViewProj(const FMatrix& UnrealViewProj, flo
 FIntRect GViewRect;
 FMatrix GViewProjectionMatrix;
 uint32 GSlateElementCount = 0;
-FTexture2DRHIRef GDepthStencilTarget;
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
+FTextureRHIRef GDepthStencilTarget;
+#else
+TRefCountPtr<IPooledRenderTarget> GDepthStencilTarget;
+#endif
 
 class FNoesisSlateElement : public ICustomSlateElement
 {
@@ -155,7 +159,11 @@ public:
 	}
 
 	// ICustomSlateElement interface
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
 	virtual void DrawRenderThread(FRHICommandListImmediate& RHICmdList, const void* InWindowBackBuffer) override;
+#else
+	virtual void Draw_RenderThread(FRDGBuilder& GraphBuilder, const FDrawPassInputs& Inputs) override;
+#endif
 	// End of ICustomSlateElement interface
 
 	void UpdateRenderTree() const;
@@ -171,6 +179,7 @@ public:
 	float Right;
 	float Bottom;
 	FIntRect ViewRect;
+	FSlateRect CullingRect;
 	FSceneInterface* Scene = nullptr;
 	FGameTime WorldTime;
 	bool IsMobileMultiView = false;
@@ -189,12 +198,14 @@ FNoesisSlateElement::FNoesisSlateElement(Noesis::Ptr<Noesis::IRenderer> InRender
 {
 }
 
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
+
 void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList, const void* InWindowBackBuffer)
 {
 	ViewRect = GViewRect;
 	ViewProjectionMatrix = GViewProjectionMatrix;
 
-	FTexture2DRHIRef ColorTarget = *(FTexture2DRHIRef*)InWindowBackBuffer;
+	FTextureRHIRef ColorTarget = *(FTextureRHIRef*)InWindowBackBuffer;
 
 	if (!GDepthStencilTarget.IsValid() || GDepthStencilTarget->GetSizeX() != ColorTarget->GetSizeX() || GDepthStencilTarget->GetSizeY() != ColorTarget->GetSizeY() || GDepthStencilTarget->GetNumSamples() != ColorTarget->GetNumSamples())
 	{
@@ -235,9 +246,71 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 	RHICmdList.BeginRenderPass(RPInfo, TEXT("NoesisOnScreen"));
 	RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
 	EngineGamma = (!GIsEditor && (ColorTarget->GetFormat() == PF_FloatRGBA)/* && (Params.bIsHDR == false)*/) ? 1.0f : EngineGamma;
+	RHICmdList.SetScissorRect(true, (uint32)FMath::Max(Left, CullingRect.Left), (uint32)FMath::Max(Top, CullingRect.Top), (uint32)FMath::Min(Right, CullingRect.Right), (uint32)FMath::Min(Bottom, CullingRect.Bottom));
 	RenderOnscreen(RHICmdList, false);
+	RHICmdList.SetScissorRect(false, 0, 0, 0, 0);
 	RHICmdList.EndRenderPass();
 }
+
+#else
+
+void FNoesisSlateElement::Draw_RenderThread(FRDGBuilder& GraphBuilder, const FDrawPassInputs& Inputs)
+{
+	const FRDGTextureDesc& ColorTargetDesc = Inputs.OutputTexture != nullptr ? Inputs.OutputTexture->Desc : FRDGTextureDesc();
+
+	ViewRect = GViewRect;
+	ViewProjectionMatrix = GViewProjectionMatrix;
+	EngineGamma = (!GIsEditor && (ColorTargetDesc.Format == PF_FloatRGBA)/* && (Params.bIsHDR == false)*/) ? 1.0f : EngineGamma;
+
+	FIntVector ColorTargetSize = ColorTargetDesc.GetSize();
+	if (!GDepthStencilTarget.IsValid() || GDepthStencilTarget->GetDesc().GetSize() != ColorTargetSize)
+	{
+		GDepthStencilTarget.SafeRelease();
+		uint32 SizeX = ColorTargetSize.X;
+		uint32 SizeY = ColorTargetSize.Y;
+		EPixelFormat Format = PF_DepthStencil;
+		uint32 NumMips = 1;
+		uint32 NumSamples = ColorTargetDesc.NumSamples;
+		ETextureCreateFlags TargetableTextureFlags = TexCreate_DepthStencilTargetable | TexCreate_Memoryless;
+		ERHIAccess Access = ERHIAccess::DSVWrite;
+		FClearValueBinding ClearValue(0.f, 0);
+		const TCHAR* Name = TEXT("Noesis.RenderTarget.Onscreen_DS");
+
+		auto DepthStencilTargetDesc = FRHITextureCreateDesc::Create2D(Name)
+			.SetExtent(SizeX, SizeY)
+			.SetFormat(Format)
+			.SetNumMips(NumMips)
+			.SetNumSamples(NumSamples)
+			.SetFlags(TargetableTextureFlags)
+			.SetInitialState(Access)
+			.SetClearValue(ClearValue);
+		auto DepthStencilTarget = RHICreateTexture(DepthStencilTargetDesc);
+
+		NOESIS_BIND_DEBUG_TEXTURE_LABEL(DepthStencilTarget, Name);
+
+		GDepthStencilTarget = CreateRenderTarget(DepthStencilTarget, Name);
+	}
+
+	// Clear the stencil buffer
+	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_Draw);
+
+	FRenderTargetParameters* PassParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
+	{
+		PassParameters->RenderTargets[0] = FRenderTargetBinding(Inputs.OutputTexture, ERenderTargetLoadAction::ELoad);
+		PassParameters->RenderTargets.DepthStencil = FDepthStencilBinding(GraphBuilder.RegisterExternalTexture(GDepthStencilTarget), ERenderTargetLoadAction::ENoAction, ERenderTargetLoadAction::EClear, FExclusiveDepthStencil::DepthNop_StencilWrite);
+	}
+	GraphBuilder.AddPass(RDG_EVENT_NAME("NoesisOnScreen"), PassParameters, ERDGPassFlags::Raster | ERDGPassFlags::NeverCull,
+		[this](FRHICommandListImmediate& RHICmdList)
+		{
+			RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
+			RHICmdList.SetScissorRect(true, (uint32)FMath::Max(Left, CullingRect.Left), (uint32)FMath::Max(Top, CullingRect.Top), (uint32)FMath::Min(Right, CullingRect.Right), (uint32)FMath::Min(Bottom, CullingRect.Bottom));
+			RenderOnscreen(RHICmdList, false);
+			RHICmdList.SetScissorRect(false, 0, 0, 0, 0);
+		}
+	);
+}
+
+#endif
 
 void FNoesisSlateElement::UpdateRenderTree() const
 {
@@ -1449,7 +1522,7 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 		(
 			[NoesisSlateElement = NoesisSlateElement, EngineGamma = GEngine ? GEngine->GetDisplayGamma() : 2.2f, SlateContrast = GSlateContrast,
 			SlateRect = AllottedGeometry.GetLayoutBoundingRect().Round(),
-			Scene = Scene, WorldTime = WorldTime](FRHICommandListImmediate& RHICmdList)
+			Scene = Scene, WorldTime = WorldTime, CullingRect = MyCullingRect.Round()](FRHICommandListImmediate& RHICmdList)
 			{
 				NoesisSlateElement->EngineGamma = EngineGamma;
 				NoesisSlateElement->SlateContrast = SlateContrast;
@@ -1458,6 +1531,8 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 				NoesisSlateElement->Top = SlateRect.Top;
 				NoesisSlateElement->Right = SlateRect.Right;
 				NoesisSlateElement->Bottom = SlateRect.Bottom;
+
+				NoesisSlateElement->CullingRect = CullingRect;
 
 				NoesisSlateElement->Scene = Scene;
 				NoesisSlateElement->IsMobileMultiView = false;

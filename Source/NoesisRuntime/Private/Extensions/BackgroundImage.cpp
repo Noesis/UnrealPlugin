@@ -34,7 +34,7 @@ BackgroundImage::~BackgroundImage()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void BackgroundImage::SetBackgroundImageTexture(FRHITexture2D* Texture)
+void BackgroundImage::SetBackgroundImageTexture(FRHITexture* Texture)
 {
 	if (!NoesisBackgroundImageTexture || FNoesisRenderDevice::GetRHITexture(NoesisBackgroundImageTexture) != Texture)
 	{

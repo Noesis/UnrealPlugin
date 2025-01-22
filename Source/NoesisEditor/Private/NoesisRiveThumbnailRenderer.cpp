@@ -33,7 +33,7 @@ void UNoesisRiveThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint3
 	if (Rive != nullptr)
 	{
 		FIntRect ViewportRect(X, Y, X + Width, Y + Height);
-		const FTexture2DRHIRef& BackBuffer = Viewport->GetRenderTargetTexture();
+		const FTextureRHIRef& BackBuffer = Viewport->GetRenderTargetTexture();
 		Rive->RenderThumbnail(ViewportRect, BackBuffer);
 	}
 }

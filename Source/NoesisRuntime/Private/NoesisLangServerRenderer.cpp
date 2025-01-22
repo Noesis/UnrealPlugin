@@ -118,7 +118,7 @@ void Noesis::NoesisLangServerRenderer::Capture(Noesis::UIElement* Content, uint3
 			RenderDevice->ResolveRenderTarget(RenderTarget, &Tile, 1);
 
 			Noesis::Texture* Texture = RenderTarget->GetTexture();
-			FTexture2DRHIRef ColorTarget = FNoesisRenderDevice::GetRHITexture(Texture);
+			FTextureRHIRef ColorTarget = FNoesisRenderDevice::GetRHITexture(Texture);
 			uint32 DstStride = Width * 4;
 			Contents.AddUninitialized(Height * DstStride);
 			uint8* DstPixels = Contents.GetData();
