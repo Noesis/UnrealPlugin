@@ -398,16 +398,7 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisArray_RemoveItem)
 
 	P_FINISH;
 	// Bools need to be processed internally by the property so that C++ bool value is properly set.
-	const FBoolProperty* BoolProperty = CastField<const FBoolProperty>(InnerProp);
-	if (BoolProperty)
-	{
-#if UE_VERSION_OLDER_THAN(5, 5, 0)
-		ensure((BoolProperty->ElementSize * BoolProperty->ArrayDim) == sizeof(uint8));
-#else
-		ensure((BoolProperty->GetElementSize() * BoolProperty->ArrayDim) == sizeof(uint8));
-#endif
-		BoolProperty->SetPropertyValue(ItemPtr, 0 != *(reinterpret_cast<uint8*>(ItemPtr)));
-	}
+	NoesisArray_HandleBool(InnerProp, ItemPtr);
 	P_NATIVE_BEGIN;
 	MARK_PROPERTY_DIRTY(Stack.Object, ArrayProperty);
 	*(bool*)RESULT_PARAM = false;
@@ -576,8 +567,9 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisMap_Add)
 	UBlueprintMapLibrary::GenericMap_Add(MapAddr, MapProperty, KeyStorageSpace, ValueStorageSpace);
 	if (CurrKeyProp->IsA<FStrProperty>())
 	{
-		FString* KeyPtr = (FString*)KeyStorageSpace;
-		NoesisNotifyMapPropertyPostAdd(MapAddr, *KeyPtr);
+		FStrProperty* StrKeyProp = (FStrProperty*)CurrKeyProp;
+		const FString& Key = StrKeyProp->GetPropertyValue(KeyStorageSpace);
+		NoesisNotifyMapPropertyPostAdd(MapAddr, Key);
 	}
 	P_NATIVE_END;
 
@@ -614,14 +606,16 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisMap_Remove)
 	P_NATIVE_BEGIN;
 	if (CurrKeyProp->IsA<FStrProperty>())
 	{
-		FString* KeyPtr = (FString*)KeyStorageSpace;
-		NoesisNotifyMapPropertyPreRemove(MapAddr, *KeyPtr);
+		FStrProperty* StrKeyProp = (FStrProperty*)CurrKeyProp;
+		const FString& Key = StrKeyProp->GetPropertyValue(KeyStorageSpace);
+		NoesisNotifyMapPropertyPreRemove(MapAddr, Key);
 	}
 	*(bool*)RESULT_PARAM = UBlueprintMapLibrary::GenericMap_Remove(MapAddr, MapProperty, KeyStorageSpace);
 	if (CurrKeyProp->IsA<FStrProperty>())
 	{
-		FString* KeyPtr = (FString*)KeyStorageSpace;
-		NoesisNotifyMapPropertyPostRemove(MapAddr, *KeyPtr);
+		FStrProperty* StrKeyProp = (FStrProperty*)CurrKeyProp;
+		const FString& Key = StrKeyProp->GetPropertyValue(KeyStorageSpace);
+		NoesisNotifyMapPropertyPostRemove(MapAddr, Key);
 	}
 	P_NATIVE_END;
 
@@ -649,4 +643,18 @@ DEFINE_FUNCTION(UNoesisFunctionLibrary::execNoesisMap_Clear)
 		NoesisNotifyMapPropertyPostReset(MapAddr);
 	}
 	P_NATIVE_END
+}
+
+void UNoesisFunctionLibrary::NoesisArray_HandleBool(const FProperty* Property, void* ItemPtr)
+{
+	const FBoolProperty* BoolProperty = CastField<const FBoolProperty>(Property);
+	if (BoolProperty)
+	{
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
+		ensure((BoolProperty->ElementSize * BoolProperty->ArrayDim) == sizeof(uint8));
+#else
+		ensure((BoolProperty->GetElementSize() * BoolProperty->ArrayDim) == sizeof(uint8));
+#endif
+		BoolProperty->SetPropertyValue(ItemPtr, 0 != *(reinterpret_cast<uint8*>(ItemPtr)));
+	}
 }

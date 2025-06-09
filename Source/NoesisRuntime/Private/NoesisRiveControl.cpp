@@ -5,7 +5,7 @@
 
 #if defined(_MSC_VER)
 #pragma warning(push)
-#pragma warning(disable: 4265 4426)
+#pragma warning(disable: 4265 4426 4834)
 #endif
 
 #pragma push_macro("PI")

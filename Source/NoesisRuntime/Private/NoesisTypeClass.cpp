@@ -678,9 +678,6 @@ const Noesis::Type* ByteGetType(FProperty* Property)
 	}
 }
 
-typedef Noesis::Ptr<Noesis::BaseComponent> (*WrapperFn)(UObject*);
-typedef UObject* (*UnwrapperFn)(Noesis::BaseComponent*);
-typedef const Noesis::Type* (*GetTypeFn)(FProperty*);
 struct NoesisClassConversion
 {
 	WrapperFn Wrapper;
@@ -699,21 +696,17 @@ struct NoesisClassConversion
 };
 TMap<UClass*, NoesisClassConversion> ClassConversions;
 
+void NoesisRegisterClassConversion(UClass* UnrealType, const Noesis::Type* NoesisType, WrapperFn Wrapper, UnwrapperFn Unwrapper)
+{
+	ClassConversions.Emplace(UnrealType, { Wrapper, Unwrapper, NoesisType });
+}
+
 Noesis::Ptr<Noesis::BaseComponent> ObjectGetter(void* BasePointer, FProperty* Property)
 {
 	void* Value = Property->template ContainerPtrToValuePtr<void>(BasePointer);
 	UObject*& Object = *(UObject**)Value;
 	check(Property->IsA<FObjectProperty>());
-	UClass* Class = Object != nullptr ? Object->GetClass() : nullptr;
-	NoesisClassConversion* ClassConversion = Class != nullptr ? ClassConversions.Find(Class) : nullptr;
-	if (ClassConversion != nullptr)
-	{
-		return (*ClassConversion->Wrapper)(Object);
-	}
-	else
-	{
-		return NoesisCreateComponentForUObject(Object);
-	}
+	return NoesisCreateComponentForUObject(Object);
 }
 
 bool ObjectSetter(Noesis::BaseComponent* Input, void* BasePointer, FProperty* Property)
@@ -2589,7 +2582,7 @@ void* NoesisTypePropertyObjectWrapperEvent::GetContent(const void* Ptr) const
 	{
 		// We add the fuction names to the UObject class so FScriptDelegate can find them later.
 		// We only need to do this once per event name.
-		const auto DelegateName = WriteToString<128>("NoesisDelegate_", *Property->GetName());
+		auto DelegateName = WriteToString<128>("NoesisDelegate_", *Property->GetName());
 		UClass* ObjectClass = UObject::StaticClass();
 		if (ObjectClass->FindFunctionByName(*DelegateName) == nullptr)
 		{
@@ -3674,13 +3667,19 @@ NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUOb
 		return BaseComponent->NoesisComponent;
 	}
 
-	NoesisObjectWrapper** WrapperPtr = ObjectMap.Find(Object);
-	if (WrapperPtr)
-	{
-		return Noesis::Ptr<Noesis::BaseComponent>(*WrapperPtr);
-	}
-
 	UClass* Class = Object->GetClass();
+
+	auto ClassForConversion = Class;
+	do
+	{
+		NoesisClassConversion* ClassConversion = ClassConversions.Find(ClassForConversion);
+		if (ClassConversion != nullptr)
+		{
+			return (*ClassConversion->Wrapper)(Object);
+		}
+		ClassForConversion = ClassForConversion->GetSuperClass();
+	} while (ClassForConversion != nullptr);
+
 	Noesis::Ptr<Noesis::BaseComponent> Wrapper;
 	ISlateTextureAtlasInterface* SlateAtlas = Cast<ISlateTextureAtlasInterface>(Object);
 	if (SlateAtlas != nullptr)
@@ -3717,22 +3716,17 @@ NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUOb
 			Wrapper = *new NoesisPostProcessMaterialWrapper(Material);
 		}
 	}
-	else if (Class->IsChildOf(UTexture2D::StaticClass()) || Class->IsChildOf(UTextureRenderTarget2D::StaticClass()) || Class->IsChildOf(UMediaTexture::StaticClass()))
-	{
-		UTexture* Texture = (UTexture*)Object;
-		return NoesisCreateComponentForUTexture(Texture);
-	}
-	else if (Class->IsChildOf(UMediaSource::StaticClass()))
-	{
-		return NoesisTypeTraits<UMediaSource*>::ToNoesis(Object);
-	}
-	else if (Class->IsChildOf(UNoesisRive::StaticClass()))
-	{
-		return NoesisTypeTraits<UNoesisRive*>::ToNoesis(Object);
-	}
 	else
 	{
-		Wrapper = *new NoesisObjectWrapper(Object);
+		NoesisObjectWrapper** WrapperPtr = ObjectMap.Find(Object);
+		if (WrapperPtr)
+		{
+			Wrapper.Reset(*WrapperPtr);
+		}
+		else
+		{
+			Wrapper = *new NoesisObjectWrapper(Object);
+		}
 	}
 
 	return Wrapper;

@@ -50,7 +50,7 @@ static FText GetBaseTooltip(FName VarName)
 	FFormatNamedArguments Args;
 	Args.Add(TEXT("VarName"), FText::FromName(VarName));
 
-	return FText::Format(LOCTEXT("SetVariableTooltip", "Set the value of variable {VarName}"), Args);
+	return FText::Format(LOCTEXT("SetVariableTooltipBase", "Set the value of variable {VarName}"), Args);
 
 }
 

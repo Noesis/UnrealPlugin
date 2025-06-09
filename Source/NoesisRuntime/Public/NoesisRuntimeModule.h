@@ -7,9 +7,12 @@
 
 // Core includes
 #include "CoreMinimal.h"
+#include "Misc/EngineVersionComparison.h"
 #include "Modules/ModuleInterface.h"
 #include "Stats/Stats.h"
+#if UE_VERSION_OLDER_THAN(5, 6, 0)
 #include "Stats/Stats2.h"
+#endif
 
 // Noesis includes
 #include "NsCore/Log.h"

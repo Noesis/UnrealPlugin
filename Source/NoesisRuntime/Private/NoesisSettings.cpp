@@ -40,6 +40,8 @@ UNoesisSettings::UNoesisSettings(const FObjectInitializer& ObjectInitializer)
 	BindingLogLevel = ENoesisLoggingSettings::Warning;
 	ReloadEnabled = true;
 	PremultiplyAlpha = true;
+
+	WorldUIXaml = FSoftObjectPath("/NoesisGUI/WorldUI.WorldUI");
 }
 
 void UNoesisSettings::SetLicense() const
@@ -192,6 +194,11 @@ void UNoesisSettings::SetFontDefaultProperties() const
 	Noesis::FontStretch Stretch = (Noesis::FontStretch)DefaultFontStretch;
 	Noesis::FontStyle Style = (Noesis::FontStyle)DefaultFontStyle;
 	Noesis::GUI::SetFontDefaultProperties(Size, Weight, Stretch, Style);
+}
+
+class UNoesisXaml* UNoesisSettings::LoadWorldUIXaml() const
+{
+	return Cast<UNoesisXaml>(WorldUIXaml.TryLoad());
 }
 
 #if WITH_EDITOR

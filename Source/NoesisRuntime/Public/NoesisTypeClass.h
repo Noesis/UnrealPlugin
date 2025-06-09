@@ -134,3 +134,15 @@ NOESISRUNTIME_API void NoesisDestroyTypeClassForEnum(class UEnum*);
 NOESISRUNTIME_API void NoesisDestroyTypeClassForMaterial(class UMaterialInterface*);
 NOESISRUNTIME_API void NoesisAssetRenamed(UObject* Object, FString OldPath);
 #endif
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Register conversion functions for UObjects to use in your DataContext.
+/// Wrapper should convert a pointer to an UObject of type UnrealType to a Noesis::BaseComponent
+/// of type NoesisType.
+/// Unwrapper should work the other way around where it makes sense.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef Noesis::Ptr<Noesis::BaseComponent>(*WrapperFn)(UObject*);
+typedef UObject* (*UnwrapperFn)(Noesis::BaseComponent*);
+NOESISRUNTIME_API void NoesisRegisterClassConversion(UClass* UnrealType, const Noesis::Type* NoesisType, WrapperFn Wrapper, UnwrapperFn Unwrapper);

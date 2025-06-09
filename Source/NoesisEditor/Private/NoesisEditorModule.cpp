@@ -21,6 +21,7 @@
 #include "Engine/Texture.h"
 #include "Engine/Texture2D.h"
 #include "Materials/MaterialInterface.h"
+#include "TextureCompiler.h"
 
 // UnrealEd includes
 #include "Editor.h"
@@ -34,6 +35,7 @@
 #include "NoesisXaml.h"
 #include "NoesisRive.h"
 #include "NoesisBlueprint.h"
+#include "NoesisTextureAssetUserData.h"
 
 // NoesisEditor includes
 #include "NoesisBlueprintAssetTypeActions.h"
@@ -64,9 +66,15 @@
 // LangServer includes
 #include "NsApp/LangServer.h"
 
+// ContentBrowser includes
+#include "ContentBrowserMenuContexts.h"
+
+// ToolMenus includes
+#include "ToolMenus.h"
+
 #define LOCTEXT_NAMESPACE "NoesisEditorModule"
 
-void PremultiplyAlpha(UTexture2D* Texture)
+static void PremultiplyAlpha(UTexture2D* Texture)
 {
 	FTextureSource& TextureSource = Texture->Source;
 	const ETextureSourceFormat SourceFormat = TextureSource.GetFormat();
@@ -77,45 +85,75 @@ void PremultiplyAlpha(UTexture2D* Texture)
 	{
 	case TSF_BGRA8:
 	{
-		uint8* SourceData = TextureSource.LockMip(0);
-		for (int32 Y = 0; Y < TextureHeight; ++Y)
+		int32 MipSizeX = TextureWidth;
+		int32 MipSizeY = TextureHeight;
+
+		for (int32 MipLevel = 0; MipLevel < TextureSource.GetNumMips(); ++MipLevel)
 		{
-			for (int32 X = 0; X < TextureWidth; ++X)
+			uint8* SourceData = TextureSource.LockMip(MipLevel);
+			for (int32 Y = 0; Y < MipSizeY; ++Y)
 			{
-				uint8* PixelData = SourceData + (Y * TextureWidth + X) * 4;
-				uint32 Alpha = (uint32)PixelData[3];
-				PixelData[0] = (uint8)(((uint32)PixelData[0] * Alpha) / 255);
-				PixelData[1] = (uint8)(((uint32)PixelData[1] * Alpha) / 255);
-				PixelData[2] = (uint8)(((uint32)PixelData[2] * Alpha) / 255);
+				for (int32 X = 0; X < MipSizeX; ++X)
+				{
+					uint8* PixelData = SourceData + (Y * MipSizeX + X) * 4;
+					uint32 Alpha = (uint32)PixelData[3];
+					PixelData[0] = (uint8)(((uint32)PixelData[0] * Alpha) / 255);
+					PixelData[1] = (uint8)(((uint32)PixelData[1] * Alpha) / 255);
+					PixelData[2] = (uint8)(((uint32)PixelData[2] * Alpha) / 255);
+				}
 			}
+			TextureSource.UnlockMip(MipLevel);
+
+			MipSizeX <<= 2;
+			MipSizeY <<= 2;
 		}
-		TextureSource.UnlockMip(0);
-		Texture->PostEditChange();
 		break;
 	}
 
 	case TSF_RGBA16:
 	{
-		uint16* SourceData = (uint16*)TextureSource.LockMip(0);
-		for (int32 Y = 0; Y < TextureHeight; ++Y)
+		int32 MipSizeX = TextureWidth;
+		int32 MipSizeY = TextureHeight;
+
+		for (int32 MipLevel = 0; MipLevel < TextureSource.GetNumMips(); ++MipLevel)
 		{
-			for (int32 X = 0; X < TextureWidth; ++X)
+			uint16* SourceData = (uint16*)TextureSource.LockMip(MipLevel);
+			for (int32 Y = 0; Y < MipSizeY; ++Y)
 			{
-				uint16* PixelData = SourceData + (Y * TextureWidth + X) * 4;
-				uint32 Alpha = (uint32)PixelData[3];
-				PixelData[0] = (uint8)(((uint32)PixelData[0] * Alpha) / 255);
-				PixelData[1] = (uint8)(((uint32)PixelData[1] * Alpha) / 255);
-				PixelData[2] = (uint8)(((uint32)PixelData[2] * Alpha) / 255);
+				for (int32 X = 0; X < MipSizeX; ++X)
+				{
+					uint16* PixelData = SourceData + (Y * MipSizeX + X) * 4;
+					uint32 Alpha = (uint32)PixelData[3];
+					PixelData[0] = (uint8)(((uint32)PixelData[0] * Alpha) / 255);
+					PixelData[1] = (uint8)(((uint32)PixelData[1] * Alpha) / 255);
+					PixelData[2] = (uint8)(((uint32)PixelData[2] * Alpha) / 255);
+				}
 			}
+			TextureSource.UnlockMip(MipLevel);
+
+			MipSizeX <<= 2;
+			MipSizeY <<= 2;
 		}
-		TextureSource.UnlockMip(0);
-		Texture->PostEditChange();
 		break;
 	}
 
 	default:
 		UE_LOG(LogNoesisEditor, Warning, TEXT("Texture %s format invalid"), *Texture->GetPathName());
 		break;
+	}
+}
+
+static void EnsurePremultiplyAlpha(class UTexture2D* Texture)
+{
+	auto NoesisTextureData = (UNoesisTextureAssetUserData*)Texture->GetAssetUserDataOfClass(UNoesisTextureAssetUserData::StaticClass());
+	if (NoesisTextureData == nullptr)
+	{
+		NoesisTextureData = NewObject<UNoesisTextureAssetUserData>(Texture, NAME_None, RF_Public | RF_Transactional);
+
+		Texture->PreEditChange(nullptr);
+		Texture->AddAssetUserData(NoesisTextureData);
+		PremultiplyAlpha(Texture);
+		Texture->PostEditChange();
 	}
 }
 
@@ -143,7 +181,7 @@ static void DestroyThumbnails()
 	}
 }
 
-void OnObjectImported(UFactory* ImportFactory, UObject* InObject)
+static void OnAssetPostImport(UFactory* ImportFactory, UObject* InObject)
 {
 	if (!IsValid(InObject))
 		return;
@@ -159,30 +197,17 @@ void OnObjectImported(UFactory* ImportFactory, UObject* InObject)
 		}
 	}
 
-	if (InObject->IsA<UTexture2D>())
+	if (auto Texture = Cast<UTexture2D>(InObject); Texture != nullptr)
 	{
-		UTexture2D* Texture = (UTexture2D*)InObject;
-		if (Texture->LODGroup == TEXTUREGROUP_UI && !Texture->SRGB)
+		auto NoesisTextureData = (UNoesisTextureAssetUserData*)Texture->GetAssetUserDataOfClass(UNoesisTextureAssetUserData::StaticClass());
+		if (NoesisTextureData != nullptr)
 		{
-			if (GetDefault<UNoesisSettings>()->PremultiplyAlpha)
-			{
-				PremultiplyAlpha(Texture);
-			}
-		}
-		Noesis::Ptr<Noesis::TextureSource> TextureSource = Noesis::StaticPtrCast<Noesis::TextureSource>(
-			NoesisFindComponentForUObject(Texture));
-		if (TextureSource != nullptr)
-		{
-			TextureSource->SetTexture(NoesisCreateTexture(Texture));
-		}
-		if (GetDefault<UNoesisSettings>()->ReloadEnabled)
-		{
-			INoesisRuntimeModuleInterface::Get().OnTextureChanged(Texture);
+			PremultiplyAlpha(Texture);
 		}
 	}
 }
 
-void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Event)
+static void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Event)
 {
 	if (!IsValid(Object)) // Don't think this is possible, but better safe than sorry
 		return;
@@ -197,33 +222,7 @@ void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Even
 		if (Object->IsA<UTexture2D>())
 		{
 			UTexture2D* Texture = (UTexture2D*)Object;
-			if (Texture->LODGroup == TEXTUREGROUP_UI && !Texture->SRGB)
-			{
-				// Avoid reimporting the texture unless one of these properties has changed
-				if (Event.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UTexture, SRGB) ||
-					Event.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UTexture, LODGroup))
-				{
-					if (GetDefault<UNoesisSettings>()->PremultiplyAlpha)
-					{
-						// We need to reimport the texture here in case the Texture's Source has
-						// already been premultiplied
-						FReimportManager::Instance()->Reimport(Texture);
-
-						// Important!!!
-						// PremultiplyAlpha will be called from the ObjectImported callback
-					}
-				}
-			}
-			Noesis::Ptr<Noesis::TextureSource> TextureSource = Noesis::StaticPtrCast<Noesis::TextureSource>(
-				NoesisFindComponentForUObject(Texture));
-			if (TextureSource != nullptr)
-			{
-				TextureSource->SetTexture(NoesisCreateTexture(Texture));
-			}
-			if (GetDefault<UNoesisSettings>()->ReloadEnabled)
-			{
-				INoesisRuntimeModuleInterface::Get().OnTextureChanged(Texture);
-			}
+			INoesisRuntimeModuleInterface::Get().OnTextureChanged(Texture);
 		}
 
 		if (Object->IsA<UMaterialInterface>())
@@ -232,6 +231,82 @@ void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Even
 		}
 
 		ReentryGuard = 0;
+	}
+}
+
+static bool CanSetPremultiplyAlpha(const FToolMenuContext& InContext)
+{
+	if (GetDefault<UNoesisSettings>()->PremultiplyAlpha)
+	{
+		const UContentBrowserAssetContextMenuContext* CBContext = UContentBrowserAssetContextMenuContext::FindContextWithAssets(InContext);
+		for (UTexture2D* Texture : CBContext->LoadSelectedObjects<UTexture2D>())
+		{
+			if (IsValid(Texture))
+			{
+				auto NoesisTextureData = (UNoesisTextureAssetUserData*)Texture->GetAssetUserDataOfClass(UNoesisTextureAssetUserData::StaticClass());
+				if (NoesisTextureData == nullptr)
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+static void ExecuteSetPremultiplyAlpha(const FToolMenuContext& InContext)
+{
+	const UContentBrowserAssetContextMenuContext* CBContext = UContentBrowserAssetContextMenuContext::FindContextWithAssets(InContext);
+	for (UTexture2D* Texture : CBContext->LoadSelectedObjects<UTexture2D>())
+	{
+		if (IsValid(Texture))
+		{
+			EnsurePremultiplyAlpha(Texture);
+		}
+	}
+}
+
+static bool CanResetPremultiplyAlpha(const FToolMenuContext& InContext)
+{
+	if (GetDefault<UNoesisSettings>()->PremultiplyAlpha)
+	{
+		const UContentBrowserAssetContextMenuContext* CBContext = UContentBrowserAssetContextMenuContext::FindContextWithAssets(InContext);
+		for (UTexture2D* Texture : CBContext->LoadSelectedObjects<UTexture2D>())
+		{
+			if (IsValid(Texture))
+			{
+				auto NoesisTextureData = (UNoesisTextureAssetUserData*)Texture->GetAssetUserDataOfClass(UNoesisTextureAssetUserData::StaticClass());
+				if (NoesisTextureData != nullptr)
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+static void ExecuteResetPremultiplyAlpha(const FToolMenuContext& InContext)
+{
+	TArray<UObject*> SelectedObjects;
+	const UContentBrowserAssetContextMenuContext* CBContext = UContentBrowserAssetContextMenuContext::FindContextWithAssets(InContext);
+	for (UTexture2D* Texture : CBContext->LoadSelectedObjects<UTexture2D>())
+	{
+		if (IsValid(Texture))
+		{
+			auto NoesisTextureData = (UNoesisTextureAssetUserData*)Texture->GetAssetUserDataOfClass(UNoesisTextureAssetUserData::StaticClass());
+			if (NoesisTextureData != nullptr)
+			{
+				Texture->RemoveUserDataOfClass(UNoesisTextureAssetUserData::StaticClass());
+
+				SelectedObjects.Add(Texture);
+			}
+		}
+	}
+
+	if (SelectedObjects.Num() > 0)
+	{
+		FReimportManager::Instance()->ValidateAllSourceFileAndReimport(SelectedObjects, true, INDEX_NONE, false);
 	}
 }
 
@@ -318,7 +393,7 @@ public:
 		UThumbnailManager::Get().RegisterCustomRenderer(UNoesisXaml::StaticClass(), UNoesisXamlThumbnailRenderer::StaticClass());
 		UThumbnailManager::Get().RegisterCustomRenderer(UNoesisRive::StaticClass(), UNoesisRiveThumbnailRenderer::StaticClass());
 
-		AssetImportHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetPostImport.AddStatic(&OnObjectImported);
+		AssetPostImportHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetPostImport.AddStatic(&OnAssetPostImport);
 
 		ObjectPropertyChangedHandle = FCoreUObjectDelegates::OnObjectPropertyChanged.AddStatic(&OnObjectPropertyChanged);
 
@@ -345,7 +420,37 @@ public:
 		if (IsRunningCookCommandlet())
 		{
 			FixNoesisXamlDependencies();
+			GetDefault<UNoesisSettings>()->LoadWorldUIXaml();
 		}
+
+		FToolMenuOwnerScoped OwnerScoped(UE_MODULE_NAME);
+		UToolMenu* Menu = UE::ContentBrowser::ExtendToolMenu_AssetContextMenu(UTexture2D::StaticClass());
+
+		FToolMenuSection& Section = Menu->AddSection("NoesisGUI", LOCTEXT("NoesisGUI", "NoesisGUI"), FToolMenuInsert("GetAssetActions", EToolMenuInsertType::After));
+		Section.AddDynamicEntry(NAME_None, FNewToolMenuSectionDelegate::CreateLambda([](FToolMenuSection& InSection)
+		{
+			{
+				const TAttribute<FText> Label = LOCTEXT("SetPremultiplyAlpha", "Set Premultiply Alpha");
+				const TAttribute<FText> ToolTip = LOCTEXT("SetPremultiplyAlphaTooltip", "Multiplies the RGB components of each texel by its A component. This will happen every time the texture is reimported.");
+				const FSlateIcon Icon = FSlateIcon(FAppStyle::GetAppStyleSetName(), "ContentBrowser.AssetActions");
+
+				FToolUIAction UIAction;
+				UIAction.ExecuteAction = FToolMenuExecuteAction::CreateStatic(&ExecuteSetPremultiplyAlpha);
+				UIAction.CanExecuteAction = FToolMenuCanExecuteAction::CreateStatic(&CanSetPremultiplyAlpha);
+				InSection.AddMenuEntry("Noesis_Texture2D_SetPremultiplyAlpha", Label, ToolTip, Icon, UIAction);
+			}
+
+			{
+				const TAttribute<FText> Label = LOCTEXT("ResetPremultiplyAlpha", "Reset Premultiply Alpha");
+				const TAttribute<FText> ToolTip = LOCTEXT("ResetPremultiplyAlphaTooltip", "Reimports the texture to restore the original content.");
+				const FSlateIcon Icon = FSlateIcon(FAppStyle::GetAppStyleSetName(), "ContentBrowser.AssetActions");
+
+				FToolUIAction UIAction;
+				UIAction.ExecuteAction = FToolMenuExecuteAction::CreateStatic(&ExecuteResetPremultiplyAlpha);
+				UIAction.CanExecuteAction = FToolMenuCanExecuteAction::CreateStatic(&CanResetPremultiplyAlpha);
+				InSection.AddMenuEntry("Noesis_Texture2D_ResetPremultiplyAlpha", Label, ToolTip, Icon, UIAction);
+			}
+		}));
 	}
 
 	void FixNoesisXamlDependencies()
@@ -449,9 +554,9 @@ public:
 		{
 			UThumbnailManager::Get().UnregisterCustomRenderer(UNoesisXaml::StaticClass());
 
-			if (AssetImportHandle.IsValid())
+			if (AssetPostImportHandle.IsValid())
 			{
-				GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetPostImport.Remove(AssetImportHandle);
+				GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetPostImport.Remove(AssetPostImportHandle);
 			}
 		}
 
@@ -464,6 +569,11 @@ public:
 		FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
 	}
 	// End of IModuleInterface interface
+
+	void EnsurePremultiplyAlpha(class UTexture2D* Texture) override
+	{
+		::EnsurePremultiplyAlpha(Texture);
+	}
 
 	static void AddNoesisMenu(FMenuBarBuilder& MenuBarBuilder)
 	{
@@ -657,7 +767,7 @@ private:
 	TSharedPtr<FNoesisXamlAssetTypeActions> NoesisXamlAssetTypeActions;
 	TSharedPtr<FNoesisRiveAssetTypeActions> NoesisRiveAssetTypeActions;
 	TSharedPtr<FNoesisBlueprintCompiler> NoesisBlueprintCompiler;
-	FDelegateHandle AssetImportHandle;
+	FDelegateHandle AssetPostImportHandle;
 	FDelegateHandle ObjectPropertyChangedHandle;
 #if UE_VERSION_OLDER_THAN(5, 0, 0)
 	FDelegateHandle TickerHandle;
@@ -668,9 +778,9 @@ private:
 
 INoesisEditorModuleInterface* FNoesisEditorModule::NoesisEditorModuleInterface = 0;
 
-INoesisEditorModuleInterface* INoesisEditorModuleInterface::Get()
+INoesisEditorModuleInterface& INoesisEditorModuleInterface::Get()
 {
-	return FNoesisEditorModule::NoesisEditorModuleInterface;
+	return *FNoesisEditorModule::NoesisEditorModuleInterface;
 }
 
 IMPLEMENT_MODULE(FNoesisEditorModule, NoesisEditor);

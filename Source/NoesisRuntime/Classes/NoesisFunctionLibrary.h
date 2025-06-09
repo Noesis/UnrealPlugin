@@ -115,6 +115,8 @@ class NOESISRUNTIME_API UNoesisFunctionLibrary : public UBlueprintFunctionLibrar
 	static void NoesisMap_Clear(const TMap<int32, int32>& TargetMap);
 
 	DECLARE_FUNCTION(execNoesisMap_Clear);
+
+	static void NoesisArray_HandleBool(const FProperty* Property, void* ItemPtr);
 };
 
 struct FNoesisFunctionLibraryCustomThunkTemplates

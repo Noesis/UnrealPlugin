@@ -10,7 +10,9 @@
 #include "Misc/CoreDelegates.h"
 #include "Modules/ModuleManager.h"
 #include "Stats/Stats.h"
+#if UE_VERSION_OLDER_THAN(5, 6, 0)
 #include "Stats/Stats2.h"
+#endif
 #include "UObject/UObjectBaseUtility.h"
 #include "Misc/EngineVersionComparison.h"
 
@@ -28,6 +30,8 @@
 #include "ActiveSound.h"
 #include "AudioDevice.h"
 #include "Engine/Texture2D.h"
+#include "UnrealClient.h"
+#include "Engine/Engine.h"
 
 // Projects includes
 #include "Interfaces/IPluginManager.h"
@@ -177,7 +181,14 @@ void* NoesisRealloc(void* UserData, void* Ptr, size_t Size)
 void NoesisDealloc(void* UserData, void* Ptr)
 {
 	FMemory::Free(Ptr);
-	SET_MEMORY_STAT(STAT_NoesisMemory, Noesis::GetAllocatedMemory());
+
+#if STATS
+	// Avoid collecting stats if the system has already been shut down.
+	if (FThreadStats::WillEverCollectData())
+	{
+		SET_MEMORY_STAT(STAT_NoesisMemory, Noesis::GetAllocatedMemory());
+	}
+#endif
 }
 
 size_t NoesisAllocSize(void* UserData, void* Ptr)
@@ -215,30 +226,6 @@ void OnAssetRenamed(const FAssetData& AssetData, const FString& OldPath)
 {
 	UObject* NewObject = AssetData.GetAsset();
 	NoesisAssetRenamed(NewObject, OldPath);
-}
-
-void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& Event)
-{
-	if (!IsValid(Object)) // Don't think this is possible, but better safe than sorry
-		return;
-
-	static uint32 ReentryGuard = 0;
-	if (!ReentryGuard)
-	{
-		ReentryGuard = 1;
-		if (Object->IsA<UTexture2D>())
-		{
-			UTexture2D* Texture = (UTexture2D*)Object;
-			Noesis::Ptr<Noesis::TextureSource> TextureSource = Noesis::StaticPtrCast<Noesis::TextureSource>(NoesisFindComponentForUObject(Texture));
-			if (TextureSource != nullptr)
-			{
-				TextureSource->SetTexture(NoesisCreateTexture(Texture));
-			}
-			INoesisRuntimeModuleInterface::Get().OnTextureChanged(Texture);
-		}
-
-		ReentryGuard = 0;
-	}
 }
 
 #endif
@@ -515,6 +502,111 @@ void NoesisPlaySoundCallback(void* UserData, const Noesis::Uri& Uri, float Volum
 	}
 }
 
+void NoesisUpdateCursorCallback(void* UserData, Noesis::IView* View, Noesis::Cursor* Cursor)
+{
+	auto Instance = UNoesisInstance::FromView(View);
+
+	if (Instance != nullptr)
+	{
+		EMouseCursor::Type CursorType = EMouseCursor::Default;
+		auto NoesisCursorType = Cursor->Type();
+		switch (NoesisCursorType)
+		{
+		case Noesis::CursorType_None:
+			CursorType = EMouseCursor::None;
+			break;
+		case Noesis::CursorType_No:
+			CursorType = EMouseCursor::None;
+			break;
+		case Noesis::CursorType_Arrow:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_AppStarting:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_Cross:
+			CursorType = EMouseCursor::Crosshairs;
+			break;
+		case Noesis::CursorType_Help:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_IBeam:
+			CursorType = EMouseCursor::TextEditBeam;
+			break;
+		case Noesis::CursorType_SizeAll:
+			CursorType = EMouseCursor::CardinalCross;
+			break;
+		case Noesis::CursorType_SizeNESW:
+			CursorType = EMouseCursor::ResizeSouthWest;
+			break;
+		case Noesis::CursorType_SizeNS:
+			CursorType = EMouseCursor::ResizeUpDown;
+			break;
+		case Noesis::CursorType_SizeNWSE:
+			CursorType = EMouseCursor::ResizeSouthEast;
+			break;
+		case Noesis::CursorType_SizeWE:
+			CursorType = EMouseCursor::ResizeLeftRight;
+			break;
+		case Noesis::CursorType_UpArrow:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_Wait:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_Hand:
+			CursorType = EMouseCursor::Hand;
+			break;
+		case Noesis::CursorType_Pen:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_ScrollNS:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_ScrollWE:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_ScrollAll:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_ScrollN:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_ScrollS:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_ScrollW:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_ScrollE:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_ScrollNW:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_ScrollNE:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_ScrollSW:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_ScrollSE:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_ArrowCD:
+			CursorType = EMouseCursor::Default;
+			break;
+		case Noesis::CursorType_Custom:
+			CursorType = EMouseCursor::Default;
+			break;
+		default:
+			CursorType = EMouseCursor::Default;
+			break;
+		}
+		Instance->SetCursor(CursorType);
+	}
+}
+
 static Noesis::Ptr<NoesisApp::MediaPlayer> NoesisCreateMediaPlayerCallback(NoesisApp::MediaElement* Owner, const Noesis::Uri& Uri, void* User)
 {
 	return *new NoesisMediaPlayer(Owner, Uri, User);
@@ -586,6 +678,8 @@ public:
 
 		Noesis::GUI::SetPlayAudioCallback(nullptr, &NoesisPlaySoundCallback);
 		NoesisApp::MediaElement::SetCreateMediaPlayerCallback(NoesisCreateMediaPlayerCallback, nullptr);
+
+		Noesis::GUI::SetCursorCallback(nullptr, &NoesisUpdateCursorCallback);
 
 		PostGarbageCollectConditionalBeginDestroyDelegateHandle = FCoreUObjectDelegates::PostGarbageCollectConditionalBeginDestroy.AddStatic(NoesisGarbageCollected);
 
@@ -675,8 +769,6 @@ public:
 			IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
 			AssetRenamedHandle = AssetRegistry.OnAssetRenamed().AddStatic(&OnAssetRenamed);
 		}
-
-		ObjectPropertyChangedHandle = FCoreUObjectDelegates::OnObjectPropertyChanged.AddStatic(&OnObjectPropertyChanged);
 #endif
 
 		InputPreProcessor = NoesisRegisterInputPreProcessor();
@@ -709,8 +801,6 @@ public:
 #if WITH_EDITOR
 		if (GEditor)
 		{
-			FCoreUObjectDelegates::OnObjectPropertyChanged.Remove(ObjectPropertyChangedHandle);
-
 			FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 			IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
 			AssetRegistry.OnAssetRenamed().Remove(AssetRenamedHandle);
@@ -819,7 +909,6 @@ public:
 	NotifyEnumChanged* NotifyEnumChangedListener;
 	NotifyStructChanged* NotifyStructChangedListener;
 	FDelegateHandle AssetRenamedHandle;
-	FDelegateHandle ObjectPropertyChangedHandle;
 #endif
 	TSharedPtr<class IInputProcessor> InputPreProcessor;
 	TSharedPtr<class ISceneViewExtension> ViewExtension;

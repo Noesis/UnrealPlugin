@@ -77,7 +77,11 @@ public:
 	{
 		Width = (uint32)MediaTexture->GetWidth();
 		Height = (uint32)MediaTexture->GetHeight();
+#if UE_VERSION_OLDER_THAN(5, 6, 0)
 		NumMipMaps = (uint32)MediaTexture->NumMips;
+#else
+		NumMipMaps = MediaTexture->EnableGenMips ? FMath::FloorLog2(FMath::Max(Width, Height)) + 1 : 1;
+#endif
 		Alpha = false; // Guess
 
 		InitShaderResourceTexture(MediaTexture);
@@ -871,20 +875,31 @@ FNoesisRenderDevice::FNoesisRenderDevice(bool LinearColor)
 	: IsLinearColor(LinearColor)
 {
 	auto VBName = TEXT("Noesis.VertexBuffer");
+	auto IBName = TEXT("Noesis.IndexBuffer");
+#if UE_VERSION_OLDER_THAN(5, 6, 0)
 	FRHIResourceCreateInfo CreateInfo(VBName);
 #if UE_VERSION_OLDER_THAN(5, 3, 0)
 	DynamicVertexBuffer = RHICreateVertexBuffer(DYNAMIC_VB_SIZE, BUF_Volatile, CreateInfo);
 #else
 	DynamicVertexBuffer = FRHICommandListExecutor::GetImmediateCommandList().CreateVertexBuffer(DYNAMIC_VB_SIZE, BUF_Volatile, CreateInfo);
 #endif
-	NOESIS_BIND_DEBUG_BUFFER_LABEL(DynamicVertexBuffer, VBName);
-	auto IBName = TEXT("Noesis.IndexBuffer");
 	CreateInfo.DebugName = IBName;
 #if UE_VERSION_OLDER_THAN(5, 3, 0)
 	DynamicIndexBuffer = RHICreateIndexBuffer(sizeof(int16), DYNAMIC_IB_SIZE, BUF_Volatile, CreateInfo);
 #else
 	DynamicIndexBuffer = FRHICommandListExecutor::GetImmediateCommandList().CreateIndexBuffer(sizeof(int16), DYNAMIC_IB_SIZE, BUF_Volatile, CreateInfo);
 #endif
+#else
+	EBufferUsageFlags VBUsage = EBufferUsageFlags::Volatile | EBufferUsageFlags::VertexBuffer;
+	ERHIAccess VBState = RHIGetDefaultResourceState(VBUsage, false);
+	FRHIBufferCreateDesc VBDesc = FRHIBufferCreateDesc::Create(VBName, DYNAMIC_VB_SIZE, 0, VBUsage).SetInitialState(VBState);
+	DynamicVertexBuffer = FRHICommandListExecutor::GetImmediateCommandList().CreateBuffer(VBDesc);
+	EBufferUsageFlags IBUsage = EBufferUsageFlags::Volatile | EBufferUsageFlags::IndexBuffer;
+	ERHIAccess IBState = RHIGetDefaultResourceState(IBUsage, false);
+	FRHIBufferCreateDesc IBDesc = FRHIBufferCreateDesc::Create(IBName, DYNAMIC_IB_SIZE, sizeof(int16), IBUsage).SetInitialState(IBState);
+	DynamicIndexBuffer = FRHICommandListExecutor::GetImmediateCommandList().CreateBuffer(IBDesc);
+#endif
+	NOESIS_BIND_DEBUG_BUFFER_LABEL(DynamicVertexBuffer, VBName);
 	NOESIS_BIND_DEBUG_BUFFER_LABEL(DynamicIndexBuffer, IBName);
 
 	VSConstantBuffer = TUniformBufferRef<FNoesisVSConstants>::CreateUniformBufferImmediate(FNoesisVSConstants(), UniformBuffer_MultiFrame);
@@ -2142,7 +2157,20 @@ void FNoesisRenderDevice::SetRenderTarget(Noesis::RenderTarget* Surface)
 #endif
 #else
 #if WITH_RHI_BREADCRUMBS
+#if UE_VERSION_OLDER_THAN(5, 6, 0)
 	SetRenderTargetBreadcrumb.Emplace(*RHICmdList, FRHIBreadcrumbData(__FILE__, __LINE__, TStatId(), NAME_None), TEXT("SetRenderTarget"));
+#else
+#if CSV_PROFILER
+	if (FCsvProfiler::Get()->IsCapturing_Renderthread())
+	{
+		SetRenderTargetBreadcrumb.Emplace(*RHICmdList, RHI_BREADCRUMB_DESC_FORWARD_VALUES(TEXT("SetRenderTarget"), TEXT(""), RHI_GPU_STAT_ARGS_NONE)());
+	}
+	else
+#endif
+	{
+		SetRenderTargetBreadcrumb.Emplace(*RHICmdList, RHI_BREADCRUMB_DESC_FORWARD_VALUES(TEXT("SetRenderTarget"), TEXT(""), RHI_GPU_STAT_ARGS_NONE)());
+	}
+#endif
 #endif
 #endif
 	check(Surface);

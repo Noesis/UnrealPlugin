@@ -29,7 +29,7 @@ void UNoesisXamlThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint3
 	FRenderTarget* Viewport, FCanvas* Canvas, bool bAdditionalViewFamily)
 {
 	UNoesisXaml* Xaml = Cast<UNoesisXaml>(Object);
-	if (Xaml != nullptr)
+	if (IsValid(Xaml))
 	{
 		FIntRect ViewportRect(X, Y, X + Width, Y + Height);
 		const FTextureRHIRef& BackBuffer = Viewport->GetRenderTargetTexture();

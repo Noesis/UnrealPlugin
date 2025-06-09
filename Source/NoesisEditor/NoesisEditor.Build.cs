@@ -55,7 +55,9 @@ public class NoesisEditor : ModuleRules
 				"UMG",
 				"LevelEditor",
 				"WorkspaceMenuStructure",
-				"InputCore"
+				"InputCore",
+				"ContentBrowser",
+				"ToolMenus"
 			}
 			);
 

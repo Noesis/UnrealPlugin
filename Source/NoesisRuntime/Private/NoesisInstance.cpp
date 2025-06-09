@@ -8,7 +8,9 @@
 // Core includes
 #include "MathUtil.h"
 #include "Stats/Stats.h"
+#if UE_VERSION_OLDER_THAN(5, 6, 0)
 #include "Stats/Stats2.h"
+#endif
 
 // CoreUObject includes
 #include "UObject/UObjectIterator.h"
@@ -26,6 +28,8 @@
 #else
 #include "Materials/MaterialRenderProxy.h"
 #endif
+#include "Engine/Engine.h"
+#include "SceneViewExtension.h"
 
 // RHI includes
 #if UE_VERSION_OLDER_THAN(5, 2, 0)
@@ -72,6 +76,7 @@
 #include "NoesisXaml.h"
 #include "NoesisSupport.h"
 #include "Extensions/BackgroundImage.h"
+#include "NoesisSettings.h"
 
 #if WITH_COMMON_UI
 // CommonInput includes
@@ -246,7 +251,7 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 	RHICmdList.BeginRenderPass(RPInfo, TEXT("NoesisOnScreen"));
 	RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
 	EngineGamma = (!GIsEditor && (ColorTarget->GetFormat() == PF_FloatRGBA)/* && (Params.bIsHDR == false)*/) ? 1.0f : EngineGamma;
-	RHICmdList.SetScissorRect(true, (uint32)FMath::Max(Left, CullingRect.Left), (uint32)FMath::Max(Top, CullingRect.Top), (uint32)FMath::Min(Right, CullingRect.Right), (uint32)FMath::Min(Bottom, CullingRect.Bottom));
+	RHICmdList.SetScissorRect(true, (uint32)FMath::Clamp(CullingRect.Left, Left, Right), (uint32)FMath::Clamp(CullingRect.Top, Top, Bottom), (uint32)FMath::Clamp(CullingRect.Right, Left, Right), (uint32)FMath::Clamp(CullingRect.Bottom, Top, Bottom));
 	RenderOnscreen(RHICmdList, false);
 	RHICmdList.SetScissorRect(false, 0, 0, 0, 0);
 	RHICmdList.EndRenderPass();
@@ -303,7 +308,7 @@ void FNoesisSlateElement::Draw_RenderThread(FRDGBuilder& GraphBuilder, const FDr
 		[this](FRHICommandListImmediate& RHICmdList)
 		{
 			RHICmdList.SetViewport(Left, Top, 0.0f, Right, Bottom, 1.0f);
-			RHICmdList.SetScissorRect(true, (uint32)FMath::Max(Left, CullingRect.Left), (uint32)FMath::Max(Top, CullingRect.Top), (uint32)FMath::Min(Right, CullingRect.Right), (uint32)FMath::Min(Bottom, CullingRect.Bottom));
+			RHICmdList.SetScissorRect(true, (uint32)FMath::Clamp(CullingRect.Left, Left, Right), (uint32)FMath::Clamp(CullingRect.Top, Top, Bottom), (uint32)FMath::Clamp(CullingRect.Right, Left, Right), (uint32)FMath::Clamp(CullingRect.Bottom, Top, Bottom));
 			RenderOnscreen(RHICmdList, false);
 			RHICmdList.SetScissorRect(false, 0, 0, 0, 0);
 		}
@@ -607,6 +612,11 @@ UNoesisInstance::UNoesisInstance(const FObjectInitializer& ObjectInitializer)
 	EnableTouch = true;
 	EnableActions = false;
 	PixelDepthBias = -1.0f;
+
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
+#else
+	bAutomaticallyRegisterInputOnConstruction = true;
+#endif
 }
 
 void UNoesisInstance::InitInstance()
@@ -1107,7 +1117,7 @@ static UNoesisInstance* Get3DInstance(UWorld* World)
 	}
 
 	NoesisInstance = NewObject<UNoesisInstance>(World);
-	NoesisInstance->BaseXaml = LoadObject<UNoesisXaml>(nullptr, TEXT("/NoesisGUI/WorldUI.WorldUI"));
+	NoesisInstance->BaseXaml = GetDefault<UNoesisSettings>()->LoadWorldUIXaml();
 	NoesisInstance->Init3DWidget(World);
 
 	return NoesisInstance;
@@ -1450,18 +1460,18 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 		if (OwningPlayer != nullptr && WidgetComponent != nullptr && WidgetComponent->GetReceiveHardwareInput() &&
 			WidgetComponent->GetCurrentDrawSize().X != 0 && WidgetComponent->GetCurrentDrawSize().Y != 0)
 		{
-			UWorld* World = GetWorld();
-			UGameViewportClient* ViewportClient = World->GetGameViewport();
+		UWorld* World = GetWorld();
+		UGameViewportClient* ViewportClient = World->GetGameViewport();
 
-			if (ViewportClient != nullptr)
+		if (ViewportClient != nullptr)
+		{
+			FSceneViewport* Viewport = ViewportClient->GetGameViewport();
+			auto ViewportWidget = Viewport->GetViewportWidget();
+			auto PinnedViewportWidget = ViewportWidget.Pin();
+			if (PinnedViewportWidget.IsValid())
 			{
-				FSceneViewport* Viewport = ViewportClient->GetGameViewport();
-				auto ViewportWidget = Viewport->GetViewportWidget();
-				auto PinnedViewportWidget = ViewportWidget.Pin();
-				if (PinnedViewportWidget.IsValid())
-				{
-					auto ViewportGeometry = PinnedViewportWidget->GetTickSpaceGeometry();
-					FVector2D HitTestPosition = ViewportGeometry.AbsoluteToLocal(PlatformCursor->GetPosition()) * ViewportGeometry.Scale;
+				auto ViewportGeometry = PinnedViewportWidget->GetTickSpaceGeometry();
+				FVector2D HitTestPosition = ViewportGeometry.AbsoluteToLocal(PlatformCursor->GetPosition()) * ViewportGeometry.Scale;
 					FHitResult HitResult;
 					if (GetHitResultAtScreenPositionAndCache(OwningPlayer, HitTestPosition, HitResult))
 					{
@@ -1483,7 +1493,7 @@ int32 UNoesisInstance::NativePaint(const FPaintArgs& Args, const FGeometry& Allo
 		}
 
 		bool Hit = false;
-		if (WidgetComponent == nullptr || WidgetComponentHit)
+		if (WidgetComponent == nullptr || WidgetComponentHit || WidgetComponent->GetWidgetSpace() == EWidgetSpace::Screen)
 		{
 			Hit = HitTest(Position);
 		}
@@ -1989,11 +1999,6 @@ FReply UNoesisInstance::NativeOnTouchEnded(const FGeometry& MyGeometry, const FP
 	return FReply::Unhandled();
 }
 
-FCursorReply UNoesisInstance::NativeOnCursorQuery(const FGeometry& MyGeometry, const FPointerEvent& CursorEvent)
-{
-	return FCursorReply::Cursor(EMouseCursor::Default);
-}
-
 FReply UNoesisInstance::NativeOnMouseButtonDoubleClick(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_OnMouseButtonDoubleClick);
@@ -2023,20 +2028,26 @@ FReply UNoesisInstance::NativeOnMouseButtonDoubleClick(const FGeometry& MyGeomet
 	return FReply::Unhandled();
 }
 
+#define NOESIS_DEACTIVATE_ON_MOUSE_LEAVE 0
+
 void UNoesisInstance::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
+#if NOESIS_DEACTIVATE_ON_MOUSE_LEAVE
 	if (XamlView)
 	{
 		XamlView->Activate();
 	}
+#endif
 }
 
 void UNoesisInstance::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
+#if NOESIS_DEACTIVATE_ON_MOUSE_LEAVE
 	if (XamlView && !HasMouseCapture())
 	{
 		XamlView->Deactivate();
 	}
+#endif
 }
 
 bool UNoesisInstance::NativeSupportsKeyboardFocus() const

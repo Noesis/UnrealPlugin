@@ -24,6 +24,25 @@
 #include "NoesisSupport.h"
 #include "NoesisRive.h"
 
+#if !WITH_EDITORONLY_DATA
+#if UE_VERSION_OLDER_THAN(5, 6, 0)
+#else
+static bool IsFontFileName(const FString& Filename)
+{
+	return Filename.EndsWith(".ttf") || Filename.EndsWith(".ttc") || Filename.EndsWith(".otf") || Filename.EndsWith(".otc") || Filename.EndsWith(".woff") || Filename.EndsWith(".woff2");
+}
+
+static bool IsFontFileData(const TArray<uint8>& FontFaceDataArray)
+{	//Detect ttf, otf, ttc/otc, woff1 and woff2
+	return FontFaceDataArray.Num() >= 4 && ((FontFaceDataArray[0] == 0x00 && FontFaceDataArray[1] == 0x01 && FontFaceDataArray[2] == 0x00 && FontFaceDataArray[3] == 0x00) ||
+		(FontFaceDataArray[0] == 0x4f && FontFaceDataArray[1] == 0x54 && FontFaceDataArray[2] == 0x54 && FontFaceDataArray[3] == 0x4f) ||
+		(FontFaceDataArray[0] == 0x74 && FontFaceDataArray[1] == 0x74 && FontFaceDataArray[2] == 0x63 && FontFaceDataArray[3] == 0x66) ||	//TTC
+		(FontFaceDataArray[0] == 0x77 && FontFaceDataArray[1] == 0x4f && FontFaceDataArray[2] == 0x46 && FontFaceDataArray[3] == 0x46) ||	//WOFF1
+		(FontFaceDataArray[0] == 0x77 && FontFaceDataArray[1] == 0x4f && FontFaceDataArray[2] == 0x46 && FontFaceDataArray[3] == 0x32));	//WOFF2
+}
+#endif
+#endif
+
 static Noesis::Ptr<Noesis::Stream> LoadFont(const UFontFace* FontFace)
 {
 	class FontArrayMemoryStream : public Noesis::MemoryStream
@@ -42,8 +61,25 @@ static Noesis::Ptr<Noesis::Stream> LoadFont(const UFontFace* FontFace)
 	if (FontFace->GetLoadingPolicy() != EFontLoadingPolicy::Inline)
 	{
 		TArray<uint8> FileData;
-		FFileHelper::LoadFileToArray(FileData, *FontFace->GetFontFilename());
+		const FString& FontFilename = FontFace->GetFontFilename();
+		FFileHelper::LoadFileToArray(FileData, *FontFilename);
+#if UE_VERSION_OLDER_THAN(5, 6, 0)
 		return *new FontArrayMemoryStream(MoveTemp(FileData));
+#else
+		if (IsFontFileName(FontFilename) || IsFontFileData(FileData))
+		{
+			return *new FontArrayMemoryStream(MoveTemp(FileData));
+		}
+		else
+		{
+			FFontFaceDataRef FontFaceDataRef = FFontFaceData::MakeFontFaceData();
+			FMemoryReader Ar(FileData, true);
+			FontFaceDataRef->Serialize(Ar);
+			const FFontFaceData& FontFaceData = FontFaceDataRef.Get();
+			const TArray<uint8>& FontFaceDataArray = FontFaceData.GetData();
+			return *new FontArrayMemoryStream(CopyTemp(FontFaceDataArray));
+		}
+#endif
 	}
 	else
 #endif

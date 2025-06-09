@@ -1062,7 +1062,7 @@
   <Style TargetType="ScrollViewer" BasedOn="{StaticResource {x:Type ContentControl}}">
     <Setter Property="OverridesDefaultStyle" Value="True"/>
     <Setter Property="Background" Value="Transparent"/>
-    <Setter Property="PanningMode" Value="VerticalFirst"/>
+    <Setter Property="PanningMode" Value="Both"/>
     <Setter Property="Template" Value="{StaticResource Template.ScrollViewer}"/>
     <Setter Property="FocusVisualStyle" Value="{StaticResource Style.Focus.Outer.Uniform}"/>
   </Style>
@@ -1653,7 +1653,8 @@
         <Border x:Name="Placeholder" Padding="{TemplateBinding Padding}" Margin="2,0" Visibility="Collapsed">
           <TextBlock Text="{Binding (local:Text.Placeholder), RelativeSource={RelativeSource TemplatedParent}}" Style="{DynamicResource Style.TextBox.Placeholder}"/>
         </Border>
-        <ScrollViewer x:Name="PART_ContentHost" Focusable="False" Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}"/>
+        <ScrollViewer x:Name="PART_ContentHost" Focusable="False" Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}"
+                      PanningMode="{Binding (ScrollViewer.PanningMode), RelativeSource={RelativeSource TemplatedParent}}"/>
       </Grid>
       <Border x:Name="Border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{DynamicResource Corner.Border1}"/>
     </Grid>
@@ -1717,7 +1718,8 @@
         <Border x:Name="Placeholder" Padding="{TemplateBinding Padding}" Margin="2,0" Visibility="Collapsed">
           <TextBlock Text="{Binding (local:Text.Placeholder), RelativeSource={RelativeSource TemplatedParent}}" Style="{DynamicResource Style.TextBox.Placeholder}"/>
         </Border>
-        <ScrollViewer x:Name="PART_ContentHost" Template="{StaticResource Template.PasswordBox.Scroll}" Focusable="False" Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}"/>
+        <ScrollViewer x:Name="PART_ContentHost" Template="{StaticResource Template.PasswordBox.Scroll}" Focusable="False" Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}"
+                      PanningMode="{Binding (ScrollViewer.PanningMode), RelativeSource={RelativeSource TemplatedParent}}"/>
       </Grid>
     </Grid>
     <ControlTemplate.Triggers>
@@ -1762,7 +1764,8 @@
 
   <!-- ListBox -->
   <ControlTemplate x:Key="Template.ListBox" TargetType="ListBox">
-    <ScrollViewer Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" Focusable="False">
+    <ScrollViewer Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" Focusable="False"
+                  PanningMode="{Binding (ScrollViewer.PanningMode), RelativeSource={RelativeSource TemplatedParent}}">
       <ItemsPresenter />
     </ScrollViewer>
   </ControlTemplate>
@@ -1837,8 +1840,15 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
-              <ScrollViewer Grid.Row="0" Grid.ColumnSpan="2" MinHeight="0" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" PanningMode="HorizontalFirst" Focusable="False">
-                <GridViewHeaderRowPresenter AllowsColumnReorder="{Binding Path=TemplatedParent.View.AllowsColumnReorder, RelativeSource={RelativeSource TemplatedParent}}" ColumnHeaderContainerStyle="{Binding Path=TemplatedParent.View.ColumnHeaderContainerStyle, RelativeSource={RelativeSource TemplatedParent}}" ColumnHeaderContextMenu="{Binding Path=TemplatedParent.View.ColumnHeaderContextMenu, RelativeSource={RelativeSource TemplatedParent}}" ColumnHeaderTemplate="{Binding Path=TemplatedParent.View.ColumnHeaderTemplate, RelativeSource={RelativeSource TemplatedParent}}" ColumnHeaderTemplateSelector="{Binding Path=TemplatedParent.View.ColumnHeaderTemplateSelector, RelativeSource={RelativeSource TemplatedParent}}" ColumnHeaderToolTip="{Binding Path=TemplatedParent.View.ColumnHeaderToolTip, RelativeSource={RelativeSource TemplatedParent}}" Columns="{Binding Path=TemplatedParent.View.Columns, RelativeSource={RelativeSource TemplatedParent}}"/>
+              <ScrollViewer Grid.Row="0" Grid.ColumnSpan="2" MinHeight="0" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" PanningMode="HorizontalOnly" Focusable="False">
+                <GridViewHeaderRowPresenter
+                  AllowsColumnReorder="{Binding Path=TemplatedParent.View.AllowsColumnReorder, RelativeSource={RelativeSource TemplatedParent}}"
+                  ColumnHeaderContainerStyle="{Binding Path=TemplatedParent.View.ColumnHeaderContainerStyle, RelativeSource={RelativeSource TemplatedParent}}"
+                  ColumnHeaderContextMenu="{Binding Path=TemplatedParent.View.ColumnHeaderContextMenu, RelativeSource={RelativeSource TemplatedParent}}"
+                  ColumnHeaderTemplate="{Binding Path=TemplatedParent.View.ColumnHeaderTemplate, RelativeSource={RelativeSource TemplatedParent}}"
+                  ColumnHeaderTemplateSelector="{Binding Path=TemplatedParent.View.ColumnHeaderTemplateSelector, RelativeSource={RelativeSource TemplatedParent}}"
+                  ColumnHeaderToolTip="{Binding Path=TemplatedParent.View.ColumnHeaderToolTip, RelativeSource={RelativeSource TemplatedParent}}"
+                  Columns="{Binding Path=TemplatedParent.View.Columns, RelativeSource={RelativeSource TemplatedParent}}"/>
               </ScrollViewer>
               <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" Grid.Row="1" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" CanContentScroll="{TemplateBinding CanContentScroll}" Margin="{TemplateBinding Padding}" KeyboardNavigation.DirectionalNavigation="Local"/>
               <Rectangle x:Name="Corner" Grid.Row="2" Grid.Column="1" Fill="{DynamicResource Brush.Track.Normal}" IsEnabled="False" Opacity="0"/>
@@ -1891,7 +1901,8 @@
     </Setter>
   </Style>
   <ControlTemplate x:Key="Template.ListView" TargetType="ListView">
-    <ScrollViewer Style="{StaticResource Style.GridView.Scroll}" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" Focusable="False">
+    <ScrollViewer Style="{StaticResource Style.GridView.Scroll}" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" Focusable="False"
+                  PanningMode="{Binding (ScrollViewer.PanningMode), RelativeSource={RelativeSource TemplatedParent}}">
       <ItemsPresenter />
     </ScrollViewer>
   </ControlTemplate>
@@ -2030,7 +2041,8 @@
     </Border>
   </ControlTemplate>
   <ControlTemplate x:Key="Template.ComboBox.Text" TargetType="TextBox">
-    <ScrollViewer x:Name="PART_ContentHost" Template="{StaticResource Template.ComboBox.TextScroll}" Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}" Focusable="False" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled"/>
+    <ScrollViewer x:Name="PART_ContentHost" Template="{StaticResource Template.ComboBox.TextScroll}" Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}" Focusable="False" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled"
+                  PanningMode="HorizontalOnly"/>
   </ControlTemplate>
   <Geometry x:Key="Geometry.ComboBox.Arrow">M0,0L6,6 12,0</Geometry>
   <ControlTemplate x:Key="Template.ComboBox" TargetType="ComboBox">
@@ -2055,7 +2067,7 @@
       </ToggleButton>
       <Popup x:Name="PART_Popup" IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}" Focusable="False" Placement="Bottom" PopupAnimation="Slide" AllowsTransparency="True">
         <Border x:Name="DropDownBorder" Background="{DynamicResource Brush.Background.Popup}" BorderBrush="{DynamicResource Brush.Border.Popup}" BorderThickness="1,0,1,1" CornerRadius="{DynamicResource Corner.Border1.Bottom}" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
-          <ScrollViewer Focusable="False" Padding="0,6" KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.DirectionalNavigation="Contained">
+          <ScrollViewer Focusable="False" Padding="0,6" PanningMode="VerticalOnly" KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.DirectionalNavigation="Contained">
             <ItemsPresenter />
           </ScrollViewer>
         </Border>
@@ -2125,7 +2137,7 @@
       </ToggleButton>
       <Popup x:Name="PART_Popup" IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}" Focusable="False" Placement="Bottom" PopupAnimation="Slide" AllowsTransparency="True">
         <Border x:Name="DropDownBorder" Background="{DynamicResource Brush.Background.Popup}" BorderBrush="{DynamicResource Brush.Border.Popup}" BorderThickness="1,0,1,1" CornerRadius="{DynamicResource Corner.Border1.Bottom}" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
-          <ScrollViewer Focusable="False" Padding="0,6" KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.DirectionalNavigation="Contained">
+          <ScrollViewer Focusable="False" Padding="0,6" PanningMode="VerticalOnly" KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.DirectionalNavigation="Contained">
             <ItemsPresenter />
           </ScrollViewer>
         </Border>
@@ -2368,7 +2380,8 @@
 
   <!-- TreeView -->
   <ControlTemplate x:Key="Template.TreeView" TargetType="TreeView">
-    <ScrollViewer Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" Focusable="False">
+    <ScrollViewer Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" Focusable="False"
+                  PanningMode="{Binding (ScrollViewer.PanningMode), RelativeSource={RelativeSource TemplatedParent}}">
       <ItemsPresenter Tag="12"/>
     </ScrollViewer>
   </ControlTemplate>
@@ -2679,7 +2692,7 @@
       </ToggleButton>
       <Popup x:Name="PART_Popup" IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}" Focusable="False" Placement="Bottom" PopupAnimation="Slide" AllowsTransparency="True">
         <Border x:Name="DropDownBorder" Background="{DynamicResource Brush.Background.Popup}" BorderBrush="{DynamicResource Brush.Border.Popup}" BorderThickness="1,0,1,1" CornerRadius="{DynamicResource Corner.Border1.Bottom}" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
-          <ScrollViewer Focusable="False" Padding="0,6" KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.DirectionalNavigation="Contained">
+          <ScrollViewer Focusable="False" Padding="0,6" PanningMode="VerticalOnly" KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.DirectionalNavigation="Contained">
             <ItemsPresenter />
           </ScrollViewer>
         </Border>
@@ -2781,7 +2794,8 @@
         <Border x:Name="Placeholder" Padding="{TemplateBinding Padding}" Margin="2,0" Visibility="Collapsed">
           <TextBlock Text="{Binding (local:Text.Placeholder), RelativeSource={RelativeSource TemplatedParent}}" Style="{DynamicResource Style.TextBox.Placeholder}"/>
         </Border>
-        <ScrollViewer x:Name="PART_ContentHost" Template="{StaticResource Template.ToolBar.TextBox.Scroll}" Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}" Focusable="False"/>
+        <ScrollViewer x:Name="PART_ContentHost" Template="{StaticResource Template.ToolBar.TextBox.Scroll}" Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}" Focusable="False"
+                      PanningMode="{Binding (ScrollViewer.PanningMode), RelativeSource={RelativeSource TemplatedParent}}"/>
       </Grid>
     </Grid>
     <ControlTemplate.Triggers>

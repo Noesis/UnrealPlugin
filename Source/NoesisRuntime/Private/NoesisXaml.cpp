@@ -126,8 +126,11 @@ void UNoesisXaml::RenderThumbnail(FIntRect ViewportRect, const FTextureRHIRef& B
 	}
 
 	UWorld* World = GetWorld();
-	if (World == nullptr) World = GWorld.GetReference();
-	FNoesisThumbnailRenderer::RenderView(ThumbnailView, World, ViewportRect, BackBuffer);
+	if (!IsValid(World)) World = GWorld.GetReference();
+	if (IsValid(World))
+	{
+		FNoesisThumbnailRenderer::RenderView(ThumbnailView, World, ViewportRect, BackBuffer);
+	}
 }
 
 void UNoesisXaml::DestroyThumbnailRenderData()

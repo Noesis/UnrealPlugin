@@ -8,6 +8,9 @@
 // Core includes
 #include "CoreMinimal.h"
 
+// CoreUObject includes
+#include "UObject/SoftObjectPtr.h"
+
 // NoesisRuntime includes
 #include "NoesisEnums.h"
 
@@ -126,10 +129,15 @@ class NOESISRUNTIME_API UNoesisSettings : public UObject
 	UPROPERTY(EditAnywhere, Config, Category = "Editor Settings")
 	bool PremultiplyAlpha;
 
+	UPROPERTY()
+	FSoftObjectPath WorldUIXaml;
+
 	void SetLicense() const;
 	void SetApplicationResources() const;
 	void SetFontFallbacks() const;
 	void SetFontDefaultProperties() const;
+
+	class UNoesisXaml* LoadWorldUIXaml() const;
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

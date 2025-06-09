@@ -19,6 +19,7 @@
 #include "AudioDeviceManager.h"
 #include "TextureResource.h"
 #include "Engine/Texture2D.h"
+#include "Engine/Engine.h"
 
 // Media includes
 #include "IMediaEventSink.h"

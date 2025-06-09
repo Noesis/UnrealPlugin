@@ -7,17 +7,15 @@
 
 // Core includes
 #include "CoreMinimal.h"
-#include "Modules/ModuleInterface.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogNoesisEditor, Verbose, All);
+// Engine includes
+#include "Engine/AssetUserData.h"
 
-#define NOESISEDITOR_MODULE_NAME "NoesisEditor"
+// Generated header include
+#include "NoesisTextureAssetUserData.generated.h"
 
-class NOESISEDITOR_API INoesisEditorModuleInterface : public IModuleInterface
+UCLASS(BlueprintType)
+class NOESISRUNTIME_API UNoesisTextureAssetUserData : public UAssetUserData
 {
-public:
-
-	static INoesisEditorModuleInterface& Get();
-
-	virtual void EnsurePremultiplyAlpha(class UTexture2D* Texture) = 0;
+	GENERATED_BODY()
 };

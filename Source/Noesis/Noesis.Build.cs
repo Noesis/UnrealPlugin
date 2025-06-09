@@ -65,7 +65,7 @@ public class Noesis : ModuleRules
 		PublicSystemIncludePaths.Add(NoesisIncludePath);
 
 		UnrealTargetPlatform Platform;
-		if (Target.Platform == UnrealTargetPlatform.Win64)
+		if (Target.Platform == UnrealTargetPlatform.Win64 || (UnrealTargetPlatform.TryParse("WinGDK", out Platform) && Target.Platform == Platform))
 		{
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "windows_x86_64", "Noesis.lib"));
 
@@ -109,7 +109,7 @@ public class Noesis : ModuleRules
 		{
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "wasm", "Noesis.bc"));
 		}
-		else if (UnrealTargetPlatform.TryParse("XboxOneGDK", out Platform) && Target.Platform == Platform)
+		else if ((UnrealTargetPlatform.TryParse("XboxOneGDK", out Platform) && Target.Platform == Platform) || (UnrealTargetPlatform.TryParse("XB1", out Platform) && Target.Platform == Platform))
 		{
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "xbox_one", "Noesis.lib"));
 

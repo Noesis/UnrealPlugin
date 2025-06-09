@@ -22,7 +22,11 @@
 #if UE_VERSION_OLDER_THAN(5, 3, 0)
 #include "Runtime/Renderer/Private/ScreenPass.h"
 #endif
+#if UE_VERSION_OLDER_THAN(5, 6, 0)
 #include "Runtime/Renderer/Private/PostProcess/PostProcessMaterial.h"
+#else
+#include "ScreenPass.h"
+#endif
 
 // Engine includes
 #if UE_VERSION_OLDER_THAN(5, 2, 0)

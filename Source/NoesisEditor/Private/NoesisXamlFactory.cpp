@@ -255,6 +255,8 @@ static void AddDependency(UNoesisXaml* NoesisXaml, UObject* Asset)
 	if (UTexture2D* Texture = Cast<UTexture2D>(Asset))
 	{
 		NoesisXaml->Textures.Add(Texture);
+
+		INoesisEditorModuleInterface::Get().EnsurePremultiplyAlpha(Texture);
 	}
 	else if (UNoesisXaml* Xaml = Cast<UNoesisXaml>(Asset))
 	{
