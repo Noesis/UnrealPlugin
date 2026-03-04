@@ -252,11 +252,12 @@ void NoesisMediaPlayer::OnRendering(Noesis::IView*)
 		TextureSource->SetTexture(FNoesisRenderDevice::CreateTexture(MediaTexture));
 
 		// Some platforms need looping to be enabled in order to work correctly:
-		// Windows: The texture resource is discarded when the media ends.
 		// PS4/5: sceAvPlayerStop is called when the media ends, leaving the player in an unrecoverable state.
 		// Some platforms need looping to be disabled in order to work correctly:
-		// Switch: It never sends the PlaybackEndReached if set to looping.
-		bool NeedsLooping = FCStringAnsi::Strcmp(FPlatformProperties::IniPlatformName(), "Switch") != 0;
+		// Switch: It never sends the PlaybackEndReached event if set to looping.
+		// Windows: It never sends the PlaybackEndReached event if set to looping.
+		bool NeedsLooping = FCStringAnsi::Strcmp(FPlatformProperties::IniPlatformName(), "Switch") != 0
+			&& FCStringAnsi::Strcmp(FPlatformProperties::IniPlatformName(), "Windows") != 0;
 
 		// Set here instead of constructor because some implementations ignore it if MediaOpened is not called
 		MediaPlayer->SetLooping(NeedsLooping);
