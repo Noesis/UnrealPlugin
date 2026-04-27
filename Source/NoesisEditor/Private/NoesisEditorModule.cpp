@@ -36,6 +36,8 @@
 #include "NoesisRive.h"
 #include "NoesisBlueprint.h"
 #include "NoesisTextureAssetUserData.h"
+#include "NoesisInstance.h"
+#include "NoesisBlueprintGeneratedClass.h"
 
 // NoesisEditor includes
 #include "NoesisBlueprintAssetTypeActions.h"
@@ -379,6 +381,9 @@ public:
 		IKismetCompilerInterface& KismetCompilerModule = FModuleManager::LoadModuleChecked<IKismetCompilerInterface>("KismetCompiler");
 		KismetCompilerModule.GetCompilers().Insert(NoesisBlueprintCompiler.Get(), 0); // Make sure our compiler goes before the WidgetBlueprint compiler
 		FKismetCompilerContext::RegisterCompilerForBP(UNoesisBlueprint::StaticClass(), &GetCompilerForNoesisBlueprint);
+		KismetCompilerModule.OverrideBPTypeForClass(UNoesisInstance::StaticClass(), UNoesisBlueprint::StaticClass());
+		KismetCompilerModule.OverrideBPGCTypeForBPType(UNoesisBlueprint::StaticClass(),
+			UNoesisBlueprintGeneratedClass::StaticClass());
 
 		// Register settings
 		if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))

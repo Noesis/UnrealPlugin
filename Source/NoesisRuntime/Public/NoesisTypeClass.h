@@ -8,6 +8,9 @@
 // Core includes
 #include "CoreMinimal.h"
 
+// CoreUObject includes
+#include "UObject/Class.h"
+
 // Noesis includes
 #include "NoesisSDK.h"
 
@@ -146,3 +149,18 @@ NOESISRUNTIME_API void NoesisAssetRenamed(UObject* Object, FString OldPath);
 typedef Noesis::Ptr<Noesis::BaseComponent>(*WrapperFn)(UObject*);
 typedef UObject* (*UnwrapperFn)(Noesis::BaseComponent*);
 NOESISRUNTIME_API void NoesisRegisterClassConversion(UClass* UnrealType, const Noesis::Type* NoesisType, WrapperFn Wrapper, UnwrapperFn Unwrapper);
+
+NOESISRUNTIME_API void NoesisRegisterUStructStringConversion(UScriptStruct* Struct, Noesis::String(*ToStringFn)(void*));
+
+template<typename T>
+Noesis::String NoesisStructToString(void* Struct)
+{
+	T* UnrealStruct = (T*)Struct;
+	return Noesis::String((ANSICHAR*)StringCast<UTF8CHAR>(*UnrealStruct->ToString()).Get());
+}
+
+template<class T>
+void NoesisRegisterStructToStringConverter()
+{
+	NoesisRegisterUStructStringConversion(TBaseStructure<T>::Get(), &NoesisStructToString<T>);
+}

@@ -140,6 +140,8 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	typedef TSharedPtr<class FNoesisSlateElement, ESPMode::ThreadSafe> FNoesisSlateElementPtr;
 	FNoesisSlateElementPtr NoesisSlateElement;
 
+	TWeakPtr<SWindow> SlateParentWindowPtr;
+
 	UPROPERTY()
 	TObjectPtr<class UWidgetComponent> WidgetComponent;
 
@@ -276,6 +278,9 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 	// End of UUserWidget interface
+
+	void OnOwningWindowActivated();
+	void OnOwningWindowDeactivated();
 };
 
 FDelegateHandle NoesisRegisterOverlayRender();

@@ -161,7 +161,10 @@ public:
 	~FNoesisSlateElement()
 	{
 		check(IsInRenderingThread());
-		Renderer->Shutdown();
+		if (Renderer != nullptr)
+		{
+			Renderer->Shutdown();
+		}
 	}
 
 	// ICustomSlateElement interface
@@ -641,19 +644,22 @@ void UNoesisInstance::InitInstance()
 
 			NoesisSlateElement = MakeShared<FNoesisSlateElement, ESPMode::ThreadSafe>(Renderer);
 
-			ENQUEUE_RENDER_COMMAND(FNoesisInstance_InitRenderer)
-			(
-				[Renderer, Is3DWidget = Is3DWidget, NoesisSlateElement = NoesisSlateElement](FRHICommandListImmediate& RHICmdList)
-				{
-					FNoesisRenderDevice* RenderDevice = Is3DWidget ? FNoesisRenderDevice::GetLinear() : FNoesisRenderDevice::Get();
-					Renderer->Init(RenderDevice);
-					NoesisSlateElement->RenderDevice = RenderDevice;
-					if (!Is3DWidget)
+			if (FApp::CanEverRender())
+			{
+				ENQUEUE_RENDER_COMMAND(FNoesisInstance_InitRenderer)
+				(
+					[Renderer, Is3DWidget = Is3DWidget, NoesisSlateElement = NoesisSlateElement](FRHICommandListImmediate& RHICmdList)
 					{
-						++GSlateElementCount;
+						FNoesisRenderDevice* RenderDevice = Is3DWidget ? FNoesisRenderDevice::GetLinear() : FNoesisRenderDevice::Get();
+						Renderer->Init(RenderDevice);
+						NoesisSlateElement->RenderDevice = RenderDevice;
+						if (!Is3DWidget)
+						{
+							++GSlateElementCount;
+						}
 					}
-				}
-			);
+				);
+			}
 
 			CurrentTime = 0.0f;
 
@@ -1429,6 +1435,31 @@ void UNoesisInstance::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	Height = SlateRectSize.Y;
 
 	Update();
+
+	if (MyWidget.IsValid())
+	{
+		auto SlateParentWindow = FSlateApplication::Get().FindWidgetWindow(MyWidget.Pin().ToSharedRef());
+		if (SlateParentWindow.IsValid() && SlateParentWindow != SlateParentWindowPtr)
+		{
+			if (SlateParentWindowPtr.IsValid())
+			{
+				auto OldSlateParentWindow = SlateParentWindowPtr.Pin();
+				OldSlateParentWindow->GetOnWindowActivatedEvent().RemoveAll(this);
+				OldSlateParentWindow->GetOnWindowDeactivatedEvent().RemoveAll(this);
+			}
+
+			SlateParentWindowPtr = SlateParentWindow;
+
+			if (!SlateParentWindow->GetOnWindowActivatedEvent().IsBoundToObject(this))
+			{
+				SlateParentWindow->GetOnWindowActivatedEvent().AddUObject(this, &UNoesisInstance::OnOwningWindowActivated);
+			}
+			if (!SlateParentWindow->GetOnWindowDeactivatedEvent().IsBoundToObject(this))
+			{
+				SlateParentWindow->GetOnWindowDeactivatedEvent().AddUObject(this, &UNoesisInstance::OnOwningWindowDeactivated);
+			}
+		}
+	}
 }
 
 bool GetHitResultAtScreenPositionAndCache(APlayerController* PlayerController, FVector2D ScreenPosition, FHitResult& HitResult)
@@ -2089,9 +2120,41 @@ void UNoesisInstance::NativeConstruct()
 
 void UNoesisInstance::NativeDestruct()
 {
+	if (MyWidget.IsValid())
+	{
+		if (SlateParentWindowPtr.IsValid())
+		{
+			auto SlateParentWindow = SlateParentWindowPtr.Pin();
+			SlateParentWindow->GetOnWindowActivatedEvent().RemoveAll(this);
+			SlateParentWindow->GetOnWindowDeactivatedEvent().RemoveAll(this);
+		}
+	}
+
 	TermInstance();
 
 	Super::NativeDestruct();
+}
+
+void UNoesisInstance::OnOwningWindowActivated()
+{
+	if (TakeWidget().Get().HasAnyUserFocusOrFocusedDescendants())
+	{
+		if (XamlView != nullptr)
+		{
+			XamlView->Activate();
+		}
+	}
+}
+
+void UNoesisInstance::OnOwningWindowDeactivated()
+{
+	if (TakeWidget().Get().HasAnyUserFocusOrFocusedDescendants())
+	{
+		if (XamlView != nullptr)
+		{
+			XamlView->Deactivate();
+		}
+	}
 }
 
 // This is a copy of FMobileSceneRenderer::RequiresMultiPass

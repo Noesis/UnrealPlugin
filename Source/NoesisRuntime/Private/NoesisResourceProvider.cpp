@@ -8,6 +8,7 @@
 // Core includes
 #include "Misc/FileHelper.h"
 #include "Misc/EngineVersionComparison.h"
+#include "Serialization/MemoryReader.h"
 
 // CoreUObject includes
 #include "UObject/UObjectGlobals.h"

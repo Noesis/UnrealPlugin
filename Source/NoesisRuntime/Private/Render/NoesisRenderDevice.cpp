@@ -1257,32 +1257,58 @@ void FNoesisRenderDevice::UpdateTexture(Noesis::Texture* InTexture, uint32 Level
 	RHIUpdateTexture2D(Texture->GetTexture2D(), MipIndex, UpdateRegion, SourcePitch, SourceData);
 }
 
+static void SetStaticUniformBuffer(FRHICommandList* RHICmdList, FRHIUniformBuffer* UniformBuffer)
+{
+	const FRHIUniformBufferLayout& Layout = UniformBuffer->GetLayout();
+
+	const FUniformBufferStaticSlot Slot = Layout.StaticSlot;
+	checkf(IsUniformBufferStaticSlotValid(Slot), TEXT("Attempted to set a global uniform buffer %s with an invalid slot."), *Layout.GetDebugName());
+
+	RHICmdList->SetStaticUniformBuffer(Slot, UniformBuffer);
+}
+
 void FNoesisRenderDevice::BeginOffscreenRender()
 {
-	FUniformBufferStaticBindings StaticUniformBufferBindings;
-	StaticUniformBufferBindings.TryAddUniformBuffer(SceneTexturesUniformBuffer);
-	StaticUniformBufferBindings.TryAddUniformBuffer(MobileSceneTexturesUniformBuffer);
-	StaticUniformBufferBindings.TryAddUniformBuffer(ViewUniformBuffer);
-	RHICmdList->SetStaticUniformBuffers(MoveTemp(StaticUniformBufferBindings));
+	if (SceneTexturesUniformBuffer)
+	{
+		SetStaticUniformBuffer(RHICmdList, SceneTexturesUniformBuffer);
+	}
+
+	if (MobileSceneTexturesUniformBuffer)
+	{
+		SetStaticUniformBuffer(RHICmdList, MobileSceneTexturesUniformBuffer);
+	}
+
+	if (ViewUniformBuffer)
+	{
+		SetStaticUniformBuffer(RHICmdList, ViewUniformBuffer);
+	}
 }
 
 void FNoesisRenderDevice::EndOffscreenRender()
 {
-	RHICmdList->SetStaticUniformBuffers({});
 }
 
 void FNoesisRenderDevice::BeginOnscreenRender()
 {
-	FUniformBufferStaticBindings StaticUniformBufferBindings;
-	StaticUniformBufferBindings.TryAddUniformBuffer(SceneTexturesUniformBuffer);
-	StaticUniformBufferBindings.TryAddUniformBuffer(MobileSceneTexturesUniformBuffer);
-	StaticUniformBufferBindings.TryAddUniformBuffer(ViewUniformBuffer);
-	RHICmdList->SetStaticUniformBuffers(MoveTemp(StaticUniformBufferBindings));
+	if (SceneTexturesUniformBuffer)
+	{
+		SetStaticUniformBuffer(RHICmdList, SceneTexturesUniformBuffer);
+	}
+
+	if (MobileSceneTexturesUniformBuffer)
+	{
+		SetStaticUniformBuffer(RHICmdList, MobileSceneTexturesUniformBuffer);
+	}
+
+	if (ViewUniformBuffer)
+	{
+		SetStaticUniformBuffer(RHICmdList, ViewUniformBuffer);
+	}
 }
 
 void FNoesisRenderDevice::EndOnscreenRender()
 {
-	RHICmdList->SetStaticUniformBuffers({});
 }
 
 void FNoesisRenderDevice::SetRenderTarget(Noesis::RenderTarget* Surface)
@@ -1339,9 +1365,12 @@ void FNoesisRenderDevice::ResolveRenderTarget(Noesis::RenderTarget* Surface, con
 {
 	check(RHICmdList);
 	check(RHICmdList->IsInsideRenderPass());
-	SCOPED_DRAW_EVENT(*RHICmdList, Resolve);
-	FNoesisRenderTarget* RenderTarget = (FNoesisRenderTarget*)Surface;
-	RenderTarget->ResolveRenderTarget(RHICmdList, Tiles, NumTiles);
+	
+	{
+		SCOPED_DRAW_EVENT(*RHICmdList, Resolve);
+		FNoesisRenderTarget* RenderTarget = (FNoesisRenderTarget*)Surface;
+		RenderTarget->ResolveRenderTarget(RHICmdList, Tiles, NumTiles);
+	}
 
 #if UE_VERSION_OLDER_THAN(5, 5, 0)
 #if WANTS_DRAW_MESH_EVENTS

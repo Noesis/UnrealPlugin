@@ -2124,6 +2124,16 @@ void ReplaceTypeClass(NoesisTypeClass* OldTypeClass, NoesisTypeClass* NewTypeCla
 	ReplaceType(OldTypeClass, NewTypeClass);
 }
 
+TMap<UScriptStruct*, Noesis::String(*)(void*)> ToStringMap;
+
+NOESISRUNTIME_API void NoesisRegisterUStructStringConversion(UScriptStruct* Struct, Noesis::String(*ToStringFn)(void*))
+{
+	if (ToStringFn != nullptr)
+	{
+		ToStringMap.Add(Struct, ToStringFn);
+	}
+}
+
 class NoesisStructWrapper : public Noesis::BaseComponent
 {
 public:
@@ -2148,7 +2158,13 @@ public:
 
 	Noesis::String ToString() const override
 	{
-		return "";
+		check(TypeClass->Class->IsA<UScriptStruct>());
+		if (auto ToStringFn = ToStringMap.Find((UScriptStruct*)TypeClass->Class))
+		{
+			return (**ToStringFn)(GetStructPtr());
+		}
+
+		return TypeClass->GetName();
 	}
 
 	bool Equals(const Noesis::BaseObject* BaseObject) const override
