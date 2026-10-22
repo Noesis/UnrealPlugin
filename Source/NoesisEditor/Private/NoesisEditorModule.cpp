@@ -48,10 +48,8 @@
 #include "NoesisTypeClass.h"
 #include "NoesisXaml.h"
 #include "NoesisRive.h"
-#include "NoesisBlueprint.h"
 #include "NoesisTextureAssetUserData.h"
 #include "NoesisInstance.h"
-#include "NoesisBlueprintGeneratedClass.h"
 #include "NoesisAssetDependency.h"
 
 // NoesisEditor includes
@@ -65,6 +63,8 @@
 #include "NoesisStyle.h"
 #include "NoesisLangServerResourceProvider.h"
 #include "SNoesisStudioWidget.h"
+#include "NoesisBlueprint.h"
+#include "NoesisBlueprintGeneratedClass.h"
 
 // KismetCompiler includes
 #include "KismetCompiler.h"
@@ -846,10 +846,14 @@ public:
 		// Avoid showing dialogs during cooking, commandlets, or unattended builds
 		if (IsRunningCommandlet() || FApp::IsUnattended()) return;
 
+		// Target the shared DefaultEditor.ini in the project's Config folder
+		FString DefaultEditorPath = FPaths::ProjectConfigDir() / TEXT("DefaultEditor.ini");
+		FConfigFile DefaultEditorConfig;
+		DefaultEditorConfig.Read(DefaultEditorPath);
+
 		// Check if Welcome screen has already been shown
 		bool bHasShownWelcome = false;
-		GConfig->GetBool(TEXT("/Script/NoesisEditor.Welcome"),TEXT("bHasShownWelcomeScreen"),
-			bHasShownWelcome, GEditorPerProjectIni);
+		DefaultEditorConfig.GetBool(TEXT("/Script/NoesisEditor.Welcome"),TEXT("bHasShownWelcomeScreen"), bHasShownWelcome);
 
 		if (!bHasShownWelcome)
 		{
@@ -857,9 +861,8 @@ public:
 			OpenWelcomeDialog();
 
 			// Mark as shown so it doesn't open automatically next time this project is loaded
-			GConfig->SetBool(TEXT("/Script/NoesisEditor.Welcome"), TEXT("bHasShownWelcomeScreen"),
-				true, GEditorPerProjectIni);
-			GConfig->Flush(false, GEditorPerProjectIni);
+			DefaultEditorConfig.SetBool(TEXT("/Script/NoesisEditor.Welcome"), TEXT("bHasShownWelcomeScreen"), true);
+			DefaultEditorConfig.Write(DefaultEditorPath);
 		}
 	}
 

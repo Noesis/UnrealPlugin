@@ -75,6 +75,7 @@ SamplerState PostProcessInput_BilinearSampler;
 #include "/Engine/Generated/Material.ush"
 
 half4 gammaAndAlphaValues;
+float temporalResponsiveness;
 
 struct In
 {
@@ -154,7 +155,7 @@ Out NoesisPS(in In i)
             discard;
  
         #ifdef VELOCITY_SUPPORT_TEMPORAL_RESPONSIVENESS
-            o.color = EncodeVelocityToTexture(float3(0.0, 0.0, 0.0), true, 1.0);
+            o.color = EncodeVelocityToTexture(float3(0.0, 0.0, asfloat(0xFFFF)), true, temporalResponsiveness);
         #else
             o.color = half4(0.0, 0.0, 0.0, 0.0);
         #endif

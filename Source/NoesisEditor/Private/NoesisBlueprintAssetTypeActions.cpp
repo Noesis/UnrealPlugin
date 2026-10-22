@@ -10,8 +10,6 @@
 
 // NoesisEditor includes
 #include "NoesisBlueprintEditor.h"
-
-// NoesisRuntime includes
 #include "NoesisBlueprint.h"
 
 #define LOCTEXT_NAMESPACE "NoesisEditorModule"

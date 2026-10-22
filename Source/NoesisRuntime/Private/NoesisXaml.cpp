@@ -23,6 +23,7 @@
 
 // NoesisRuntime includes
 #include "NoesisRuntimeModule.h"
+#include "NoesisRive.h"
 
 UNoesisXaml::UNoesisXaml(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -56,13 +57,14 @@ void UNoesisXaml::PostLoad()
 {
 	Super::PostLoad();
 
-	Dependencies.Append(Xamls_DEPRECATED);
-	Dependencies.Append(Textures_DEPRECATED);
-	Dependencies.Append(Fonts_DEPRECATED);
-	Dependencies.Append(FontFaces_DEPRECATED);
-	Dependencies.Append(Sounds_DEPRECATED);
-	Dependencies.Append(Videos_DEPRECATED);
-	Dependencies.Append(Materials_DEPRECATED);
+	Dependencies.Append(MoveTemp(Xamls_DEPRECATED));
+	Dependencies.Append(MoveTemp(Textures_DEPRECATED));
+	Dependencies.Append(MoveTemp(Fonts_DEPRECATED));
+	Dependencies.Append(MoveTemp(FontFaces_DEPRECATED));
+	Dependencies.Append(MoveTemp(Sounds_DEPRECATED));
+	Dependencies.Append(MoveTemp(Videos_DEPRECATED));
+	Dependencies.Append(MoveTemp(Rives_DEPRECATED));
+	Dependencies.Append(MoveTemp(Materials_DEPRECATED));
 }
 
 void UNoesisXaml::PostInitProperties()

@@ -14,14 +14,16 @@
 // Engine includes
 #include "Engine/BlueprintGeneratedClass.h"
 
-// NoesisRuntime includes
+// NoesisEditor includes
 #include "NoesisBlueprint.h"
 
 // Generated header include
 #include "NoesisBlueprintGeneratedClass.generated.h"
 
 UCLASS()
-class NOESISRUNTIME_API UNoesisBlueprintGeneratedClass : public UBlueprintGeneratedClass
+class NOESISEDITOR_API UNoesisBlueprintGeneratedClass : public UBlueprintGeneratedClass
 {
-	GENERATED_UCLASS_BODY()
+	GENERATED_BODY()
+
+	UNoesisBlueprintGeneratedClass();
 };

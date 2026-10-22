@@ -8,7 +8,7 @@
 // NoesisRuntime includes
 #include "NoesisBaseComponent.h"
 
-UNoesisBlueprintGeneratedClass::UNoesisBlueprintGeneratedClass(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+UNoesisBlueprintGeneratedClass::UNoesisBlueprintGeneratedClass()
+	: Super()
 {
 }

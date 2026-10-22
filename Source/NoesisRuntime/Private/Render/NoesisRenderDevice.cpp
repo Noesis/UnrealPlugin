@@ -1670,6 +1670,30 @@ static inline bool ConditionalUpdateUniformBuffer(FRHICommandList* RHICmdList, F
 	return true;
 }
 
+TAutoConsoleVariable<int32> CVarNoesisTAARejectFrequency(
+	TEXT("Noesis.TAARejectFrequency"),
+	1,
+	TEXT("Sets the frequency of TAA Rejection")
+	TEXT("0: Never reject\n")
+	TEXT("1: Reject every frame\n")
+	TEXT("n: Reject every n frames\n"),
+	ECVF_RenderThreadSafe
+);
+
+TAutoConsoleVariable<float> CVarNoesisTAARejectOffValue(
+	TEXT("Noesis.TAARejectOffValue"),
+	0.0f,
+	TEXT("Sets the value of TAA Rejection"),
+	ECVF_RenderThreadSafe
+);
+
+TAutoConsoleVariable<float> CVarNoesisTAARejectOnValue(
+	TEXT("Noesis.TAARejectOnValue"),
+	1.0f,
+	TEXT("Sets the value of TAA Rejection"),
+	ECVF_RenderThreadSafe
+);
+
 void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 {
 	check(RHICmdList);
@@ -1894,6 +1918,30 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 	if (Batch.vertexUniforms[1].values != nullptr)
 	{
 		VertexShader->SetTextureSize(*RHICmdList, TextureSizeBuffer);
+	}
+
+	if (AlphaMask)
+	{
+		float TemporalResponsiveness = CVarNoesisTAARejectOffValue.GetValueOnRenderThread();
+		int32 Frequency = CVarNoesisTAARejectFrequency.GetValueOnRenderThread();
+		if (Frequency > 0)
+		{
+			if ((GFrameCounterRenderThread % Frequency) == 0)
+				TemporalResponsiveness = CVarNoesisTAARejectOnValue.GetValueOnRenderThread();
+		}
+
+		if (UsingCustomEffect)
+		{
+			CustomEffectPixelShader->SetTemporalResponsiveness(*RHICmdList, TemporalResponsiveness);
+		}
+		else if (UsingMaterialShader)
+		{
+			MaterialPixelShader->SetTemporalResponsiveness(*RHICmdList, TemporalResponsiveness);
+		}
+		else
+		{
+			PixelShader->SetTemporalResponsiveness(*RHICmdList, TemporalResponsiveness);
+		}
 	}
 
 	if (UsingCustomEffect)

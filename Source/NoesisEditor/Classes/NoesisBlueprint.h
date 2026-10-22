@@ -8,26 +8,23 @@
 // Core includes
 #include "CoreMinimal.h"
 
-// Engine includes
-#include "Engine/Blueprint.h"
+// UMGEditor includes
+#include "WidgetBlueprint.h"
+
+// NoesisRuntime includes
+#include "NoesisInstance.h"
 
 // Generated header include
 #include "NoesisBlueprint.generated.h"
 
-UENUM()
-enum class ENoesisTessellationQuality : uint8
-{
-	Low,
-	Medium,
-	High,
-};
-
 UCLASS()
-class NOESISRUNTIME_API UNoesisBlueprint : public UBlueprint
+class NOESISEDITOR_API UNoesisBlueprint : public UWidgetBlueprint
 {
-	GENERATED_UCLASS_BODY()
+	GENERATED_BODY()
 
 public:
+	UNoesisBlueprint();
+
 	// UBlueprint interface
 #if WITH_EDITOR
 	virtual UClass* GetBlueprintClass() const override;

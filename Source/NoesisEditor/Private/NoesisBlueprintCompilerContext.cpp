@@ -8,9 +8,11 @@
 // UnrealEd includes
 #include "Kismet2/KismetReinstanceUtilities.h"
 
-// NoesisRuntime includes
+// NoesisEditor includes
 #include "NoesisBlueprint.h"
 #include "NoesisBlueprintGeneratedClass.h"
+
+// NoesisRuntime includes
 #include "NoesisInstance.h"
 
 FNoesisBlueprintCompilerContext::FNoesisBlueprintCompilerContext(UNoesisBlueprint* NoesisBlueprint, FCompilerResultsLog& Results, const FKismetCompilerOptions& CompilerOptions)

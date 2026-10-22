@@ -7,9 +7,9 @@
 
 // NoesisEditor includes
 #include "NoesisBlueprintEditor.h"
+#include "NoesisBlueprint.h"
 
 // NoesisRuntime includes
-#include "NoesisBlueprint.h"
 #include "NoesisStudioInstance.h"
 
 SNoesisStudioWidget::SNoesisStudioWidget(): StudioInstance(nullptr)

@@ -34,6 +34,7 @@ public class NoesisEditor : ModuleRules
 				"AudioMixer",
 				"UnrealEd",
 				"SlateCore",
+				"UMGEditor",
 			}
 			);
 

@@ -74,7 +74,6 @@
 // NoesisRuntime includes
 #include "NoesisCustomVersion.h"
 #include "NoesisRuntimeModule.h"
-#include "NoesisBlueprintGeneratedClass.h"
 #include "Render/NoesisRenderDevice.h"
 #include "NoesisTypeClass.h"
 #include "NoesisXaml.h"
@@ -391,6 +390,13 @@ void FNoesisSlateElement::RenderOnscreen(FRHICommandList& RHICmdList, bool WithV
 	RenderDevice->SetRHICmdList(nullptr);
 }
 
+TAutoConsoleVariable<bool> NoesisProjectionNoJitter(
+	TEXT("Noesis.ProjectionNoJitter"),
+	false,
+	TEXT("Removes TAA jitter from the proection matrix"),
+	ECVF_RenderThreadSafe
+);
+
 void FNoesisSlateElement::RenderView(FRHICommandList& RHICmdList, const FViewInfo* View)
 {
 	if ((View->bIsMobileMultiViewEnabled || View->bIsInstancedStereoEnabled) && (View == View->GetInstancedSceneView()))
@@ -457,7 +463,7 @@ void FNoesisSlateElement::RenderView(FRHICommandList& RHICmdList, const FViewInf
 	else
 	{
 #if UE_VERSION_OLDER_THAN(5, 8, 0)
-		auto MonoViewProjectionMatrix = View->ViewMatrices.GetViewProjectionMatrix();
+		auto MonoViewProjectionMatrix = NoesisProjectionNoJitter.GetValueOnRenderThread() ? View->ViewMatrices.GetViewMatrix() * View->ViewMatrices.GetProjectionNoAAMatrix() : View->ViewMatrices.GetViewProjectionMatrix();;
 #else
 		auto MonoViewProjectionMatrix = View->ViewMatrices.GetWorldToClip();
 #endif
@@ -1059,6 +1065,13 @@ void UNoesisInstance::Term3DWidget(UWorld* World)
 	RemoveFromRoot();
 }
 
+TAutoConsoleVariable<bool> NoesisEnablePPAA(
+	TEXT("Noesis.UsePPAA"),
+	true,
+	TEXT("Enable/Disable PPAA"),
+	ECVF_Default
+);
+
 void UNoesisInstance::Tick3DWidget(UWorld* World, ELevelTick TickType, float DeltaTime)
 {
 	check(Is3DWidget);
@@ -1067,6 +1080,7 @@ void UNoesisInstance::Tick3DWidget(UWorld* World, ELevelTick TickType, float Del
 		return;
 
 	CurrentTime += DeltaTime;
+	EnablePPAA = NoesisEnablePPAA.GetValueOnGameThread();
 
 	if (XamlView != nullptr)
 	{
@@ -1421,21 +1435,6 @@ void UNoesisInstance::Serialize(FArchive& Ar)
 void UNoesisInstance::PostLoad()
 {
 	Super::PostLoad();
-
-#if WITH_EDITOR
-	const int32 NoesisVer = GetLinkerCustomVersion(FNoesisCustomVersion::GUID);
-	if (NoesisVer < FNoesisCustomVersion::BeforeCustomVersionWasAdded)
-	{
-		UClass* Class = GetClass();
-		UNoesisBlueprint* NoesisBlueprint = Cast<UNoesisBlueprint>(Class->ClassGeneratedBy);
-		if (NoesisBlueprint != nullptr)
-		{
-			BaseXaml = NoesisBlueprint->BaseXaml;
-			EnablePPAA = NoesisBlueprint->EnablePPAA;
-			TessellationQuality = NoesisBlueprint->TessellationQuality;
-		}
-	}
-#endif
 }
 
 void UNoesisInstance::OnWidgetRebuilt()

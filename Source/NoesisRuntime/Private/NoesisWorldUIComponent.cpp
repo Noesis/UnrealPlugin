@@ -5,13 +5,133 @@
 
 #include "NoesisWorldUIComponent.h"
 
+// Core includes
+#include "CoreMinimal.h"
+#include "Misc/EngineVersionComparison.h"
+
 // UMG includes
 #include "Blueprint/UserWidget.h"
+
+// Engine includes
+#include "PrimitiveSceneProxy.h"
+#if UE_VERSION_OLDER_THAN(5, 6, 0)
+#else
+#include "MeshElementCollector.h"
+#include "PrimitiveDrawingUtils.h"
+#endif
+#include "DynamicMeshBuilder.h"
+#include "Materials/Material.h"
+#include "MaterialDomain.h"
+#include "SceneManagement.h"
+#include "Rendering/PositionVertexBuffer.h"
+#include "LocalVertexFactory.h"
+#include "SceneInterface.h"
+
+// RenderCore includes
+#include "GlobalRenderResources.h"
+
+// RHI includes
+#include "RHIResourceUtils.h"
 
 // NoesisRuntime includes
 #include "NoesisSupport.h"
 #include "NoesisTypeClass.h"
 #include "NoesisXaml.h"
+#include "NoesisSettings.h"
+
+class FNoesisWorldUIIndexBuffer : public FIndexBuffer
+{
+public:
+	virtual void InitRHI(FRHICommandListBase& RHICmdList) override
+	{
+		IndexBufferRHI = UE::RHIResourceUtils::CreateIndexBufferFromArray(RHICmdList, TEXT("FNoesisWorldUIIndexBuffer"),
+			EBufferUsageFlags::Static, MakeConstArrayView<uint16>({ 0, 0, 0 }));
+	}
+};
+
+TGlobalResource<FNoesisWorldUIIndexBuffer, FRenderResource::EInitPhase::Pre> GNoesisWorldUIIndexBuffer;
+
+class FNoesisWorldUISceneProxy final : public FPrimitiveSceneProxy
+{
+public:
+	FNoesisWorldUISceneProxy(const UNoesisWorldUIComponent* InComponent)
+		: FPrimitiveSceneProxy(InComponent),
+		  VertexFactory(GetScene().GetFeatureLevel(), "FNoesisWorldUISceneProxy")
+	{
+		bAlwaysHasVelocity = GetDefault<UNoesisSettings>()->UpdateVelocities;
+
+		FMeshBatchElement& BatchElement = Mesh.Elements[0];
+		BatchElement.IndexBuffer = &GNoesisWorldUIIndexBuffer;
+		Mesh.VertexFactory = &VertexFactory;
+		Mesh.MaterialRenderProxy = UMaterial::GetDefaultMaterial(MD_Surface)->GetRenderProxy();
+		BatchElement.FirstIndex = 0;
+		BatchElement.NumPrimitives = 1;
+		BatchElement.MinVertexIndex = 0;
+		BatchElement.MaxVertexIndex = 0;
+		Mesh.ReverseCulling = IsLocalToWorldDeterminantNegative();
+		Mesh.bDisableBackfaceCulling = false;
+		Mesh.Type = PT_TriangleList;
+		Mesh.DepthPriorityGroup = SDPG_World;
+		Mesh.LODIndex = 0;
+	}
+
+	virtual void CreateRenderThreadResources(FRHICommandListBase& RHICmdList) override
+	{
+		FLocalVertexFactory::FDataType Data;
+		Data.PositionComponent = FVertexStreamComponent(&GNullVertexBuffer, 0, 12, VET_Float3);
+		Data.ColorComponent = FVertexStreamComponent(&GNullColorVertexBuffer, 0, 0, VET_Color, EVertexStreamUsage::ManualFetch);
+		Data.TangentBasisComponents[0] = FVertexStreamComponent(&GNullColorVertexBuffer, 0, 0, VET_PackedNormal, EVertexStreamUsage::ManualFetch);
+		Data.TangentBasisComponents[1] = FVertexStreamComponent(&GNullColorVertexBuffer, 0, 0, VET_PackedNormal, EVertexStreamUsage::ManualFetch);
+
+		if (RHISupportsManualVertexFetch(GMaxRHIShaderPlatform))
+		{
+			Data.PositionComponentSRV = GNullVertexBuffer.VertexBufferSRV;
+			Data.ColorComponentsSRV = GNullColorVertexBuffer.VertexBufferSRV;
+			Data.TangentsSRV = GNullColorVertexBuffer.VertexBufferSRV;
+			Data.TextureCoordinatesSRV = GNullColorVertexBuffer.VertexBufferSRV;
+		}
+		VertexFactory.SetData(RHICmdList, Data);
+		VertexFactory.InitResource(RHICmdList);
+	}
+	virtual void DestroyRenderThreadResources() override
+	{
+		VertexFactory.ReleaseResource();
+	}
+
+	virtual void DrawStaticElements(FStaticPrimitiveDrawInterface* PDI) override
+	{
+		PDI->DrawMesh(Mesh, 1.0f);
+	}
+
+	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const override
+	{
+		FPrimitiveViewRelevance Result;
+		Result.bDrawRelevance = IsShown(View);
+		Result.bStaticRelevance = true;
+		Result.bVelocityRelevance = true;
+		return Result;
+	}
+
+	virtual SIZE_T GetTypeHash() const override
+	{
+		static size_t UniquePointer;
+		return reinterpret_cast<size_t>(&UniquePointer);
+	}
+
+	virtual uint32 GetMemoryFootprint(void) const override
+	{
+		return sizeof(*this) + GetAllocatedSize();
+	}
+
+	uint32 GetAllocatedSize(void) const
+	{
+		return FPrimitiveSceneProxy::GetAllocatedSize();
+	}
+
+private:
+	FLocalVertexFactory VertexFactory;
+	FMeshBatch Mesh;
+};
 
 UNoesisWorldUIComponent::UNoesisWorldUIComponent(): Xaml(nullptr), Scale(1.0f), Center(true)
 {
@@ -45,6 +165,16 @@ void UNoesisWorldUIComponent::Remove3DElement()
 		TransformUpdated.Remove(TransformUpdatedDelegateHandle);
 		Element.Reset();
 	}
+}
+
+FPrimitiveSceneProxy* UNoesisWorldUIComponent::CreateSceneProxy()
+{
+	return new FNoesisWorldUISceneProxy(this);
+}
+
+FBoxSphereBounds UNoesisWorldUIComponent::CalcBounds(const FTransform& LocalToWorld) const
+{
+	return FBoxSphereBounds(ProxyBox.TransformBy(LocalToWorld));
 }
 
 void UNoesisWorldUIComponent::BeginPlay()
@@ -100,17 +230,30 @@ void UNoesisWorldUIComponent::OnTransformUpdated(USceneComponent*, EUpdateTransf
 	float OffsetX = 0.0f;
 	float OffsetY = 0.0f;
 
+	Element->Measure(Noesis::Size(FLT_INF, FLT_INF));
+	auto& DesiredSize = Element->GetDesiredSize();
+
 	if (Center)
 	{
 		Element->Measure(Noesis::Size(FLT_INF, FLT_INF));
-		OffsetX = -0.5f * Element->GetDesiredSize().width;
-		OffsetY = -0.5f * Element->GetDesiredSize().height;
+		OffsetX = -0.5f * DesiredSize.width;
+		OffsetY = -0.5f * DesiredSize.height;
 	}
 
 	Noesis::Transform3 OffsetScale = Noesis::Transform3::Trans(OffsetX, OffsetY, 0.0f) * Noesis::Transform3::Scale(Scale, Scale, Scale);
 
 	Noesis::MatrixTransform3D* Transform3D = Noesis::DynamicCast<Noesis::MatrixTransform3D*>(Element->GetTransform3D());
 	Transform3D->SetMatrix(OffsetScale * NoesisTransform);
+
+	auto BoundsZMin = Noesis::VisualTreeHelper::GetDescendantBoundsMinZ(Element);
+	auto BoundsZMax = Noesis::VisualTreeHelper::GetDescendantBoundsMaxZ(Element);
+
+	FVector ProxyMin = { -BoundsZMin, OffsetX, OffsetY };
+	FVector ProxyMax = { -BoundsZMax, DesiredSize.width + OffsetX, DesiredSize.height + OffsetY };
+	ProxyBox = { ProxyMin, ProxyMax };
+
+	UpdateBounds();
+	MarkRenderStateDirty();
 }
 
 void UNoesisWorldUIComponent::SetDataContext(UObject* InDataContext)

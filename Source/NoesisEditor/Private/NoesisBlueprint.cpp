@@ -5,11 +5,11 @@
 
 #include "NoesisBlueprint.h"
 
-// NoesisRuntime includes
+// NoesisEditor includes
 #include "NoesisBlueprintGeneratedClass.h"
 
-UNoesisBlueprint::UNoesisBlueprint(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+UNoesisBlueprint::UNoesisBlueprint()
+	: Super()
 {
 	bRecompileOnLoad = false;
 

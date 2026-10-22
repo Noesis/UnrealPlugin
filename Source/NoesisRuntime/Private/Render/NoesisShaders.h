@@ -427,6 +427,7 @@ public:
 		ShadowTexture.Bind(Initializer.ParameterMap, TEXT("shadowTex"));
 		ShadowSampler.Bind(Initializer.ParameterMap, TEXT("shadowSampler"));
 		GammaAndAlphaValues.Bind(Initializer.ParameterMap, TEXT("gammaAndAlphaValues"));
+		TemporalResponsiveness.Bind(Initializer.ParameterMap, TEXT("temporalResponsiveness"));
 	}
 
 	FNoesisPS() = default;
@@ -566,6 +567,15 @@ public:
 #endif
 	}
 
+	void SetTemporalResponsiveness(FRHICommandList& RHICmdList, float Value)
+	{
+		FRHIPixelShader* ShaderRHI = RHICmdList.GetBoundPixelShader();
+
+		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
+		SetShaderValue(BatchedParameters, TemporalResponsiveness, Value);
+		RHICmdList.SetBatchedShaderParameters(ShaderRHI, BatchedParameters);
+	}
+
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 	{
 		FGlobalShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
@@ -591,6 +601,7 @@ public:
 	LAYOUT_FIELD(FShaderResourceParameter, ShadowTexture)
 	LAYOUT_FIELD(FShaderResourceParameter, ShadowSampler)
 	LAYOUT_FIELD(FShaderParameter, GammaAndAlphaValues)
+	LAYOUT_FIELD(FShaderParameter, TemporalResponsiveness)
 };
 
 class FNoesisMaterialPS : public FMaterialShader
@@ -618,6 +629,7 @@ public:
 		GlyphsTexture.Bind(Initializer.ParameterMap, TEXT("glyphsTex"));
 		GlyphsSampler.Bind(Initializer.ParameterMap, TEXT("glyphsSampler"));
 		GammaAndAlphaValues.Bind(Initializer.ParameterMap, TEXT("gammaAndAlphaValues"));
+		TemporalResponsiveness.Bind(Initializer.ParameterMap, TEXT("temporalResponsiveness"));
 	}
 
 	FNoesisMaterialPS() = default;
@@ -728,11 +740,18 @@ public:
 #endif
 	}
 
+	void SetTemporalResponsiveness(FRHICommandList& RHICmdList, float Value)
+	{
+		FRHIPixelShader* ShaderRHI = RHICmdList.GetBoundPixelShader();
+
+		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
+		SetShaderValue(BatchedParameters, TemporalResponsiveness, Value);
+		RHICmdList.SetBatchedShaderParameters(ShaderRHI, BatchedParameters);
+	}
+
 	static void ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 	{
 		FMaterialShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
-
-		OutEnvironment.SetDefine(TEXT("GAMMA_CORRECTION"), false);
 
 		static const auto CVar = IConsoleManager::Get().FindTConsoleVariableDataInt(TEXT("r.HDR.Display.OutputDevice"));
 #if UE_VERSION_OLDER_THAN(5, 1, 0)
@@ -748,6 +767,7 @@ public:
 	LAYOUT_FIELD(FShaderResourceParameter, GlyphsTexture)
 	LAYOUT_FIELD(FShaderResourceParameter, GlyphsSampler)
 	LAYOUT_FIELD(FShaderParameter, GammaAndAlphaValues)
+	LAYOUT_FIELD(FShaderParameter, TemporalResponsiveness)
 };
 
 
@@ -804,6 +824,7 @@ public:
 		BindForLegacyShaderParameters<FParameters>(this, Initializer.PermutationId, Initializer.ParameterMap, false);
 
 		GammaAndAlphaValues.Bind(Initializer.ParameterMap, TEXT("gammaAndAlphaValues"));
+		TemporalResponsiveness.Bind(Initializer.ParameterMap, TEXT("temporalResponsiveness"));
 	}
 
 	FNoesisCustomEffectPS() = default;
@@ -843,6 +864,15 @@ public:
 #endif
 	}
 
+	void SetTemporalResponsiveness(FRHICommandList& RHICmdList, float Value)
+	{
+		FRHIPixelShader* ShaderRHI = RHICmdList.GetBoundPixelShader();
+
+		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
+		SetShaderValue(BatchedParameters, TemporalResponsiveness, Value);
+		RHICmdList.SetBatchedShaderParameters(ShaderRHI, BatchedParameters);
+	}
+
 	static void ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 	{
 		FMaterialShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
@@ -870,4 +900,5 @@ public:
 	}
 
 	LAYOUT_FIELD(FShaderParameter, GammaAndAlphaValues)
+	LAYOUT_FIELD(FShaderParameter, TemporalResponsiveness)
 };

@@ -673,14 +673,14 @@
                   <Border Margin="-20,-20,-20,-20" Padding="20,20,20,20" Background="#00FFFFFF">
                     <Viewbox x:Name="YouTubePlayheadIcon_Viewbox" Effect="{DynamicResource DropShadowEffect_ImageOverlayObjectsGlows}">
                       <Grid x:Name="YouTubePlayheadIcon_Glow_Grid">
-                        <Path x:Name="YouTubePlayheadIcon_Back" Data="F1M127.37,14.31c-1.5,-5.63 -5.91,-10.07 -11.5,-11.58C105.72,0 65.04,0 65.04,0c0,0 -40.68,0 -50.82,2.73 -5.6,1.51 -10.01,5.94 -11.5,11.58C0,24.52 0,45.83 0,45.83c0,0 0,21.3 2.72,31.52 1.5,5.63 5.91,10.07 11.5,11.58 10.15,2.74 50.82,2.74 50.82,2.74 0,0 40.68,0 50.83,-2.74 5.6,-1.51 10.01,-5.94 11.5,-11.58 2.72,-10.21 2.72,-31.52 2.72,-31.52 0,0 0,-21.31 -2.72,-31.52z" Stretch="Fill" Width="130.09" Height="91.670006">
-                          <Path.Fill>
-                            <SolidColorBrush Color="{DynamicResource Color_White_1_Official}"/>
-                          </Path.Fill>
-                        </Path>
-                        <Path x:Name="YouTubePlayheadIcon_Front" Data="F1M127.37,14.31c-1.5,-5.63 -5.91,-10.07 -11.5,-11.58C105.72,0 65.04,0 65.04,0c0,0 -40.68,0 -50.82,2.73 -5.6,1.51 -10.01,5.94 -11.5,11.58C0,24.52 0,45.83 0,45.83c0,0 0,21.3 2.72,31.52 1.5,5.63 5.91,10.07 11.5,11.58 10.15,2.74 50.82,2.74 50.82,2.74 0,0 40.68,0 50.83,-2.74 5.6,-1.51 10.01,-5.94 11.5,-11.58 2.72,-10.21 2.72,-31.52 2.72,-31.52 0,0 0,-21.31 -2.72,-31.52z M51.74,65.17V26.48l34,19.34 -34,19.34z" Stretch="Fill" Width="130.09" Height="91.670006">
+                        <Path x:Name="YouTubePlayheadIcon_Back" Data="M127.37,14.31C125.87,8.68 121.46,4.24 115.87,2.73 105.72,0 65.04,0 65.04,0 65.04,0 24.36,0 14.22,2.73 8.62,4.24 4.21,8.67 2.72,14.31 0,24.52 0,45.83 0,45.83 0,45.83 0,67.13 2.72,77.35 4.22,82.98 8.63,87.42 14.22,88.93 24.37,91.67 65.04,91.67 65.04,91.67 65.04,91.67 105.72,91.67 115.87,88.93 121.47,87.42 125.88,82.99 127.37,77.35 130.09,67.14 130.09,45.83 130.09,45.83 130.09,45.83 130.09,24.52 127.37,14.31z" Stretch="Fill" Width="130.09" Height="91.670006" HorizontalAlignment="Center" VerticalAlignment="Center">
                           <Path.Fill>
                             <SolidColorBrush Color="{DynamicResource Color_YouTubeRed_Official}"/>
+                          </Path.Fill>
+                        </Path>
+                        <Path x:Name="YouTubePlayheadIcon_Front" Data="M0.377388,0.378837 33.4049,19.1977 0.414547,38.0908z" Stretch="Fill" Width="34.004375" Height="38.689987" Margin="7.278,0,0,0.047" HorizontalAlignment="Center" VerticalAlignment="Center">
+                          <Path.Fill>
+                            <SolidColorBrush Color="{DynamicResource Color_White_1_Official}"/>
                           </Path.Fill>
                         </Path>
                       </Grid>

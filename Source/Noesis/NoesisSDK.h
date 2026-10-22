@@ -5,4 +5,5 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
 #include "NoesisPCH.h"

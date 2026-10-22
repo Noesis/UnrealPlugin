@@ -9,8 +9,6 @@
 #include "NoesisSDK.h"
 
 #include "NoesisBaseComponent.h"
-#include "NoesisBlueprint.h"
-#include "NoesisBlueprintGeneratedClass.h"
 #include "NoesisEnums.h"
 #include "NoesisFunctionLibrary.h"
 #include "NoesisInstance.h"

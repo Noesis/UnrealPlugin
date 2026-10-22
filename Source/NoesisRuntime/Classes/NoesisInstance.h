@@ -21,11 +21,16 @@
 // Noesis includes
 #include "NoesisSDK.h"
 
-// NoesisRuntime includes
-#include "NoesisBlueprint.h"
-
 // Generated header include
 #include "NoesisInstance.generated.h"
+
+UENUM()
+enum class ENoesisTessellationQuality : uint8
+{
+	Low,
+	Medium,
+	High,
+};
 
 UENUM()
 enum class NoesisInstanceRenderFlags : uint8

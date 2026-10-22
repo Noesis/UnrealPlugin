@@ -23,9 +23,11 @@
 #include "Engine/LevelScriptBlueprint.h"
 #include "Kismet/GameplayStatics.h"
 
-// NoesisRuntime includes
+// NoesisEditor includes
 #include "NoesisBlueprint.h"
 #include "NoesisBlueprintGeneratedClass.h"
+
+// NoesisRuntime includes
 #include "NoesisInstance.h"
 #include "NoesisXaml.h"
 

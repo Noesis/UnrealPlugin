@@ -10,10 +10,10 @@
 
 // NoesisEditor includes
 #include "NoesisEditorModule.h"
-
-// NoesisRuntime includes
 #include "NoesisBlueprint.h"
 #include "NoesisBlueprintGeneratedClass.h"
+
+// NoesisRuntime includes
 #include "NoesisInstance.h"
 
 // UnrealEd includes

@@ -9,7 +9,7 @@
 #include "CoreMinimal.h"
 
 // Engine includes
-#include "Components/SceneComponent.h"
+#include "Components/MeshComponent.h"
 
 // NoesisRuntime includes
 #include "NoesisInstance.h"
@@ -18,7 +18,7 @@
 #include "NoesisWorldUIComponent.generated.h"
 
 UCLASS( BlueprintType, ClassGroup=(Noesis), meta=(BlueprintSpawnableComponent) )
-class NOESISRUNTIME_API UNoesisWorldUIComponent: public USceneComponent
+class NOESISRUNTIME_API UNoesisWorldUIComponent: public UMeshComponent
 {
 	GENERATED_BODY()
 
@@ -27,6 +27,9 @@ public:
 
 	void Add3DElement();
 	void Remove3DElement();
+
+	virtual FPrimitiveSceneProxy* CreateSceneProxy() override;
+	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -54,4 +57,6 @@ public:
 
 	Noesis::Ptr<Noesis::FrameworkElement> Element;
 	FDelegateHandle TransformUpdatedDelegateHandle;
+
+	FBox ProxyBox;
 };

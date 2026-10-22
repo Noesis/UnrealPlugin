@@ -2225,25 +2225,16 @@ public:
 		if (Object == nullptr)
 		{
 			NS_LOG("A wrapper of a deleted object is still referenced");
-			return Noesis::BaseComponent::StaticGetClassType(nullptr);
+			return Noesis::TypeOf<NoesisObjectWrapper>();
 		}
 
 		if (IsValid(Object) && !Object->IsUnreachable())
 		{
 			UClass* Class = Object->GetClass();
-			bool bIsNew;
-			const Noesis::TypeClass* TypeClass = NoesisCreateTypeClassForUClass(Class, bIsNew);
-
-#if WITH_EDITOR
-			if (bIsNew)
-			{
-				Noesis::Studio::PopulateTypeCache();
-			}
-#endif
-
-			return TypeClass == nullptr ? Noesis::BaseComponent::StaticGetClassType(nullptr) : TypeClass;
+			const Noesis::TypeClass* TypeClass = NoesisCreateTypeClassForUClass(Class);
+			return TypeClass == nullptr ? Noesis::TypeOf<NoesisObjectWrapper>() : TypeClass;
 		}
-		return Noesis::BaseComponent::StaticGetClassType(nullptr);
+		return Noesis::TypeOf<NoesisObjectWrapper>();
 	}
 
 	Noesis::String ToString() const override
