@@ -181,8 +181,8 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	UPROPERTY(BlueprintReadWrite, Category = "NoesisGUI")
 	float PixelDepthBias;
 
-	UFUNCTION(BlueprintCallable, Category = "NoesisGUI")
-	void InitInstance();
+    UFUNCTION(BlueprintCallable, Category = "NoesisGUI")
+	virtual void InitInstance();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "NoesisGUI")
 	void XamlLoaded();
@@ -206,8 +206,11 @@ class NOESISRUNTIME_API UNoesisInstance : public UUserWidget
 	void ExecuteConsoleCommand(FString Command, class APlayerController* SpecificPlayer);
 
 	static UNoesisInstance* FromView(Noesis::IView* View);
+	static void SetCursorForAll(EMouseCursor::Type CursorType);
 
-	void Update();
+	void InitView();
+
+	virtual void Update();
 
 	FVector2D GetSize() const;
 	void Init3DWidget(UWorld* World);

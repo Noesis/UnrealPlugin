@@ -97,7 +97,8 @@ void FNoesisXamlProvider::OnXamlChanged(UNoesisXaml* Xaml)
 #if WITH_EDITOR
 	if (TArray<FString>* Names = NameMap.Find(Xaml))
 	{
-		for (const FString& Name : *Names)
+		TArray<FString> Names_ = *Names;
+		for (const FString& Name : Names_)
 		{
 			RaiseXamlChanged((ANSICHAR*)StringCast<UTF8CHAR>(*Name).Get());
 		}

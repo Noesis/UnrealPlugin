@@ -62,8 +62,6 @@ EReimportResult::Type UNoesisXamlReimportFactory::Reimport(UObject* Obj)
 
 	if (ImportObject(NoesisXaml->GetClass(), NoesisXaml->GetOuter(), *NoesisXaml->GetName(), RF_Public | RF_Standalone, Filename, nullptr, OutCanceled) != nullptr)
 	{
-		NoesisXaml->AssetImportData->Update(Filename);
-
 		// Try to find the outer package so we can dirty it up
 		if (NoesisXaml->GetOuter())
 		{

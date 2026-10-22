@@ -30,29 +30,32 @@ class NOESISRUNTIME_API UNoesisXaml : public UObject
 	UPROPERTY()
 	TArray<uint8> XamlText;
 
-	UPROPERTY()
-	TArray<TObjectPtr<UNoesisXaml>> Xamls;
+	UPROPERTY(Meta = (DeprecatedProperty))
+	TArray<TObjectPtr<UNoesisXaml>> Xamls_DEPRECATED;
+
+	UPROPERTY(Meta = (DeprecatedProperty))
+	TArray<TObjectPtr<class UTexture2D>> Textures_DEPRECATED;
+
+	UPROPERTY(Meta = (DeprecatedProperty))
+	TArray<TObjectPtr<class UFont>> Fonts_DEPRECATED;
+
+	UPROPERTY(Meta = (DeprecatedProperty))
+	TArray<TObjectPtr<class UFontFace>> FontFaces_DEPRECATED;
+
+	UPROPERTY(Meta = (DeprecatedProperty))
+	TArray<TObjectPtr<class USoundWave>> Sounds_DEPRECATED;
+
+	UPROPERTY(Meta = (DeprecatedProperty))
+	TArray<TObjectPtr<class UMediaSource>> Videos_DEPRECATED;
+
+	UPROPERTY(Meta = (DeprecatedProperty))
+	TArray<TObjectPtr<class UNoesisRive>> Rives_DEPRECATED;
+
+	UPROPERTY(Meta = (DeprecatedProperty))
+	TArray<TObjectPtr<class UMaterialInterface>> Materials_DEPRECATED;
 
 	UPROPERTY()
-	TArray<TObjectPtr<class UTexture2D>> Textures;
-
-	UPROPERTY()
-	TArray<TObjectPtr<class UFont>> Fonts;
-
-	UPROPERTY()
-	TArray<TObjectPtr<class UFontFace>> FontFaces;
-
-	UPROPERTY()
-	TArray<TObjectPtr<class USoundWave>> Sounds;
-
-	UPROPERTY()
-	TArray<TObjectPtr<class UMediaSource>> Videos;
-
-	UPROPERTY()
-	TArray<TObjectPtr<class UNoesisRive>> Rives;
-
-	UPROPERTY()
-	TArray<TObjectPtr<class UMaterialInterface>> Materials;
+	TArray<TObjectPtr<UObject>> Dependencies;
 
 	UPROPERTY()
 	TArray<FText> Texts;
@@ -66,6 +69,7 @@ class NOESISRUNTIME_API UNoesisXaml : public UObject
 	TObjectPtr<class UAssetImportData> AssetImportData;
 
 	// UObject interface
+	virtual void PostLoad();
 	virtual void PostInitProperties() override;
 #if UE_VERSION_OLDER_THAN(5, 4, 0)
 	virtual void GetAssetRegistryTags(TArray<FAssetRegistryTag>& OutTags) const override;

@@ -49,10 +49,15 @@ void FNoesisStyle::Initialize()
 	StyleSet->Set("ClassThumbnail.NoesisBlueprint", new IMAGE_PLUGIN_BRUSH("Blueprint_64x", Icon64x64));
 	StyleSet->Set("ClassIcon.NoesisInstance", new IMAGE_PLUGIN_BRUSH("Blueprint_16x", Icon16x16));
 	StyleSet->Set("ClassThumbnail.NoesisInstance", new IMAGE_PLUGIN_BRUSH("Blueprint_64x", Icon64x64));
+	StyleSet->Set("ClassIcon.NoesisProject", new IMAGE_PLUGIN_BRUSH("Studio_16x", Icon16x16));
+	StyleSet->Set("ClassThumbnail.NoesisProject", new IMAGE_PLUGIN_BRUSH("Studio_64x", Icon64x64));
 	StyleSet->Set("ClassIcon.NoesisXaml", new IMAGE_PLUGIN_BRUSH("Xaml_16x", Icon16x16));
 	StyleSet->Set("ClassThumbnail.NoesisXaml", new IMAGE_PLUGIN_BRUSH("Xaml_64x", Icon64x64));
 	StyleSet->Set("NoesisBlueprintEditor.RestartPreview", new IMAGE_PLUGIN_BRUSH("RestartPreview_40x", Icon40x40));
 	StyleSet->Set("NoesisEditor.About", new IMAGE_PLUGIN_BRUSH("About", FVector2D(300.0f, 60.0f)));
+	StyleSet->Set("MenuIcon.NewProject", new IMAGE_PLUGIN_BRUSH("NewProject_16x", Icon16x16));
+	StyleSet->Set("MenuIcon.Studio", new IMAGE_PLUGIN_BRUSH("Studio_16x", Icon16x16));
+	StyleSet->Set("MenuIcon.About", new IMAGE_PLUGIN_BRUSH("AboutIcon_16x", Icon16x16));
 
 	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet.Get());
 };

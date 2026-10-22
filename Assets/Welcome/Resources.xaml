@@ -1,0 +1,1921 @@
+<ResourceDictionary
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:noesis="clr-namespace:NoesisGUIExtensions"
+  xmlns:system="clr-namespace:System"
+  mc:Ignorable="d">
+
+  <!-- COLORS & BRUSHES -->
+  <Color x:Key="Color_Transparent">#00FFFFFF</Color>
+  <Color x:Key="Color_White_1_Official">#FFF2F2F2</Color>
+  <Color x:Key="Color_Blue_1_Official">#2aa6e2</Color>
+  <Color x:Key="Color_Blue_2_Unofficial">#1968a6</Color>
+  <Color x:Key="Color_Blue_3_Official">#124c7a</Color>
+  <Color x:Key="Color_Blue_4_Official">#0e3b5e</Color>
+  <Color x:Key="Color_Gray_1_System">#282828</Color>
+  <Color x:Key="Color_Gray_2_Unofficial">#444444</Color>
+  <Color x:Key="Color_Orange_1_Unofficial">#e58819</Color>
+  <Color x:Key="Color_Orange_2_Unofficial">#FFF2A024</Color>
+
+  <Color x:Key="Color_YouTubeRed_Official">#FFFF0033</Color>
+  <LinearGradientBrush x:Key="Gradient_Blue_45Deg" EndPoint="1,1">
+    <GradientStop Color="{DynamicResource Color_Blue_4_Official}" Offset="0"/>
+    <GradientStop Color="{DynamicResource Color_Blue_2_Unofficial}" Offset="1"/>
+    <GradientStop Color="{DynamicResource Color_Blue_3_Official}" Offset="0.5"/>
+  </LinearGradientBrush>
+
+  <LinearGradientBrush x:Key="Gradient_Blue_90Deg" StartPoint="0.5,0" EndPoint="0.5,1">
+    <GradientStop Color="{DynamicResource Color_Blue_4_Official}" Offset="0"/>
+    <GradientStop Color="{DynamicResource Color_Blue_2_Unofficial}" Offset="1"/>
+    <GradientStop Color="{DynamicResource Color_Blue_3_Official}" Offset="0.5"/>
+  </LinearGradientBrush>
+
+  <LinearGradientBrush x:Key="Gradient_Blue_Glow_90Deg" StartPoint="0.5,0" EndPoint="0.5,1" Opacity="0.25">
+    <GradientStop Color="{DynamicResource Color_Blue_1_Official}" Offset="1"/>
+    <GradientStop Color="{DynamicResource Color_Transparent}" Offset="0"/>
+  </LinearGradientBrush>
+
+  <DropShadowEffect x:Key="DropShadowEffect_FrameOuterGlow" Direction="-90" Color="{DynamicResource Color_Blue_1_Official}" BlurRadius="24" Opacity="0.1" ShadowDepth="1"/>
+
+  <DropShadowEffect Color="{DynamicResource Color_Blue_1_Official}" BlurRadius="40" ShadowDepth="0" Opacity="0.501" Direction="90" x:Key="DropShadowEffect_ImageOverlayObjectsGlows"/>
+  <Thickness x:Key="Thickness_FrameBorderThickness">1</Thickness>
+  <Thickness x:Key="Thickness_TilingOuterMargin_Omni">8,8,8,8</Thickness>
+
+  <Thickness x:Key="Thickness_TilingOuterMargin_LeftRight">8,0,8,0</Thickness>
+  <CornerRadius x:Key="CornerRadius_Level1">4,4,4,4</CornerRadius>
+
+  <CornerRadius x:Key="CornerRadius_Level2">2,2,2,2</CornerRadius>
+  <FontFamily x:Key="FontFamily_PrimaryFont">Fonts/#Noto Sans, Fonts/#Symbols</FontFamily>
+
+  <system:Single x:Key="Single_TextSize_10">10</system:Single>
+  <system:Single x:Key="Single_TextSize_11">11</system:Single>
+  <system:Single x:Key="Single_TextSize_16">16</system:Single>
+  <system:Single x:Key="Single_TextSize_20">20</system:Single>
+  <DropShadowEffect x:Key="DropShadowEffect_TextOuterGlow" Color="#FFCCCCCC" ShadowDepth="0" Direction="-90"/>
+
+
+  <!-- IMAGES -->
+  <ImageSource x:Key="Image.Home.Bugs">Images/Home/Bugs.png</ImageSource>
+  <ImageSource x:Key="Image.Home.Changelog">Images/Home/Changelog.png</ImageSource>
+  <ImageSource x:Key="Image.Home.Docs">Images/Home/Docs.png</ImageSource>
+  <ImageSource x:Key="Image.Home.Forums">Images/Home/Forums.png</ImageSource>
+  <ImageSource x:Key="Image.Learn.DocsNoesisGUI">Images/Learn/DocsNoesisGUI.png</ImageSource>
+  <ImageSource x:Key="Image.Learn.DocsStudio">Images/Learn/DocsStudio.png</ImageSource>
+  <ImageSource x:Key="Image.Learn.VideoCharSel">Images/Learn/VideoCharacterSelection.png</ImageSource>
+  <ImageSource x:Key="Image.Learn.VideoData">Images/Learn/VideoData.png</ImageSource>
+  <ImageSource x:Key="Image.Learn.VideoMainMenu">Images/Learn/VideoMainMenu.png</ImageSource>
+  <ImageSource x:Key="Image.Learn.VideoNewEra">Images/Learn/VideoNewEra.png</ImageSource>
+  <ImageSource x:Key="Image.Learn.VideoPaths">Images/Learn/VideoPaths.png</ImageSource>
+  <ImageSource x:Key="Image.Learn.VideoStyles">Images/Learn/VideoTemplatesStyles.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.BackgroundEffect">Images/Samples/BackgroundEffect.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.BrushShaders">Images/Samples/BrushShaders.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.CustomControl">Images/Samples/CustomControl.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.CustomRender">Images/Samples/CustomRender.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.DataBinding">Images/Samples/DataBinding.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.HelloWorld">Images/Samples/HelloWorld.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.Inventory">Images/Samples/Inventory.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.Localization">Images/Samples/Localization.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.LoginDialog">Images/Samples/LoginDialog.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.Menu3D">Images/Samples/Menu3D.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.QuestLog">Images/Samples/QuestLog.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.Rive">Images/Samples/Rive.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.Scoreboard">Images/Samples/Scoreboard.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.StartMenu">Images/Samples/StartMenu.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.TicTacToe">Images/Samples/TicTacToe.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.UserControl">Images/Samples/UserControl.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.VideoEffect">Images/Samples/VideoEffect.png</ImageSource>
+  <ImageSource x:Key="Image.Samples.WorldSpaceUI">Images/Samples/WorldSpaceUI.png</ImageSource>
+
+  <!-- STYLES -->
+   <ControlTemplate x:Key="Template_TabControl_PageComposition" TargetType="TabControl">
+    <Grid x:Name="Master_Grid" d:DataContext="DataSet_Unity">
+      <TabPanel IsItemsHost="True" Panel.ZIndex="1" Background="#00FFFFFF" KeyboardNavigation.TabIndex="1"/>
+    </Grid>
+  </ControlTemplate>
+
+  <ControlTemplate x:Key="Template_ListBoxItem_SideBarButton" TargetType="ListBoxItem">
+    <ControlTemplate.CustomProperties>
+      <CustomProperty Name="Icon" Type="DataTemplate"/>
+    </ControlTemplate.CustomProperties>
+    <Grid x:Name="Master_Grid" Cursor="Hand" d:DesignWidth="512" d:DesignHeight="256">
+      <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="SelectionStates">
+          <VisualStateGroup.Transitions>
+            <VisualTransition GeneratedDuration="00:00:00.1000000" To="Selected"/>
+            <VisualTransition From="Selected" GeneratedDuration="00:00:00.1500000"/>
+            <VisualTransition GeneratedDuration="00:00:00.1000000" To="SelectedUnfocused"/>
+            <VisualTransition From="SelectedUnfocused" GeneratedDuration="00:00:00.1500000"/>
+          </VisualStateGroup.Transitions>
+          <VisualState x:Name="Unselected"/>
+          <VisualState x:Name="Selected">
+            <Storyboard>
+              <ColorAnimationUsingKeyFrames Storyboard.TargetName="Frame_Outline_Border" Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)">
+                <LinearColorKeyFrame KeyTime="00:00:00" Value="{DynamicResource Color_Blue_1_Official}"/>
+              </ColorAnimationUsingKeyFrames>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Frame_Outline_Border" Storyboard.TargetProperty="(Border.BorderBrush).(Brush.Opacity)">
+                <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.05"/>
+              </DoubleAnimationUsingKeyFrames>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Frame_Background_DropShadow_Border" Storyboard.TargetProperty="(UIElement.Opacity)">
+                <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.5"/>
+              </DoubleAnimationUsingKeyFrames>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Frame_Background_Gradient_Group" Storyboard.TargetProperty="(UIElement.Opacity)">
+                <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.499"/>
+              </DoubleAnimationUsingKeyFrames>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Content_Layout_Grid" Storyboard.TargetProperty="(UIElement.Opacity)">
+                <LinearDoubleKeyFrame KeyTime="00:00:00" Value="1"/>
+              </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+          </VisualState>
+          <VisualState x:Name="SelectedUnfocused">
+            <Storyboard>
+              <ColorAnimationUsingKeyFrames Storyboard.TargetName="Frame_Outline_Border" Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)">
+                <LinearColorKeyFrame Value="{DynamicResource Color_Blue_1_Official}" KeyTime="0:0:0"/>
+              </ColorAnimationUsingKeyFrames>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Frame_Outline_Border" Storyboard.TargetProperty="(Border.BorderBrush).(Brush.Opacity)">
+                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.05"/>
+              </DoubleAnimationUsingKeyFrames>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Frame_Background_DropShadow_Border" Storyboard.TargetProperty="(UIElement.Opacity)">
+                <LinearDoubleKeyFrame Value="0.5" KeyTime="0:0:0"/>
+              </DoubleAnimationUsingKeyFrames>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Frame_Background_Gradient_Group" Storyboard.TargetProperty="(UIElement.Opacity)">
+                <LinearDoubleKeyFrame Value="0.5" KeyTime="0:0:0"/>
+              </DoubleAnimationUsingKeyFrames>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Content_Layout_Grid" Storyboard.TargetProperty="(UIElement.Opacity)">
+                <LinearDoubleKeyFrame KeyTime="00:00:00" Value="1"/>
+              </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+          </VisualState>
+        </VisualStateGroup>
+        <VisualStateGroup x:Name="CommonStates">
+          <VisualStateGroup.Transitions>
+            <VisualTransition GeneratedDuration="00:00:00.1000000" To="MouseOver"/>
+            <VisualTransition From="MouseOver" GeneratedDuration="00:00:00.1500000"/>
+          </VisualStateGroup.Transitions>
+          <VisualState x:Name="Normal"/>
+          <VisualState x:Name="MouseOver">
+            <Storyboard>
+              <ColorAnimationUsingKeyFrames Storyboard.TargetName="MouseOver_Label_TextBlock" Storyboard.TargetProperty="(TextElement.Foreground).(SolidColorBrush.Color)">
+                <LinearColorKeyFrame KeyTime="00:00:00" Value="{DynamicResource Color_Blue_1_Official}"/>
+              </ColorAnimationUsingKeyFrames>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="MouseOver_Grid" Storyboard.TargetProperty="(UIElement.Opacity)">
+                <LinearDoubleKeyFrame KeyTime="00:00:00" Value="1"/>
+              </DoubleAnimationUsingKeyFrames>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Frame_Background_ColorOverlay_Border" Storyboard.TargetProperty="(UIElement.Opacity)">
+                <LinearDoubleKeyFrame KeyTime="00:00:00" Value="1"/>
+              </DoubleAnimationUsingKeyFrames>
+              <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(TextElement.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="MouseOver_Icon_Host">
+                <LinearColorKeyFrame Value="{DynamicResource Color_Blue_1_Official}" KeyTime="0:0:0"/>
+              </ColorAnimationUsingKeyFrames>
+              <ColorAnimationUsingKeyFrames Storyboard.TargetName="MouseOver_OutlineBorder" Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)">
+                <LinearColorKeyFrame KeyTime="00:00:00" Value="{DynamicResource Color_Blue_4_Official}"/>
+              </ColorAnimationUsingKeyFrames>
+            </Storyboard>
+          </VisualState>
+          <VisualState x:Name="Disabled"/>
+        </VisualStateGroup>
+      </VisualStateManager.VisualStateGroups>
+      <Grid x:Name="ButtonArea_Margined_Grid" Margin="8,4,8,4">
+        <Grid x:Name="ButtonArea_Sizer_Grid" Height="56">
+          <Grid x:Name="MouseOver_Grid">
+            <Border x:Name="MouseOver_OutlineBorder" BorderThickness="{DynamicResource Thickness_FrameBorderThickness}" CornerRadius="{DynamicResource CornerRadius_Level1}">
+              <Border.Background>
+                <SolidColorBrush Color="{DynamicResource Color_Gray_2_Unofficial}" Opacity="0.3"/>
+              </Border.Background>
+            </Border>
+            <Grid x:Name="MouseOver_Content_Layout_Grid" Height="40" Margin="8,8,8,8" VerticalAlignment="Center">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock x:Name="MouseOver_Label_TextBlock" Margin="0,0,8,0" VerticalAlignment="Bottom" FontFamily="{DynamicResource FontFamily_PrimaryFont}" FontSize="{DynamicResource Single_TextSize_10}" FontWeight="Black" TextWrapping="Wrap">
+                <TextBlock.Foreground>
+                  <SolidColorBrush Color="{DynamicResource Color_White_1_Official}"/>
+                </TextBlock.Foreground>
+                <TextBlock.Text>
+                  <Binding Path="Content" RelativeSource="{RelativeSource TemplatedParent}" FallbackValue="Label">
+                    <Binding.Converter>
+                      <noesis:CaseConverter/>
+                    </Binding.Converter>
+                  </Binding>
+                </TextBlock.Text>
+              </TextBlock>
+              <ContentControl x:Name="MouseOver_Icon_Host" Content=" " Width="20" Height="20" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Top" ContentTemplate="{Binding Path=(Custom.Icon_DataTemplate), RelativeSource={RelativeSource TemplatedParent}}">
+                <ContentControl.Foreground>
+                  <SolidColorBrush Color="{DynamicResource Color_White_1_Official}"/>
+                </ContentControl.Foreground>
+              </ContentControl>
+            </Grid>
+          </Grid>
+          <Grid x:Name="Frame_Grid">
+            <Border x:Name="Frame_Background_DropShadow_Border" Opacity="0" BorderThickness="{DynamicResource Thickness_FrameBorderThickness}" CornerRadius="{DynamicResource CornerRadius_Level1}" Effect="{DynamicResource DropShadowEffect_FrameOuterGlow}" Background="{DynamicResource Gradient_Blue_90Deg}"/>
+            <Grid x:Name="Frame_Background_Gradient_Group" Opacity="0">
+              <Border x:Name="Frame_Background_Gradient_Border" BorderThickness="{DynamicResource Thickness_FrameBorderThickness}" CornerRadius="{DynamicResource CornerRadius_Level1}" Background="{DynamicResource Gradient_Blue_90Deg}" BorderBrush="{DynamicResource Gradient_Blue_90Deg}"/>
+              <Border x:Name="Frame_Background_ColorOverlay_Border" Opacity="0.5" BorderThickness="{DynamicResource Thickness_FrameBorderThickness}" CornerRadius="{DynamicResource CornerRadius_Level1}" Background="{DynamicResource Gradient_Blue_Glow_90Deg}"/>
+            </Grid>
+            <Border x:Name="Frame_Outline_Border" BorderThickness="{DynamicResource Thickness_FrameBorderThickness}" CornerRadius="{DynamicResource CornerRadius_Level1}">
+              <Border.Background>
+                <SolidColorBrush Color="{DynamicResource Color_Blue_1_Official}" Opacity="0"/>
+              </Border.Background>
+              <Border.BorderBrush>
+                <SolidColorBrush Color="{DynamicResource Color_Gray_2_Unofficial}" Opacity="0"/>
+              </Border.BorderBrush>
+            </Border>
+          </Grid>
+          <Grid x:Name="Content_Margined_Grid" Margin="8,8,8,8">
+            <Grid x:Name="Content_Layout_Grid" Height="40" VerticalAlignment="Center" Opacity="0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock x:Name="Label_TextBlock" TextWrapping="Wrap" VerticalAlignment="Bottom" FontFamily="{DynamicResource FontFamily_PrimaryFont}" FontSize="{DynamicResource Single_TextSize_10}" FontWeight="Black" Margin="0,0,8,0">
+                <TextBlock.Foreground>
+                  <SolidColorBrush Color="{DynamicResource Color_White_1_Official}"/>
+                </TextBlock.Foreground>
+                <TextBlock.Text>
+                  <Binding Path="Content" RelativeSource="{RelativeSource TemplatedParent}" FallbackValue="Label">
+                    <Binding.Converter>
+                      <noesis:CaseConverter/>
+                    </Binding.Converter>
+                  </Binding>
+                </TextBlock.Text>
+              </TextBlock>
+              <ContentControl x:Name="Icon_Host" Content=" " Width="20" Height="20" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Top" ContentTemplate="{Binding Path=(Custom.Icon_DataTemplate), RelativeSource={RelativeSource TemplatedParent}}"/>
+            </Grid>
+          </Grid>
+        </Grid>
+      </Grid>
+    </Grid>
+  </ControlTemplate>
+
+  <Style x:Key="Style_ListBoxItem_SideBarButton" TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+    <Setter Property="Template" Value="{StaticResource Template_ListBoxItem_SideBarButton}"/>
+  </Style>
+
+  <ControlTemplate x:Key="Template_TabControl_TabItem" TargetType="TabItem">
+    <ControlTemplate.CustomProperties>
+      <CustomProperty Name="Icon" Type="DataTemplate"/>
+    </ControlTemplate.CustomProperties>
+    <Grid x:Name="Master_Grid" d:DesignWidth="512" d:DesignHeight="256">
+      <ListBoxItem Style="{StaticResource Style_ListBoxItem_SideBarButton}" Content="{Binding Path=Header, RelativeSource={RelativeSource TemplatedParent}}" Custom.Icon_DataTemplate="{Binding Path=(Custom.Icon_DataTemplate), RelativeSource={RelativeSource TemplatedParent}}" IsSelected="{Binding Path=IsSelected, RelativeSource={RelativeSource TemplatedParent}}">
+        <b:Interaction.Triggers>
+          <b:EventTrigger x:Name="OnClick_Set_IsSelected_ToTrue" EventName="PreviewMouseDown">
+            <b:ChangePropertyAction x:Name="Set_IsSelected_ToTrue" PropertyName="IsSelected" Value="True"/>
+          </b:EventTrigger>
+        </b:Interaction.Triggers>
+      </ListBoxItem>
+    </Grid>
+  </ControlTemplate>
+
+  <ControlTemplate x:Key="Template_Button_LinkBarButton" TargetType="Button">
+    <ControlTemplate.Triggers>
+      <Trigger Property="IsMouseOver" Value="True">
+        <Setter TargetName="Master_Grid" Property="Cursor" Value="Hand"/>
+      </Trigger>
+    </ControlTemplate.Triggers>
+    <Grid x:Name="Master_Grid">
+      <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="CommonStates">
+          <VisualStateGroup.Transitions>
+            <VisualTransition GeneratedDuration="00:00:00.1000000" To="MouseOver"/>
+            <VisualTransition From="MouseOver" GeneratedDuration="00:00:00.1500000"/>
+          </VisualStateGroup.Transitions>
+          <VisualState x:Name="Normal"/>
+          <VisualState x:Name="MouseOver">
+            <Storyboard>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Frame_Background_Border" Storyboard.TargetProperty="(Panel.Background).(Brush.Opacity)">
+                <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.05"/>
+              </DoubleAnimationUsingKeyFrames>
+              <ColorAnimationUsingKeyFrames Storyboard.TargetName="Icon_ContentControl" Storyboard.TargetProperty="(TextElement.Foreground).(SolidColorBrush.Color)">
+                <LinearColorKeyFrame KeyTime="00:00:00" Value="{DynamicResource Color_Blue_1_Official}"/>
+              </ColorAnimationUsingKeyFrames>
+            </Storyboard>
+          </VisualState>
+          <VisualState x:Name="Pressed"/>
+          <VisualState x:Name="Disabled"/>
+        </VisualStateGroup>
+      </VisualStateManager.VisualStateGroups>
+      <Border x:Name="Frame_Background_Border" CornerRadius="{Binding Path=Tag, RelativeSource={RelativeSource TemplatedParent}}">
+        <Border.Background>
+          <SolidColorBrush Color="{DynamicResource Color_Blue_1_Official}" Opacity="0"/>
+        </Border.Background>
+      </Border>
+      <ContentControl x:Name="Icon_ContentControl" Content="ContentControl" HorizontalAlignment="Center" Margin="4,4,4,4" ContentTemplate="{Binding Path=ContentTemplate, RelativeSource={RelativeSource TemplatedParent}}">
+        <ContentControl.Foreground>
+          <SolidColorBrush Color="{DynamicResource Color_White_1_Official}"/>
+        </ContentControl.Foreground>
+      </ContentControl>
+    </Grid>
+  </ControlTemplate>
+  
+  <ControlTemplate x:Key="Template_Button_Tile" TargetType="Button">
+    <Grid x:Name="Master_Grid" Cursor="Hand">
+      <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal"/>
+          <VisualState x:Name="MouseOver">
+            <Storyboard>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Frame_Outline_Border" Storyboard.TargetProperty="(Border.BorderBrush).(Brush.Opacity)">
+                <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.5"/>
+              </DoubleAnimationUsingKeyFrames>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Shadow_Box" Storyboard.TargetProperty="(UIElement.Opacity)">
+                <LinearDoubleKeyFrame KeyTime="00:00:00" Value="1"/>
+              </DoubleAnimationUsingKeyFrames>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Shadow_Box" Storyboard.TargetProperty="(NoesisGUIExtensions.BoxShadow.BlurRadius)">
+                <LinearDoubleKeyFrame KeyTime="00:00:00" Value="15"/>
+              </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+          </VisualState>
+          <VisualState x:Name="Pressed"/>
+          <VisualState x:Name="Disabled"/>
+        </VisualStateGroup>
+      </VisualStateManager.VisualStateGroups>
+      <Grid x:Name="ButtonArea_Margined_Grid">
+        <Grid x:Name="Frame_Grid">
+          <noesis:BoxShadow x:Name="Shadow_Box" BlurRadius="10" Direction="-80" Depth="2" Color="#33000000" Opacity="0"/>
+          <Border x:Name="Frame_Background_Gradient_Border" Opacity="0.2" BorderThickness="{DynamicResource Thickness_FrameBorderThickness}" CornerRadius="{DynamicResource CornerRadius_Level1}" BlendingMode="Multiply">
+            <Border.Background>
+              <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                <GradientStop Color="{DynamicResource Color_Blue_4_Official}" Offset="0"/>
+                <GradientStop Offset="1" Color="{DynamicResource Color_Blue_4_Official}"/>
+                <GradientStop Color="{DynamicResource Color_Blue_3_Official}" Offset="0.5"/>
+              </LinearGradientBrush>
+            </Border.Background>
+          </Border>
+          <Border x:Name="Frame_Outiline_Gradient_Border" Opacity="0" BorderBrush="{DynamicResource Gradient_Blue_90Deg}" BorderThickness="{DynamicResource Thickness_FrameBorderThickness}" CornerRadius="{DynamicResource CornerRadius_Level1}"/>
+          <Border x:Name="Frame_Outline_Border" BorderThickness="{DynamicResource Thickness_FrameBorderThickness}" CornerRadius="{DynamicResource CornerRadius_Level1}">
+            <Border.Background>
+              <SolidColorBrush Color="{DynamicResource Color_Blue_1_Official}" Opacity="0"/>
+            </Border.Background>
+            <Border.BorderBrush>
+              <SolidColorBrush Color="{DynamicResource Color_Blue_1_Official}" Opacity="0"/>
+            </Border.BorderBrush>
+          </Border>
+        </Grid>
+        <Grid x:Name="Content_Margined_Grid" Margin="16,16,16,16">
+          <ContentPresenter/>
+        </Grid>
+      </Grid>
+    </Grid>
+  </ControlTemplate>
+
+  <ItemsPanelTemplate x:Key="Template_ListBox_ItemsPanel_TilePresenter_2Wide">
+    <UniformGrid Columns="2" Margin="{DynamicResource Thickness_TilingOuterMargin_Omni}"/>
+  </ItemsPanelTemplate>
+  <ControlTemplate x:Key="Template_Button_NewVersionDownload" TargetType="Button">
+    <ControlTemplate.Triggers>
+      <Trigger Property="IsMouseOver" Value="True">
+        <Setter TargetName="Master_Grid" Property="Cursor" Value="Hand"/>
+      </Trigger>
+      <Trigger Property="IsPressed" Value="True"/>
+    </ControlTemplate.Triggers>
+    <Grid x:Name="Master_Grid" MinHeight="24" d:DesignWidth="512" d:DesignHeight="256">
+      <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="CommonStates">
+          <VisualStateGroup.Transitions>
+            <VisualTransition GeneratedDuration="00:00:00.1000000" To="MouseOver"/>
+            <VisualTransition From="MouseOver" GeneratedDuration="00:00:00.1500000"/>
+            <VisualTransition GeneratedDuration="00:00:00.0500000" To="Pressed"/>
+            <VisualTransition From="Pressed" GeneratedDuration="00:00:00.1000000"/>
+          </VisualStateGroup.Transitions>
+          <VisualState x:Name="Normal"/>
+          <VisualState x:Name="MouseOver">
+            <Storyboard>
+              <ColorAnimationUsingKeyFrames Storyboard.TargetName="Frame_Background_Border" Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)">
+                <LinearColorKeyFrame KeyTime="00:00:00" Value="{DynamicResource Color_Orange_2_Unofficial}"/>
+              </ColorAnimationUsingKeyFrames>
+              <ColorAnimationUsingKeyFrames Storyboard.TargetName="VersionName_TextBlock" Storyboard.TargetProperty="(TextElement.Foreground).(SolidColorBrush.Color)">
+                <LinearColorKeyFrame KeyTime="00:00:00" Value="{DynamicResource Color_Orange_2_Unofficial}"/>
+              </ColorAnimationUsingKeyFrames>
+              <ColorAnimationUsingKeyFrames Storyboard.TargetName="ExternalLinkIcon_TextBlock" Storyboard.TargetProperty="(TextElement.Foreground).(SolidColorBrush.Color)">
+                <LinearColorKeyFrame KeyTime="00:00:00" Value="{DynamicResource Color_Orange_2_Unofficial}"/>
+              </ColorAnimationUsingKeyFrames>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Frame_Background_Border" Storyboard.TargetProperty="(Panel.Background).(Brush.Opacity)">
+                <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.05"/>
+              </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+          </VisualState>
+          <VisualState x:Name="Pressed"/>
+          <VisualState x:Name="Disabled"/>
+        </VisualStateGroup>
+      </VisualStateManager.VisualStateGroups>
+      <Border x:Name="Frame_Background_Border" BorderThickness="{DynamicResource Thickness_FrameBorderThickness}" CornerRadius="{DynamicResource CornerRadius_Level1}">
+        <Border.BorderBrush>
+          <SolidColorBrush Color="{DynamicResource Color_Orange_1_Unofficial}"/>
+        </Border.BorderBrush>
+        <Border.Background>
+          <SolidColorBrush Color="{DynamicResource Color_Orange_1_Unofficial}" Opacity="0"/>
+        </Border.Background>
+        <Grid x:Name="Content_Layout_Grid" Margin="8,0,8,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <Grid x:Name="LeftMarginSizer_BasedOnExternalLinkTextBlock_Grid" Width="{Binding Path=ActualWidth, ElementName=ExternalLinkIcon_TextBlock}" Margin="0,0,4,0"/>
+          <TextBlock x:Name="VersionName_TextBlock" TextWrapping="Wrap" TextAlignment="Center" FontFamily="{DynamicResource FontFamily_PrimaryFont}" VerticalAlignment="Center" FontWeight="Black" Text="{Binding Path=Content, RelativeSource={RelativeSource TemplatedParent}}" Grid.Column="1" LineStackingStrategy="BlockLineHeight" LineHeight="10" FontSize="{DynamicResource Single_TextSize_10}" Margin="0,5,0,4">
+            <TextBlock.Foreground>
+              <SolidColorBrush Color="{DynamicResource Color_Orange_1_Unofficial}"/>
+            </TextBlock.Foreground>
+          </TextBlock>
+          <TextBlock x:Name="ExternalLinkIcon_TextBlock" Text="" TextWrapping="Wrap" TextAlignment="Right" FontFamily="{DynamicResource FontFamily_PrimaryFont}" VerticalAlignment="Center" FontWeight="Black" Grid.Column="2" Margin="4,0,0,0" FontSize="{DynamicResource Single_TextSize_10}">
+            <TextBlock.Foreground>
+              <SolidColorBrush Color="{DynamicResource Color_Orange_1_Unofficial}"/>
+            </TextBlock.Foreground>
+          </TextBlock>
+        </Grid>
+      </Border>
+    </Grid>
+  </ControlTemplate>
+
+  <ControlTemplate x:Key="Template_Control_PageHeader" TargetType="Control">
+    <ControlTemplate.Resources>
+      <ResourceDictionary>
+        <Storyboard x:Key="Anim.Enter">
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="TextBlock0" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.300">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <CircleEase EasingMode="EaseOut"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="TextBlock1" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="00:00:00.3000000" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="TextBlock0" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="-50"/>
+            <EasingDoubleKeyFrame Value="0" KeyTime="0:0:0.300">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <CircleEase EasingMode="EaseOut"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="TextBlock1" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="-50"/>
+            <EasingDoubleKeyFrame Value="0" KeyTime="0:0:0.300">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <CubicEase EasingMode="EaseOut"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+      </ResourceDictionary>
+    </ControlTemplate.Resources>
+    <ControlTemplate.CustomProperties>
+      <CustomProperty Name="Line1" Type="system:String">
+        <CustomProperty.Default>
+          <system:String>LINE1</system:String>
+        </CustomProperty.Default>
+      </CustomProperty>
+      <CustomProperty Name="Line2" Type="system:String">
+        <CustomProperty.Default>
+          <system:String>LINE2</system:String>
+        </CustomProperty.Default>
+      </CustomProperty>
+    </ControlTemplate.CustomProperties>
+    <Grid x:Name="Master_Grid" d:DesignWidth="1920" d:DesignHeight="256" Height="90">
+      <b:Interaction.Triggers>
+        <b:EventTrigger>
+          <b:ControlStoryboardAction Storyboard="{DynamicResource Anim.Enter}"/>
+        </b:EventTrigger>
+      </b:Interaction.Triggers>
+      <Grid x:Name="Background_Grid">
+        <Border Opacity="0.4" BlendingMode="Additive">
+          <Border.Background>
+            <SolidColorBrush Color="{DynamicResource Color_Blue_4_Official}"/>
+          </Border.Background>
+        </Border>
+      </Grid>
+      <Grid x:Name="Content_Grid">
+        <StackPanel x:Name="SubPageTitle_VerticalStackPanel" VerticalAlignment="Center">
+          <TextBlock x:Name="TextBlock1" TextWrapping="Wrap" TextAlignment="Center" FontFamily="{DynamicResource FontFamily_PrimaryFont}" FontSize="{DynamicResource Single_TextSize_20}" FontWeight="Light" CharacterSpacing="200" RenderTransformOrigin="0.5,0.5" Effect="{DynamicResource DropShadowEffect_TextOuterGlow}">
+            <TextBlock.Foreground>
+              <SolidColorBrush Color="{DynamicResource Color_White_1_Official}"/>
+            </TextBlock.Foreground>
+            <TextBlock.RenderTransform>
+              <TransformGroup>
+                <ScaleTransform/>
+                <SkewTransform/>
+                <RotateTransform/>
+                <TranslateTransform/>
+              </TransformGroup>
+            </TextBlock.RenderTransform>
+            <TextBlock.Text>
+              <Binding Path="(Custom.Line1_String)" RelativeSource="{RelativeSource TemplatedParent}">
+                <Binding.Converter>
+                  <noesis:CaseConverter/>
+                </Binding.Converter>
+              </Binding>
+            </TextBlock.Text>
+          </TextBlock>
+          <TextBlock x:Name="TextBlock0" TextWrapping="Wrap" TextAlignment="Center" FontFamily="{DynamicResource FontFamily_PrimaryFont}" FontSize="{DynamicResource Single_TextSize_20}" FontWeight="Black" CharacterSpacing="200" RenderTransformOrigin="0.5,0.5" Effect="{DynamicResource DropShadowEffect_TextOuterGlow}">
+            <TextBlock.Foreground>
+              <SolidColorBrush Color="{DynamicResource Color_White_1_Official}"/>
+            </TextBlock.Foreground>
+            <TextBlock.RenderTransform>
+              <TransformGroup>
+                <ScaleTransform/>
+                <SkewTransform/>
+                <RotateTransform/>
+                <TranslateTransform/>
+              </TransformGroup>
+            </TextBlock.RenderTransform>
+            <TextBlock.Text>
+              <Binding Path="(Custom.Line2_String)" RelativeSource="{RelativeSource TemplatedParent}">
+                <Binding.Converter>
+                  <noesis:CaseConverter/>
+                </Binding.Converter>
+              </Binding>
+            </TextBlock.Text>
+          </TextBlock>
+        </StackPanel>
+      </Grid>
+    </Grid>
+  </ControlTemplate>
+
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_SectionHeader">
+    <Grid x:Name="Master_Grid" d:DesignWidth="1920" d:DesignHeight="128">
+      <StackPanel x:Name="Contents_VerticalStackPanel">
+        <Grid x:Name="DividerLine_Top" Height="1" Opacity="0.05">
+          <Grid.Background>
+            <SolidColorBrush Color="{DynamicResource Color_White_1_Official}"/>
+          </Grid.Background>
+        </Grid>
+        <TextBlock FontSize="{DynamicResource Single_TextSize_16}" TextWrapping="Wrap" TextAlignment="Center" FontFamily="{DynamicResource FontFamily_PrimaryFont}" FontWeight="Light" CharacterSpacing="300" Margin="8,8,8,8">
+          <TextBlock.Foreground>
+            <SolidColorBrush Color="{DynamicResource Color_White_1_Official}"/>
+          </TextBlock.Foreground>
+          <TextBlock.Text>
+            <Binding>
+              <Binding.Converter>
+                <noesis:CaseConverter/>
+              </Binding.Converter>
+            </Binding>
+          </TextBlock.Text>
+        </TextBlock>
+        <Grid x:Name="DividerLine_Bottom" Height="1" Opacity="0.05">
+          <Grid.Background>
+            <SolidColorBrush Color="{DynamicResource Color_White_1_Official}"/>
+          </Grid.Background>
+        </Grid>
+      </StackPanel>
+    </Grid>
+  </DataTemplate>
+
+  <ControlTemplate x:Key="Template_ContentControl_Tile" TargetType="HeaderedContentControl">
+    <ControlTemplate.CustomProperties>
+      <CustomProperty Name="Image" Type="ImageSource"/>
+      <CustomProperty Name="IsSmallTile" Type="system:Boolean"/>
+      <CustomProperty Name="IsYoutubeLink" Type="system:Boolean"/>
+      <CustomProperty Name="Url" Type="system:String"/>
+      <CustomProperty Name="Command" Type="BaseComponent"/>
+    </ControlTemplate.CustomProperties>
+    <Grid x:Name="Master_Grid" d:DesignWidth="640" d:DesignHeight="360">
+      <b:Interaction.Triggers>
+        <b:EventTrigger x:Name="OnMouseEnter" EventName="MouseEnter">
+          <b:GoToStateAction x:Name="GoToHoverState" StateName="Hovered"/>
+        </b:EventTrigger>
+        <b:EventTrigger x:Name="OnMouseLeave" EventName="MouseLeave">
+          <b:GoToStateAction x:Name="GoToDefaultState" StateName="Default"/>
+        </b:EventTrigger>
+      </b:Interaction.Triggers>
+      <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="ImageInteractionStates">
+          <VisualStateGroup.Transitions>
+            <VisualTransition GeneratedDuration="00:00:00"/>
+            <VisualTransition GeneratedDuration="00:00:00.1000000" To="Hovered"/>
+            <VisualTransition From="Hovered" GeneratedDuration="00:00:00.2000000"/>
+          </VisualStateGroup.Transitions>
+          <VisualState x:Name="Default"/>
+          <VisualState x:Name="Hovered">
+            <Storyboard>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Image_Master_Base_Border" Storyboard.TargetProperty="(UIElement.Opacity)">
+                <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.7"/>
+              </DoubleAnimationUsingKeyFrames>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Image_Master_Base_Border" Storyboard.TargetProperty="(Panel.Background).(Brush.RelativeTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+                <LinearDoubleKeyFrame KeyTime="00:00:00" Value="1.03"/>
+              </DoubleAnimationUsingKeyFrames>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ExternalLinkIcon_Grid" Storyboard.TargetProperty="(UIElement.Opacity)">
+                <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0">
+                  <EasingDoubleKeyFrame.EasingFunction>
+                    <SineEase EasingMode="EaseInOut"/>
+                  </EasingDoubleKeyFrame.EasingFunction>
+                </EasingDoubleKeyFrame>
+              </DoubleAnimationUsingKeyFrames>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="YouTubeIcon_Grid" Storyboard.TargetProperty="(UIElement.Opacity)">
+                <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0">
+                  <EasingDoubleKeyFrame.EasingFunction>
+                    <SineEase EasingMode="EaseInOut"/>
+                  </EasingDoubleKeyFrame.EasingFunction>
+                </EasingDoubleKeyFrame>
+              </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+          </VisualState>
+        </VisualStateGroup>
+      </VisualStateManager.VisualStateGroups>
+      <Button Command="{Binding Path=(Custom.Command_BaseComponent), RelativeSource={RelativeSource TemplatedParent}}" CommandParameter="{Binding Path=(Custom.Url_String), RelativeSource={RelativeSource TemplatedParent}}" Margin="8,8,8,8" Template="{DynamicResource Template_Button_Tile}">
+        <b:Interaction.Triggers>
+          <b:EventTrigger EventName="Click">
+            <b:LaunchUriOrFileAction x:Name="LaunchUrlAction" Path="{Binding Path=(Custom.Url_String), RelativeSource={RelativeSource AncestorType={x:Type HeaderedContentControl}}}"/>
+          </b:EventTrigger>
+          <b:DataTrigger Binding="{Binding Path=(Custom.Command_BaseComponent), RelativeSource={RelativeSource TemplatedParent}}" Value="{x:Null}">
+            <b:ChangePropertyAction TargetName="LaunchUrlAction" PropertyName="IsEnabled" Value="True"/>
+          </b:DataTrigger>
+          <b:DataTrigger Binding="{Binding Path=(Custom.Command_BaseComponent), RelativeSource={RelativeSource TemplatedParent}}" Comparison="NotEqual" Value="{x:Null}">
+            <b:ChangePropertyAction TargetName="LaunchUrlAction" PropertyName="IsEnabled" Value="False"/>
+          </b:DataTrigger>
+        </b:Interaction.Triggers>
+        <WrapPanel x:Name="Layout_WrapPanel" Orientation="Horizontal">
+          <Grid x:Name="Thumbnail_Area_Grid">
+            <Viewbox x:Name="ImageSizer_Viewbox_Hidden" Stretch="UniformToFill" Visibility="Hidden">
+              <Grid x:Name="SixteenByNineFrame" Height="10" Width="19" Background="#FF000000"/>
+            </Viewbox>
+            <Grid x:Name="ThumbnailContent_Grid">
+              <Grid x:Name="ImageArea_Grid">
+                <Border x:Name="Image_Master_Base_Border" CornerRadius="{DynamicResource CornerRadius_Level2}" RenderTransformOrigin="0.5,0.5">
+                  <Border.RenderTransform>
+                    <TransformGroup>
+                      <ScaleTransform/>
+                      <SkewTransform/>
+                      <RotateTransform/>
+                      <TranslateTransform/>
+                    </TransformGroup>
+                  </Border.RenderTransform>
+                  <Border.Background>
+                    <ImageBrush Stretch="UniformToFill" ImageSource="{Binding Path=(Custom.Image_ImageSource), RelativeSource={RelativeSource TemplatedParent}}">
+                      <ImageBrush.RelativeTransform>
+                        <TransformGroup>
+                          <ScaleTransform ScaleX="1" ScaleY="{Binding Path=ScaleX, RelativeSource={RelativeSource Self}}" CenterX="0.5" CenterY="0.5"/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </ImageBrush.RelativeTransform>
+                    </ImageBrush>
+                  </Border.Background>
+                </Border>
+              </Grid>
+              <Grid x:Name="ImageOverlays_Grid">
+                <Grid x:Name="YouTubeIcon_Grid" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" Opacity="0">
+                  <Grid.Height>
+                    <Binding Path="ActualHeight" ElementName="ImageOverlays_Grid">
+                      <Binding.Converter>
+                        <noesis:MathConverter Expression="{}{0}/3"/>
+                      </Binding.Converter>
+                    </Binding>
+                  </Grid.Height>
+                  <Border Margin="-20,-20,-20,-20" Padding="20,20,20,20" Background="#00FFFFFF">
+                    <Viewbox x:Name="YouTubePlayheadIcon_Viewbox" Effect="{DynamicResource DropShadowEffect_ImageOverlayObjectsGlows}">
+                      <Grid x:Name="YouTubePlayheadIcon_Glow_Grid">
+                        <Path x:Name="YouTubePlayheadIcon_Back" Data="F1M127.37,14.31c-1.5,-5.63 -5.91,-10.07 -11.5,-11.58C105.72,0 65.04,0 65.04,0c0,0 -40.68,0 -50.82,2.73 -5.6,1.51 -10.01,5.94 -11.5,11.58C0,24.52 0,45.83 0,45.83c0,0 0,21.3 2.72,31.52 1.5,5.63 5.91,10.07 11.5,11.58 10.15,2.74 50.82,2.74 50.82,2.74 0,0 40.68,0 50.83,-2.74 5.6,-1.51 10.01,-5.94 11.5,-11.58 2.72,-10.21 2.72,-31.52 2.72,-31.52 0,0 0,-21.31 -2.72,-31.52z" Stretch="Fill" Width="130.09" Height="91.670006">
+                          <Path.Fill>
+                            <SolidColorBrush Color="{DynamicResource Color_White_1_Official}"/>
+                          </Path.Fill>
+                        </Path>
+                        <Path x:Name="YouTubePlayheadIcon_Front" Data="F1M127.37,14.31c-1.5,-5.63 -5.91,-10.07 -11.5,-11.58C105.72,0 65.04,0 65.04,0c0,0 -40.68,0 -50.82,2.73 -5.6,1.51 -10.01,5.94 -11.5,11.58C0,24.52 0,45.83 0,45.83c0,0 0,21.3 2.72,31.52 1.5,5.63 5.91,10.07 11.5,11.58 10.15,2.74 50.82,2.74 50.82,2.74 0,0 40.68,0 50.83,-2.74 5.6,-1.51 10.01,-5.94 11.5,-11.58 2.72,-10.21 2.72,-31.52 2.72,-31.52 0,0 0,-21.31 -2.72,-31.52z M51.74,65.17V26.48l34,19.34 -34,19.34z" Stretch="Fill" Width="130.09" Height="91.670006">
+                          <Path.Fill>
+                            <SolidColorBrush Color="{DynamicResource Color_YouTubeRed_Official}"/>
+                          </Path.Fill>
+                        </Path>
+                      </Grid>
+                    </Viewbox>
+                  </Border>
+                </Grid>
+                <Grid x:Name="ExternalLinkIcon_Grid" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0">
+                  <Grid.Height>
+                    <Binding Path="ActualHeight" ElementName="ImageOverlays_Grid">
+                      <Binding.Converter>
+                        <noesis:MathConverter Expression="{}{0}/3"/>
+                      </Binding.Converter>
+                    </Binding>
+                  </Grid.Height>
+                  <Border Margin="-20,-20,-20,-20" Padding="20,20,20,20" Background="#00FFFFFF">
+                    <Viewbox x:Name="ExternalLinkIcon_Viewbox" Effect="{DynamicResource DropShadowEffect_ImageOverlayObjectsGlows}">
+                      <Grid x:Name="ExternalLinkIcon_Glow_Grid">
+                        <Path x:Name="ExternalLinkIcon_Back" Data="F1M72,40A32,32 0 008,40 32,32 0 0072,40z" Stretch="Fill" Width="64" Height="64" Margin="8" Fill="#FFF2F2F2"/>
+                        <Path x:Name="ExternalLinkIcon_Front" Data="F1M40,0C17.91,0 0,17.91 0,40s17.91,40 40,40 40,-17.91 40,-40S62.09,0 40,0z M53.55,50.09c0,3.26 -2.65,5.91 -5.91,5.91h-17.73c-3.26,0 -5.91,-2.65 -5.91,-5.91v-17.73c0,-3.26 2.65,-5.91 5.91,-5.91h8.36v5.91h-5.4c-1.63,0 -2.96,1.32 -2.96,2.96v11.82c0,1.63 1.32,2.96 2.96,2.96h11.82c1.63,0 2.96,-1.32 2.96,-2.96v-5.4h5.91v8.36z M56,38.78h-5.91v-4.69l-11.67,11.67 -4.18,-4.18 11.67,-11.67h-4.69v-5.91h14.77v14.78z" Stretch="Fill" Width="80" Height="80" Fill="{DynamicResource Gradient_Blue_90Deg}"/>
+                      </Grid>
+                    </Viewbox>
+                  </Border>
+                </Grid>
+              </Grid>
+            </Grid>
+          </Grid>
+          <Grid x:Name="TextContent_Grid">
+            <StackPanel x:Name="TextContent_VerticalStackPanel" Margin="2,8,4,0">
+              <TextBlock x:Name="Title_TextBlock" TextWrapping="Wrap" FontFamily="{DynamicResource FontFamily_PrimaryFont}" FontSize="{DynamicResource Single_TextSize_10}" FontWeight="Black">
+                <TextBlock.Foreground>
+                  <SolidColorBrush Color="{DynamicResource Color_White_1_Official}"/>
+                </TextBlock.Foreground>
+                <TextBlock.Text>
+                  <Binding Path="Header" RelativeSource="{RelativeSource TemplatedParent}">
+                    <Binding.Converter>
+                      <noesis:CaseConverter/>
+                    </Binding.Converter>
+                  </Binding>
+                </TextBlock.Text>
+              </TextBlock>
+              <TextBlock x:Name="Descroption_TextBlock" Text="{Binding Path=Content, RelativeSource={RelativeSource TemplatedParent}}" TextWrapping="Wrap" FontFamily="{DynamicResource FontFamily_PrimaryFont}" FontSize="{DynamicResource Single_TextSize_11}">
+                <TextBlock.Foreground>
+                  <SolidColorBrush Color="{DynamicResource Color_White_1_Official}"/>
+                </TextBlock.Foreground>
+              </TextBlock>
+            </StackPanel>
+          </Grid>
+        </WrapPanel>
+      </Button>
+    </Grid>
+
+    <ControlTemplate.Triggers>
+      <MultiDataTrigger x:Name="IsSmallTile = True">
+        <MultiDataTrigger.Conditions>
+          <Condition Binding="{Binding Path=(Custom.IsSmallTile_Bool), RelativeSource={RelativeSource Self}}" Value="True"/>
+        </MultiDataTrigger.Conditions>
+        <Setter TargetName="Layout_WrapPanel" Property="ItemWidth">
+          <Setter.Value>
+            <Binding Path="ActualWidth" ElementName="Layout_WrapPanel">
+              <Binding.Converter>
+                <noesis:MathConverter Expression="floor({0}/2)"/>
+              </Binding.Converter>
+            </Binding>
+          </Setter.Value>
+        </Setter>
+        <Setter TargetName="TextContent_Grid" Property="VerticalAlignment" Value="Center"/>
+        <Setter TargetName="TextContent_Grid" Property="Margin" Value="8,0,0,0"/>
+        <Setter TargetName="TextContent_VerticalStackPanel" Property="Margin" Value="2,2,2,0"/>
+        <Setter TargetName="TextContent_VerticalStackPanel" Property="VerticalAlignment" Value="Center"/>
+      </MultiDataTrigger>
+      <MultiDataTrigger x:Name="IsYoutubeLink = True">
+        <MultiDataTrigger.Conditions>
+          <Condition Binding="{Binding Path=(Custom.IsYoutubeLink_Bool), RelativeSource={RelativeSource Self}}">
+            <Condition.Value>
+              <system:Boolean>True</system:Boolean>
+            </Condition.Value>
+          </Condition>
+        </MultiDataTrigger.Conditions>
+        <Setter TargetName="YouTubeIcon_Grid" Property="Visibility" Value="Visible"/>
+        <Setter TargetName="ExternalLinkIcon_Grid" Property="Visibility" Value="Collapsed"/>
+      </MultiDataTrigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
+
+  <ControlTemplate x:Key="Template_ListBox_ItemContainer_TilePresenter" TargetType="ListBoxItem">
+    <Grid x:Name="Master_Grid" d:DesignWidth="512" d:DesignHeight="512">
+      <ContentPresenter/>
+    </Grid>
+  </ControlTemplate>
+
+  <Style x:Key="Style_ListBox_ItemContainer_TilePresenter" TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+    <Setter Property="Template" Value="{DynamicResource Template_ListBox_ItemContainer_TilePresenter}"/>
+  </Style>
+
+  <Style x:Key="Style_ScrollViewer_ScrollBar_RepeatButton" TargetType="RepeatButton">
+    <Setter Property="IsTabStop" Value="False"/>
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="ClickMode" Value="Press"/>
+    <Setter Property="Delay" Value="250"/>
+    <Setter Property="Interval" Value="100"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="RepeatButton">
+          <Border Background="#00FFFFFF"/>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <ControlTemplate x:Key="Template_ScrollViewer_ScrollBar_Thumb_ContentArea" TargetType="Thumb">
+    <Border x:Name="Thumb" CornerRadius="2">
+      <Border.Background>
+        <SolidColorBrush Color="{DynamicResource Color_Blue_1_Official}" Opacity="0.2"/>
+      </Border.Background>
+    </Border>
+    <ControlTemplate.Triggers>
+      <Trigger Property="IsMouseOver" Value="True">
+        <Setter TargetName="Thumb" Property="Background">
+          <Setter.Value>
+            <SolidColorBrush Color="{DynamicResource Color_Blue_1_Official}" Opacity="0.25"/>
+          </Setter.Value>
+        </Setter>
+      </Trigger>
+      <Trigger Property="IsDragging" Value="True"/>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>  
+  <Style x:Key="Style_ScrollViewer_ScrollBar_Thumb" TargetType="Thumb">
+    <Setter Property="Cursor" Value="Hand"/>
+    <Setter Property="Template" Value="{StaticResource Template_ScrollViewer_ScrollBar_Thumb_ContentArea}"/>
+  </Style>
+  <ControlTemplate x:Key="Template_ScrollViewer_ScrollBar_Vertical_ContentArea" TargetType="ScrollBar">
+    <Grid x:Name="Master_Grid">
+      <Grid x:Name="Layout_Grid">
+        <Grid x:Name="Trough_Grid">
+          <Grid.Background>
+            <SolidColorBrush Color="{DynamicResource Color_Gray_1_System}" Opacity="0"/>
+          </Grid.Background>
+        </Grid>
+        <Track x:Name="PART_Track" Grid.Row="1" Cursor="Hand">
+          <Track.IncreaseRepeatButton>
+            <RepeatButton Command="ScrollBar.PageDownCommand" Style="{StaticResource Style_ScrollViewer_ScrollBar_RepeatButton}"/>
+          </Track.IncreaseRepeatButton>
+          <Track.DecreaseRepeatButton>
+            <RepeatButton Command="ScrollBar.PageUpCommand" Style="{StaticResource Style_ScrollViewer_ScrollBar_RepeatButton}"/>
+          </Track.DecreaseRepeatButton>
+          <Track.Thumb>
+            <Thumb x:Name="Thumb" Width="4" Height="10" Margin="0,2,0,2" Style="{StaticResource Style_ScrollViewer_ScrollBar_Thumb}"/>
+          </Track.Thumb>
+        </Track>
+      </Grid>
+    </Grid>
+    <ControlTemplate.Triggers>
+      <Trigger Property="Orientation" Value="Vertical">
+        <Setter TargetName="PART_Track" Property="IsDirectionReversed" Value="True"/>
+        <Setter TargetName="Thumb" Property="Height" Value="NaN"/>
+      </Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
+  <ControlTemplate x:Key="Template_ScrollBar_ContentArea" TargetType="ScrollViewer">
+    <Grid x:Name="Master_Grid">
+      <Grid x:Name="Layout_Grid">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="1*"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <ScrollContentPresenter ScrollViewer.CanContentScroll="{TemplateBinding CanContentScroll}" Margin="0" CanHorizontallyScroll="False" CanVerticallyScroll="False"/>
+        <ScrollBar x:Name="PART_VerticalScrollBar" Orientation="Vertical" ViewportSize="{TemplateBinding ViewportHeight}" Maximum="{TemplateBinding ScrollableHeight}" Value="{Binding Path=VerticalOffset, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}" Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" Margin="0" Grid.Row="0" HorizontalAlignment="Right" MinWidth="10" Template="{DynamicResource Template_ScrollViewer_ScrollBar_Vertical_ContentArea}"/>
+      </Grid>
+    </Grid>
+  </ControlTemplate>
+
+
+  <!-- ICONOGRAPHY -->
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_Icon_Sidebar_Noesis">
+    <Grid d:DesignWidth="32" d:DesignHeight="32">
+      <Viewbox HorizontalAlignment="Right" VerticalAlignment="Top" RenderTransformOrigin="1.0,0.0">
+        <Viewbox.RenderTransform>
+          <TransformGroup>
+            <ScaleTransform ScaleX="0.95" ScaleY="{Binding Path=ScaleX, RelativeSource={RelativeSource Self}}"/>
+            <SkewTransform/>
+            <RotateTransform/>
+            <TranslateTransform/>
+          </TransformGroup>
+        </Viewbox.RenderTransform>
+        <Grid>
+          <Path x:Name="Bottom" Data="M312.75,202.26 225.82,178.97 130.4,274.28 212.02,578.19 472.82,648.07 568.24,552.76 544.92,465.93 449.5,561.24 275.64,514.65 217.33,297.57 312.75,202.26z M495.1,130.25 530.09,260.5 466.47,324.04 431.49,193.79 214.16,135.55 86.93,262.63 121.91,392.88 34.98,369.59 0,239.34 190.84,48.72 495.1,130.25z M460.12,0 590.52,34.94 660.49,295.44 437.84,517.82 307.44,482.88 284.12,396.05 414.52,430.99 573.55,272.14 526.91,98.48 396.51,63.54 460.12,0z" Stretch="Fill" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}" Height="648.07" Width="660.49005" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Grid>
+      </Viewbox>
+    </Grid>
+  </DataTemplate>
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_Icon_Sidebar_Native">
+    <Grid d:DesignWidth="32" d:DesignHeight="32">
+      <Viewbox HorizontalAlignment="Right" VerticalAlignment="Top" RenderTransformOrigin="1.0,0.0">
+        <Viewbox.RenderTransform>
+          <TransformGroup>
+            <ScaleTransform ScaleX="0.95" ScaleY="{Binding Path=ScaleX, RelativeSource={RelativeSource Self}}"/>
+            <SkewTransform/>
+            <RotateTransform/>
+            <TranslateTransform/>
+          </TransformGroup>
+        </Viewbox.RenderTransform>
+        <Grid>
+          <Path x:Name="Bottom" Data="M831.9,710.7C865.2,743.8 865.3,797.7 832.1,830.9 741,922.3 619.8,972.7 490.8,972.7 225.2,972.7 9.00006,756.6 9.00006,490.9 9.00006,225.2 225.1,9.2 490.8,9.2 711.8,9.2 800.127,117.004 832.3,151.2 864.473,185.396 865.3,238.3 832,271.4 798.7,304.5 744.9,304.4 711.8,271.1 652.8,211.8 574.4,179.2 490.8,179.2 318.9,179.2 179,319.1 179,491 179,662.9 318.9,802.8 490.8,802.8 633.5,802.8 673.427,738.197 711.7,711 749.973,683.803 798.7,677.6 831.9,710.8z M462.3,633.5 518.3,633.5C525.8,633.5 531.9,627.4 531.9,619.9L531.9,535.1 619.9,535.1C627.4,535.1 633.5,529 633.5,521.5L633.5,465.5C633.5,458 627.4,451.9 619.9,451.9L531.9,451.9 531.9,361.7C531.9,354.2 525.8,348.1 518.3,348.1L462.3,348.1C454.8,348.1 448.7,354.2 448.7,361.7L448.7,451.9 361.7,451.9C354.2,451.9 348.1,458 348.1,465.5L348.1,521.5C348.1,529 354.2,535.1 361.7,535.1L448.7,535.1 448.7,619.9C448.7,627.4 454.8,633.5 462.3,633.5z M995.1,451.6 907.5,451.6 907.5,361.8C907.5,354.3 901.4,348.2 893.9,348.2L837.9,348.2C830.4,348.2 824.3,354.3 824.3,361.8L824.3,451.6 736.7,451.6C729.2,451.6 723.1,457.7 723.1,465.2L723.1,521.2C723.1,528.7 729.2,534.8 736.7,534.8L824.3,534.8 824.3,620.1C824.3,627.6 830.4,633.7 837.9,633.7L893.9,633.7C901.4,633.7 907.5,627.6 907.5,620.1L907.5,534.8 995.1,534.8C1002.6,534.8 1008.7,528.7 1008.7,521.2L1008.7,465.2C1008.7,457.7 1002.6,451.6 995.1,451.6z" Stretch="Fill" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}" Height="963" Width="1000" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Grid>
+      </Viewbox>
+    </Grid>
+  </DataTemplate>
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_Icon_Sidebar_Unity">
+    <Grid d:DesignWidth="32" d:DesignHeight="32">
+      <Viewbox HorizontalAlignment="Right" VerticalAlignment="Top" RenderTransformOrigin="1.0,0.0">
+        <Viewbox.RenderTransform>
+          <TransformGroup>
+            <ScaleTransform ScaleY="{Binding Path=ScaleX, RelativeSource={RelativeSource Self}}" ScaleX="0.95"/>
+            <SkewTransform/>
+            <RotateTransform/>
+            <TranslateTransform/>
+          </TransformGroup>
+        </Viewbox.RenderTransform>
+        <Path Data="F1M346.63,128.82l113.97,65.8c4.12,2.28 4.22,8.75 -0.02,11.03 0,0 -135.46,78.21 -135.46,78.21 -4.09,2.36 -8.95,2.2 -12.77,0l-135.45,-78.2c-4.14,-2.26 -4.26,-8.76 0,-11.04l113.95,-65.79V0S0,167.92 0,167.92v335.85 -1.54s0,1.54 0,1.54l111.56,-64.41v-131.61c-0.08,-4.71 5.47,-8.02 9.56,-5.49l135.46,78.21c4.09,2.36 6.38,6.65 6.38,11.06v156.4c0.11,4.69 -5.41,8.05 -9.51,5.55l-114,-65.82 -111.56,64.41 290.85,167.92 290.85,-167.92 -111.56,-64.41 -113.97,65.8c-4.04,2.43 -9.69,-0.72 -9.54,-5.53 0,0 0,-156.42 0,-156.42 0,-4.73 2.57,-8.85 6.39,-11.05l135.45,-78.2c4.03,-2.45 9.72,0.7 9.56,5.52v131.58l111.56,64.41V167.92L346.63,0v128.82z" Stretch="Fill" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}" Height="719.9899" Width="637.4801" Margin="0,0,0,0.01"/>
+      </Viewbox>
+    </Grid>
+  </DataTemplate>
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_Icon_Sidebar_Unreal">
+    <Grid d:DesignWidth="32" d:DesignHeight="32">
+      <Viewbox RenderTransformOrigin="1.0,0.0">
+        <Viewbox.RenderTransform>
+          <TransformGroup>
+            <ScaleTransform ScaleY="{Binding Path=ScaleX, RelativeSource={RelativeSource Self}}" ScaleX="0.95"/>
+            <SkewTransform/>
+            <RotateTransform/>
+            <TranslateTransform/>
+          </TransformGroup>
+        </Viewbox.RenderTransform>
+        <Path Data="M640,1280c353.46,0 640,-286.54 640,-640S993.46,0 640,0 0,286.54 0,640s286.54,640 640,640z M803.7,995.81c156.5,-73.92 205.56,-210.43 216.6,-263.61 -57.22,58.6 -120.53,118 -163.11,76.88 0,0 -2.33,-219.45 -2.33,-309.43 0,-121 114.75,-211.18 114.75,-211.18 -63.11,11.24 -138.89,33.71 -219.33,112.65 -7.26,7.2 -14.14,14.76 -20.62,22.67 -34.47,-26.39 -79.14,-18.48 -79.14,-18.48 24.14,13.26 48.23,51.88 48.23,83.85v314.26s-52.63,46.3 -93.19,46.3c-9.14,0.07 -18.17,-2.05 -26.33,-6.18 -8.16,-4.13 -15.21,-10.15 -20.56,-17.56 -3.21,-4.19 -5.87,-8.78 -7.91,-13.65v-388.26c-11.99,9.89 -52.51,18.04 -52.51,-49.22 0,-41.79 30.11,-91.6 83.73,-122.15 -73.63,11.23 -142.59,43.04 -198.92,91.76 -42.8,36.98 -77.03,82.85 -100.31,134.4 -23.28,51.55 -35.06,107.55 -34.51,164.12 0,0 39.21,-122.51 88.32,-133.83 7.15,-1.88 14.65,-2.07 21.89,-0.54 7.24,1.53 14.02,4.72 19.81,9.34 5.79,4.61 10.41,10.51 13.51,17.23s4.59,14.07 4.34,21.46v287.66c0,29.16 -18.8,35.53 -36.17,35.22 -11.77,-0.83 -23.4,-3.02 -34.66,-6.53 35.86,48.53 82.46,88.12 136.15,115.66 53.69,27.54 113.03,42.29 173.37,43.1l106.05,-106.6 62.85,70.66z" Stretch="Fill" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}" Height="1280" Width="1280"/>
+      </Viewbox>
+    </Grid>
+  </DataTemplate>
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_Icon_Sidebar_Samples">
+    <Grid d:DesignWidth="32" d:DesignHeight="32">
+      <Viewbox RenderTransformOrigin="0.3,0.5">
+        <Viewbox.RenderTransform>
+          <TransformGroup>
+            <ScaleTransform ScaleY="{Binding Path=ScaleX, RelativeSource={RelativeSource Self}}" ScaleX="1.4"/>
+            <SkewTransform/>
+            <RotateTransform/>
+            <TranslateTransform/>
+          </TransformGroup>
+        </Viewbox.RenderTransform>
+        <Grid>
+          <Path Data="F1M27.02,18.09c-0.45,-2.1 -1.6,-4.56 -3.14,-7.59 -0.45,-0.89 -1.29,-1.52 -2.26,-1.7l-1.26,-0.24c-0.6,-0.12 -1.26,-0.07 -1.85,0.23 -0.12,0.06 -0.23,0.12 -0.35,0.18 -0.44,0.24 -0.91,0.37 -1.38,0.37h-1.54c-0.47,0 -0.94,-0.13 -1.38,-0.37 -0.12,-0.06 -0.24,-0.13 -0.35,-0.18 -0.59,-0.3 -1.25,-0.35 -1.85,-0.23l-1.26,0.24c-0.98,0.19 -1.81,0.81 -2.26,1.7 -1.53,3.02 -2.69,5.49 -3.14,7.59 -0.46,2.15 -0.2,3.99 1.15,5.66 0.9,1.12 2.47,0.9 3.29,-0.04 0.59,-0.67 1.25,-1.44 1.91,-2.2 0.51,-0.59 1.25,-0.94 2.03,-0.94h5.28c0.78,0 1.52,0.34 2.03,0.94 0.65,0.76 1.32,1.53 1.91,2.2 0.82,0.93 2.39,1.16 3.29,0.04 1.34,-1.67 1.61,-3.51 1.15,-5.66z M12.75,14.87h-1v1c0,0.41 -0.34,0.75 -0.75,0.75s-0.75,-0.34 -0.75,-0.75v-1h-1c-0.41,0 -0.75,-0.34 -0.75,-0.75s0.34,-0.75 0.75,-0.75h1v-1c0,-0.41 0.34,-0.75 0.75,-0.75s0.75,0.34 0.75,0.75v1h1c0.41,0 0.75,0.34 0.75,0.75s-0.34,0.75 -0.75,0.75z M19.75,14.12c-0.69,0 -1.25,-0.56 -1.25,-1.25s0.56,-1.25 1.25,-1.25 1.25,0.56 1.25,1.25 -0.56,1.25 -1.25,1.25z M22.25,16.62c-0.69,0 -1.25,-0.56 -1.25,-1.25s0.56,-1.25 1.25,-1.25 1.25,0.56 1.25,1.25 -0.56,1.25 -1.25,1.25z" Stretch="Fill" Width="22.457424" Height="16.005947" Margin="4.79,8.5,4.752,7.494" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}"/>
+        </Grid>
+      </Viewbox>
+    </Grid>
+  </DataTemplate>
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_Icon_Sidebar_Tools">
+    <Grid d:DesignWidth="32" d:DesignHeight="32">
+      <Viewbox RenderTransformOrigin="1.0,0.0" VerticalAlignment="Top" HorizontalAlignment="Right">
+        <Viewbox.RenderTransform>
+          <TransformGroup>
+            <ScaleTransform ScaleX="0.85" ScaleY="{Binding Path=ScaleX, RelativeSource={RelativeSource Self}}"/>
+            <SkewTransform/>
+            <RotateTransform/>
+            <TranslateTransform/>
+          </TransformGroup>
+        </Viewbox.RenderTransform>
+        <Path Data="F1M180,20h-80L80,0H20C8.95,0 0,8.95 0,20v120c0,11.05 8.95,20 20,20h160c11.05,0 20,-8.95 20,-20V40c0,-11.05 -8.95,-20 -20,-20z M180,100h-30v30h-20v-30h-30v-20h30v-30h20v30h30v20z" Stretch="Fill" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}" Height="160" Width="200"/>
+      </Viewbox>
+    </Grid>
+  </DataTemplate>
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_Icon_Sidebar_Tracker">
+    <Grid d:DesignWidth="32" d:DesignHeight="32">
+      <Viewbox HorizontalAlignment="Right" VerticalAlignment="Top">
+        <Grid>
+          <Path Data="M171.012,91.6C178.742,91.6 185.002,85.34 185.002,77.61L185.002,13.99C185.002,6.26 178.742,0 171.012,0L65.202,0C57.472,0 51.212,6.26 51.212,13.99L51.212,77.6C51.212,85.33 57.482,91.59 65.202,91.59L97.282,91.59 110.522,117.51C113.682,123.7 122.522,123.7 125.682,117.51L138.922,91.59 171.002,91.59z M153.202,35.05C159.142,35.05 163.952,39.86 163.952,45.8 163.952,51.74 159.142,56.55 153.202,56.55 147.262,56.55 142.452,51.74 142.452,45.8 142.452,39.86 147.262,35.05 153.202,35.05z M83.012,56.55C77.072,56.55 72.262,51.74 72.262,45.8 72.262,39.86 77.072,35.05 83.012,35.05 88.952,35.05 93.762,39.86 93.762,45.8 93.762,51.74 88.952,56.55 83.012,56.55z M118.102,56.55C112.162,56.55 107.352,51.74 107.352,45.8 107.352,39.86 112.162,35.05 118.102,35.05 124.042,35.05 128.852,39.86 128.852,45.8 128.852,51.74 124.042,56.55 118.102,56.55z M132.992,254.02C132.992,257.08 135.482,259.56 138.542,259.56L184.682,259.56C187.752,259.56 190.232,257.08 190.232,254.02L190.232,231.3 132.992,231.3 132.992,254.02z M232.572,62.0305C230.172,59.7705 227.042,58.6705 223.762,58.9305 219.442,59.2505 215.532,62.1505 213.922,66.1905L200.052,101.28C200.672,101.72 201.282,102.22 201.892,102.75 209.702,109.71 211.842,121.07 207.082,130.39L206.012,132.49C199.862,144.54 192.622,156.15 184.502,167L177.862,175.86C176.812,177.27 175.272,178.19 173.542,178.44 171.802,178.69 170.062,178.25 168.652,177.19 167.242,176.14 166.332,174.59 166.082,172.85 165.832,171.11 166.272,169.38 167.332,167.97L173.962,159.11C181.652,148.85 188.492,137.88 194.292,126.51L195.362,124.42C197.392,120.43 196.472,115.57 193.132,112.59 191.162,110.83 188.612,109.95 185.972,110.12 183.292,110.32 180.882,111.52 179.162,113.5L141.072,157.4C136.902,162.2 134.422,168.35 134.072,174.7L132.982,218.77 190.952,218.77 225.212,183.87C231.162,177.82 234.532,169.8 234.672,161.29L236.192,70.6105C236.252,67.3205 234.962,64.2705 232.562,62.0105z M45.982,254.02C45.982,257.08 48.462,259.56 51.532,259.56L97.672,259.56C100.742,259.56 103.222,257.08 103.222,254.02L103.222,231.3 45.982,231.3 45.982,254.02z M95.132,157.41 57.042,113.51C55.312,111.53 52.912,110.33 50.232,110.13 47.602,109.96 45.052,110.84 43.072,112.6 39.732,115.58 38.822,120.43 40.852,124.43L41.922,126.52C47.722,137.88 54.552,148.85 62.252,159.12L68.882,167.98C69.932,169.39 70.382,171.12 70.132,172.86 69.882,174.6 68.972,176.14 67.562,177.2 66.152,178.25 64.412,178.69 62.672,178.45 60.942,178.21 59.392,177.29 58.352,175.87L51.712,167.01C43.582,156.17 36.352,144.55 30.202,132.5L29.132,130.4C24.382,121.08 26.512,109.71 34.322,102.76 34.922,102.23 35.542,101.73 36.162,101.29L22.282,66.2005C20.682,62.1605 16.762,59.2605 12.442,58.9405 9.17198,58.6805 6.03198,59.7805 3.63198,62.0405 1.24199,64.3005 -0.0580118,67.3405 0.0019882,70.6305L1.53199,161.31C1.67199,169.82 5.04199,177.84 10.992,183.89L45.252,218.79 103.222,218.79 102.132,174.72C101.782,168.37 99.302,162.22 95.132,157.42z" Stretch="Fill" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}" Height="259.56027" Width="236.194" Margin="-0.002,0,0.018,0.01" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Grid>
+      </Viewbox>
+    </Grid>
+  </DataTemplate>
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_Icon_Sidebar_Forums">
+    <Grid d:DesignWidth="32" d:DesignHeight="32">
+      <Viewbox HorizontalAlignment="Right" VerticalAlignment="Top">
+        <Grid>
+          <Path Data="M31.67,204.21 44.87,204.21 44.87,242.58C44.87,250.32 54.15,254.27 59.73,248.91L106.22,204.22 160.48,204.22C177.97,204.22 192.15,190.04 192.15,172.55L192.15,83.15C192.15,65.66 177.97,51.48 160.48,51.48L31.67,51.48C14.18,51.48 0,65.66 0,83.15L0,172.55C0,190.04 14.18,204.22 31.67,204.22z M50.52,140.71 65.39,140.71 70.69,114.95 58.91,114.95C54.77,114.95 51.41,111.59 51.41,107.45 51.41,103.31 54.76,99.95 58.91,99.95L73.78,99.95 76.74,85.56C77.58,81.51 81.52,78.9 85.6,79.73 89.66,80.57 92.26,84.53 91.43,88.58L89.09,99.95 114.53,99.95 117.49,85.56C118.33,81.51 122.27,78.9 126.35,79.73 130.41,80.57 133.01,84.53 132.18,88.58L129.84,99.95 141.62,99.95C145.76,99.95 149.12,103.31 149.12,107.45 149.12,111.59 145.76,114.95 141.62,114.95L126.75,114.95 121.44,140.71 133.23,140.71C137.37,140.71 140.73,144.07 140.73,148.21 140.73,152.35 137.37,155.71 133.23,155.71L118.35,155.71 115.38,170.1C114.65,173.64 111.52,176.09 108.04,176.09 107.54,176.09 107.03,176.04 106.52,175.93 102.46,175.09 99.86,171.13 100.69,167.07L103.03,155.71 77.59,155.71 74.63,170.1C73.9,173.64 70.77,176.09 67.29,176.09 66.79,176.09 66.28,176.04 65.77,175.93 61.71,175.09 59.11,171.13 59.94,167.07L62.28,155.71 50.5,155.71C46.36,155.71 43,152.35 43,148.21 43,144.07 46.35,140.71 50.5,140.71z M111.45,114.96 86.01,114.96 80.7,140.71 106.14,140.71 111.45,114.96z M299.13,0 170.42,0C152.94,0 138.66,14.14 138.66,31.61L138.66,33.28 160.54,33.28C188.05,33.28 210.38,55.62 210.38,83.13L210.38,152.73 224.66,152.73 271.16,197.41C276.78,202.88 286.05,198.93 286.05,191.18L286.05,152.74 299.12,152.74C316.75,152.74 330.88,138.6 330.88,121.13L330.88,31.61C330.88,14.14 316.75,0 299.12,0z" Stretch="Fill" Height="251.37656" Width="330.88" Margin="0,0,0.01,-0.007" HorizontalAlignment="Center" VerticalAlignment="Bottom" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}"/>
+        </Grid>
+      </Viewbox>
+    </Grid>
+  </DataTemplate>
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_Icon_LinkBar_Noesis">
+    <Grid d:DesignWidth="32" d:DesignHeight="32">
+      <Viewbox>
+        <Grid>
+          <Path x:Name="Bottom" Data="M312.75,202.26 225.82,178.97 130.4,274.28 212.02,578.19 472.82,648.07 568.24,552.76 544.92,465.93 449.5,561.24 275.64,514.65 217.33,297.57 312.75,202.26z M495.1,130.25 530.09,260.5 466.47,324.04 431.49,193.79 214.16,135.55 86.93,262.63 121.91,392.88 34.98,369.59 0,239.34 190.84,48.72 495.1,130.25z M460.12,0 590.52,34.94 660.49,295.44 437.84,517.82 307.44,482.88 284.12,396.05 414.52,430.99 573.55,272.14 526.91,98.48 396.51,63.54 460.12,0z" Stretch="Fill" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}" Height="648.07" Width="660.49005" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Grid>
+      </Viewbox>
+    </Grid>
+  </DataTemplate>
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_Icon_LinkBar_VSCode">
+    <Grid d:DesignWidth="32" d:DesignHeight="32">
+      <Viewbox>
+        <Grid>
+          <Path x:Name="Bottom" Data="M 30.865,3.448 24.282,0.281 C 23.516,-0.089 22.605,0.067 22.006,0.666 L 9.397,12.171 3.902,8.004 C 3.392,7.613 2.673,7.645 2.199,8.077 l -1.76,1.604 c -0.583,0.526 -0.583,1.443 -0.005,1.969 L 5.2,15.999 0.434,20.348 c -0.578,0.526 -0.578,1.443 0.005,1.969 l 1.76,1.604 c 0.479,0.432 1.193,0.464 1.703,0.073 l 5.495,-4.172 12.615,11.51 c 0.594,0.599 1.505,0.755 2.271,0.385 l 6.589,-3.172 c 0.693,-0.333 1.13,-1.031 1.13,-1.802 V 5.248 c 0,-0.766 -0.443,-1.469 -1.135,-1.802 z M 24.005,23.266 14.432,16 24.005,8.734 Z" Stretch="Fill" Width="660.49005" Height="648.07" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}"/>
+        </Grid>
+      </Viewbox>
+    </Grid>
+  </DataTemplate>
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_Icon_LinkBar_GitHub">
+    <Grid d:DesignWidth="32" d:DesignHeight="32">
+      <Viewbox>
+        <Path Data="F1M653.77,174.5c-31.17,-53.4 -74.08,-96.3 -127.51,-127.49C472.81,15.81 413.64,0 350.39,0s-122.45,15.81 -175.9,47c-53.42,31.18 -96.31,74.08 -127.49,127.49C15.81,227.94 0,287.12 0,350.38c0,75.97 22.48,145.26 66.83,205.97 44.37,60.71 102.48,103.3 172.69,126.59l0.2,0.05c2.49,0.46 4.81,0.7 6.94,0.7 5.27,0 9.46,-1.41 12.5,-4.23 4.24,-3.91 6.39,-8.87 6.39,-14.74 0,-0.43 -0.02,-2.51 -0.05,-6.24 -0.04,-4.1 -0.09,-10.2 -0.16,-18.31 -0.17,-15.38 -0.25,-28.98 -0.25,-40.41v-1.78l-12.2,2.13c-6.49,1.19 -14.87,1.71 -24.92,1.56 -10.05,-0.14 -20.59,-1.2 -31.33,-3.16 -10.64,-1.91 -20.66,-6.39 -29.8,-13.33 -9.08,-6.87 -15.63,-16.03 -19.47,-27.22l-4.59,-10.56c-3.07,-7.09 -7.81,-14.77 -14.48,-23.49 -5.98,-7.75 -12.1,-13.36 -18.2,-16.66 -1.66,-0.9 -3.13,-1.8 -4.48,-2.76l-0.58,-0.41c-2.03,-1.46 -3.87,-3.17 -5.65,-5.24 -1.7,-1.95 -2.99,-3.95 -3.83,-5.94 -0.4,-0.95 -0.64,-2.07 1.62,-3.34 1.19,-0.68 3.05,-1.19 5.53,-1.49 3.34,-0.41 6.9,-0.34 10.59,0.21l5.11,0.76c5.82,1.15 13.2,4.74 21.94,10.66 8.73,5.94 15.99,13.72 21.56,23.12 7.05,12.56 15.69,22.29 25.69,28.91 10.04,6.63 20.33,10 30.59,10s18.79,-0.77 26.2,-2.29c7.38,-1.55 14.37,-3.88 20.78,-6.92l0.73,-0.35 0.11,-0.81c2.66,-19.84 9.99,-35.27 21.76,-45.89l2.5,-2.25 -3.35,-0.35c-17.19,-1.82 -32.78,-4.56 -46.33,-8.16 -13.6,-3.57 -27.85,-9.49 -42.34,-17.58 -14.43,-8.01 -26.59,-18.12 -36.15,-30.03 -9.55,-11.96 -17.48,-27.85 -23.56,-47.22 -6.13,-19.46 -9.24,-42.24 -9.24,-67.69 0,-36.09 11.94,-67.24 35.49,-92.58l0.65,-0.7 -0.36,-0.89c-10.94,-26.87 -9.96,-57.43 2.93,-90.85 8.36,-2.3 20.93,-0.19 37.38,6.29 16.94,6.68 29.62,12.53 37.7,17.37 7.67,4.62 14.14,8.74 19.23,12.23l0.58,0.4 0.67,-0.19c27.94,-7.8 57.16,-11.76 86.83,-11.76s58.88,3.96 86.82,11.76l0.64,0.18 17.81,-11.27c11.56,-7.13 25.53,-13.81 41.53,-19.86 15.21,-5.73 27.03,-7.47 35.15,-5.16 13.15,33.44 14.29,64.02 3.36,90.88l-0.36,0.89 0.65,0.7c23.54,25.32 35.48,56.46 35.48,92.55 0,25.46 -3.11,48.31 -9.24,67.92 -6.13,19.6 -14.13,35.48 -23.79,47.19 -9.67,11.75 -21.91,21.8 -36.38,29.86 -14.53,8.09 -28.78,13.99 -42.34,17.56 -13.55,3.59 -29.14,6.34 -46.33,8.15l-3.43,0.36 2.61,2.26c15.32,13.28 23.09,34.6 23.09,63.36v95.86c0,5.85 2.07,10.79 6.15,14.7 4.16,3.98 10.63,5.18 19.25,3.58l0.2,-0.05c70.26,-23.33 128.36,-65.93 172.67,-126.62 44.36,-60.68 66.86,-129.98 66.86,-205.97 -0.03,-63.25 -15.84,-122.42 -47,-175.87z" Stretch="Fill" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}" Height="683.68994" Width="700.80005" Margin="0,0,-0.02,0.01"/>
+      </Viewbox>
+    </Grid>
+  </DataTemplate>
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_Icon_LinkBar_YouTube">
+    <Grid d:DesignWidth="32" d:DesignHeight="32">
+      <Viewbox RenderTransformOrigin="0.5,0.5">
+        <Viewbox.RenderTransform>
+          <TransformGroup>
+            <ScaleTransform ScaleY="{Binding Path=ScaleX, RelativeSource={RelativeSource Self}}" ScaleX="0.75"/>
+            <SkewTransform/>
+            <RotateTransform/>
+            <TranslateTransform/>
+          </TransformGroup>
+        </Viewbox.RenderTransform>
+        <Path Data="F1M127.37,14.31c-1.5,-5.63 -5.91,-10.07 -11.5,-11.58C105.72,0 65.04,0 65.04,0c0,0 -40.68,0 -50.82,2.74 -5.6,1.51 -10.01,5.94 -11.5,11.58C0,24.52 0,45.83 0,45.83c0,0 0,21.3 2.72,31.51 1.5,5.63 5.91,10.07 11.5,11.58 10.15,2.73 50.82,2.73 50.82,2.73 0,0 40.68,0 50.83,-2.73 5.6,-1.51 10.01,-5.94 11.5,-11.58 2.72,-10.21 2.72,-31.51 2.72,-31.51 0,0 0,-21.3 -2.72,-31.51z M51.74,65.17V26.49l34,19.34 -34,19.34z" Stretch="Fill" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}" Height="91.65001" Width="130.09" Margin="0,0,0,0.01">
+          <Path.RenderTransform>
+            <TransformGroup>
+              <ScaleTransform/>
+              <SkewTransform/>
+              <RotateTransform/>
+              <TranslateTransform/>
+            </TransformGroup>
+          </Path.RenderTransform>
+        </Path>
+      </Viewbox>
+    </Grid>
+  </DataTemplate>
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_Icon_LinkBar_LinkedIn">
+    <Grid d:DesignWidth="32" d:DesignHeight="32">
+      <Viewbox RenderTransformOrigin="0.5,0.5">
+        <Viewbox.RenderTransform>
+          <TransformGroup>
+            <ScaleTransform ScaleY="{Binding Path=ScaleX, RelativeSource={RelativeSource Self}}" ScaleX="0.8"/>
+            <SkewTransform/>
+            <RotateTransform/>
+            <TranslateTransform/>
+          </TransformGroup>
+        </Viewbox.RenderTransform>
+        <Grid>
+          <Path Data="M84.4039,35.23C73.9339,35.23 66.7538,40.19 62.7538,44.68L62.7538,36.97 38.7338,36.97 38.7338,110.96 62.7538,110.96 62.7538,69.69C62.7538,67.48 63.0639,65.11 63.7038,63.68 65.2838,59.26 69.2339,54.68 75.8739,54.68 84.5639,54.68 88.0439,61.48 88.0439,71.43L88.0439,110.96 112.064,110.96 112.064,68.43C112.064,45.67 100.214,35.24 84.4038,35.24z M12.6537,0C4.90369,0 -0.146312,5.55 0.0036879,12.95 -0.156312,20.02 4.90369,25.73 12.4937,25.73 20.0837,25.73 25.4537,20.01 25.4537,12.95 25.2937,5.55 20.3937,0 12.6537,0z M0.643846,36.97 24.6638,36.97 24.6638,110.96 0.643846,110.96z" Stretch="Fill" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}" Height="110.96" Width="112.06385" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Grid>
+      </Viewbox>
+    </Grid>
+  </DataTemplate>
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_Icon_LinkBar_X">
+    <Grid d:DesignWidth="32" d:DesignHeight="32">
+      <Viewbox RenderTransformOrigin="0.5,0.5">
+        <Viewbox.RenderTransform>
+          <TransformGroup>
+            <ScaleTransform ScaleY="{Binding Path=ScaleX, RelativeSource={RelativeSource Self}}" ScaleX="0.8"/>
+            <SkewTransform/>
+            <RotateTransform/>
+            <TranslateTransform/>
+          </TransformGroup>
+        </Viewbox.RenderTransform>
+        <Path Data="F1M70.73,44.7 109.84,0h-17.9l-29.5,33.72L36.94,0H0l44.13,57.71L2.3,105.52h17.91l32.28,-36.89 28.21,36.89h36.02l-46.01,-60.82z M20.9,10.15h10.64l64.03,84.65h-9.92L20.9,10.15z" Stretch="Fill" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}" Height="105.52" Width="116.72" Margin="0,0,0.02,0"/>
+      </Viewbox>
+    </Grid>
+  </DataTemplate>
+
+
+  <!-- CONTENT AREAS -->
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_Page_Welcome">
+    <DataTemplate.Resources>
+      <ResourceDictionary>
+        <Storyboard x:Key="Anim.Enter">
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SectionHeader_1_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.300" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ContentControl0" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame Value="0.9" KeyTime="0:0:0.10"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.300">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase Amplitude="0.2" EasingMode="EaseOut"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ContentControl0" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame Value="0.9" KeyTime="0:0:0.10"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.300">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase Amplitude="0.2" EasingMode="EaseOut"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ContentControl0" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame Value="0" KeyTime="0:0:0.10"/>
+            <LinearDoubleKeyFrame Value="1" KeyTime="0:0:0.300"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ContentControl1" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame Value="0.9" KeyTime="0:0:0.150"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.350">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase Amplitude="0.2" EasingMode="EaseOut"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ContentControl1" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame Value="0.9" KeyTime="0:0:0.150"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.350">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase Amplitude="0.2" EasingMode="EaseOut"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ContentControl1" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame Value="0" KeyTime="0:0:0.150"/>
+            <LinearDoubleKeyFrame Value="1" KeyTime="0:0:0.350"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ContentControl2" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame Value="0.9" KeyTime="0:0:0.200"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.400">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase Amplitude="0.2" EasingMode="EaseOut"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ContentControl2" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame Value="0.9" KeyTime="0:0:0.200"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.400">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase Amplitude="0.2" EasingMode="EaseOut"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ContentControl2" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame Value="0" KeyTime="0:0:0.200"/>
+            <LinearDoubleKeyFrame Value="1" KeyTime="0:0:0.400"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ContentControl3" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame Value="0.9" KeyTime="0:0:0.250"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.450">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase Amplitude="0.2" EasingMode="EaseOut"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ContentControl3" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame Value="0.9" KeyTime="0:0:0.250"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.450">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase Amplitude="0.2" EasingMode="EaseOut"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ContentControl3" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame Value="0" KeyTime="0:0:0.250"/>
+            <LinearDoubleKeyFrame Value="1" KeyTime="0:0:0.450"/>
+          </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+      </ResourceDictionary>
+    </DataTemplate.Resources>
+    <Grid x:Name="Master_Grid">
+      <b:Interaction.Triggers>
+        <b:EventTrigger>
+          <noesis:SetFocusAction TargetName="HiddenFocus"/>
+          <b:ControlStoryboardAction Storyboard="{StaticResource Anim.Enter}"/>
+        </b:EventTrigger>
+      </b:Interaction.Triggers>
+      <ScrollViewer x:Name="ScrollableArea_ScrollViewer" ScrollViewer.VerticalScrollBarVisibility="Visible" IsMakeVisibleSmooth="True" Template="{DynamicResource Template_ScrollBar_ContentArea}">
+        <Grid x:Name="InvisibleHitBox_Grid">
+          <Grid.Background>
+            <SolidColorBrush Color="{DynamicResource Color_Transparent}"/>
+          </Grid.Background>
+          <Control x:Name="HiddenFocus" Focusable="True" Height="1" VerticalAlignment="Top"/>
+          <StackPanel x:Name="Contents_VerticalStack">
+            <Control x:Name="PageHeader_ContentControl" Custom.Line2_String="Unreal Plugin" Custom.Line1_String="Getting Started" Template="{DynamicResource Template_Control_PageHeader}"/>
+            <Grid>
+              <Border Opacity="0.8" Background="{DynamicResource Gradient_Blue_45Deg}">
+                <Border.MinHeight>
+                  <Binding Path="ActualHeight" ElementName="Master_Grid">
+                    <Binding.Converter>
+                      <noesis:MathConverter Expression="{}{0}-90"/>
+                    </Binding.Converter>
+                  </Binding>
+                </Border.MinHeight>
+              </Border>
+              <StackPanel>
+                <ContentControl x:Name="SectionHeader_1_ContentControl" Content="Learn &amp; Connect" ContentTemplate="{DynamicResource DataTemplate_ContentControl_Content_SectionHeader}"/>
+                <StackPanel x:Name="Section1_Rows_StackPanel" Margin="{DynamicResource Thickness_TilingOuterMargin_Omni}">
+                  <UniformGrid x:Name="Row1_UniformGrid" Columns="2">
+                    <HeaderedContentControl x:Name="ContentControl0" RenderTransformOrigin="0.5,0.5" Content="Discover how to set up the NoesisGUI plugin, import your XAML assets, and start rendering beautiful interfaces in your game." Header="Get started with the Unreal Plugin   " Custom.Image_ImageSource="{StaticResource Image.Home.Docs}" Custom.Url_String="https://www.noesisengine.com/docs/4.0/Gui.Core.GettingStartedNative.html" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="ContentControl1" RenderTransformOrigin="0.5,0.5" Content="View the changelog to discover new features, improvements, and bug fixes in the latest official release." Header="Release Notes   " Custom.Url_String="https://www.noesisengine.com/docs/4.0/Gui.Core.Changelog.html" Custom.Image_ImageSource="{StaticResource Image.Home.Changelog}" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                  </UniformGrid>
+                  <UniformGrid x:Name="Row2_UniformGrid" Columns="2">
+                    <HeaderedContentControl x:Name="ContentControl2" RenderTransformOrigin="0.5,0.5" Content="Join the discussion, ask questions, and share your work on the official Noesis community forums." Header="Noesis Forums   " Custom.Image_ImageSource="{StaticResource Image.Home.Forums}" Custom.IsSmallTile_Bool="True" Custom.Url_String="https://forums.noesisengine.com" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="ContentControl3" RenderTransformOrigin="0.5,0.5" Content="Help improve Noesis by reporting bugs or providing feedback on the official Noesis Issue Tracker." Header="Issue Tracker   " Custom.Image_ImageSource="{StaticResource Image.Home.Bugs}" Custom.IsSmallTile_Bool="True" Custom.Url_String="https://bugs.noesisengine.com" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                  </UniformGrid>
+                </StackPanel>
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+        </Grid>
+      </ScrollViewer>
+    </Grid>
+  </DataTemplate>
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_Page_Learn">
+    <DataTemplate.Resources>
+      <ResourceDictionary>
+        <Storyboard x:Key="Anim.Enter">
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SectionHeader_2_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="00:00:00.1000000" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.400" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SectionHeader_1_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.300" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile1_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="00:00:00.0500000" Value="0"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.150">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile2_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.10" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.200" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile3_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.150" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.250" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile4_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.200" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.300" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile5_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.250" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.350" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile6_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.300" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.400" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile7_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.350" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.450" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile8_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.400" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.500" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile1_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="00:00:00.0500000" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.150">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile2_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.10" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.200" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile3_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.150" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.250" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile4_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.200" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.300" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile5_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.250" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.350" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile6_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.300" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.400" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile7_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.350" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.450" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile8_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.400" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.500" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile1_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="00:00:00.0500000" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.150">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile2_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.10" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.200" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile3_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.150" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.250" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile4_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.200" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.300" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile5_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.250" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.350" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile6_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.300" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.400" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile7_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.350" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.450" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile8_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.400" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.500" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+      </ResourceDictionary>
+    </DataTemplate.Resources>
+    <Grid x:Name="Master_Grid">
+      <b:Interaction.Triggers>
+        <b:EventTrigger>
+          <noesis:SetFocusAction TargetName="HiddenFocus"/>
+          <b:ControlStoryboardAction Storyboard="{DynamicResource Anim.Enter}"/>
+        </b:EventTrigger>
+      </b:Interaction.Triggers>
+      <ScrollViewer x:Name="ScrollableArea_ScrollViewer" ScrollViewer.VerticalScrollBarVisibility="Visible" IsMakeVisibleSmooth="True" Template="{DynamicResource Template_ScrollBar_ContentArea}">
+        <Grid x:Name="InvisibleHitBox_Grid">
+          <Grid.Background>
+            <SolidColorBrush Color="{DynamicResource Color_Transparent}"/>
+          </Grid.Background>
+          <Control x:Name="HiddenFocus" Focusable="True" Height="1" VerticalAlignment="Top"/>
+          <StackPanel x:Name="Contents_VerticalStack">
+            <Control x:Name="PageHeader_ContentControl" Template="{DynamicResource Template_Control_PageHeader}" Custom.Line1_String="Runtime &amp; Studio" Custom.Line2_String="Resources"/>
+            <Grid>
+              <Border Opacity="0.9" Background="{DynamicResource Gradient_Blue_45Deg}">
+                <Border.MinHeight>
+                  <Binding Path="ActualHeight" ElementName="Master_Grid">
+                    <Binding.Converter>
+                      <noesis:MathConverter Expression="{}{0}-90"/>
+                    </Binding.Converter>
+                  </Binding>
+                </Border.MinHeight>
+              </Border>
+              <StackPanel>
+                <ContentControl x:Name="SectionHeader_1_ContentControl" Content="Documentation" ContentTemplate="{DynamicResource DataTemplate_ContentControl_Content_SectionHeader}"/>
+                <StackPanel x:Name="Section1_StackPanel" Margin="{DynamicResource Thickness_TilingOuterMargin_Omni}">
+                  <UniformGrid Columns="2">
+                    <HeaderedContentControl x:Name="Tile1_ContentControl" RenderTransformOrigin="0.5,0.5" Content="Learn everything about the NoesisGUI runtime, including tutorials, technical docs, and more!" Header="Runtime&#x0A;Documentation   " Custom.IsSmallTile_Bool="True" Custom.Image_ImageSource="{StaticResource Image.Learn.DocsNoesisGUI}" Custom.Url_String="https://www.noesisengine.com/docs/4.0/Gui.Core.Index.html" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile2_ContentControl" RenderTransformOrigin="0.5,0.5" Content="Enter the central hub for Noesis Studio. Take a tour of the application, and learn all about the tool." Header="Studio&#x0A;Documentation   " Custom.IsSmallTile_Bool="True" Custom.Image_ImageSource="{StaticResource Image.Learn.DocsStudio}" Custom.Url_String="https://www.noesisengine.com/docs/4.0/Gui.Studio.Documentation_Index.html" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                  </UniformGrid>
+                </StackPanel>
+                <ContentControl x:Name="SectionHeader_2_ContentControl" Content="Discover Noesis Studio" ContentTemplate="{DynamicResource DataTemplate_ContentControl_Content_SectionHeader}"/>
+                <StackPanel x:Name="Section2_StackPanel" Margin="{DynamicResource Thickness_TilingOuterMargin_Omni}">
+                  <UniformGrid Columns="2">
+                    <HeaderedContentControl x:Name="Tile3_ContentControl" RenderTransformOrigin="0.5,0.5" Content="Embark on a whistle-stop tour of the Noesis Studio visual editor, and discover some of the tools available to turn your vision into reality!" Header="A New Era for Interface Design   " Custom.IsYoutubeLink_Bool="True" Custom.Image_ImageSource="{StaticResource Image.Learn.VideoNewEra}" Custom.Url_String="https://www.youtube.com/watch?v=47xFtd4g-Iw" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile4_ContentControl" RenderTransformOrigin="0.5,0.5" Content="Join a guided walkthrough showcasing how to build a main menu for a mech game, completely from scratch, all within Noesis Studio." Header="Building a Main Menu in Noesis Studio   " Custom.Image_ImageSource="{StaticResource Image.Learn.VideoMainMenu}" Custom.IsYoutubeLink_Bool="True" Custom.Url_String="https://youtu.be/FIpUJuhDMc8" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile5_ContentControl" RenderTransformOrigin="0.5,0.5" Content="In this feature showcase, learn all about the magic of driving interfaces with Data through Noesis Studio&amp;apos;s powerful suite of native Data tools." Header="Working with Data in Noesis Studio   " Custom.IsYoutubeLink_Bool="True" Custom.Image_ImageSource="{StaticResource Image.Learn.VideoData}" Custom.Url_String="https://youtu.be/atjRI3g1YIk" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile6_ContentControl" RenderTransformOrigin="0.5,0.5" Content="In this feature showcase, learn all about how to harness Noesis Studio&amp;apos;s native vector toolset to create hyper-flexible, ultra-efficient user interface elements!" Header="Working with Paths in Noesis Studio   " Custom.Image_ImageSource="{StaticResource Image.Learn.VideoPaths}" Custom.IsYoutubeLink_Bool="True" Custom.Url_String="https://youtu.be/2IWjSTPd7KI" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile7_ContentControl" RenderTransformOrigin="0.5,0.5" Content="In this tutorial, learn how to completely customize Buttons with Templates and Styles, whilst conserving the entirety of their powerful built-in functional layer." Header="Creating Button Templates and Styles in Noesis Studio   " Custom.Image_ImageSource="{StaticResource Image.Learn.VideoStyles}" Custom.Url_String="https://youtu.be/id7_c29HKmQ" Custom.IsYoutubeLink_Bool="True" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile8_ContentControl" RenderTransformOrigin="0.5,0.5" Content="Learn the basics of working with the powerful ListBox Element and how to leverage Noesis Studio&amp;apos;s built-in Design-Time Data features, to build a character selection screen from scratch." Header="Creating a Character Selection Screen in Noesis Studio   " Custom.Image_ImageSource="{StaticResource Image.Learn.VideoCharSel}" Custom.IsYoutubeLink_Bool="True" Custom.Url_String="https://youtu.be/wkKTqfNu1ko" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                  </UniformGrid>
+                </StackPanel>
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+        </Grid>
+      </ScrollViewer>
+    </Grid>
+  </DataTemplate>
+  <DataTemplate x:Key="DataTemplate_ContentControl_Content_Page_Samples">
+    <DataTemplate.Resources>
+      <ResourceDictionary>
+        <Storyboard x:Key="Anim.Enter">
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SectionHeader_1_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="00:00:00.3000000" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile8_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.450" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.650" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile7_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.400" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.600" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile6_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.350" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.550" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile5_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.300" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.500" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile4_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.250" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.450" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile3_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.200" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.400" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile2_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.150" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.350" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile1_ContentControl" Storyboard.TargetProperty="(UIElement.Opacity)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="00:00:00.1000000" Value="0"/>
+            <LinearDoubleKeyFrame KeyTime="00:00:00.3000000" Value="1"/>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile8_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.450" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.650">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile7_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.400" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.600">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile6_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.350" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.550">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile5_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.300" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.500">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile4_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.250" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.450">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile3_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.200" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.400">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile2_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.150" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.350">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile1_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="00:00:00.1000000" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.300">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile8_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.450" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.650">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile7_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.400" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.600">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile6_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.350" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.550">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile5_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.300" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.500">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile4_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.250" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.450">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile3_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.200" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.400">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile2_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="0:0:0.150" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.350">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+          <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Tile1_ContentControl" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+            <LinearDoubleKeyFrame KeyTime="00:00:00" Value="0.9"/>
+            <LinearDoubleKeyFrame KeyTime="00:00:00.1000000" Value="0.9"/>
+            <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.300">
+              <EasingDoubleKeyFrame.EasingFunction>
+                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+              </EasingDoubleKeyFrame.EasingFunction>
+            </EasingDoubleKeyFrame>
+          </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+      </ResourceDictionary>
+    </DataTemplate.Resources>
+    <Grid x:Name="Master_Grid">
+      <b:Interaction.Triggers>
+        <b:EventTrigger EventName="Loaded">
+          <noesis:SetFocusAction TargetName="HiddenFocus"/>
+          <b:ControlStoryboardAction Storyboard="{DynamicResource Anim.Enter}"/>
+        </b:EventTrigger>
+      </b:Interaction.Triggers>
+      <ScrollViewer x:Name="ScrollableArea_ScrollViewer" ScrollViewer.VerticalScrollBarVisibility="Visible" IsMakeVisibleSmooth="True" Template="{DynamicResource Template_ScrollBar_ContentArea}">
+        <Grid x:Name="InvisibleHitBox_Grid">
+          <Grid.Background>
+            <SolidColorBrush Color="{DynamicResource Color_Transparent}"/>
+          </Grid.Background>
+          <Control x:Name="HiddenFocus" Focusable="True" Height="1" VerticalAlignment="Top"/>
+          <StackPanel x:Name="Contents_VerticalStack">
+            <Control x:Name="PageHeader_ContentControl" Template="{DynamicResource Template_Control_PageHeader}" Custom.Line1_String="Explore the" Custom.Line2_String="Sample Library"/>
+            <Grid>
+              <Border Opacity="0.9" Background="{DynamicResource Gradient_Blue_45Deg}">
+                <Border.MinHeight>
+                  <Binding Path="ActualHeight" ElementName="Master_Grid">
+                    <Binding.Converter>
+                      <noesis:MathConverter Expression="{}{0}-90"/>
+                    </Binding.Converter>
+                  </Binding>
+                </Border.MinHeight>
+              </Border>
+              <StackPanel>
+                <ContentControl x:Name="SectionHeader_1_ContentControl" Content="Studio Projects" ContentTemplate="{DynamicResource DataTemplate_ContentControl_Content_SectionHeader}"/>
+                <StackPanel x:Name="Section1_StackPanel" Margin="{DynamicResource Thickness_TilingOuterMargin_Omni}">
+                  <UniformGrid Columns="2">
+                    <HeaderedContentControl x:Name="Tile1_ContentControl" RenderTransformOrigin="0.5,0.5" Content="A minimalist multiplatform sample of a NoesisGUI application, using our open source application framework." Header="Hello World   " Custom.Image_ImageSource="{StaticResource Image.Samples.HelloWorld}" Custom.Command_BaseComponent="{Binding Path=OpenSample}" Custom.Url_String="HelloWorld" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile2_ContentControl" RenderTransformOrigin="0.5,0.5" Content="A menu with buttons showcasing how to set Visual States to customize the appearance, and how to use command bindings to hook events using MVVM style." Header="Buttons   " Custom.Image_ImageSource="{StaticResource Image.Samples.StartMenu}" Custom.Command_BaseComponent="{Binding OpenSample}" Custom.Url_String="Buttons" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile3_ContentControl" RenderTransformOrigin="0.5,0.5" Content="A showcase of how to use a TextBox and a PasswordBox to implement a login panel. Information entered by the user is gathered using MVVM and commands." Header="Login Dialog   " Custom.Image_ImageSource="{StaticResource Image.Samples.LoginDialog}" Custom.Command_BaseComponent="{Binding OpenSample}" Custom.Url_String="Login" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile4_ContentControl" RenderTransformOrigin="0.5,0.5" Content="A quest log which uses data binding to interact with data. The interface is populated by taking information from an array of quests defined in the view model." Header="Quest Log   " Custom.Image_ImageSource="{StaticResource Image.Samples.QuestLog}" Custom.Command_BaseComponent="{Binding OpenSample}" Custom.Url_String="QuestLog" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile5_ContentControl" RenderTransformOrigin="0.5,0.5" Content="An example of how to use DataTrigger and data binding to modify the appearance of UI elements using model property values." Header="Scoreboard   " Custom.Image_ImageSource="{StaticResource Image.Samples.Scoreboard}" Custom.Command_BaseComponent="{Binding OpenSample}" Custom.Url_String="Scoreboard" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile6_ContentControl" RenderTransformOrigin="0.5,0.5" Content="An interactive solar system which uses data binding to dynamically display planetary information defined in the view model." Header="Data Binding   " Custom.Image_ImageSource="{StaticResource Image.Samples.DataBinding}" Custom.Command_BaseComponent="{Binding OpenSample}" Custom.Url_String="DataBinding" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile7_ContentControl" RenderTransformOrigin="0.5,0.5" Content="A localized menu using the Loc markup extension, rich text, and data binding. Displays in English, French, Japanese and Arabic." Header="Localization   " Custom.Image_ImageSource="{StaticResource Image.Samples.Localization}" Custom.Command_BaseComponent="{Binding OpenSample}" Custom.Url_String="Localize" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile8_ContentControl" RenderTransformOrigin="0.5,0.5" Content="A classic videogame menu with three panels, showcasing how to smoothly transition between several XAMLs." Header="Menu 3D   " Custom.Image_ImageSource="{StaticResource Image.Samples.Menu3D}" Custom.Command_BaseComponent="{Binding OpenSample}" Custom.Url_String="Menu3D" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile9_ContentControl" RenderTransformOrigin="0.5,0.5" Content="A typical RPG inventory panel showcasing how to use Drag &amp; Drop, and interactivity Behaviors, in games." Header="Inventory   " Custom.Image_ImageSource="{StaticResource Image.Samples.Inventory}" Custom.Command_BaseComponent="{Binding OpenSample}" Custom.Url_String="Inventory" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile10_ContentControl" RenderTransformOrigin="0.5,0.5" Content="The classic paper-and-pencil game for two players, implemented in NoesisGUI." Header="Tic Tac Toe   " Custom.Image_ImageSource="{StaticResource Image.Samples.TicTacToe}" Custom.Command_BaseComponent="{Binding OpenSample}" Custom.Url_String="TicTacToe" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile11_ContentControl" RenderTransformOrigin="0.5,0.5" Content="A demonstration of using the BackgroundEffect behavior to create impressive dynamic background effects." Header="Background Effect   " Custom.Image_ImageSource="{StaticResource Image.Samples.BackgroundEffect}" Custom.Command_BaseComponent="{Binding OpenSample}" Custom.Url_String="BackgroundBlur" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile12_ContentControl" RenderTransformOrigin="0.5,0.5" Content="Brushes can be customized with a shader to define how elements are filled. This example shows how to generate procedural pattern brushes." Header="Brush Shaders   " Custom.Image_ImageSource="{StaticResource Image.Samples.BrushShaders}" Custom.Command_BaseComponent="{Binding OpenSample}" Custom.Url_String="BrushShaders" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile13_ContentControl" RenderTransformOrigin="0.5,0.5" Content="A demonstration of using MediaElement to play videos, in combination with custom effects and blending modes." Header="Video Effects   " Custom.Image_ImageSource="{StaticResource Image.Samples.VideoEffect}" Custom.Command_BaseComponent="{Binding OpenSample}" Custom.Url_String="VideoEffect" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile14_ContentControl" RenderTransformOrigin="0.5,0.5" Content="An example of using OnRender and DrawingContext as a memory efficient way to render rectangles, lines, text, or any arbitrary geometric shapes." Header="Custom Render   " Custom.Image_ImageSource="{StaticResource Image.Samples.CustomRender}" Custom.Command_BaseComponent="{Binding OpenSample}" Custom.Url_String="CustomRender" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile15_ContentControl" RenderTransformOrigin="0.5,0.5" Content="This sample uses ControlTemplates to give a single DateTime custom control two completely different visual styles: an analog clock and a digital display." Header="Custom Control   " Custom.Image_ImageSource="{StaticResource Image.Samples.CustomControl}" Custom.Command_BaseComponent="{Binding OpenSample}" Custom.Url_String="CustomControl" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile16_ContentControl" RenderTransformOrigin="0.5,0.5" Content="An example of composing standard elements into a reusable NumericUpDown UserControl. Instantiated multiple times to drive an interactive RPG attribute-distribution menu." Header="User Control   " Custom.Image_ImageSource="{StaticResource Image.Samples.UserControl}" Custom.Command_BaseComponent="{Binding OpenSample}" Custom.Url_String="UserControl" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile17_ContentControl" RenderTransformOrigin="0.5,0.5" Content="A showcase of using Rive vector graphics and animations in NoesisGUI, controlling them using bindings and interaction triggers." Header="Rive   " Custom.Image_ImageSource="{StaticResource Image.Samples.Rive}" Custom.Command_BaseComponent="{Binding OpenSample}" Custom.Url_String="Rive" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                    <HeaderedContentControl x:Name="Tile18_ContentControl" RenderTransformOrigin="0.5,0.5" Content="Render UI directly in a 3D environment with seamless depth integration. Scene objects naturally occlude the interface to create immersive, diegetic interactions." Header="World Space UI   " Custom.Image_ImageSource="{StaticResource Image.Samples.WorldSpaceUI}" Custom.Command_BaseComponent="{Binding OpenSample}" Custom.Url_String="WorldSpaceUI" Template="{DynamicResource Template_ContentControl_Tile}">
+                      <HeaderedContentControl.RenderTransform>
+                        <TransformGroup>
+                          <ScaleTransform/>
+                          <SkewTransform/>
+                          <RotateTransform/>
+                          <TranslateTransform/>
+                        </TransformGroup>
+                      </HeaderedContentControl.RenderTransform>
+                    </HeaderedContentControl>
+                  </UniformGrid>
+                </StackPanel>
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+        </Grid>
+      </ScrollViewer>
+    </Grid>
+  </DataTemplate>
+</ResourceDictionary>

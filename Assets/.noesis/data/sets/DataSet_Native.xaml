@@ -1,0 +1,6 @@
+<vdctx:ViewModel xmlns:vdctx="clr-namespace:Welcome"
+  Version="4.0.0rc2">
+  <vdctx:ViewModel.OpenSample>
+    <MessageCommand Message="Open Sample"/>
+  </vdctx:ViewModel.OpenSample>
+</vdctx:ViewModel>

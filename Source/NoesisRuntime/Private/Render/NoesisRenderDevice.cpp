@@ -29,6 +29,11 @@
 #include "PSOPrecache.h"
 #include "PSOPrecacheValidation.h"
 #endif
+#if UE_VERSION_OLDER_THAN(5, 8, 0)
+#else
+#include "PSOPrecacheComponent.h"
+#endif
+#include "SceneInterface.h"
 
 // RHI includes
 #include "RHI.h"
@@ -443,7 +448,11 @@ template<ESamplerFilter Filter = SF_Point,
 	ESamplerAddressMode AddressU = AM_Clamp,
 	ESamplerAddressMode AddressV = AM_Clamp,
 	int MaxMipLevel = 1>
-class TNoesisStaticSamplerState : public TStaticStateRHI<TNoesisStaticSamplerState<Filter, AddressU, AddressV, MaxMipLevel>, FSamplerStateRHIRef, FRHISamplerState*>
+#if UE_VERSION_OLDER_THAN(5, 8, 0)
+class TNoesisStaticSamplerState : public TStaticStateRHI<TNoesisStaticSamplerState<Filter, AddressU, AddressV, MaxMipLevel>, FSamplerStateRHIRef, FRHISamplerState*>	
+#else
+class TNoesisStaticSamplerState : public TStaticStateRHI<TNoesisStaticSamplerState<Filter, AddressU, AddressV, MaxMipLevel>, FRHISamplerState>
+#endif
 {
 public:
 	static FSamplerStateRHIRef CreateRHI()
@@ -957,6 +966,12 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(FRHITexture* Tex
 	return Noesis::MakePtr<FNoesisTexture>(Texture, IgnoreAlpha);
 }
 
+void FNoesisRenderDevice::SetRHITexture(Noesis::Texture* Texture, FRHITexture* RHITexture)
+{
+	FNoesisTexture* NoesisTexture = (FNoesisTexture*)Texture;
+	NoesisTexture->SetRHITexture(RHITexture);
+}
+
 FRHITexture* FNoesisRenderDevice::GetRHITexture(Noesis::Texture* InTexture)
 {
 	FNoesisTexture* Texture = (FNoesisTexture*)InTexture;
@@ -1072,7 +1087,7 @@ static void NoesisCreateTargetableShaderResource2D(
 #if UE_VERSION_OLDER_THAN(5, 1, 0)
 		FRHIResourceCreateInfo CreateInfo(Name);
 		CreateInfo.ClearValueBinding = ClearValue;
-		OutTargetableTexture = OutShaderResourceTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, Flags | TargetableTextureFlags | TexCreate_ShaderResource, ERHIAccess::SRVGraphics, CreateInfo);
+		OutTargetableTexture = OutShaderResourceTexture = FRHICommandListImmediate::Get().CreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, Flags | TargetableTextureFlags | TexCreate_ShaderResource, ERHIAccess::SRVGraphics, CreateInfo);
 #else
 		auto TextureDesc = FRHITextureCreateDesc::Create2D(Name)
 			.SetExtent(SizeX, SizeY)
@@ -1082,7 +1097,7 @@ static void NoesisCreateTargetableShaderResource2D(
 			.SetFlags(Flags | TargetableTextureFlags | TexCreate_ShaderResource)
 			.SetInitialState(ERHIAccess::SRVGraphics)
 			.SetClearValue(ClearValue);
-		OutTargetableTexture = OutShaderResourceTexture = RHICreateTexture(TextureDesc);
+		OutTargetableTexture = OutShaderResourceTexture = FRHICommandListImmediate::Get().CreateTexture(TextureDesc);
 #endif
 		NOESIS_BIND_DEBUG_TEXTURE_LABEL(FRHICommandListExecutor::GetImmediateCommandList(), OutTargetableTexture, Name);
 	}
@@ -1101,9 +1116,9 @@ static void NoesisCreateTargetableShaderResource2D(
 #if UE_VERSION_OLDER_THAN(5, 1, 0)
 		FRHIResourceCreateInfo CreateInfo(*RTName);
 		CreateInfo.ClearValueBinding = ClearValue;
-		OutTargetableTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, Flags | TargetableTextureFlags, ERHIAccess::RTV, CreateInfo);
+		OutTargetableTexture = FRHICommandListImmediate::Get().CreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, Flags | TargetableTextureFlags, ERHIAccess::RTV, CreateInfo);
 		CreateInfo.DebugName = *SRName;
-		OutShaderResourceTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, 1, Flags | ResolveTargetableTextureFlags | TexCreate_ShaderResource, ERHIAccess::SRVGraphics, CreateInfo);
+		OutShaderResourceTexture = FRHICommandListImmediate::Get().CreateTexture2D(SizeX, SizeY, Format, NumMips, 1, Flags | ResolveTargetableTextureFlags | TexCreate_ShaderResource, ERHIAccess::SRVGraphics, CreateInfo);
 #else
 		auto TargetableTextureDesc = FRHITextureCreateDesc::Create2D(*RTName)
 			.SetExtent(SizeX, SizeY)
@@ -1113,7 +1128,7 @@ static void NoesisCreateTargetableShaderResource2D(
 			.SetFlags(Flags | TargetableTextureFlags)
 			.SetInitialState(ERHIAccess::RTV)
 			.SetClearValue(ClearValue);
-		OutTargetableTexture = RHICreateTexture(TargetableTextureDesc);
+		OutTargetableTexture = FRHICommandListImmediate::Get().CreateTexture(TargetableTextureDesc);
 		auto ShaderResourceTextureDesc = FRHITextureCreateDesc::Create2D(*SRName)
 			.SetExtent(SizeX, SizeY)
 			.SetFormat(Format)
@@ -1122,7 +1137,7 @@ static void NoesisCreateTargetableShaderResource2D(
 			.SetFlags(Flags | ResolveTargetableTextureFlags | TexCreate_ShaderResource)
 			.SetInitialState(ERHIAccess::SRVGraphics)
 			.SetClearValue(ClearValue);
-		OutShaderResourceTexture = RHICreateTexture(ShaderResourceTextureDesc);
+		OutShaderResourceTexture = FRHICommandListImmediate::Get().CreateTexture(ShaderResourceTextureDesc);
 #endif
 		NOESIS_BIND_DEBUG_TEXTURE_LABEL(FRHICommandListExecutor::GetImmediateCommandList(), OutTargetableTexture, *RTName);
 		NOESIS_BIND_DEBUG_TEXTURE_LABEL(FRHICommandListExecutor::GetImmediateCommandList(), OutShaderResourceTexture, *SRName);
@@ -1164,7 +1179,7 @@ Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CreateRenderTarget(const 
 #if UE_VERSION_OLDER_THAN(5, 1, 0)
 		FRHIResourceCreateInfo CreateInfo(*DSName);
 		CreateInfo.ClearValueBinding = ClearValue;
-		DepthStencilTarget = RHICreateTexture2D(Width, Height, Format, NumMips, SampleCount, TargetableTextureFlags, Access, CreateInfo);
+		DepthStencilTarget = FRHICommandListImmediate::Get().CreateTexture2D(Width, Height, Format, NumMips, SampleCount, TargetableTextureFlags, Access, CreateInfo);
 #else
 		auto DepthStencilTargetDesc = FRHITextureCreateDesc::Create2D(*DSName)
 			.SetExtent(Width, Height)
@@ -1174,7 +1189,7 @@ Noesis::Ptr<Noesis::RenderTarget> FNoesisRenderDevice::CreateRenderTarget(const 
 			.SetFlags(TargetableTextureFlags)
 			.SetInitialState(Access)
 			.SetClearValue(ClearValue);
-		DepthStencilTarget = RHICreateTexture(DepthStencilTargetDesc);
+		DepthStencilTarget = FRHICommandListImmediate::Get().CreateTexture(DepthStencilTargetDesc);
 #endif
 		NOESIS_BIND_DEBUG_TEXTURE_LABEL(FRHICommandListExecutor::GetImmediateCommandList(), DepthStencilTarget, *DSName);
 	}
@@ -1211,7 +1226,7 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(const char* Labe
 	ERHIAccess Access = ERHIAccess::SRVGraphics;
 #if UE_VERSION_OLDER_THAN(5, 1, 0)
 	FRHIResourceCreateInfo CreateInfo(*Name);
-	FTextureRHIRef ShaderResourceTexture = RHICreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, Flags, Access, CreateInfo);
+	FTextureRHIRef ShaderResourceTexture = FRHICommandListImmediate::Get().CreateTexture2D(SizeX, SizeY, Format, NumMips, NumSamples, Flags, Access, CreateInfo);
 #else
 	auto ShaderResourceTextureDesc = FRHITextureCreateDesc::Create2D(*Name)
 		.SetExtent(SizeX, SizeY)
@@ -1220,7 +1235,7 @@ Noesis::Ptr<Noesis::Texture> FNoesisRenderDevice::CreateTexture(const char* Labe
 		.SetNumSamples(NumSamples)
 		.SetFlags(Flags)
 		.SetInitialState(Access);
-	FTextureRHIRef ShaderResourceTexture = RHICreateTexture(ShaderResourceTextureDesc);
+	FTextureRHIRef ShaderResourceTexture = FRHICommandListImmediate::Get().CreateTexture(ShaderResourceTextureDesc);
 #endif
 	NOESIS_BIND_DEBUG_TEXTURE_LABEL(FRHICommandListExecutor::GetImmediateCommandList(), ShaderResourceTexture, *Name);
 
@@ -1254,7 +1269,7 @@ void FNoesisRenderDevice::UpdateTexture(Noesis::Texture* InTexture, uint32 Level
 	uint32 SourcePitch = (uint32)(Width * GPixelFormats[Texture->GetTexture2D()->GetFormat()].BlockBytes);
 	const uint8* SourceData = (const uint8*)Data;
 
-	RHIUpdateTexture2D(Texture->GetTexture2D(), MipIndex, UpdateRegion, SourcePitch, SourceData);
+	FRHICommandListImmediate::Get().UpdateTexture2D(Texture->GetTexture2D(), MipIndex, UpdateRegion, SourcePitch, SourceData);
 }
 
 static void SetStaticUniformBuffer(FRHICommandList* RHICmdList, FRHIUniformBuffer* UniformBuffer)
@@ -1706,8 +1721,11 @@ void FNoesisRenderDevice::DrawBatch(const Noesis::Batch& Batch)
 #if UE_VERSION_OLDER_THAN(4, 27, 0)
 		Material = MaterialProxy->GetMaterial(FeatureLevel);
 #else
-		Material = &MaterialProxy->GetIncompleteMaterialWithFallback(FeatureLevel);
+		Material = MaterialProxy->GetMaterialNoFallback(FeatureLevel);
 #endif
+		if (Material == nullptr)
+			return;
+
 		if (UsingCustomEffect)
 		{
 			UsingMaterialShader = false;
@@ -1990,7 +2008,9 @@ static void AddPSOInitializers(FGlobalShaderMap* GlobalShaderMap, const FSceneTe
 		{
 			static const auto CVarDefaultBackBufferPixelFormat = IConsoleManager::Get().FindTConsoleVariableDataInt(TEXT("r.DefaultBackBufferPixelFormat"));
 			EPixelFormat SceneTargetFormat = EDefaultBackBufferPixelFormat::Convert2PixelFormat(EDefaultBackBufferPixelFormat::FromInt(CVarDefaultBackBufferPixelFormat->GetValueOnAnyThread()));
+#if UE_VERSION_OLDER_THAN(5, 8, 0)
 			SceneTargetFormat = RHIPreferredPixelFormatHint(SceneTargetFormat);
+#endif
 				
 			FGraphicsPipelineRenderTargetsInfo RenderTargetsInfo;
 			AddRenderTargetInfo(SceneTargetFormat, TexCreate_RenderTargetable, RenderTargetsInfo);

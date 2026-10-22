@@ -11,6 +11,7 @@
 // Core includes
 #include "CoreMinimal.h"
 #include "HAL/FileManager.h"
+#include "HAL/PlatformFileManager.h"
 #include "Misc/EngineVersionComparison.h"
 
 // CoreUObject includes
@@ -22,10 +23,23 @@
 #include "Engine/Texture2D.h"
 #include "Materials/MaterialInterface.h"
 #include "TextureCompiler.h"
+#include "Widgets/SWindow.h"
+#include "Widgets/Docking/SDockTab.h"
+#include "Misc/FileHelper.h"
+#include "Misc/MessageDialog.h"
+#include "Misc/App.h"
+#include "DesktopPlatformModule.h"
+#include "IDesktopPlatform.h"
+#include "Interfaces/IPluginManager.h"
+#include "Interfaces/IMainFrameModule.h"
 
 // UnrealEd includes
 #include "Editor.h"
 #include "EditorReimportHandler.h"
+#include "ContentBrowserModule.h"
+#include "IContentBrowserSingleton.h"
+#include "FileHelpers.h"
+#include "Settings/LevelEditorPlaySettings.h"
 
 // NoesisRuntime includes
 #include "NoesisRuntimeModule.h"
@@ -38,6 +52,7 @@
 #include "NoesisTextureAssetUserData.h"
 #include "NoesisInstance.h"
 #include "NoesisBlueprintGeneratedClass.h"
+#include "NoesisAssetDependency.h"
 
 // NoesisEditor includes
 #include "NoesisBlueprintAssetTypeActions.h"
@@ -49,6 +64,7 @@
 #include "NoesisRiveThumbnailRenderer.h"
 #include "NoesisStyle.h"
 #include "NoesisLangServerResourceProvider.h"
+#include "SNoesisStudioWidget.h"
 
 // KismetCompiler includes
 #include "KismetCompiler.h"
@@ -66,7 +82,7 @@
 #include "Widgets/Images/SImage.h"
 
 // LangServer includes
-#include "NsApp/LangServer.h"
+#include "NsGui/LangServer.h"
 
 // ContentBrowser includes
 #include "ContentBrowserMenuContexts.h"
@@ -161,7 +177,7 @@ static void EnsurePremultiplyAlpha(class UTexture2D* Texture)
 
 static void SetLangServerCallbacks(FNoesisLangServerTextureProvider* textureProvider)
 {
-	NoesisApp::LangServer::SetDocumentClosedCallback(textureProvider, [](void* user, const Noesis::Uri& uri)
+	Noesis::LangServer::SetDocumentClosedCallback(textureProvider, [](void* user, const Noesis::Uri& uri)
 		{
 			FNoesisLangServerTextureProvider* provider = (FNoesisLangServerTextureProvider*)user;
 			provider->ClearShrinkTextures();
@@ -334,7 +350,11 @@ public:
 	{
 		NoesisEditorModuleInterface = this;
 
+#if UE_VERSION_OLDER_THAN(5, 8, 0)
 		FCoreDelegates::OnPostEngineInit.AddRaw(this, &FNoesisEditorModule::OnPostEngineInit);
+#else
+		FCoreDelegates::GetOnPostEngineInit().AddRaw(this, &FNoesisEditorModule::OnPostEngineInit);
+#endif
 	}
 
 #if UE_VERSION_OLDER_THAN(5, 0, 0)
@@ -354,15 +374,15 @@ public:
 		Noesis::Ptr<FNoesisLangServerTextureProvider> LangTextureProvider = Noesis::MakePtr<FNoesisLangServerTextureProvider>();
 
 		// Set LangServer Scheme Providers
-		NoesisApp::LangServer::SetXamlProvider(Noesis::MakePtr<FNoesisLangServerXamlProvider>());
-		NoesisApp::LangServer::SetTextureProvider(LangTextureProvider);
-		NoesisApp::LangServer::SetFontProvider(Noesis::MakePtr<FNoesisLangServerFontProvider>());
+		Noesis::LangServer::SetXamlProvider(Noesis::MakePtr<FNoesisLangServerXamlProvider>());
+		Noesis::LangServer::SetTextureProvider(LangTextureProvider);
+		Noesis::LangServer::SetFontProvider(Noesis::MakePtr<FNoesisLangServerFontProvider>());
 
 		SetLangServerCallbacks(LangTextureProvider);
 
 		// Initialize LangServer
-		NoesisApp::LangServer::SetName("Unreal");
-		NoesisApp::LangServer::Init();
+		Noesis::LangServer::SetName("Unreal");
+		Noesis::LangServer::Init();
 
 		// Register asset type actions
 		IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
@@ -418,13 +438,12 @@ public:
 		TickerHandle = FTSTicker::GetCoreTicker().AddTicker(TEXT("NoesisEditor"), 0.0f, [this](float DeltaTime)
 		{
 			Noesis::GUI::UpdateInspector();
-			NoesisApp::LangServer::RunTick();
+			Noesis::LangServer::RunTick();
 			return true;
 		});
 
 		if (IsRunningCookCommandlet())
 		{
-			FixNoesisXamlDependencies();
 			GetDefault<UNoesisSettings>()->LoadWorldUIXaml();
 		}
 
@@ -456,70 +475,50 @@ public:
 				InSection.AddMenuEntry("Noesis_Texture2D_ResetPremultiplyAlpha", Label, ToolTip, Icon, UIAction);
 			}
 		}));
+
+		FGlobalTabmanager::Get()->RegisterNomadTabSpawner("NoesisStudioWindow",
+			FOnSpawnTab::CreateStatic(FNoesisEditorModule::OnSpawnPluginTab))
+			.SetDisplayName(FText::FromString("Noesis Studio"))
+			.SetMenuType(ETabSpawnerMenuType::Hidden);
+
+		// Automatically check and show the Welcome Screen once the Main Editor Frame is ready
+		if (FModuleManager::Get().IsModuleLoaded("MainFrame"))
+		{
+			IMainFrameModule& MainFrameModule = FModuleManager::LoadModuleChecked<IMainFrameModule>("MainFrame");
+
+			if (MainFrameModule.IsWindowInitialized())
+			{
+				ShowWelcomeScreenFirstTime();
+			}
+			else
+			{
+				MainFrameModule.OnMainFrameCreationFinished().AddLambda([](TSharedPtr<SWindow> RootWindow, bool bIsProjectReloaded)
+				{
+					ShowWelcomeScreenFirstTime();
+				});
+			}
+		}
 	}
 
-	void FixNoesisXamlDependencies()
+	static TSharedRef<SDockTab> OnSpawnPluginTab(const FSpawnTabArgs& SpawnTabArgs)
 	{
-		INoesisRuntimeModuleInterface& NoesisRuntime = INoesisRuntimeModuleInterface::Get();
-		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
-		FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
-		UAutomatedAssetImportData* AutomatedAssetImportData = NewObject<UAutomatedAssetImportData>();
-		AutomatedAssetImportData->bReplaceExisting = true;
-		IFileManager& FileManager = IFileManager::Get();
+		TSharedRef<SDockTab> Tab = SNew(SDockTab)
+			.TabRole(ETabRole::NomadTab);
 
-		FARFilter Filter;
-		TArray<FAssetData> XamlAssets;
-		ConfigureFilter(Filter, UNoesisXaml::StaticClass(), false);
-		AssetRegistryModule.Get().GetAssets(Filter, XamlAssets);
+		FString RelProjectPath;
+		GConfig->GetString(
+			TEXT("/Script/NoesisEditor.Studio"),
+			TEXT("ProjectPath"),
+			RelProjectPath,
+			GEditorPerProjectIni
+		);
 
-		TArray<FAssetData> MaterialAssets;
-		ConfigureFilter(Filter, UMaterialInterface::StaticClass(), true);
-		AssetRegistryModule.Get().GetAssets(Filter, MaterialAssets);
-
-		for (auto XamlAsset : XamlAssets)
+		if (!RelProjectPath.IsEmpty())
 		{
-			auto Xaml = Cast<UNoesisXaml>(XamlAsset.GetAsset());
-			if (Xaml == nullptr)
-				continue;
-
-			Noesis::MemoryStream XamlStream(Xaml->XamlText.GetData(), (uint32)Xaml->XamlText.Num());
-
-			auto DependencyCallback = [&](const Noesis::Uri& Uri, Noesis::XamlDependencyType Type)
-			{
-				if (Type == Noesis::XamlDependencyType_Root) return;
-
-				// If the URI is invalid, ImportAssetsAutomated will try to reimport the whole directory
-				// causing infinite recursion.
-				if (!Uri.IsValid()) return;
-
-				FString Dependency = GetDependencyPath(Uri);
-
-				bool IsUserControl = Type == Noesis::XamlDependencyType_UserControl;
-				if (IsUserControl)
-				{
-					FAssetData* Asset = XamlAssets.FindByPredicate([&Dependency](FAssetData& Asset) { return Asset.AssetName == *Dependency; });
-					if (Asset)
-					{
-						Xaml->Xamls.AddUnique(Cast<UNoesisXaml>(Asset->GetAsset()));
-					}
-					else
-					{
-						Asset = MaterialAssets.FindByPredicate([&Dependency](FAssetData& Asset) { return Asset.AssetName == *Dependency; });
-						if (Asset)
-						{
-							Xaml->Materials.AddUnique(Cast<UMaterialInterface>(Asset->GetAsset()));
-						}
-					}
-				}
-			};
-			auto DependencyCallbackAdaptor = [](void* UserData, const Noesis::Uri& Uri, Noesis::XamlDependencyType Type)
-			{
-				auto Callback = (decltype(DependencyCallback)*)UserData;
-				return (*Callback)(Uri, Type);
-			};
-			FString Uri = Xaml->GetXamlUri();
-			Noesis::GUI::GetXamlDependencies(&XamlStream, (ANSICHAR*)StringCast<UTF8CHAR>(*Uri).Get(), &DependencyCallback, DependencyCallbackAdaptor);
+			UpdateStudioTab(Tab, RelProjectPath);
 		}
+
+		return Tab;
 	}
 
 	virtual void ShutdownModule() override
@@ -530,7 +529,7 @@ public:
 		FNoesisStyle::Shutdown();
 
 		// Disable LangServer
-		NoesisApp::LangServer::Shutdown();
+		Noesis::LangServer::Shutdown();
 
 		// Unregister asset type actions
 		if (FModuleManager::Get().IsModuleLoaded("AssetTools"))
@@ -580,6 +579,20 @@ public:
 		::EnsurePremultiplyAlpha(Texture);
 	}
 
+	void AddSamplePlugin(const FString& PluginName, int Order) override
+	{
+		const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(PluginName);
+		if (!Plugin.IsValid())
+		{
+			return;
+		}
+		FString AbsProjectDir(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()));
+		FString PluginDir(FPaths::ConvertRelativePathToFull(Plugin->GetBaseDir()).RightChop(AbsProjectDir.Len()));
+		FString ProjectPath(FPaths::Combine(PluginDir, FString::Printf(TEXT("Assets/%s.noesis"), *PluginName)));
+		FString Assembly;
+		AddStudioProjectInternal(ProjectPath, Assembly, Order);
+	}
+
 	static void AddNoesisMenu(FMenuBarBuilder& MenuBarBuilder)
 	{
 		MenuBarBuilder.AddPullDownMenu(
@@ -592,9 +605,15 @@ public:
 	static void FillNoesisMenu(FMenuBuilder& MenuBuilder)
 	{
 		MenuBuilder.AddMenuEntry(
+			LOCTEXT("NoesisWelcome", "Welcome"),
+			FText::GetEmpty(),
+			FSlateIcon("NoesisStyle", "MenuIcon.About"),
+			FUIAction(FExecuteAction::CreateStatic(&FNoesisEditorModule::OpenWelcomeDialog))
+		);
+		MenuBuilder.AddMenuEntry(
 			LOCTEXT("NoesisSettings", "Settings"),
 			FText::GetEmpty(),
-			FSlateIcon(),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "ProjectSettings.TabIcon"),
 			FUIAction(FExecuteAction::CreateStatic(&FNoesisEditorModule::OpenSettingsDialog))
 		);
 		MenuBuilder.BeginSection("NoesisLinks", LOCTEXT("NoesisLinks", "External links"));
@@ -602,34 +621,70 @@ public:
 			MenuBuilder.AddMenuEntry(
 				LOCTEXT("NoesisDocumentation", "Documentation"),
 				FText::GetEmpty(),
-				FSlateIcon(),
+				FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.BrowseDocumentation"),
 				FUIAction(FExecuteAction::CreateStatic(&FNoesisEditorModule::OpenDocumentation))
-			);
-			MenuBuilder.AddMenuEntry(
-				LOCTEXT("NoesisForums", "Forums"),
-				FText::GetEmpty(),
-				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&FNoesisEditorModule::OpenForums))
 			);
 			MenuBuilder.AddMenuEntry(
 				LOCTEXT("NoesisChangeLog", "Release Notes"),
 				FText::GetEmpty(),
-				FSlateIcon(),
+				FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.BrowseDocumentation"),
 				FUIAction(FExecuteAction::CreateStatic(&FNoesisEditorModule::OpenChangeLog))
 			);
 			MenuBuilder.AddMenuEntry(
-				LOCTEXT("NoesisBugTracker", "Report a bug"),
+				LOCTEXT("NoesisForums", "Forums"),
 				FText::GetEmpty(),
-				FSlateIcon(),
+				FSlateIcon(FAppStyle::GetAppStyleSetName(), "MainFrame.VisitForums"),
+				FUIAction(FExecuteAction::CreateStatic(&FNoesisEditorModule::OpenForums))
+			);
+			MenuBuilder.AddMenuEntry(
+				LOCTEXT("NoesisBugTracker", "Report a Bug"),
+				FText::GetEmpty(),
+				FSlateIcon(FAppStyle::GetAppStyleSetName(), "MainFrame.ReportABug"),
 				FUIAction(FExecuteAction::CreateStatic(&FNoesisEditorModule::OpenBugTracker))
 			);
+		}
+		MenuBuilder.EndSection();
+		MenuBuilder.BeginSection("NoesisStudio", LOCTEXT("NoesisStudio", "Studio Projects"));
+		{
+			MenuBuilder.AddMenuEntry(
+				LOCTEXT("NoesisCreateStudioProject", "New Project..."),
+				FText::GetEmpty(),
+				FSlateIcon("NoesisStyle", "MenuIcon.NewProject"),
+				FUIAction(FExecuteAction::CreateStatic(&FNoesisEditorModule::CreateStudioProject))
+			);
+			TArray<FStudioProjectConfig> StudioProjects = GetDefault<UNoesisSettings>()->StudioProjects;
+			StudioProjects.Sort(
+				[](const FStudioProjectConfig& A,const FStudioProjectConfig& B)
+				{
+					if (A.Order == -1)
+					{
+						return false;
+					}
+					if (B.Order == -1)
+					{
+						return true;
+					}
+					return A.Order < B.Order;
+				}
+			);
+			for (int Index = 0; Index < StudioProjects.Num(); Index++)
+			{
+				FString ProjectPath(StudioProjects[Index].ProjectPath);
+				FString ProjectName = FPaths::GetBaseFilename(ProjectPath, true);
+				MenuBuilder.AddMenuEntry(
+					FText::FromString(ProjectName),
+					FText::GetEmpty(),
+					FSlateIcon("NoesisStyle", "MenuIcon.Studio"),
+					FUIAction(FExecuteAction::CreateStatic(&FNoesisEditorModule::OpenStudio, ProjectPath))
+				);
+			}
 		}
 		MenuBuilder.EndSection();
 		MenuBuilder.AddMenuSeparator();
 		MenuBuilder.AddMenuEntry(
 			LOCTEXT("NoesisAbout", "About NoesisGUI"),
 			FText::GetEmpty(),
-			FSlateIcon(),
+			FSlateIcon("NoesisStyle", "MenuIcon.About"),
 			FUIAction(FExecuteAction::CreateStatic(&FNoesisEditorModule::OpenAbout))
 		);
 	}
@@ -639,6 +694,172 @@ public:
 		if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
 		{
 			SettingsModule->ShowViewer("Project", "Plugins", "NoesisGUI");
+		}
+	}
+
+	static TWeakPtr<SWindow> WeakWelcomeWindow;
+
+	struct DelegateCommand : public Noesis::BaseCommand
+	{
+		Noesis::Delegate<void (Noesis::BaseComponent*)> _execute;
+		void Execute(BaseComponent* param) const override { _execute(param); }
+		bool CanExecute(BaseComponent*) const override { return true; }
+		NS_IMPLEMENT_INLINE_REFLECTION_(DelegateCommand, Noesis::BaseCommand)
+	};
+
+	struct ViewModel : public Noesis::BaseComponent
+	{
+		ViewModel()
+		{
+			_openSample._execute = Noesis::MakeDelegate(this, &ViewModel::OpenSample);
+		}
+
+		const char* GetVersion() const { return Noesis::GetBuildVersion(); }
+
+		DelegateCommand _openSample;
+		const DelegateCommand* GetOpenSample() const { return &_openSample; }
+
+		void OpenSample(Noesis::BaseComponent* Param)
+		{
+			if (!Noesis::Boxing::CanUnbox<Noesis::String>(Param)) return;
+
+			FString Sample = NsStringToFString(Noesis::Boxing::Unbox<Noesis::String>(Param).Str());
+
+			// Check if the sample plugin is installed and enabled
+			TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(Sample);
+			if (!Plugin.IsValid() || !Plugin->IsEnabled())
+			{
+				// Show a clean, custom message dialog
+				FText DialogTitle = LOCTEXT("MissingSampleTitle", "Missing sample");
+				FText ErrorMessage = FText::Format(
+					LOCTEXT("MissingSamplePlugin", "The '{0}' sample plugin is either missing or disabled.\n\nTo explore this sample, please copy it into the project's Plugins/Samples folder and enable it via the Plugins window."),
+					FText::FromString(Sample)
+				);
+				FMessageDialog::Open(EAppMsgType::Ok, ErrorMessage, DialogTitle);
+				return;
+			}
+
+			// Close the Welcome Screen
+			if (WeakWelcomeWindow.IsValid())
+			{
+				WeakWelcomeWindow.Pin()->RequestDestroyWindow();
+			}
+
+			// Focus the Content Browser on the Plugin's folder
+			if (FModuleManager::Get().IsModuleLoaded("ContentBrowser"))
+			{
+				FContentBrowserModule& ContentBrowserModule = FModuleManager::GetModuleChecked<FContentBrowserModule>("ContentBrowser");
+				FString SampleFolder = TEXT("/") + Sample;
+				TArray<FString> FoldersToSync = { SampleFolder };
+				ContentBrowserModule.Get().SyncBrowserToFolders(FoldersToSync);
+			}
+
+			// Load the Map (this automatically prompts to save current work)
+			FString SampleMap = TEXT("/") + Sample + "/" + Sample + "." + Sample;
+			FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([SampleMap](float DeltaTime)
+			{
+				bool bMapLoaded = FEditorFileUtils::LoadMap(SampleMap);
+				if (bMapLoaded && GEditor)
+				{
+					// Play the map
+					ULevelEditorPlaySettings* PlaySettings = GetMutableDefault<ULevelEditorPlaySettings>();
+					EPlayModeType PreviousPlayMode = PlaySettings->LastExecutedPlayModeType;
+					PlaySettings->LastExecutedPlayModeType = PlayMode_InViewPort;
+					FRequestPlaySessionParams PlayParams;
+					if (FModuleManager::Get().IsModuleLoaded("LevelEditor"))
+					{
+						FLevelEditorModule& LevelEditorModule = FModuleManager::GetModuleChecked<FLevelEditorModule>("LevelEditor");
+						PlayParams.DestinationSlateViewport = LevelEditorModule.GetFirstActiveViewport();
+					}
+					GEditor->RequestPlaySession(PlayParams);
+					PlaySettings->LastExecutedPlayModeType = PreviousPlayMode;
+				}
+				else if (!bMapLoaded)
+				{
+					UE_LOG(LogNoesisEditor, Warning, TEXT("Failed to load sample map: %s"), *SampleMap);
+				}
+
+				// Return false to ensure this ticker only executes once
+				return false;
+			}));
+		}
+
+		NS_IMPLEMENT_INLINE_REFLECTION(ViewModel, Noesis::BaseComponent)
+		{
+			NsProp("Version", &ViewModel::GetVersion);
+			NsProp("OpenSample", &ViewModel::GetOpenSample);
+		}
+	};
+
+	static void OpenWelcomeDialog()
+	{
+		// Bring window to the front if it is already opened
+		if (WeakWelcomeWindow.IsValid())
+		{
+			TSharedPtr<SWindow> ExistingWindow = WeakWelcomeWindow.Pin();
+			ExistingWindow->BringToFront();
+			return;
+		}
+
+		// Create the window
+		TSharedRef<SWindow> WelcomeWindow = SNew(SWindow)
+			.Title(LOCTEXT("NoesisWelcome", "Welcome to NoesisGUI!"))
+			.SizingRule(ESizingRule::UserSized)
+			.ClientSize(FVector2D(1320.0f, 720.0f))
+			.AutoCenter(EAutoCenter::PreferredWorkArea)
+			.SupportsMinimize(false);
+
+		WeakWelcomeWindow = WelcomeWindow;
+
+		UNoesisXaml* XamlAsset = LoadObject<UNoesisXaml>(nullptr, TEXT("/NoesisGUI/Welcome/MainPage.MainPage"));
+
+		if (XamlAsset)
+		{
+			UWorld* EditorWorld = GEditor->GetEditorWorldContext().World();
+			UNoesisInstance* NoesisInstance = CreateWidget<UNoesisInstance>(EditorWorld, UNoesisInstance::StaticClass());
+			NoesisInstance->BaseXaml = XamlAsset;
+			NoesisInstance->DataContext = Noesis::MakePtr<ViewModel>();
+			NoesisInstance->TessellationQuality = ENoesisTessellationQuality::High;
+			NoesisInstance->EnablePPAA = true;
+			NoesisInstance->DPIScale = true;
+
+			WelcomeWindow->SetContent(NoesisInstance->TakeWidget());
+		}
+		else
+		{
+			UE_LOG(LogNoesisEditor, Error, TEXT("Failed to load Welcome Screen XAML."));
+		}
+
+		TSharedPtr<SWindow> RootWindow = FGlobalTabmanager::Get()->GetRootWindow();
+		if (RootWindow.IsValid())
+		{
+			FSlateApplication::Get().AddWindowAsNativeChild(WelcomeWindow, RootWindow.ToSharedRef());
+		}
+		else
+		{
+			FSlateApplication::Get().AddWindow(WelcomeWindow);
+		}
+	}
+
+	static void ShowWelcomeScreenFirstTime()
+	{
+		// Avoid showing dialogs during cooking, commandlets, or unattended builds
+		if (IsRunningCommandlet() || FApp::IsUnattended()) return;
+
+		// Check if Welcome screen has already been shown
+		bool bHasShownWelcome = false;
+		GConfig->GetBool(TEXT("/Script/NoesisEditor.Welcome"),TEXT("bHasShownWelcomeScreen"),
+			bHasShownWelcome, GEditorPerProjectIni);
+
+		if (!bHasShownWelcome)
+		{
+			// Open the Welcome screen
+			OpenWelcomeDialog();
+
+			// Mark as shown so it doesn't open automatically next time this project is loaded
+			GConfig->SetBool(TEXT("/Script/NoesisEditor.Welcome"), TEXT("bHasShownWelcomeScreen"),
+				true, GEditorPerProjectIni);
+			GConfig->Flush(false, GEditorPerProjectIni);
 		}
 	}
 
@@ -743,6 +964,369 @@ public:
 		}
 	};
 
+	static void AddStudioProjectInternal(const FString& RelStudioPath, FString& Assembly, int Order)
+	{
+		// Find if this project is the main one or a plugin
+		Assembly = TEXT("Game");
+
+		FString AbsProjectDir(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()));
+		int32 ProjectDirLen = AbsProjectDir.Len();
+		FString RelStudioDir(FPaths::GetPath(RelStudioPath));
+
+		IPluginManager& PluginManager = IPluginManager::Get();
+		for (const TSharedRef<IPlugin>& Plugin : PluginManager.GetDiscoveredPlugins())
+		{
+			if (Plugin->GetLoadedFrom() == EPluginLoadedFrom::Project)
+			{
+				FString AbsPluginDir(FPaths::ConvertRelativePathToFull(Plugin->GetBaseDir()));
+				if (!AbsPluginDir.StartsWith(AbsProjectDir))
+				{
+					continue;
+				}
+				FString RelPluginDir(AbsPluginDir.RightChop(ProjectDirLen));
+				if (!RelStudioDir.StartsWith(RelPluginDir))
+				{
+					continue;
+				}
+
+				Assembly = Plugin->GetName();
+				RelStudioDir.RightChopInline(RelPluginDir.Len() + 1);
+				break;
+			}
+		}
+
+		// Add Studio project to Noesis Settings list
+		UNoesisSettings* Settings = (UNoesisSettings*)GetDefault<UNoesisSettings>();
+
+		int NumProjects = Settings->StudioProjects.Num();
+		int InsertIndex = NumProjects;
+		for (int i = 0; i < NumProjects; i++)
+		{
+			const FStudioProjectConfig& Config = Settings->StudioProjects[i];
+
+			if (Config.ProjectPath == RelStudioPath)
+			{
+				return;
+			}
+
+			if (Order != -1 && InsertIndex == NumProjects &&
+				(Config.Order == -1 || Config.Order >= Order))
+			{
+				InsertIndex = i;
+			}
+		}
+
+		FStudioProjectConfig NewStudioConfig;
+		NewStudioConfig.ProjectPath = RelStudioPath;
+		NewStudioConfig.Order = Order;
+		Settings->StudioProjects.Insert(NewStudioConfig, InsertIndex);
+		Settings->TryUpdateDefaultConfigFile();
+
+		// Add Auto Reimport entry for this project
+		UEditorLoadingSavingSettings* LoadingSettings = GetMutableDefault<UEditorLoadingSavingSettings>();
+		if (!LoadingSettings)
+		{
+			return;
+		}
+
+		FString SourceDir = FString::Printf(TEXT("/%s/../%s"), *Assembly, *RelStudioDir);
+		for (const FAutoReimportDirectoryConfig& Setting : LoadingSettings->AutoReimportDirectorySettings)
+		{
+			if (Setting.SourceDirectory == SourceDir)
+			{
+				return;
+			}
+		}
+
+		FAutoReimportDirectoryConfig NewConfig;
+		NewConfig.SourceDirectory = SourceDir;
+		NewConfig.MountPoint = FString::Printf(TEXT("/%s/"), *Assembly);
+		LoadingSettings->AutoReimportDirectorySettings.Add(NewConfig);
+		LoadingSettings->SaveConfig();
+	}
+
+	static bool ShowUnsavedChangesModal(const TSharedPtr<SNoesisStudioWidget>& StudioWidget, bool CanCancel)
+	{
+		EAppReturnType::Type Result = FMessageDialog::Open(
+			CanCancel ? EAppMsgType::YesNoCancel : EAppMsgType::YesNo,
+			FText::FromString("Do you want to save your changes?")
+		);
+
+		switch (Result)
+		{
+			case EAppReturnType::Yes:
+				// Save
+				StudioWidget->SaveAllChanges();
+				return true;
+			case EAppReturnType::No:
+				// Discard
+				StudioWidget->DiscardAllChanges();
+				return true;
+			default:
+				// Cancel
+				return false;
+		}
+	}
+
+	static void UpdateStudioTab(const TSharedPtr<SDockTab>& Tab, const FString& RelProjectPath)
+	{
+		FString AbsProjectDir(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()));
+		FString ProjectPath(FPaths::Combine(AbsProjectDir, RelProjectPath));
+
+		Tab->SetLabel(FText::FromString(FString::Printf(TEXT("Studio - %s"), *FPaths::GetBaseFilename(RelProjectPath))));
+
+		StudioOptions Options;
+		Options.ProjectPath = ProjectPath;
+
+		Options.SaveStateChanged = [RelProjectPath](bool bHasUnsavedChanges)
+			{
+				TSharedPtr<SDockTab> Tab = FGlobalTabmanager::Get()->FindExistingLiveTab(FName("NoesisStudioWindow"));
+
+				if (!Tab.IsValid())
+				{
+					return;
+				}
+				if (bHasUnsavedChanges)
+				{
+					Tab->SetLabel(FText::FromString(FString::Printf(TEXT("Studio - %s*"), *FPaths::GetBaseFilename(RelProjectPath))));
+				}
+				else
+				{
+					Tab->SetLabel(FText::FromString(FString::Printf(TEXT("Studio - %s"), *FPaths::GetBaseFilename(RelProjectPath))));
+				}
+			};
+
+		TSharedRef<SNoesisStudioWidget> Content = SNew(SNoesisStudioWidget)
+			.Options(Options);
+
+		Tab->SetContent(Content);
+
+		Tab->SetCanCloseTab(SDockTab::FCanCloseTab::CreateLambda([Content]()
+			{
+				TSharedPtr<SDockTab> Tab = FGlobalTabmanager::Get()->FindExistingLiveTab(FName("NoesisStudioWindow"));
+
+				if (!Tab.IsValid() || !Tab->GetTabLabel().ToString().EndsWith(TEXT("*")))
+				{
+					return true;
+				}
+
+				Tab->SetLabel(FText::FromString(TEXT("Noesis Studio")));
+
+				return ShowUnsavedChangesModal(Content.ToSharedPtr(), true);
+			}));
+
+		Tab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateLambda([Content](TSharedRef<SDockTab>)
+			{
+				TSharedPtr<SDockTab> Tab = FGlobalTabmanager::Get()->FindExistingLiveTab(FName("NoesisStudioWindow"));
+
+				if (!Tab.IsValid() || !Tab->GetTabLabel().ToString().EndsWith(TEXT("*")))
+				{
+					return;
+				}
+
+				ShowUnsavedChangesModal(Content.ToSharedPtr(), false);
+			}));
+
+		Tab->SetOnTabDrawerClosed(FSimpleDelegate::CreateLambda([Content]()
+			{
+				TSharedPtr<SDockTab> Tab = FGlobalTabmanager::Get()->FindExistingLiveTab(FName("NoesisStudioWindow"));
+
+				if (!Tab.IsValid() || !Tab->GetTabLabel().ToString().EndsWith(TEXT("*")))
+				{
+					return;
+				}
+
+				ShowUnsavedChangesModal(Content.ToSharedPtr(), false);
+			}));
+	}
+
+	static bool IsDirectoryEmpty(const FString& DirectoryPath)
+	{
+		IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+
+		if (!PlatformFile.DirectoryExists(*DirectoryPath))
+		{
+			return true;
+		}
+
+		struct FCheckEmptyVisitor: public IPlatformFile::FDirectoryVisitor
+		{
+			bool IsEmpty = true;
+
+			virtual bool Visit(const TCHAR* FilenameOrDirectory, bool bIsDirectory) override
+			{
+				IsEmpty = false;
+				return false; // abort iteration immediately
+			}
+		} Visitor;
+
+		PlatformFile.IterateDirectory(*DirectoryPath, Visitor);
+
+		return Visitor.IsEmpty;
+	}
+
+	static void OpenStudio(FString RelProjectPath)
+	{
+		FString PrevRelProjectPath;
+		GConfig->GetString(
+			TEXT("/Script/NoesisEditor.Studio"),
+			TEXT("ProjectPath"),
+			PrevRelProjectPath,
+			GEditorPerProjectIni
+		);
+
+		GConfig->RemoveKey(
+			TEXT("/Script/NoesisEditor.Studio"),
+			TEXT("ProjectPath"),
+			GEditorPerProjectIni
+		);
+
+		TSharedPtr<SDockTab> Tab = FGlobalTabmanager::Get()->TryInvokeTab(FName("NoesisStudioWindow"));
+		if (!Tab.IsValid())
+		{
+			return;
+		}
+
+		if (Tab->GetTabLabel().ToString().EndsWith(TEXT("*")))
+		{
+			TSharedPtr<SNoesisStudioWidget> StudioWidget = StaticCastSharedPtr<SNoesisStudioWidget>(Tab->GetContent().ToSharedPtr());
+
+			if (!ShowUnsavedChangesModal(StudioWidget, true))
+			{
+				GConfig->SetString(
+					TEXT("/Script/NoesisEditor.Studio"),
+					TEXT("ProjectPath"),
+					*PrevRelProjectPath,
+					GEditorPerProjectIni
+				);
+				GConfig->Flush(false, GEditorPerProjectIni);
+				return;
+			}
+		}
+
+		UpdateStudioTab(Tab, RelProjectPath);
+
+		GConfig->SetString(
+			TEXT("/Script/NoesisEditor.Studio"), // Custom section
+			TEXT("ProjectPath"),             // Key
+			*RelProjectPath,                         // Value
+			GEditorPerProjectIni                    // File
+		);
+		GConfig->Flush(false, GEditorPerProjectIni);
+	}
+
+	static void CreateStudioProject()
+	{
+		IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
+		if (!DesktopPlatform)
+		{
+			return;
+		}
+
+		FString AbsProjectDir(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()));
+
+		TArray<FString> OutFilenames;
+		const void* ParentWindowHandle = FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr);
+
+		bool bSaved = DesktopPlatform->SaveFileDialog(
+			ParentWindowHandle,
+			TEXT("Create a Noesis Studio project"),
+			AbsProjectDir,
+			TEXT("Game.noesis"),
+			TEXT("Studio project (*.noesis)|*.noesis"),
+			EFileDialogFlags::None,
+			OutFilenames
+		);
+
+		if (!bSaved || OutFilenames.IsEmpty())
+		{
+			return;
+		}
+
+		FString StudioPath(FPaths::ConvertRelativePathToFull(OutFilenames[0]));
+
+		if (!StudioPath.StartsWith(AbsProjectDir))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to create new Noesis Studio project file '%s', projects must be contained within the Unreal project folder"), *StudioPath);
+			return;
+		}
+
+		FString RelStudioPath(StudioPath.RightChop(AbsProjectDir.Len()));
+
+		FString Assembly;
+		AddStudioProjectInternal(RelStudioPath, Assembly, -1);
+
+		FString Extension = FPaths::GetExtension(StudioPath, true);
+		if (Extension != TEXT(".noesis"))
+		{
+			if (Extension.IsEmpty())
+			{
+				StudioPath.Append(TEXT(".noesis"));
+			}
+			else
+			{
+				StudioPath = FPaths::ChangeExtension(StudioPath, TEXT(".noesis"));
+			}
+		}
+
+		FString ProjectPath(FPaths::GetPath(StudioPath));
+		FString ProjectName(FPaths::GetBaseFilename(StudioPath));
+
+		bool MainPageCreated = false;
+		bool ResourcesCreated = false;
+
+		if (IsDirectoryEmpty(ProjectPath))
+		{
+			{
+				FString FilePath = ProjectPath / "MainPage.xaml";
+				FString FileContents =
+					TEXT("<Page\n")
+					TEXT("  xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"\n")
+					TEXT("  xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\"\n")
+					TEXT("  xmlns:d=\"http://schemas.microsoft.com/expression/blend/2008\"\n")
+					TEXT("  xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\"\n")
+					TEXT("  mc:Ignorable=\"d\"\n")
+					TEXT("  d:DesignWidth=\"1920\"\n")
+					TEXT("  d:DesignHeight=\"1080\"\n")
+					TEXT("  Background=\"#FF4D5052\">\n")
+					TEXT("  <Grid>\n")
+					TEXT("  </Grid>\n")
+					TEXT("</Page>\n");
+
+				MainPageCreated = FFileHelper::SaveStringToFile(FileContents, *FilePath);
+			}
+			{
+				FString FilePath = ProjectPath / "GlobalResources.xaml";
+				FString FileContents =
+					TEXT("<ResourceDictionary\n")
+					TEXT("  xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"\n")
+					TEXT("  xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\">\n")
+					TEXT("  <ResourceDictionary.MergedDictionaries>\n")
+					TEXT("    <ResourceDictionary Source=\"/Noesis.GUI.Extensions;component/Theme/NoesisTheme.DarkBlue.xaml\"/>\n")
+					TEXT("  </ResourceDictionary.MergedDictionaries>\n")
+					TEXT("</ResourceDictionary>\n");
+
+				ResourcesCreated = FFileHelper::SaveStringToFile(FileContents, *FilePath);
+			}
+		}
+
+		FString ProjectContents;
+		ProjectContents.Append(TEXT("<Project>\n"));
+		ProjectContents.Appendf(TEXT("  <Assembly>%s</Assembly>\n"), *Assembly);
+		ProjectContents.Appendf(TEXT("  <DefaultDataNamespace>%s</DefaultDataNamespace>\n"), *Assembly);
+		if (MainPageCreated) ProjectContents.Append(TEXT("  <StartupDocument>MainPage.xaml</StartupDocument>\n"));
+		if (ResourcesCreated) ProjectContents.Append(TEXT("  <GlobalResources>GlobalResources.xaml</GlobalResources>\n"));
+		ProjectContents.Append(TEXT("</Project>"));
+
+		if (!FFileHelper::SaveStringToFile(ProjectContents, *StudioPath))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to create new Noesis Studio project file '%s'"), *StudioPath);
+			return;
+		}
+
+		OpenStudio(RelStudioPath);
+	}
+
 	static void OpenAbout()
 	{
 		TSharedRef<SWindow> AboutWindow = SNew(SWindow)
@@ -774,6 +1358,7 @@ private:
 	TSharedPtr<FNoesisBlueprintCompiler> NoesisBlueprintCompiler;
 	FDelegateHandle AssetPostImportHandle;
 	FDelegateHandle ObjectPropertyChangedHandle;
+	SDockTab* StudioTab = nullptr;
 #if UE_VERSION_OLDER_THAN(5, 0, 0)
 	FDelegateHandle TickerHandle;
 #else
@@ -781,6 +1366,7 @@ private:
 #endif
 };
 
+TWeakPtr<SWindow> FNoesisEditorModule::WeakWelcomeWindow;
 INoesisEditorModuleInterface* FNoesisEditorModule::NoesisEditorModuleInterface = 0;
 
 INoesisEditorModuleInterface& INoesisEditorModuleInterface::Get()

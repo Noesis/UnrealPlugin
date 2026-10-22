@@ -24,6 +24,7 @@ public:
 
 	static void SetBackgroundImageTexture(FRHITexture* Texture);
 	static void SetBackgroundImageSize(const FIntPoint& Size);
+	static void Destroy();
 
 private:
 	void OnViewportResized(class FViewport* Viewport, uint32);

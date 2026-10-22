@@ -57,7 +57,9 @@ public class NoesisEditor : ModuleRules
 				"WorkspaceMenuStructure",
 				"InputCore",
 				"ContentBrowser",
-				"ToolMenus"
+				"ToolMenus",
+				"DesktopPlatform",
+				"MainFrame"
 			}
 			);
 

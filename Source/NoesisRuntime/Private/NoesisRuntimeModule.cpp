@@ -44,6 +44,21 @@
 #include "NoesisSupport.h"
 #include "NoesisMediaPlayer.h"
 #include "Extensions/BackgroundImage.h"
+#include "Extensions/BoxShadow.h"
+#include "Extensions/ChromaticAberrationEffect.h"
+#include "Extensions/DirectionalBlurEffect.h"
+#include "Extensions/NoiseEffect.h"
+#include "Extensions/PinchEffect.h"
+#include "Extensions/PixelateEffect.h"
+#include "Extensions/SaturationEffect.h"
+#include "Extensions/TintEffect.h"
+#include "Extensions/VignetteEffect.h"
+#include "Extensions/AbyssBrush.h"
+#include "Extensions/ConicGradientBrush.h"
+#include "Extensions/CrossFadeBrush.h"
+#include "Extensions/PlasmaBrush.h"
+#include "Extensions/SaturationBrush.h"
+#include "Extensions/TintBrush.h"
 #include "Extensions/EnhancedInputActionTrigger.h"
 #include "Extensions/LocTableExtension.h"
 #include "Extensions/LocTextExtension.h"
@@ -65,7 +80,7 @@
 #include "Kismet2/StructureEditorUtils.h"
 
 // LangServer includes
-#include "NsApp/LangServer.h"
+#include "NsGui/LangServer.h"
 #include "NoesisLangServerRenderer.h"
 #endif
 
@@ -73,16 +88,19 @@ extern "C" void NsRegisterReflectionAppInteractivity();
 extern "C" void NsRegisterReflectionAppMediaElement();
 extern "C" void NsRegisterReflectionAppRiveBase();
 extern "C" void NsRegisterReflectionAppRive();
+extern "C" void NsRegisterReflectionAppToolkit();
 
 extern "C" void NsInitPackageAppInteractivity();
 extern "C" void NsInitPackageAppMediaElement();
 extern "C" void NsInitPackageAppRiveBase();
 extern "C" void NsInitPackageAppRive();
+extern "C" void NsInitPackageAppToolkit();
 
 extern "C" void NsShutdownPackageAppInteractivity();
 extern "C" void NsShutdownPackageAppMediaElement();
 extern "C" void NsShutdownPackageAppRiveBase();
 extern "C" void NsShutdownPackageAppRive();
+extern "C" void NsShutdownPackageAppToolkit();
 
 void NoesisInitTypeTables();
 void NoesisGarbageCollected();
@@ -127,7 +145,7 @@ static void NoesisLogHandler(const char* File, uint32_t Line, uint32_t Level, co
 #if WITH_EDITOR
 static void SetLangServerRenderCallback()
 {
-	NoesisApp::LangServer::SetRenderCallback(0, [](void*, Noesis::UIElement* content, int renderWidth, int renderHeight, double renderTime, const char* savePath)
+	Noesis::LangServer::SetRenderCallback(0, [](void*, Noesis::UIElement* content, int renderWidth, int renderHeight, double renderTime, const char* savePath)
 	{
 		Noesis::NoesisLangServerRenderer::Capture(content, renderWidth, renderHeight, renderTime, savePath);
 	});
@@ -303,6 +321,16 @@ public:
 void OnBlueprintPreCompile(UBlueprint* Blueprint)
 {
 	NoesisDestroyTypeClassForBlueprint(Blueprint);
+}
+
+void OnAssetsAdded(TConstArrayView<FAssetData> Assets)
+{
+	NoesisRegisterMaterials(Assets);
+}
+
+void OnAssetsRemoved(TConstArrayView<FAssetData> Assets)
+{
+	NoesisUnregisterMaterials(Assets);
 }
 
 void OnAssetRenamed(const FAssetData& AssetData, const FString& OldPath)
@@ -585,108 +613,245 @@ void NoesisPlaySoundCallback(void* UserData, const Noesis::Uri& Uri, float Volum
 	}
 }
 
-void NoesisUpdateCursorCallback(void* UserData, Noesis::IView* View, Noesis::Cursor* Cursor)
+////////////////////////////////////////////////////////////////////////////////////////////////////
+static bool SetHardwareCursor(EMouseCursor::Type CursorShape, const Noesis::Uri& Src, float Scale)
 {
-	auto Instance = UNoesisInstance::FromView(View);
+	TSharedPtr<ICursor> PlatformCursor = FSlateApplication::Get().GetPlatformCursor();
+	if (!PlatformCursor)
+	{
+		return false;
+	}
 
+	struct CURHeader
+	{
+		uint16_t reserved;
+		uint16_t type;
+		uint16_t count;
+	};
+
+	struct CURDirEntry
+	{
+		uint8_t width;
+		uint8_t height;
+		uint8_t colorCount;
+		uint8_t reserved;
+		uint16_t hotspotX;
+		uint16_t hotspotY;
+		uint32_t sizeInBytes;
+		uint32_t imageOffset;
+	};
+
+	struct BMPInfoHeader
+	{
+		uint32_t headerSize;
+		int32_t width;
+		int32_t height;
+		uint16_t planes;
+		uint16_t bitCount;
+		uint32_t compression;
+		uint32_t imageSize;
+		int32_t xPelsPerMeter;
+		int32_t yPelsPerMeter;
+		uint32_t colorsUsed;
+		uint32_t colorsImportant;
+	};
+
+	Noesis::Ptr<Noesis::Stream> Stream = Noesis::GUI::LoadXamlResource(Src);
+
+	if (Stream && Stream->GetMemoryBase())
+	{
+		const uint8_t* Buffer = (const uint8_t*)Stream->GetMemoryBase();
+		int CursorSize = Noesis::Round(24 * Scale);
+
+		// Find the closest cursor size entry
+		int Distance = INT_MAX;
+		CURHeader* CurHeader = (CURHeader*)Buffer;
+		CURDirEntry* IconEntry = nullptr;
+
+		CURDirEntry* CurEntry = (CURDirEntry*)(Buffer + sizeof(CURHeader));
+		for (uint32_t i = 0; i < CurHeader->count; i++, CurEntry++)
+		{
+			int d = CurEntry->width - CursorSize;
+			int d2 = d * d;
+
+			if (d2 < Distance)
+			{
+				Distance = d2;
+				IconEntry = CurEntry;
+			}
+		}
+
+		if (IconEntry != nullptr)
+		{
+			uint8_t Width = IconEntry->width;
+			uint8_t Height = IconEntry->height;
+
+			const uint32_t Size = Width * Height;
+			const uint8_t* Image = Buffer + IconEntry->imageOffset + sizeof(BMPInfoHeader);
+
+			TArray<FColor> Pixels;
+			Pixels.AddUninitialized(Size);
+
+			// Unreal expects pixels in a Y-up
+			for (uint32_t RowIndex = 0; RowIndex < Height; RowIndex++)
+			{
+				for (uint32_t ColIndex = 0; ColIndex < Width; ColIndex++)
+				{
+					uint32_t SrcIndex = ((Height - 1 - RowIndex) * Height + ColIndex) * 4;
+					uint32_t DestIndex = RowIndex * Height + ColIndex;
+					Pixels[DestIndex] = FColor(Image[SrcIndex + 0], Image[SrcIndex + 1], Image[SrcIndex + 2], Image[SrcIndex + 3]);
+				}
+			}
+
+			void* HardwareCursor = PlatformCursor->CreateCursorFromRGBABuffer(Pixels.GetData(), Width, Height,
+				FVector2D(IconEntry->hotspotX / Width, IconEntry->hotspotY / Height));
+			if (!HardwareCursor)
+			{
+				return false;
+			}
+
+			PlatformCursor->SetTypeShape(CursorShape, HardwareCursor);
+			PlatformCursor->SetType(CursorShape);
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static float GetDPIScaleAtCursor()
+{
+	if (FSlateApplication::IsInitialized())
+	{
+		FVector2D CursorPos = FSlateApplication::Get().GetCursorPos();
+		return FPlatformApplicationMisc::GetDPIScaleFactorAtPoint(CursorPos.X, CursorPos.Y);
+	}
+
+	return 1.0f;
+}
+
+static void NoesisLaunchUrlCallback(void* UserData, const char* Url)
+{
+	if (Url != nullptr && GIsRunning)
+	{
+		FPlatformProcess::LaunchURL(StringCast<TCHAR>((UTF8CHAR*)Url).Get(), nullptr, nullptr);
+	}
+}
+
+static void NoesisUpdateCursorCallback(void* UserData, Noesis::IView* View, Noesis::Cursor* Cursor)
+{
+	EMouseCursor::Type CursorType = EMouseCursor::Default;
+	auto NoesisCursorType = Cursor->Type();
+	switch (NoesisCursorType)
+	{
+	case Noesis::CursorType_None:
+		CursorType = EMouseCursor::None;
+		break;
+	case Noesis::CursorType_No:
+		CursorType = EMouseCursor::None;
+		break;
+	case Noesis::CursorType_Arrow:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_AppStarting:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_Cross:
+		CursorType = EMouseCursor::Crosshairs;
+		break;
+	case Noesis::CursorType_Help:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_IBeam:
+		CursorType = EMouseCursor::TextEditBeam;
+		break;
+	case Noesis::CursorType_SizeAll:
+		CursorType = EMouseCursor::CardinalCross;
+		break;
+	case Noesis::CursorType_SizeNESW:
+		CursorType = EMouseCursor::ResizeSouthWest;
+		break;
+	case Noesis::CursorType_SizeNS:
+		CursorType = EMouseCursor::ResizeUpDown;
+		break;
+	case Noesis::CursorType_SizeNWSE:
+		CursorType = EMouseCursor::ResizeSouthEast;
+		break;
+	case Noesis::CursorType_SizeWE:
+		CursorType = EMouseCursor::ResizeLeftRight;
+		break;
+	case Noesis::CursorType_UpArrow:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_Wait:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_Hand:
+		CursorType = EMouseCursor::Hand;
+		break;
+	case Noesis::CursorType_Pen:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_ScrollNS:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_ScrollWE:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_ScrollAll:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_ScrollN:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_ScrollS:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_ScrollW:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_ScrollE:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_ScrollNW:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_ScrollNE:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_ScrollSW:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_ScrollSE:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_ArrowCD:
+		CursorType = EMouseCursor::Default;
+		break;
+	case Noesis::CursorType_Custom:
+		if (SetHardwareCursor(EMouseCursor::Custom, Cursor->Filename(), GetDPIScaleAtCursor()))
+		{
+			CursorType = EMouseCursor::Custom;
+		}
+		else
+		{
+			CursorType = EMouseCursor::Default;
+		}
+		break;
+	default:
+		CursorType = EMouseCursor::Default;
+		break;
+	}
+
+	auto Instance = UNoesisInstance::FromView(View);
 	if (Instance != nullptr)
 	{
-		EMouseCursor::Type CursorType = EMouseCursor::Default;
-		auto NoesisCursorType = Cursor->Type();
-		switch (NoesisCursorType)
-		{
-		case Noesis::CursorType_None:
-			CursorType = EMouseCursor::None;
-			break;
-		case Noesis::CursorType_No:
-			CursorType = EMouseCursor::None;
-			break;
-		case Noesis::CursorType_Arrow:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_AppStarting:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_Cross:
-			CursorType = EMouseCursor::Crosshairs;
-			break;
-		case Noesis::CursorType_Help:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_IBeam:
-			CursorType = EMouseCursor::TextEditBeam;
-			break;
-		case Noesis::CursorType_SizeAll:
-			CursorType = EMouseCursor::CardinalCross;
-			break;
-		case Noesis::CursorType_SizeNESW:
-			CursorType = EMouseCursor::ResizeSouthWest;
-			break;
-		case Noesis::CursorType_SizeNS:
-			CursorType = EMouseCursor::ResizeUpDown;
-			break;
-		case Noesis::CursorType_SizeNWSE:
-			CursorType = EMouseCursor::ResizeSouthEast;
-			break;
-		case Noesis::CursorType_SizeWE:
-			CursorType = EMouseCursor::ResizeLeftRight;
-			break;
-		case Noesis::CursorType_UpArrow:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_Wait:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_Hand:
-			CursorType = EMouseCursor::Hand;
-			break;
-		case Noesis::CursorType_Pen:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_ScrollNS:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_ScrollWE:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_ScrollAll:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_ScrollN:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_ScrollS:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_ScrollW:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_ScrollE:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_ScrollNW:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_ScrollNE:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_ScrollSW:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_ScrollSE:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_ArrowCD:
-			CursorType = EMouseCursor::Default;
-			break;
-		case Noesis::CursorType_Custom:
-			CursorType = EMouseCursor::Default;
-			break;
-		default:
-			CursorType = EMouseCursor::Default;
-			break;
-		}
 		Instance->SetCursor(CursorType);
+	}
+	else
+	{
+		UNoesisInstance::SetCursorForAll(CursorType);
 	}
 }
 
@@ -734,17 +899,34 @@ public:
 		NsRegisterReflectionAppMediaElement();
 		NsRegisterReflectionAppRiveBase();
 		NsRegisterReflectionAppRive();
+		NsRegisterReflectionAppToolkit();
 
 		NsInitPackageAppInteractivity();
 		NsInitPackageAppMediaElement();
 		NsInitPackageAppRiveBase();
 		NsInitPackageAppRive();
+		NsInitPackageAppToolkit();
 
 		Noesis::RegisterComponent<LocTextExtension>();
 		Noesis::RegisterComponent<LocTableExtension>();
 		Noesis::RegisterComponent<InputActionTrigger>();
 		Noesis::RegisterComponent<WorldTransformConverter>();
 		Noesis::RegisterComponent<BackgroundImage>();
+		Noesis::RegisterComponent<BoxShadow>();
+		Noesis::RegisterComponent<ChromaticAberrationEffect>();
+		Noesis::RegisterComponent<DirectionalBlurEffect>();
+		Noesis::RegisterComponent<NoiseEffect>();
+		Noesis::RegisterComponent<PinchEffect>();
+		Noesis::RegisterComponent<PixelateEffect>();
+		Noesis::RegisterComponent<SaturationEffect>();
+		Noesis::RegisterComponent<TintEffect>();
+		Noesis::RegisterComponent<VignetteEffect>();
+		Noesis::RegisterComponent<AbyssBrush>();
+		Noesis::RegisterComponent<ConicGradientBrush>();
+		Noesis::RegisterComponent<CrossFadeBrush>();
+		Noesis::RegisterComponent<PlasmaBrush>();
+		Noesis::RegisterComponent<SaturationBrush>();
+		Noesis::RegisterComponent<TintBrush>();
 		Noesis::RegisterComponent<Noesis::EnumConverter<InputActionType>>();
 #if WITH_ENHANCED_INPUT
 		Noesis::RegisterComponent<EnhancedInputActionTrigger>();
@@ -766,11 +948,17 @@ public:
 		Noesis::GUI::SetPlayAudioCallback(nullptr, &NoesisPlaySoundCallback);
 		NoesisApp::MediaElement::SetCreateMediaPlayerCallback(NoesisCreateMediaPlayerCallback, nullptr);
 
+		Noesis::GUI::SetOpenUrlCallback(nullptr, NoesisLaunchUrlCallback);
+
 		Noesis::GUI::SetCursorCallback(nullptr, &NoesisUpdateCursorCallback);
 
 		PostGarbageCollectConditionalBeginDestroyDelegateHandle = FCoreUObjectDelegates::PostGarbageCollectConditionalBeginDestroy.AddStatic(NoesisGarbageCollected);
 
+#if UE_VERSION_OLDER_THAN(5, 8, 0)
 		PostEngineInitDelegateHandle = FCoreDelegates::OnPostEngineInit.AddRaw(this, &FNoesisRuntimeModule::OnPostEngineInit);
+#else
+		PostEngineInitDelegateHandle = FCoreDelegates::GetOnPostEngineInit().AddRaw(this, &FNoesisRuntimeModule::OnPostEngineInit);
+#endif
 		EnginePreExitDelegateHandle = FCoreDelegates::OnEnginePreExit.AddRaw(this, &FNoesisRuntimeModule::OnEnginePreExit);
 
 		Noesis::Reflection::SetFallbackHandler(&NoesisReflectionRegistryCallback);
@@ -843,7 +1031,7 @@ public:
 		}
 
 #if WITH_EDITOR
-		if (GEditor)
+		if (GEditor && !IsRunningCommandlet())
 		{
 			BlueprintPreCompileHandle = GEditor->OnBlueprintPreCompile().AddStatic(OnBlueprintPreCompile);
 
@@ -854,6 +1042,8 @@ public:
 
 			FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 			IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+			AssetsAddedHandle = AssetRegistry.OnAssetsAdded().AddStatic(&OnAssetsAdded);
+			AssetsRemovedHandle = AssetRegistry.OnAssetsRemoved().AddStatic(&OnAssetsRemoved);
 			AssetRenamedHandle = AssetRegistry.OnAssetRenamed().AddStatic(&OnAssetRenamed);
 		}
 #endif
@@ -863,6 +1053,7 @@ public:
 		ViewExtension = NoesisRegisterSceneViewExtension();
 
 		// The D3D11 viewport complains if there are extra references to its back buffer.
+#if UE_VERSION_OLDER_THAN(5, 8, 0)
 		if (FSlateApplication::IsInitialized())
 		{
 			FSlateRenderer* SlateRenderer = FSlateApplication::Get().GetRenderer();
@@ -871,6 +1062,12 @@ public:
 				BackgroundImage::SetBackgroundImageTexture(nullptr);
 			});
 		}
+#else
+		FCoreRenderDelegates::OnFlushRenderingCommandsEnd.AddLambda([]()
+		{
+			BackgroundImage::SetBackgroundImageTexture(nullptr);
+		});
+#endif
 
 		// Avoid creating the DynamicTextureSource in BackgroundImage with a 0x0 size.
 		FViewport::ViewportResizedEvent.AddLambda([](FViewport* Viewport, uint32)
@@ -886,10 +1083,12 @@ public:
 	void OnEnginePreExit()
 	{
 #if WITH_EDITOR
-		if (GEditor)
+		if (GEditor && !IsRunningCommandlet())
 		{
 			FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 			IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+			AssetRegistry.OnAssetsAdded().Remove(AssetsAddedHandle);
+			AssetRegistry.OnAssetsRemoved().Remove(AssetsRemovedHandle);
 			AssetRegistry.OnAssetRenamed().Remove(AssetRenamedHandle);
 
 			FEnumEditorUtils::FEnumEditorManager::Get().RemoveListener(NotifyEnumChangedListener);
@@ -914,7 +1113,7 @@ public:
 
 		Noesis::GUI::SetApplicationResources(nullptr);
 
-		BackgroundImage::SetBackgroundImageTexture(nullptr);
+		BackgroundImage::Destroy();
 
 		NoesisUnregisterOverlayRender(OverlayRenderDelegateHandle);
 
@@ -923,7 +1122,11 @@ public:
 		Noesis::Reflection::SetFallbackHandler(nullptr);
 
 		FCoreDelegates::OnEnginePreExit.Remove(EnginePreExitDelegateHandle);
+#if UE_VERSION_OLDER_THAN(5, 8, 0)
 		FCoreDelegates::OnPostEngineInit.Remove(PostEngineInitDelegateHandle);
+#else
+		FCoreDelegates::GetOnPostEngineInit().Remove(PostEngineInitDelegateHandle);
+#endif
 
 		FCoreUObjectDelegates::PostGarbageCollectConditionalBeginDestroy.Remove(PostGarbageCollectConditionalBeginDestroyDelegateHandle);
 
@@ -940,12 +1143,28 @@ public:
 		NsShutdownPackageAppMediaElement();
 		NsShutdownPackageAppRiveBase();
 		NsShutdownPackageAppRive();
+		NsShutdownPackageAppToolkit();
 
 #if WITH_ENHANCED_INPUT
 		Noesis::UnregisterComponent<Noesis::EnumConverter<TriggerEvent>>();
 		Noesis::UnregisterComponent<EnhancedInputActionTrigger>();
 #endif
 		Noesis::UnregisterComponent<Noesis::EnumConverter<InputActionType>>();
+		Noesis::UnregisterComponent<ChromaticAberrationEffect>();
+		Noesis::UnregisterComponent<DirectionalBlurEffect>();
+		Noesis::UnregisterComponent<NoiseEffect>();
+		Noesis::UnregisterComponent<PinchEffect>();
+		Noesis::UnregisterComponent<PixelateEffect>();
+		Noesis::UnregisterComponent<SaturationEffect>();
+		Noesis::UnregisterComponent<TintEffect>();
+		Noesis::UnregisterComponent<VignetteEffect>();
+		Noesis::UnregisterComponent<AbyssBrush>();
+		Noesis::UnregisterComponent<ConicGradientBrush>();
+		Noesis::UnregisterComponent<CrossFadeBrush>();
+		Noesis::UnregisterComponent<PlasmaBrush>();
+		Noesis::UnregisterComponent<SaturationBrush>();
+		Noesis::UnregisterComponent<TintBrush>();
+		Noesis::UnregisterComponent<BoxShadow>();
 		Noesis::UnregisterComponent<BackgroundImage>();
 		Noesis::UnregisterComponent<WorldTransformConverter>();
 		Noesis::UnregisterComponent<InputActionTrigger>();
@@ -995,6 +1214,8 @@ public:
 	FDelegateHandle BlueprintPreCompileHandle;
 	NotifyEnumChanged* NotifyEnumChangedListener;
 	NotifyStructChanged* NotifyStructChangedListener;
+	FDelegateHandle AssetsAddedHandle;
+	FDelegateHandle AssetsRemovedHandle;
 	FDelegateHandle AssetRenamedHandle;
 #endif
 	TSharedPtr<class IInputProcessor> InputPreProcessor;

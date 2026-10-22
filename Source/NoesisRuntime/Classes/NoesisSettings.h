@@ -17,6 +17,9 @@
 // Noesis includes
 #include "NoesisSDK.h"
 
+// CoreUObject includes
+#include "UObject/SoftObjectPtr.h"
+
 // Generated header include
 #include "NoesisSettings.generated.h"
 
@@ -46,6 +49,18 @@ enum class ENoesisLoggingSettings : uint8
 	Warning,
 	Information,
 	Debug
+};
+
+USTRUCT()
+struct FStudioProjectConfig
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, config, Category = Studio, meta = (ToolTip = "Path to the Studio project file, relative to the Unreal project."))
+	FString ProjectPath;
+
+	UPROPERTY(EditAnywhere, config, Category = Studio, meta = (ToolTip = "The display order of this project in the NoesisGUI menu."))
+	int Order = -1;
 };
 
 UCLASS(Config = Engine, DefaultConfig)
@@ -88,6 +103,10 @@ class NOESISRUNTIME_API UNoesisSettings : public UObject
 	/** Default value for FontStyle when it is not specified in a control or text element */
 	UPROPERTY(EditAnywhere, Config, Category = "XAML")
 	ENoesisFontStyle DefaultFontStyle;
+
+	/** These projects will be shown in the Noesis menu */
+	UPROPERTY(EditAnywhere, Config, Category = "Studio")
+	TArray<FStudioProjectConfig> StudioProjects;
 
 	/** Dimensions of texture used to cache glyphs */
 	UPROPERTY(EditAnywhere, Config, Category = "Rendering", meta = (ConfigRestartRequired = true))

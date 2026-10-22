@@ -45,8 +45,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NoesisMediaPlayer::NoesisMediaPlayer(NoesisApp::MediaElement* Owner, const Noesis::Uri& Uri, void*):
 	MediaPlayer(nullptr), MediaTexture(nullptr), SoundComponent(nullptr),
-	TextureSource(*new Noesis::TextureSource()), View(nullptr), Volume(0.5f), Position(0.0),
-	Opened(false), Ended(false), KeepPlaying(false), IsBuffering(false)
+	TextureSource(*new Noesis::TextureSource()), Volume(0.5f), Position(0.0), Opened(false),
+	Ended(false), KeepPlaying(false), IsBuffering(false)
 {
 	MediaPlayer = NewObject<UMediaPlayer>(GetTransientPackage(), NAME_None, RF_Transient | RF_Public);
 	MediaPlayer->AddToRoot();
@@ -75,16 +75,10 @@ NoesisMediaPlayer::NoesisMediaPlayer(NoesisApp::MediaElement* Owner, const Noesi
 	if (MediaSource != nullptr && MediaPlayer->OpenSource(MediaSource))
 	{
 		MediaPlayer->OnMediaEvent().AddRaw(this, &NoesisMediaPlayer::OnMediaEvent);
-
-		View = Owner->GetView();
-		View->Rendering() += Noesis::MakeDelegate(this, &NoesisMediaPlayer::OnRendering);
 	}
 	else if (MediaPlayer->OpenFile(StringCast<TCHAR>((UTF8CHAR*)Uri.Str()).Get()))
 	{
 		MediaPlayer->OnMediaEvent().AddRaw(this, &NoesisMediaPlayer::OnMediaEvent);
-
-		View = Owner->GetView();
-		View->Rendering() += Noesis::MakeDelegate(this, &NoesisMediaPlayer::OnRendering);
 	}
 	else
 	{
@@ -95,11 +89,6 @@ NoesisMediaPlayer::NoesisMediaPlayer(NoesisApp::MediaElement* Owner, const Noesi
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NoesisMediaPlayer::~NoesisMediaPlayer()
 {
-	if (View != nullptr)
-	{
-		View->Rendering() -= Noesis::MakeDelegate(this, &NoesisMediaPlayer::OnRendering);
-	}
-
 	MediaPlayer->OnMediaEvent().RemoveAll(this);
 	MediaPlayer->Close();
 	MediaPlayer->RemoveFromRoot();
@@ -244,7 +233,7 @@ Noesis::ImageSource* NoesisMediaPlayer::GetTextureSource() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void NoesisMediaPlayer::OnRendering(Noesis::IView*)
+void NoesisMediaPlayer::Update()
 {
 	// Raise MediaOpened when texture is correctly created
 	if (Opened && MediaTexture->GetWidth() > 2 && MediaTexture->GetHeight() > 2)
@@ -276,6 +265,8 @@ void NoesisMediaPlayer::OnRendering(Noesis::IView*)
 	// Check if we need to continue playing or player has been paused/stopped
 	if (KeepPlaying)
 	{
+		TextureSource->Invalidate();
+
 		if (!MediaPlayer->IsPlaying())
 		{
 			MediaPlayer->Play();

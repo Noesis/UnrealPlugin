@@ -73,6 +73,7 @@ void Noesis::NoesisLangServerRenderer::Capture(Noesis::UIElement* Content, uint3
 	View->SetSize(Width, Height);
 	View->SetFlags(Noesis::RenderFlags_PPAA);
 	View->SetTessellationMaxPixelError(Noesis::TessellationMaxPixelError::HighQuality());
+	View->Update(RenderTime);
 
 	Noesis::Ptr<Noesis::IRenderer> Renderer(View->GetRenderer());
 
@@ -84,7 +85,7 @@ void Noesis::NoesisLangServerRenderer::Capture(Noesis::UIElement* Content, uint3
 
 	ENQUEUE_RENDER_COMMAND(FNoesisInstance_InitRenderer)
 	(
-		[Renderer, View, Width, Height, RenderTime, WorldTime, Scene, &Contents](FRHICommandListImmediate& RHICmdList)
+		[Renderer, Width, Height, WorldTime, Scene, &Contents](FRHICommandListImmediate& RHICmdList)
 		{
 			FNoesisRenderDevice* RenderDevice = FNoesisRenderDevice::Get();
 			RenderDevice->SetRHICmdList(&RHICmdList);
@@ -92,9 +93,6 @@ void Noesis::NoesisLangServerRenderer::Capture(Noesis::UIElement* Content, uint3
 			RenderDevice->SetScene(Scene);
 
 			Renderer->Init(RenderDevice);
-			View->Update(0.0);
-			Renderer->UpdateRenderTree();
-			View->Update(RenderTime);
 			Renderer->UpdateRenderTree();
 
 			// Make sure dynamic material cached uniform expressions are up to date before doing any rendering

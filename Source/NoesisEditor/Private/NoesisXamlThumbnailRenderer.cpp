@@ -22,7 +22,8 @@ UNoesisXamlThumbnailRenderer::UNoesisXamlThumbnailRenderer(const FObjectInitiali
 bool UNoesisXamlThumbnailRenderer::CanVisualizeAsset(UObject* Object)
 {
 	UNoesisXaml* Xaml = Cast<UNoesisXaml>(Object);
-	return Xaml != nullptr;
+	Noesis::FrameworkElement* Content = (Xaml != nullptr) ? Noesis::DynamicCast<Noesis::FrameworkElement*>(Xaml->LoadXaml()) : nullptr;
+	return Content != nullptr;
 }
 
 void UNoesisXamlThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint32 Width, uint32 Height,

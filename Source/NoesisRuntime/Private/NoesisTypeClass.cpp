@@ -24,7 +24,9 @@
 #include "Engine/Texture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Engine/Blueprint.h"
+#if UE_VERSION_OLDER_THAN(5, 8, 0)
 #include "Engine/UserDefinedStruct.h"
+#endif
 #include "Engine/UserDefinedEnum.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -63,9 +65,16 @@
 #include "NoesisXaml.h"
 #include "NoesisWorldUIComponent.h"
 #include "NoesisEnums.h"
+#include "NoesisAssetDependency.h"
 
 // Noesis includes
 #include "NoesisSDK.h"
+
+#if WITH_EDITOR
+	#include "Interfaces/IPluginManager.h"
+	#include "AssetRegistry/AssetData.h"
+	#include "NoesisSettings.h"
+#endif
 
 DECLARE_CYCLE_STAT(TEXT("NoesisNotifyPropertyChanged"), STAT_NoesisNotifyPropertyChanged, STATGROUP_Noesis);
 DECLARE_CYCLE_STAT(TEXT("NoesisNotifyArrayPropertyAdd"), STAT_NoesisNotifyArrayPropertyAdd, STATGROUP_Noesis);
@@ -890,10 +899,12 @@ const Noesis::Type* ObjectGetType(FProperty* Property)
 	{
 		return ClassConversion->Type;
 	}
-	else
-	{
-		return NoesisGetTypeForUClass(ObjectProperty->PropertyClass);
-	}
+#if WITH_EDITOR
+	// We need the full type in case it is used in Studio
+	return NoesisCreateTypeClassForUClass(ObjectProperty->PropertyClass);
+#else
+	return NoesisGetTypeForUClass(ObjectProperty->PropertyClass);
+#endif
 }
 
 TMap<FFieldClass*, NoesisTypeInfo> TypeInfos;
@@ -982,8 +993,14 @@ const Noesis::Type* MapGetType(FProperty* Property)
 	return nullptr;
 }
 
+static Noesis::Symbol gIndexerName;
+static Noesis::Symbol gCountName;
+
 void NoesisInitTypeTables()
 {
+	gIndexerName = Noesis::Symbol("Item[]");
+	gCountName = Noesis::Symbol("Count");
+
 	ClassConversions =
 	{
 		{UTexture2D::StaticClass(), NoesisClassConversion::FromType<UTexture2D*>() },
@@ -1359,25 +1376,7 @@ public:
 		}
 	}
 
-	virtual Noesis::BaseComponent* GetBaseObject() const override
-	{
-		return (Noesis::BaseComponent*)this;
-	}
-
-	virtual int32 AddReference() const override
-	{
-		return Noesis::BaseComponent::AddReference();
-	}
-
-	virtual int32 Release() const override
-	{
-		return Noesis::BaseComponent::Release();
-	}
-
-	virtual int32 GetNumReferences() const override
-	{
-		return Noesis::BaseComponent::GetNumReferences();
-	}
+	NS_IMPLEMENT_INTERFACE_FIXUP
 
 public:
 	// IList interface
@@ -1428,7 +1427,8 @@ public:
 	TArray<Noesis::Ptr<Noesis::BaseComponent>> ComponentArray;
 };
 
-class NoesisArrayWrapper : public Noesis::BaseComponent, public Noesis::IList, public Noesis::INotifyCollectionChanged
+class NoesisArrayWrapper : public Noesis::BaseComponent, public Noesis::IList, public Noesis::INotifyCollectionChanged,
+	public Noesis::INotifyPropertyChanged
 {
 public:
 	NoesisArrayWrapper(void* ArrayPtr, FArrayProperty* InArrayProperty)
@@ -1443,25 +1443,7 @@ public:
 		ArrayMap.Remove(ArrayPointer);
 	}
 
-	virtual Noesis::BaseComponent* GetBaseObject() const override
-	{
-		return (Noesis::BaseComponent*)this;
-	}
-
-	virtual int32 AddReference() const override
-	{
-		return Noesis::BaseComponent::AddReference();
-	}
-
-	virtual int32 Release() const override
-	{
-		return Noesis::BaseComponent::Release();
-	}
-
-	virtual int32 GetNumReferences() const override
-	{
-		return Noesis::BaseComponent::GetNumReferences();
-	}
+	NS_IMPLEMENT_INTERFACE_FIXUP
 
 protected:
 	Noesis::Ptr<Noesis::BaseComponent> NativeGet(uint32 Index) const
@@ -1582,9 +1564,16 @@ public:
 	}
 	// End of IList interface
 
+	// INotifyCollectionChanged interface
 	virtual Noesis::NotifyCollectionChangedEventHandler& CollectionChanged() override
 	{
 		return CollectionChangedHandler;
+	}
+
+	// INotifyPropertyChanged interface
+	Noesis::PropertyChangedEventHandler& PropertyChanged() override
+	{
+		return PropertyChangedHandler;
 	}
 
 	void NotifyPostAdd()
@@ -1596,6 +1585,9 @@ public:
 	void NotifyPostInsert(uint32 Index)
 	{
 		Noesis::Ptr<Noesis::BaseComponent> Item = NativeGet(Index);
+
+		PropertyChangedHandler(this, gCountName);
+		PropertyChangedHandler(this, gIndexerName);
 
 		// Preserve this in case it is deleted in the event handler
 		LOCAL_PRESERVE(this);
@@ -1614,6 +1606,8 @@ public:
 		check(ItemToDelete != nullptr);
 		Noesis::Ptr<Noesis::BaseComponent> NewItem = NativeGet(Index);
 
+		PropertyChangedHandler(this, gIndexerName);
+
 		// Preserve this in case it is deleted in the event handler
 		LOCAL_PRESERVE(this);
 		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs = { Noesis::NotifyCollectionChangedAction_Replace, (int32)Index, (int32)Index, ItemToDelete, NewItem };
@@ -1630,6 +1624,10 @@ public:
 	void NotifyPostRemoveAt(int32 Index)
 	{
 		check(ItemToDelete != nullptr);
+
+		PropertyChangedHandler(this, gCountName);
+		PropertyChangedHandler(this, gIndexerName);
+
 		// Preserve this in case it is deleted in the event handler
 		LOCAL_PRESERVE(this);
 		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs = { Noesis::NotifyCollectionChangedAction_Remove, Index, -1, ItemToDelete, nullptr };
@@ -1639,6 +1637,9 @@ public:
 
 	void NotifyPostReset()
 	{
+		PropertyChangedHandler(this, gCountName);
+		PropertyChangedHandler(this, gIndexerName);
+
 		// Preserve this in case it is deleted in the event handler
 		LOCAL_PRESERVE(this);
 		Noesis::NotifyCollectionChangedEventArgs CollectionChangedArgs = { Noesis::NotifyCollectionChangedAction_Reset, -1, -1, nullptr, nullptr };
@@ -1666,11 +1667,13 @@ public:
 	{
 		NsImpl<Noesis::IList>();
 		NsImpl<Noesis::INotifyCollectionChanged>();
+		NsImpl<Noesis::INotifyPropertyChanged>();
 		NsProp("Count", &NoesisArrayWrapper::Count);
 	}
 
 private:
 	Noesis::NotifyCollectionChangedEventHandler CollectionChangedHandler;
+	Noesis::PropertyChangedEventHandler PropertyChangedHandler;
 
 public:
 	FArrayProperty* ArrayProperty;
@@ -1693,25 +1696,7 @@ public:
 		MapMap.Remove(MapPointer);
 	}
 
-	virtual Noesis::BaseComponent* GetBaseObject() const override
-	{
-		return (Noesis::BaseComponent*)this;
-	}
-
-	virtual int32 AddReference() const override
-	{
-		return Noesis::BaseComponent::AddReference();
-	}
-
-	virtual int32 Release() const override
-	{
-		return Noesis::BaseComponent::Release();
-	}
-
-	virtual int32 GetNumReferences() const override
-	{
-		return Noesis::BaseComponent::GetNumReferences();
-	}
+	NS_IMPLEMENT_INTERFACE_FIXUP
 
 protected:
 	bool NativeFind(const char* Key, Noesis::Ptr<Noesis::BaseComponent>& Value) const
@@ -2109,11 +2094,20 @@ void ReplaceType(Noesis::Type* OldType, Noesis::Type* NewType)
 {
 	if (IsTypeRegistered(OldType))
 	{
+#if WITH_EDITOR
+		Noesis::Studio::ClearTypeCache();
+#endif
 		Noesis::Reflection::UnregisterNoDelete(OldType);
 		if (NewType != nullptr)
 		{
 			Noesis::Reflection::RegisterType(NewType);
 		}
+#if WITH_EDITOR
+		if (!NoesisIsShuttingDown)
+		{
+			Noesis::Studio::PopulateTypeCache();
+		}
+#endif
 	}
 	DeletedTypes.Add(OldType);
 }
@@ -2218,30 +2212,12 @@ public:
 
 	~NoesisObjectWrapper();
 
-	virtual Noesis::BaseComponent* GetBaseObject() const override
-	{
-		return (Noesis::BaseComponent*)this;
-	}
-
 	virtual Noesis::PropertyChangedEventHandler& PropertyChanged() override
 	{
 		return PropertyChangedHandler;
 	}
 
-	virtual int32 AddReference() const override
-	{
-		return Noesis::BaseComponent::AddReference();
-	}
-
-	virtual int32 Release() const override
-	{
-		return Noesis::BaseComponent::Release();
-	}
-
-	virtual int32 GetNumReferences() const override
-	{
-		return Noesis::BaseComponent::GetNumReferences();
-	}
+	NS_IMPLEMENT_INTERFACE_FIXUP
 
 	virtual const Noesis::TypeClass* GetClassType() const override
 	{
@@ -2255,7 +2231,16 @@ public:
 		if (IsValid(Object) && !Object->IsUnreachable())
 		{
 			UClass* Class = Object->GetClass();
-			const Noesis::TypeClass* TypeClass = NoesisCreateTypeClassForUClass(Class);
+			bool bIsNew;
+			const Noesis::TypeClass* TypeClass = NoesisCreateTypeClassForUClass(Class, bIsNew);
+
+#if WITH_EDITOR
+			if (bIsNew)
+			{
+				Noesis::Studio::PopulateTypeCache();
+			}
+#endif
+
 			return TypeClass == nullptr ? Noesis::BaseComponent::StaticGetClassType(nullptr) : TypeClass;
 		}
 		return Noesis::BaseComponent::StaticGetClassType(nullptr);
@@ -2433,6 +2418,42 @@ NoesisObjectWrapper::~NoesisObjectWrapper()
 	}
 }
 
+class NoesisTextureWrapper : public Noesis::TextureSource
+{
+public:
+	NoesisTextureWrapper(UTexture* InTexture)
+		: Noesis::TextureSource(NoesisCreateTexture(InTexture)), Texture(InTexture)
+	{
+		TextureMap.Add(Texture, this);
+	}
+
+	~NoesisTextureWrapper()
+	{
+		if (Texture != nullptr)
+		{
+			TextureMap.Remove(Texture);
+		}
+	}
+
+	UTexture* Texture;
+
+	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisTextureWrapper, Noesis::TextureSource)
+};
+
+Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUTexture(UTexture* Texture)
+{
+	NoesisTextureWrapper** TextureSourcePtr = TextureMap.Find(Texture);
+	if (TextureSourcePtr != nullptr)
+	{
+		return Noesis::Ptr<Noesis::BaseComponent>(*TextureSourcePtr);
+	}
+	else
+	{
+		NoesisTextureWrapper* TextureSource = new NoesisTextureWrapper(Texture);
+		return Noesis::Ptr<Noesis::BaseComponent>(*TextureSource);
+	}
+}
+
 class NoesisMaterialWrapper
 {
 public:
@@ -2483,6 +2504,16 @@ public:
 		}
 	}
 
+	void UpdateTextureParameter(const Noesis::DependencyProperty* Dp, Noesis::BitmapSource* Value)
+	{
+		UTexture* Texture = NoesisUTextureForComponent(Value);
+		if (Texture != nullptr)
+		{
+			FName ParamName = NsStringToFName(Dp->GetName().Str());
+			SetTextureParameterValue(ParamName, Texture);
+		}
+	}
+
 protected:
 
 	NoesisTypeClass* TypeClass = nullptr;
@@ -2508,6 +2539,16 @@ public:
 	{
 		return TypeClass;
 	}
+
+	virtual bool OnSubPropertyChanged(const Noesis::DependencyProperty* Dp)
+	{
+		if (Dp->GetType() == Noesis::TypeOf<Noesis::BitmapSource>())
+		{
+			UpdateTextureParameter(Dp, GetValue<Noesis::Ptr<Noesis::BitmapSource>>(Dp));
+		}
+
+		return Noesis::BrushShader::OnSubPropertyChanged(Dp);
+	}
 };
 
 class NoesisPostProcessMaterialWrapper : public Noesis::ShaderEffect, public NoesisMaterialWrapper
@@ -2524,43 +2565,17 @@ public:
 	{
 		return TypeClass;
 	}
-};
 
-class NoesisTextureWrapper : public Noesis::TextureSource
-{
-public:
-	NoesisTextureWrapper(UTexture* InTexture)
-		: Noesis::TextureSource(NoesisCreateTexture(InTexture)), Texture(InTexture)
+	virtual bool OnSubPropertyChanged(const Noesis::DependencyProperty* Dp)
 	{
-		TextureMap.Add(Texture, this);
-	}
-
-	~NoesisTextureWrapper()
-	{
-		if (Texture != nullptr)
+		if (Dp->GetType() == Noesis::TypeOf<Noesis::BitmapSource>())
 		{
-			TextureMap.Remove(Texture);
+			UpdateTextureParameter(Dp, GetValue<Noesis::Ptr<Noesis::BitmapSource>>(Dp));
 		}
+
+		return Noesis::ShaderEffect::OnSubPropertyChanged(Dp);
 	}
-
-	UTexture* Texture;
-
-	NS_IMPLEMENT_INLINE_REFLECTION_(NoesisTextureWrapper, Noesis::TextureSource)
 };
-
-Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUTexture(UTexture* Texture)
-{
-	NoesisTextureWrapper** TextureSourcePtr = TextureMap.Find(Texture);
-	if (TextureSourcePtr != nullptr)
-	{
-		return Noesis::Ptr<Noesis::BaseComponent>(*TextureSourcePtr);
-	}
-	else
-	{
-		NoesisTextureWrapper* TextureSource = new NoesisTextureWrapper(Texture);
-		return Noesis::Ptr<Noesis::BaseComponent>(*TextureSource);
-	}
-}
 
 Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForTArray(void* ArrayPtr, FArrayProperty* ArrayProperty)
 {
@@ -2580,7 +2595,7 @@ Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForTArrayStruct(void* Ar
 
 const Noesis::Type* NoesisCreateTypeForTArray(FArrayProperty* ArrayProperty)
 {
-	return Noesis::TypeOf<Noesis::BaseComponent>();
+	return Noesis::TypeOf<NoesisArrayWrapper>();
 }
 
 class NoesisTypePropertyStructWrapper : public NoesisTypeProperty
@@ -3183,21 +3198,42 @@ const Noesis::Type* NoesisGetTypeForUClass(UClass* Class)
 	return Noesis::TypeOf<NoesisObjectWrapper>();
 }
 
-Noesis::TypeClass* NoesisCreateTypeClassForUClass(UClass* Class)
+Noesis::TypeClass* NoesisCreateTypeClassForUClass(UClass* Class, bool& bIsNew)
 {
 	NoesisTypeClass** TypeClassPtr = ClassMap.Find(Class);
 	if (TypeClassPtr != nullptr)
 	{
+		bIsNew = false;
 		return *TypeClassPtr;
 	}
+
+	bIsNew = true;
 
 	FString RegisterClassName = RegisterNameFromPath(Class->GetPathName());
 	NoesisTypeClass* TypeClass = new NoesisTypeClass(Noesis::Symbol((ANSICHAR*)StringCast<UTF8CHAR>(*RegisterClassName).Get()));
 
-	NoesisFillTypeClassForUClass(TypeClass, Class);
+#if WITH_EDITORONLY_DATA
+	if (Class->ClassGeneratedBy)
+	{
+		Noesis::Uri AssetUri = NsAssetPathToProviderUri(Class->ClassGeneratedBy->GetPathName(), FString());
+		auto AssetDependency = Noesis::MakePtr<Noesis::AssetDependency>(MoveTemp(AssetUri));
+		TypeClass->AddMeta(AssetDependency);
+	}
+#endif
 
 	ClassMap.Add(Class, TypeClass);
+
+	NoesisFillTypeClassForUClass(TypeClass, Class);
+
+	Noesis::Reflection::RegisterType(TypeClass);
+
 	return TypeClass;
+}
+
+Noesis::TypeClass* NoesisCreateTypeClassForUClass(UClass* Class)
+{
+	bool bIsNew;
+	return NoesisCreateTypeClassForUClass(Class, bIsNew);
 }
 
 Noesis::BaseComponent* CallbackCreateMaterialWrapper(Noesis::Symbol Name)
@@ -3240,6 +3276,14 @@ Noesis::TypeClass* NoesisCreateTypeClassForUMaterial(UMaterialInterface* Materia
 
 	FString RegisterClassName = RegisterNameFromPath(Material->GetPathName());
 	NoesisTypeClass* TypeClass = new NoesisTypeClass(Noesis::Symbol((ANSICHAR*)StringCast<UTF8CHAR>(*RegisterClassName).Get()));
+
+#if WITH_EDITORONLY_DATA
+	{
+		Noesis::Uri AssetUri = NsAssetPathToProviderUri(Material->GetPathName(), FString());
+		auto AssetDependency = Noesis::MakePtr<Noesis::AssetDependency>(MoveTemp(AssetUri));
+		TypeClass->AddMeta(AssetDependency);
+	}
+#endif
 
 	TypeClass->Material = Material;
 
@@ -3367,18 +3411,9 @@ Noesis::TypeClass* NoesisCreateTypeClassForUMaterial(UMaterialInterface* Materia
 							{
 								NoesisUIMaterialWrapper* Wrapper = (NoesisUIMaterialWrapper*)Object;
 								Noesis::BitmapSource* NewValue = Args.NewValue<Noesis::BitmapSource*>();
-								Noesis::BitmapImage* BitmapImage = Noesis::DynamicCast<Noesis::BitmapImage*>(NewValue);
-								if (BitmapImage != nullptr)
+								UTexture* UnrealTexture = NoesisUTextureForComponent(NewValue);
+								if (UnrealTexture != nullptr)
 								{
-									const Noesis::Uri& SourceUri = BitmapImage->GetUriSource();
-									FString SourcePath = NsProviderUriToAssetPath(SourceUri);
-									UTexture* UnrealTexture = LoadObject<UTexture>(nullptr, *SourcePath, nullptr, LOAD_NoWarn);
-									Wrapper->SetTextureParameterValue(ParamName, UnrealTexture);
-								}
-								NoesisTextureWrapper* TextureWrapper = Noesis::DynamicCast<NoesisTextureWrapper*>(NewValue);
-								if (TextureWrapper != nullptr)
-								{
-									UTexture* UnrealTexture = TextureWrapper->Texture;
 									Wrapper->SetTextureParameterValue(ParamName, UnrealTexture);
 								}
 							})));
@@ -3392,18 +3427,9 @@ Noesis::TypeClass* NoesisCreateTypeClassForUMaterial(UMaterialInterface* Materia
 							{
 								NoesisPostProcessMaterialWrapper* Wrapper = (NoesisPostProcessMaterialWrapper*)Object;
 								Noesis::BitmapSource* NewValue = Args.NewValue<Noesis::BitmapSource*>();
-								Noesis::BitmapImage* BitmapImage = Noesis::DynamicCast<Noesis::BitmapImage*>(NewValue);
-								if (BitmapImage != nullptr)
+								UTexture* UnrealTexture = NoesisUTextureForComponent(NewValue);
+								if (UnrealTexture != nullptr)
 								{
-									const Noesis::Uri& SourceUri = BitmapImage->GetUriSource();
-									FString SourcePath = NsProviderUriToAssetPath(SourceUri);
-									UTexture* UnrealTexture = LoadObject<UTexture>(nullptr, *SourcePath, nullptr, LOAD_NoWarn);
-									Wrapper->SetTextureParameterValue(ParamName, UnrealTexture);
-								}
-								NoesisTextureWrapper* TextureWrapper = Noesis::DynamicCast<NoesisTextureWrapper*>(NewValue);
-								if (TextureWrapper != nullptr)
-								{
-									UTexture* UnrealTexture = TextureWrapper->Texture;
 									Wrapper->SetTextureParameterValue(ParamName, UnrealTexture);
 								}
 							})));
@@ -3441,18 +3467,30 @@ void NoesisFillTypeEnumForUEnum(NoesisTypeEnum* TypeEnum, UEnum* Enum)
 	}
 }
 
-Noesis::TypeEnum* NoesisCreateTypeEnumForUEnum(UEnum* Enum)
+Noesis::TypeEnum* NoesisCreateTypeEnumForUEnum(UEnum* Enum, bool& bIsNew)
 {
 	NoesisTypeEnum** TypeEnumPtr = EnumMap.Find(Enum);
 	if (TypeEnumPtr != nullptr)
 	{
+		bIsNew = false;
 		return *TypeEnumPtr;
 	}
+
+	bIsNew = true;
 
 	FString RegisterEnumName = RegisterNameFromPath(Enum->GetPathName());
 	Noesis::String PersistentEnumName = (ANSICHAR*)StringCast<UTF8CHAR>(*RegisterEnumName).Get();
 	NoesisTypeEnum* TypeEnum = new NoesisTypeEnum(Enum, Noesis::Symbol(PersistentEnumName.Str()));
 	check(TypeEnum);
+
+#if WITH_EDITORONLY_DATA
+	if (auto UserDefinedEnum = Cast<UUserDefinedEnum>(Enum))
+	{
+		Noesis::Uri AssetUri = NsAssetPathToProviderUri(Enum->GetPathName(), FString());
+		auto AssetDependency = Noesis::MakePtr<Noesis::AssetDependency>(MoveTemp(AssetUri));
+		TypeEnum->AddMeta(AssetDependency);
+	}
+#endif
 
 	NoesisFillTypeEnumForUEnum(TypeEnum, Enum);
 
@@ -3463,7 +3501,16 @@ Noesis::TypeEnum* NoesisCreateTypeEnumForUEnum(UEnum* Enum)
 	}
 
 	EnumMap.Add(Enum, TypeEnum);
+
+	Noesis::Reflection::RegisterType(TypeEnum);
+
 	return TypeEnum;
+}
+
+Noesis::TypeEnum* NoesisCreateTypeEnumForUEnum(UEnum* Enum)
+{
+	bool bIsNew;
+	return NoesisCreateTypeEnumForUEnum(Enum, bIsNew);
 }
 
 #if WITH_EDITOR
@@ -3733,8 +3780,132 @@ void NoesisDestroyTypeClassForMaterial(class UMaterialInterface* Material)
 	OnMaterialChanged(Material);
 }
 
+static void GetProjectPaths(TArray<FString>& ProjectPaths)
+{
+	ProjectPaths.Add(TEXT("/Game"));
+
+	TArray<TSharedRef<IPlugin>> EnabledPlugins = IPluginManager::Get().GetEnabledPlugins();
+	for (const TSharedRef<IPlugin>& Plugin : EnabledPlugins)
+	{
+		if (Plugin->GetLoadedFrom() == EPluginLoadedFrom::Project)
+		{
+			ProjectPaths.Add(*Plugin->GetMountedAssetPath().LeftChop(1));
+		}
+	}
+}
+
+static bool IsProjectAsset(const FAssetData& AssetData, const TArray<FString>& ProjectPaths)
+{
+	bool Found = false;
+
+	FString Path = AssetData.PackagePath.ToString();
+	for (const FString& ProjectPath : ProjectPaths)
+	{
+		if (Path.StartsWith(ProjectPath))
+		{
+			Found = true;
+			break;
+		}
+	}
+
+	return Found;
+}
+
+static bool IsTargetMaterialDomain(const FAssetData& AssetData, const IAssetRegistry& AssetRegistry)
+{
+	FString MaterialDomain;
+	if (AssetData.GetTagValue(FName("MaterialDomain"), MaterialDomain))
+	{
+		return MaterialDomain == TEXT("MD_UI") || MaterialDomain == TEXT("MD_PostProcess");
+	}
+
+	FString ParentPath;
+	if (AssetData.GetTagValue(FName("Parent"), ParentPath))
+	{
+		FSoftObjectPath ParentObjectPath(ParentPath);
+		FAssetData ParentData = AssetRegistry.GetAssetByObjectPath(ParentObjectPath);
+		if (ParentData.IsValid())
+		{
+			return IsTargetMaterialDomain(ParentData, AssetRegistry);
+		}
+	}
+
+	return false;
+}
+
+void NoesisRegisterMaterials(TConstArrayView<FAssetData> Assets)
+{
+	Noesis::Studio::ClearTypeCache();
+
+	TArray<FString> ProjectPaths;
+	GetProjectPaths(ProjectPaths);
+
+	FName NoesisInternal = TEXT("/NoesisGUI/Internal");
+	IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry").Get();
+
+	for (const FAssetData& AssetData : Assets)
+	{
+		if (AssetData.IsInstanceOf(UMaterialInterface::StaticClass()) && IsProjectAsset(AssetData, ProjectPaths))
+		{
+			// ignore internal Noesis shaders because they're exposed with custom classes
+			if (AssetData.PackagePath == NoesisInternal) continue;
+
+			if (IsTargetMaterialDomain(AssetData, AssetRegistry))
+			{
+				if (UMaterialInterface* Material = Cast<UMaterialInterface>(AssetData.GetAsset()))
+				{
+					NoesisTypeClass** TypeClassPtr = MaterialMap.Find(Material);
+					if (TypeClassPtr == nullptr)
+					{
+						Noesis::TypeClass* Type = NoesisCreateTypeClassForUMaterial(Material);
+						Noesis::Reflection::RegisterType(Type);
+					}
+				}
+			}
+		}
+	}
+
+	Noesis::Studio::PopulateTypeCache();
+}
+
+void NoesisUnregisterMaterials(TConstArrayView<FAssetData> Assets)
+{
+	Noesis::Studio::ClearTypeCache();
+
+	TArray<FString> ProjectPaths;
+	GetProjectPaths(ProjectPaths);
+
+	IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry").Get();
+
+	for (const FAssetData& AssetData : Assets)
+	{
+		if (AssetData.IsInstanceOf(UMaterialInterface::StaticClass()) && IsProjectAsset(AssetData, ProjectPaths))
+		{
+			if (IsTargetMaterialDomain(AssetData, AssetRegistry))
+			{
+				if (UMaterialInterface* Material = Cast<UMaterialInterface>(AssetData.GetAsset()))
+				{
+					NoesisTypeClass** TypeClassPtr = MaterialMap.Find(Material);
+					if (TypeClassPtr != nullptr)
+					{
+						NoesisTypeClass* TypeClass = *TypeClassPtr;
+						if (IsTypeRegistered(TypeClass))
+						{
+							Noesis::Reflection::UnregisterNoDelete(TypeClass);
+							MaterialMap.Remove(Material);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	Noesis::Studio::PopulateTypeCache();
+}
+
 void NoesisAssetRenamed(UObject* Object, FString OldPath)
 {
+	Noesis::Studio::ClearTypeCache();
 	if (UBlueprint* Blueprint = Cast<UBlueprint>(Object))
 	{
 		UClass* Class = Blueprint->GeneratedClass;
@@ -3793,6 +3964,23 @@ void NoesisAssetRenamed(UObject* Object, FString OldPath)
 			}
 		}
 	}
+	else if (UMaterialInterface* Material = Cast<UMaterialInterface>(Object))
+	{
+		NoesisTypeClass** TypeClassPtr = MaterialMap.Find(Material);
+		if (TypeClassPtr != nullptr)
+		{
+			NoesisTypeClass* TypeClass = *TypeClassPtr;
+			bool IsRegistered = IsTypeRegistered(TypeClass);
+			if (IsRegistered)
+			{
+				Noesis::Reflection::UnregisterNoDelete(TypeClass);
+				MaterialMap.Remove(Material);
+			}
+			Noesis::TypeClass* Type = NoesisCreateTypeClassForUMaterial(Material);
+			Noesis::Reflection::RegisterType(Type);
+		}
+	}
+	Noesis::Studio::PopulateTypeCache();
 }
 #endif
 
@@ -3845,6 +4033,15 @@ Noesis::TypeClass* NoesisCreateTypeClassForUStruct(UScriptStruct* Class)
 	FString RegisterClassName = RegisterNameFromPath(Class->GetPathName());
 	NoesisTypeClass* TypeClass = new NoesisTypeClass(Noesis::Symbol((ANSICHAR*)StringCast<UTF8CHAR>(*RegisterClassName).Get()));
 
+#if WITH_EDITORONLY_DATA
+	if (auto UserDefinedStruct = Cast<UUserDefinedStruct>(Class))
+	{
+		Noesis::Uri AssetUri = NsAssetPathToProviderUri(UserDefinedStruct->GetPathName(), FString());
+		auto AssetDependency = Noesis::MakePtr<Noesis::AssetDependency>(MoveTemp(AssetUri));
+		TypeClass->AddMeta(AssetDependency);
+	}
+#endif
+
 	NoesisFillTypeClassForUStruct(TypeClass, Class);
 
 	StructMap.Add(Class, TypeClass);
@@ -3863,6 +4060,29 @@ Noesis::Ptr<Noesis::BaseComponent> NoesisCreateComponentForUStruct(UScriptStruct
 	Struct->CopyScriptStruct(Wrapper->GetStructPtr(), Src, 1);
 
 	return Wrapper;
+}
+
+NOESISRUNTIME_API UTexture* NoesisUTextureForComponent(Noesis::BaseComponent* Wrapper)
+{
+	Noesis::BitmapImage* BitmapImage = Noesis::DynamicCast<Noesis::BitmapImage*>(Wrapper);
+	if (BitmapImage != nullptr)
+	{
+		const Noesis::Uri& SourceUri = BitmapImage->GetUriSource();
+		FString SourcePath = NsProviderUriToAssetPath(SourceUri);
+		UTexture* Texture = LoadObject<UTexture>(nullptr, *SourcePath, nullptr, LOAD_NoWarn);
+		return Texture;
+	}
+	else
+	{
+		NoesisTextureWrapper* TextureWrapper = Noesis::DynamicCast<NoesisTextureWrapper*>(Wrapper);
+		if (TextureWrapper != nullptr)
+		{
+			UTexture* Texture = TextureWrapper->Texture;
+			return Texture;
+		}
+	}
+
+	return nullptr;
 }
 
 NOESISRUNTIME_API Noesis::Ptr<Noesis::BaseComponent> NoesisFindComponentForUObject(UObject* Object)
@@ -4454,7 +4674,7 @@ void NoesisGarbageCollected()
 void NoesisReflectionRegistryCallback(Noesis::Symbol Name)
 {
 	// Can't load objects in these circumstances
-	if (GIsSavingPackage || (IsInGameThread() && IsGarbageCollecting()))
+	if (UE::IsSavingPackage() || (IsInGameThread() && IsGarbageCollecting()))
 		return;
 
 	// Make sure the name doesn't have invalid charaters to avoid errors in LoadObject
@@ -4506,15 +4726,14 @@ void NoesisReflectionRegistryCallback(Noesis::Symbol Name)
 		}
 	}
 
+	bool bIsNew = false;
 	if (Object->IsA<UBlueprint>())
 	{
-		Noesis::TypeClass* Type = NoesisCreateTypeClassForUClass(((UBlueprint*)Object)->GeneratedClass);
-		Noesis::Reflection::RegisterType(Type);
+		NoesisCreateTypeClassForUClass(((UBlueprint*)Object)->GeneratedClass, bIsNew);
 	}
 	else if (Object->IsA<UClass>())
 	{
-		Noesis::TypeClass* Type = NoesisCreateTypeClassForUClass((UClass*)Object);
-		Noesis::Reflection::RegisterType(Type);
+		NoesisCreateTypeClassForUClass((UClass*)Object, bIsNew);
 	}
 	else if (Object->IsA<UScriptStruct>())
 	{
@@ -4523,12 +4742,18 @@ void NoesisReflectionRegistryCallback(Noesis::Symbol Name)
 	}
 	else if (Object->IsA<UEnum>())
 	{
-		Noesis::TypeEnum* Type = NoesisCreateTypeEnumForUEnum((UEnum*)Object);
-		Noesis::Reflection::RegisterType(Type);
+		NoesisCreateTypeEnumForUEnum((UEnum*)Object, bIsNew);
 	}
 	else if (Object->IsA<UMaterialInterface>())
 	{
 		Noesis::TypeClass* Type = NoesisCreateTypeClassForUMaterial((UMaterialInterface*)Object);
 		Noesis::Reflection::RegisterType(Type);
 	}
+
+#if WITH_EDITOR
+	if (bIsNew)
+	{
+		Noesis::Studio::PopulateTypeCache();
+	}
+#endif
 }

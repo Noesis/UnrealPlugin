@@ -575,7 +575,11 @@ Out NoesisPS(in In i)
         if (o.color.a == 0.0)
             discard;
  
-        o.color = half4(0.0, 0.0, 0.0, 0.0);
+        #ifdef VELOCITY_SUPPORT_TEMPORAL_RESPONSIVENESS
+            o.color = EncodeVelocityToTexture(float3(0.0, 0.0, 0.0), true, 1.0);
+        #else
+            o.color = half4(0.0, 0.0, 0.0, 0.0);
+        #endif
     #endif
 
     return o;

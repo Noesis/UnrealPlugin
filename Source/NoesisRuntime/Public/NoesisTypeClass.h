@@ -118,6 +118,7 @@ template<class StructType> StructType NoesisGetUStructFromComponent(Noesis::Base
 	return Result;
 }
 
+NOESISRUNTIME_API class UTexture* NoesisUTextureForComponent(Noesis::BaseComponent* Wrapper);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Plugin editor functions. For internal use only
@@ -130,11 +131,16 @@ NOESISRUNTIME_API Noesis::TypeClass* NoesisCreateTypeClassForUClass(class UClass
 NOESISRUNTIME_API Noesis::TypeClass* NoesisCreateTypeClassForUStruct(class UScriptStruct*);
 NOESISRUNTIME_API Noesis::TypeEnum* NoesisCreateTypeEnumForUEnum(class UEnum*);
 
+NOESISRUNTIME_API Noesis::TypeClass* NoesisCreateTypeClassForUClass(class UClass*, bool&);
+NOESISRUNTIME_API Noesis::TypeEnum* NoesisCreateTypeEnumForUEnum(class UEnum*, bool&);
+
 #if WITH_EDITOR
 NOESISRUNTIME_API void NoesisDestroyTypeClassForBlueprint(class UBlueprint*);
 NOESISRUNTIME_API void NoesisDestroyTypeClassForStruct(class UUserDefinedStruct*);
 NOESISRUNTIME_API void NoesisDestroyTypeClassForEnum(class UEnum*);
 NOESISRUNTIME_API void NoesisDestroyTypeClassForMaterial(class UMaterialInterface*);
+NOESISRUNTIME_API void NoesisRegisterMaterials(TConstArrayView<FAssetData> Assets);
+NOESISRUNTIME_API void NoesisUnregisterMaterials(TConstArrayView<FAssetData> Assets);
 NOESISRUNTIME_API void NoesisAssetRenamed(UObject* Object, FString OldPath);
 #endif
 

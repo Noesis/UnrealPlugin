@@ -91,7 +91,7 @@ void FNoesisThumbnailRenderer::Render(UWorld* World, FIntRect ViewportRect, cons
 	#if UE_VERSION_OLDER_THAN(5, 1, 0)
 			FRHIResourceCreateInfo CreateInfo(Name);
 			CreateInfo.ClearValueBinding = ClearValue;
-			FTextureRHIRef DepthStencilTarget = RHICreateTexture2D(SizeX, SizeY,
+			FTextureRHIRef DepthStencilTarget = FRHICommandListImmediate::Get().CreateTexture2D(SizeX, SizeY,
 				(uint8)Format, NumMips, NumSamples, TargetableTextureFlags, Access, CreateInfo);
 	#else
 			auto DepthStencilTargetDesc = FRHITextureCreateDesc::Create2D(Name)
@@ -102,7 +102,7 @@ void FNoesisThumbnailRenderer::Render(UWorld* World, FIntRect ViewportRect, cons
 				.SetFlags(TargetableTextureFlags)
 				.SetInitialState(Access)
 				.SetClearValue(ClearValue);
-			FTextureRHIRef DepthStencilTarget = RHICreateTexture(DepthStencilTargetDesc);
+			FTextureRHIRef DepthStencilTarget = FRHICommandListImmediate::Get().CreateTexture(DepthStencilTargetDesc);
 	#endif
 			NOESIS_BIND_DEBUG_TEXTURE_LABEL(RHICmdList, DepthStencilTarget, Name);
 

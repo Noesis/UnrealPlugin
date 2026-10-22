@@ -50,7 +50,7 @@ namespace
 	Noesis::Vector<TextureData> gCachedTextures;
 }
 
-static void TexturePremultiplyAlpha(UTexture2D* Texture, const Noesis::Uri& Uri)
+static void LangServerTexturePremultiplyAlpha(UTexture2D* Texture, const Noesis::Uri& Uri)
 {
 	//	update data
 	Texture->UpdateResource();
@@ -120,7 +120,7 @@ Noesis::TextureInfo FNoesisLangServerTextureProvider::GetTextureInfo(const Noesi
 		UTexture2D* Texture = FImageUtils::ImportFileAsTexture2D(Path.Str());
 		if (Texture)
 		{
-			TexturePremultiplyAlpha(Texture, Uri);
+			LangServerTexturePremultiplyAlpha(Texture, Uri);
 			gCachedTextures.EmplaceBack(Path.Str(), NoesisCreateTexture(Texture));
 			return Noesis::TextureInfo{ (uint32)Texture->GetSizeX(), (uint32)Texture->GetSizeY() };
 		}

@@ -24,16 +24,18 @@ public class NoesisRuntime : ModuleRules
 			PrivateDefinitions.Add("NS_APP_MEDIAELEMENT_API=NS_DLL_EXPORT");
 			PrivateDefinitions.Add("NS_APP_RIVEBASE_API=NS_DLL_EXPORT");
 			PrivateDefinitions.Add("NS_APP_RIVE_API=NS_DLL_EXPORT");
+			PrivateDefinitions.Add("NS_APP_TOOLKIT_API=NS_DLL_EXPORT");
 			if (Target.Type == TargetType.Editor)
 			{
-				// In modular builds we want the LangServer functions
-				// dllexported from this module and
-				// dllimported from the other modules.
-				// That's why we use PrivateDefinitions.
-				PrivateDefinitions.Add("NS_APP_LANGSERVER_API=NS_DLL_EXPORT");
 				PrivateDefinitions.Add("NS_APP_PROVIDERS_API=NS_DLL_EXPORT");
 			}
 		}
+
+		if (Target.Type == TargetType.Editor)
+		{
+			PrivateDefinitions.Add("NS_HAVE_STUDIO");
+		}
+		PrivateDefinitions.Add("NS_UNREAL");
 
 		PublicIncludePaths.AddRange(
 			new string[] {

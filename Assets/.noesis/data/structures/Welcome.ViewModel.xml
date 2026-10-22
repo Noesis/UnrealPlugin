@@ -1,0 +1,4 @@
+<Class Name="ViewModel" Namespace="Welcome">
+  <Property Name="Version" Type="String" StringMinWordCount="0" StringMaxWordCount="0"/>
+  <Property Name="OpenSample" Type="Command"/>
+</Class>

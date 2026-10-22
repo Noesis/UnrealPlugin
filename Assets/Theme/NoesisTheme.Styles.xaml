@@ -2427,7 +2427,9 @@
           <ToggleButton x:Name="ExpandButton" Grid.Column="1" Style="{StaticResource Style.TreeViewItem.Toggle}" IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" IsTabStop="False" Width="32" Margin="-8,0">
             <Path x:Name="Arrow" Data="{StaticResource Geometry.TreeViewItem.Arrow}" Stroke="{DynamicResource Brush.TreeView.Collapsed}" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5"/>
           </ToggleButton>
-          <ContentPresenter x:Name="PART_Header" Grid.Column="2" ContentSource="Header" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Margin="{TemplateBinding Padding}"/>
+          <Border x:Name="PART_Header" Grid.Column="2" Padding="{TemplateBinding Padding}">
+            <ContentPresenter ContentSource="Header" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+          </Border>
         </Grid>
       </Border>
       <Decorator x:Name="ItemsBorder" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Visibility="Collapsed">
@@ -2530,7 +2532,9 @@
               </Path.RenderTransform>
             </Path>
           </ToggleButton>
-          <ContentPresenter x:Name="PART_Header" Grid.Column="2" ContentSource="Header" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Margin="{TemplateBinding Padding}"/>
+          <Border x:Name="PART_Header" Grid.Column="2" Padding="{TemplateBinding Padding}">
+            <ContentPresenter ContentSource="Header" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+          </Border>
         </Grid>
       </Border>
       <Decorator x:Name="ItemsBorder" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Visibility="Collapsed">

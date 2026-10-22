@@ -21,6 +21,8 @@ public class Noesis : ModuleRules
 		string NoesisRiveIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "Rive", "Include");
 		string RiveIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "RiveBase", "Src", "rive", "include");
 		string RiveSheenBidiIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "RiveBase", "Src", "SheenBidi", "Headers");
+		string NoesisToolkitIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "Toolkit", "Include");
+		string NoesisProvidersIncludePath = Path.Combine(NoesisBasePath, "Src", "Packages", "App", "Providers", "Include");
 
 		// In monolithic builds we don't want the Interactivity and MediaElement functions
 		// dllexported or dllimported from any modules.
@@ -31,9 +33,9 @@ public class Noesis : ModuleRules
 			PublicDefinitions.Add("NS_APP_MEDIAELEMENT_API=");
 			PublicDefinitions.Add("NS_APP_RIVEBASE_API=");
 			PublicDefinitions.Add("NS_APP_RIVE_API=");
+			PublicDefinitions.Add("NS_APP_TOOLKIT_API=");
 			if (Target.Type == TargetType.Editor)
 			{
-				PublicDefinitions.Add("NS_APP_LANGSERVER_API=");
 				PublicDefinitions.Add("NS_APP_PROVIDERS_API=");
 			}
 		}
@@ -46,11 +48,8 @@ public class Noesis : ModuleRules
 		PublicIncludePaths.Add(NoesisRiveIncludePath);
 		PublicIncludePaths.Add(RiveIncludePath);
 		PublicIncludePaths.Add(RiveSheenBidiIncludePath);
-
-		if (Target.Type == TargetType.Editor)
-		{
-			PublicIncludePaths.Add(Path.Combine(NoesisBasePath, "Src", "Packages", "App", "LangServer", "Include"));
-		}
+		PublicIncludePaths.Add(NoesisToolkitIncludePath);
+		PublicIncludePaths.Add(NoesisProvidersIncludePath);
 
 		if (!Directory.Exists(NoesisBasePath))
 		{
@@ -64,29 +63,59 @@ public class Noesis : ModuleRules
 
 		PublicSystemIncludePaths.Add(NoesisIncludePath);
 
-		UnrealTargetPlatform Platform;
-		if (Target.Platform == UnrealTargetPlatform.Win64 || (UnrealTargetPlatform.TryParse("WinGDK", out Platform) && Target.Platform == Platform))
+		if (Target.Type == TargetType.Editor)
 		{
+			PrivateDefinitions.Add("NS_HAVE_STUDIO");
+		}
+
+		UnrealTargetPlatform Platform;
+		if (Target.Platform == UnrealTargetPlatform.Win64)
+		{
+			string PluginDir = Path.Combine("$(PluginDir)", "Binaries", "Win64");
+
+			// Core Noesis
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "windows_x86_64", "Noesis.lib"));
-
 			string NoesisDllPath = Path.Combine(NoesisBasePath, "Bin", "windows_x86_64", "Noesis.dll");
-			string NoesisDllTargetPath = Path.Combine("$(BinaryOutputDir)", "Noesis.dll");
+			RuntimeDependencies.Add(Path.Combine(PluginDir, "Noesis.dll"), NoesisDllPath, StagedFileType.NonUFS);
+			RuntimeDependencies.Add(Path.Combine("$(TargetOutputDir)", "Noesis.dll"), NoesisDllPath, StagedFileType.NonUFS);
 
-			RuntimeDependencies.Add(NoesisDllTargetPath, NoesisDllPath, StagedFileType.NonUFS);
+			// Editor-only Noesis
+			if (Target.Type == TargetType.Editor)
+			{
+				PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "windows_x86_64", "NoesisEditor.lib"));
+				string NoesisEditorDllPath = Path.Combine(NoesisBasePath, "Bin", "windows_x86_64", "NoesisEditor.dll");
+				RuntimeDependencies.Add(Path.Combine(PluginDir, "NoesisEditor.dll"), NoesisEditorDllPath, StagedFileType.NonUFS);
+			}
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Linux)
 		{
+			// Core Noesis
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "linux_x86_64", "libNoesis.so"));
-
 			string NoesisSoPath = Path.Combine("NoesisSDK", "Bin", "linux_x86_64", "libNoesis.so");
 			RuntimeDependencies.Add(Path.Combine(ModuleDirectory, NoesisSoPath));
+
+			// Editor-only Noesis
+			if (Target.Type == TargetType.Editor)
+			{
+				PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "linux_x86_64", "libNoesisEditor.so"));
+				string NoesisEditorSoPath = Path.Combine("NoesisSDK", "Bin", "linux_x86_64", "libNoesisEditor.so");
+				RuntimeDependencies.Add(Path.Combine(ModuleDirectory, NoesisEditorSoPath));
+			}
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Mac)
 		{
+			// Core Noesis
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "macos", "Noesis.dylib"));
-
 			string NoesisDylibPath = Path.Combine("NoesisSDK", "Bin", "macos", "Noesis.dylib");
 			RuntimeDependencies.Add(Path.Combine(ModuleDirectory, NoesisDylibPath));
+
+			// Editor-only Noesis
+			if (Target.Type == TargetType.Editor)
+			{
+				PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "macos", "NoesisEditor.dylib"));
+				string NoesisEditorDylibPath = Path.Combine("NoesisSDK", "Bin", "macos", "NoesisEditor.dylib");
+				RuntimeDependencies.Add(Path.Combine(ModuleDirectory, NoesisEditorDylibPath));
+			}
 		}
 		else if (Target.Platform == UnrealTargetPlatform.IOS)
 		{
@@ -109,12 +138,22 @@ public class Noesis : ModuleRules
 		{
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Bin", "wasm", "Noesis.bc"));
 		}
-		else if ((UnrealTargetPlatform.TryParse("XboxOneGDK", out Platform) && Target.Platform == Platform) || (UnrealTargetPlatform.TryParse("XB1", out Platform) && Target.Platform == Platform))
+		else if (UnrealTargetPlatform.TryParse("WinGDK", out Platform) && Target.Platform == Platform)
+		{
+			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "windows_x86_64", "Noesis.lib"));
+
+			string NoesisDllPath = Path.Combine(NoesisBasePath, "Bin", "windows_x86_64", "Noesis.dll");
+			string NoesisDllTargetPath = Path.Combine("$(TargetOutputDir)", "Noesis.dll");
+
+			RuntimeDependencies.Add(NoesisDllTargetPath, NoesisDllPath, StagedFileType.NonUFS);
+		}
+		else if ((UnrealTargetPlatform.TryParse("XboxOneGDK", out Platform) && Target.Platform == Platform) ||
+			(UnrealTargetPlatform.TryParse("XB1", out Platform) && Target.Platform == Platform))
 		{
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "xbox_one", "Noesis.lib"));
 
 			string NoesisDllPath = Path.Combine(NoesisBasePath, "Bin", "xbox_one", "Noesis.dll");
-			string NoesisDllTargetPath = Path.Combine("$(BinaryOutputDir)", "Noesis.dll");
+			string NoesisDllTargetPath = Path.Combine("$(TargetOutputDir)", "Noesis.dll");
 
 			RuntimeDependencies.Add(NoesisDllTargetPath, NoesisDllPath, StagedFileType.NonUFS);
 		}
@@ -123,7 +162,7 @@ public class Noesis : ModuleRules
 			PublicAdditionalLibraries.Add(Path.Combine(NoesisBasePath, "Lib", "xbox_series", "Noesis.lib"));
 
 			string NoesisDllPath = Path.Combine(NoesisBasePath, "Bin", "xbox_series", "Noesis.dll");
-			string NoesisDllTargetPath = Path.Combine("$(BinaryOutputDir)", "Noesis.dll");
+			string NoesisDllTargetPath = Path.Combine("$(TargetOutputDir)", "Noesis.dll");
 
 			RuntimeDependencies.Add(NoesisDllTargetPath, NoesisDllPath, StagedFileType.NonUFS);
 		}

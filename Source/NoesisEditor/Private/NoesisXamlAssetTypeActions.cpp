@@ -16,6 +16,7 @@
 #include "BlueprintNodeTemplateCache.h"
 #include "K2Node_CallFunction.h"
 #include "K2Node_Event.h"
+#include "K2Node_GetSubsystem.h"
 
 // Engine includes
 #include "EditorFramework/AssetImportData.h"
@@ -250,6 +251,11 @@ void FNoesisXamlAssetTypeActions::AddToViewport(TArray<TWeakObjectPtr<UNoesisXam
 		View->EnablePPAA = true;
 		FAssetRegistryModule::AssetCreated(View);
 	}
+	if (!View->EnableActions)
+	{
+		View->EnableActions = true;
+		View->MarkPackageDirty();
+	}
 	if (View->BaseXaml != Xaml)
 	{
 		View->BaseXaml = Xaml;
@@ -258,6 +264,7 @@ void FNoesisXamlAssetTypeActions::AddToViewport(TArray<TWeakObjectPtr<UNoesisXam
 	}
 
 	UEdGraphPin* ContinuationExecPin = nullptr;
+	UEdGraphPin* LastThenPin = nullptr;
 
 	// Create the BeginPlay event node, if it doesn't exist.
 	UClass* ActorClass = AActor::StaticClass();
@@ -287,6 +294,7 @@ void FNoesisXamlAssetTypeActions::AddToViewport(TArray<TWeakObjectPtr<UNoesisXam
 	}
 
 	UEdGraphPin* BeginPlayNodeThenPin = BeginPlayNode->FindPin(UEdGraphSchema_K2::PN_Then);
+	LastThenPin = BeginPlayNodeThenPin;
 
 	// Create the CreateWidget node, if it doesn't exist
 	UClass* CreateWidgetClass = LoadObject<UClass>(nullptr, TEXT("/Script/UMGEditor.K2Node_CreateWidget"));
@@ -328,6 +336,10 @@ void FNoesisXamlAssetTypeActions::AddToViewport(TArray<TWeakObjectPtr<UNoesisXam
 	UEdGraphPin* CreateWidgetNodeThenPin = CreateWidgetNode->FindPin(UEdGraphSchema_K2::PN_Then);
 	UEdGraphPin* CreateWidgetNodeClassPin = CreateWidgetNode->FindPin(TEXT("Class"));
 	UEdGraphPin* CreateWidgetNodeReturnValuePin = CreateWidgetNode->FindPin(UEdGraphSchema_K2::PN_ReturnValue);
+
+	LastThenPin = CreateWidgetNodeThenPin;
+	BeginPlayNodeThenPin->MakeLinkTo(CreateWidgetNodeExecPin);
+	CreateWidgetNodeClassPin->DefaultObject = View->GeneratedClass;
 
 	// Create the AddToViewport node, if it doesn't exist
 	UClass* CallFunctionClass = UK2Node_CallFunction::StaticClass();
@@ -373,6 +385,10 @@ void FNoesisXamlAssetTypeActions::AddToViewport(TArray<TWeakObjectPtr<UNoesisXam
 	UEdGraphPin* AddToViewportNodeThenPin = AddToViewportNode->FindPin(UEdGraphSchema_K2::PN_Then);
 	UEdGraphPin* AddToViewportNodeSelfPin = AddToViewportNode->FindPin(UEdGraphSchema_K2::PN_Self);
 
+	LastThenPin = AddToViewportNodeThenPin;
+	CreateWidgetNodeThenPin->MakeLinkTo(AddToViewportNodeExecPin);
+	CreateWidgetNodeReturnValuePin->MakeLinkTo(AddToViewportNodeSelfPin);
+
 	// Create the SetInputMode node, if it doesn't exist
 	UK2Node_CallFunction* SetInputModeNode = nullptr;
 	TArray<UEdGraphPin*> AddToViewportNodeThenLinks = AddToViewportNodeThenPin->LinkedTo;
@@ -417,6 +433,10 @@ void FNoesisXamlAssetTypeActions::AddToViewport(TArray<TWeakObjectPtr<UNoesisXam
 	UEdGraphPin* SetInputModeNodePlayerControllerPin = SetInputModeNode->FindPin(TEXT("PlayerController"));
 	UEdGraphPin* SetInputModeNodeWidgetPin = SetInputModeNode->FindPin(TEXT("InWidgetToFocus"));
 
+	LastThenPin = SetInputModeNodeThenPin;
+	AddToViewportNodeThenPin->MakeLinkTo(SetInputModeNodeExecPin);
+	CreateWidgetNodeReturnValuePin->MakeLinkTo(SetInputModeNodeWidgetPin);
+
 	// Create the SetKeyboardFocus node, if it doesn't exist
 	UK2Node_CallFunction* SetKeyboardFocusNode = nullptr;
 	TArray<UEdGraphPin*> SetInputModeNodeThenLinks = SetInputModeNodeThenPin->LinkedTo;
@@ -460,6 +480,10 @@ void FNoesisXamlAssetTypeActions::AddToViewport(TArray<TWeakObjectPtr<UNoesisXam
 	UEdGraphPin* SetKeyboardFocusNodeThenPin = SetKeyboardFocusNode->FindPin(UEdGraphSchema_K2::PN_Then);
 	UEdGraphPin* SetKeyboardFocusNodeSelfPin = SetKeyboardFocusNode->FindPin(UEdGraphSchema_K2::PN_Self);
 
+	LastThenPin = SetKeyboardFocusNodeThenPin;
+	SetInputModeNodeThenPin->MakeLinkTo(SetKeyboardFocusNodeExecPin);
+	CreateWidgetNodeReturnValuePin->MakeLinkTo(SetKeyboardFocusNodeSelfPin);
+
 	// Create the GetPlayerController node, if it doesn't exist
 	UK2Node_CallFunction* GetPlayerControllerNode = nullptr;
 	TArray<UEdGraphPin*> SetInputModeNodePlayerControllerLinks = SetInputModeNodePlayerControllerPin->LinkedTo;
@@ -483,7 +507,7 @@ void FNoesisXamlAssetTypeActions::AddToViewport(TArray<TWeakObjectPtr<UNoesisXam
 		GetPlayerControllerNode->FunctionReference.SetExternalMember(TEXT("GetPlayerController"), UGameplayStatics::StaticClass());
 
 		GetPlayerControllerNode->NodePosX = 600;
-		GetPlayerControllerNode->NodePosY = 200;
+		GetPlayerControllerNode->NodePosY = 400;
 
 		if (!bIsTemplateNode)
 		{
@@ -496,25 +520,110 @@ void FNoesisXamlAssetTypeActions::AddToViewport(TArray<TWeakObjectPtr<UNoesisXam
 
 	UEdGraphPin* GetPlayerControllerNodeReturnValuePin = GetPlayerControllerNode->FindPin(UEdGraphSchema_K2::PN_ReturnValue);
 
-	LevelEventGraph->Modify();
+	GetPlayerControllerNodeReturnValuePin->MakeLinkTo(SetInputModeNodePlayerControllerPin);
 
-	// Route the execution pins
-	BeginPlayNodeThenPin->MakeLinkTo(CreateWidgetNodeExecPin);
-	CreateWidgetNodeThenPin->MakeLinkTo(AddToViewportNodeExecPin);
-	AddToViewportNodeThenPin->MakeLinkTo(SetInputModeNodeExecPin);
-	SetInputModeNodeThenPin->MakeLinkTo(SetKeyboardFocusNodeExecPin);
-	if (ContinuationExecPin != nullptr)
+	UClass* EnhancedInputSubsystemInterfaceClass = LoadObject<UClass>(nullptr, TEXT("/Script/EnhancedInput.EnhancedInputSubsystemInterface"));
+	UClass* EnhancedInputLocalPlayerSubsystemClass = LoadObject<UClass>(nullptr, TEXT("/Script/EnhancedInput.EnhancedInputLocalPlayerSubsystem"));
+	bool WithEnhancedInput = EnhancedInputSubsystemInterfaceClass && EnhancedInputLocalPlayerSubsystemClass;
+	if (WithEnhancedInput)
 	{
-		SetKeyboardFocusNodeThenPin->BreakAllPinLinks();
-		SetKeyboardFocusNodeThenPin->MakeLinkTo(ContinuationExecPin);
+		// Create the AddMappingContext node, if it doesn't exist
+		UK2Node_CallFunction* AddMappingContextNode = nullptr;
+		TArray<UEdGraphPin*> SetKeyboardFocusNodeThenLinks = SetKeyboardFocusNodeThenPin->LinkedTo;
+		if (SetKeyboardFocusNodeThenLinks.Num() > 0)
+		{
+			UEdGraphPin* SetKeyboardFocusNodeThenLink = SetKeyboardFocusNodeThenLinks[0];
+			UK2Node_CallFunction* SetKeyboardFocusNodeThenNode = Cast< UK2Node_CallFunction>(SetKeyboardFocusNodeThenLink->GetOuter());
+			if (SetKeyboardFocusNodeThenNode != nullptr &&
+				SetKeyboardFocusNodeThenNode->FunctionReference.GetMemberName() == TEXT("AddMappingContext") &&
+				SetKeyboardFocusNodeThenNode->FunctionReference.GetMemberParentClass() == EnhancedInputSubsystemInterfaceClass)
+			{
+				AddMappingContextNode = SetKeyboardFocusNodeThenNode;
+			}
+			else
+			{
+				ContinuationExecPin = SetKeyboardFocusNodeThenLink;
+				SetKeyboardFocusNodeThenLink->BreakAllPinLinks();
+			}
+		}
+		if (AddMappingContextNode == nullptr)
+		{
+			AddMappingContextNode = NewObject<UK2Node_CallFunction>(LevelEventGraph, CallFunctionClass);
+			check(AddMappingContextNode != nullptr);
+			AddMappingContextNode->CreateNewGuid();
+
+			AddMappingContextNode->FunctionReference.SetExternalMember(TEXT("AddMappingContext"), EnhancedInputSubsystemInterfaceClass);
+
+			AddMappingContextNode->NodePosX = 1500;
+			AddMappingContextNode->NodePosY = 0;
+
+			if (!bIsTemplateNode)
+			{
+				AddMappingContextNode->SetFlags(RF_Transactional);
+				AddMappingContextNode->AllocateDefaultPins();
+				AddMappingContextNode->PostPlacedNewNode();
+				LevelEventGraph->AddNode(AddMappingContextNode, false, false);
+			}
+		}
+
+		UEdGraphPin* AddMappingContextNodeNodeExecPin = AddMappingContextNode->FindPin(UEdGraphSchema_K2::PN_Execute);
+		UEdGraphPin* AddMappingContextNodeNodeThenPin = AddMappingContextNode->FindPin(UEdGraphSchema_K2::PN_Then);
+		UEdGraphPin* AddMappingContextNodeNodeSelfPin = AddMappingContextNode->FindPin(UEdGraphSchema_K2::PN_Self);
+		UEdGraphPin* AddMappingContextNodeNodeMappingContextPin = AddMappingContextNode->FindPin(TEXT("MappingContext"));
+
+		LastThenPin = AddMappingContextNodeNodeThenPin;
+		SetKeyboardFocusNodeThenPin->MakeLinkTo(AddMappingContextNodeNodeExecPin);
+
+		// Create the GetEnhancedInputLocalPlayerSubsystem node, if it doesn't exist
+		UK2Node_GetSubsystem* GetEnhancedInputLocalPlayerSubsystemNode = nullptr;
+		TArray<UEdGraphPin*> AddMappingContextNodeNodeSelfLinks = AddMappingContextNodeNodeSelfPin->LinkedTo;
+		if (AddMappingContextNodeNodeSelfLinks.Num() > 0)
+		{
+			UEdGraphPin* AddMappingContextNodeNodeSelfLink = AddMappingContextNodeNodeSelfLinks[0];
+			UK2Node_GetSubsystem* AddMappingContextNodeNodeSelfNode = Cast<UK2Node_GetSubsystem>(AddMappingContextNodeNodeSelfLink->GetOuter());
+			if (AddMappingContextNodeNodeSelfNode != nullptr &&
+				AddMappingContextNodeNodeSelfNode->GetNodeTitle(ENodeTitleType::FullTitle).EqualTo(EnhancedInputLocalPlayerSubsystemClass->GetDisplayNameText()))
+			{
+				GetEnhancedInputLocalPlayerSubsystemNode = AddMappingContextNodeNodeSelfNode;
+			}
+		}
+		if (GetEnhancedInputLocalPlayerSubsystemNode == nullptr)
+		{
+			UClass* GetSubsystemFromPCClass = LoadObject<UClass>(nullptr, TEXT("/Script/BlueprintGraph.K2Node_GetSubsystemFromPC"));
+
+			GetEnhancedInputLocalPlayerSubsystemNode = NewObject<UK2Node_GetSubsystem>(LevelEventGraph, GetSubsystemFromPCClass);
+			check(GetEnhancedInputLocalPlayerSubsystemNode != nullptr);
+			GetEnhancedInputLocalPlayerSubsystemNode->CreateNewGuid();
+
+			GetEnhancedInputLocalPlayerSubsystemNode->Initialize(EnhancedInputLocalPlayerSubsystemClass);
+
+			GetEnhancedInputLocalPlayerSubsystemNode->NodePosX = 900;
+			GetEnhancedInputLocalPlayerSubsystemNode->NodePosY = 400;
+
+			if (!bIsTemplateNode)
+			{
+				GetEnhancedInputLocalPlayerSubsystemNode->SetFlags(RF_Transactional);
+				GetEnhancedInputLocalPlayerSubsystemNode->AllocateDefaultPins();
+				GetEnhancedInputLocalPlayerSubsystemNode->PostPlacedNewNode();
+				LevelEventGraph->AddNode(GetEnhancedInputLocalPlayerSubsystemNode, false, false);
+			}
+		}
+
+		UEdGraphPin* GetEnhancedInputLocalPlayerSubsystemNodeReturnValuePin = GetEnhancedInputLocalPlayerSubsystemNode->FindPin(UEdGraphSchema_K2::PN_ReturnValue);
+		UEdGraphPin* GetEnhancedInputLocalPlayerSubsystemNodePlayerControllerPin = GetEnhancedInputLocalPlayerSubsystemNode->FindPin(TEXT("PlayerController"));
+
+		GetPlayerControllerNodeReturnValuePin->MakeLinkTo(GetEnhancedInputLocalPlayerSubsystemNodePlayerControllerPin);
+		GetEnhancedInputLocalPlayerSubsystemNodeReturnValuePin->MakeLinkTo(AddMappingContextNodeNodeSelfPin);
+		AddMappingContextNodeNodeMappingContextPin->DefaultObject = LoadObject<UObject>(nullptr, TEXT("/NoesisGUI/EnhancedInput/NoesisControllerMapping.NoesisControllerMapping"));
 	}
 
-	// Route the data pins
-	CreateWidgetNodeClassPin->DefaultObject = View->GeneratedClass;
-	CreateWidgetNodeReturnValuePin->MakeLinkTo(SetInputModeNodeWidgetPin);
-	CreateWidgetNodeReturnValuePin->MakeLinkTo(AddToViewportNodeSelfPin);
-	CreateWidgetNodeReturnValuePin->MakeLinkTo(SetKeyboardFocusNodeSelfPin);
-	GetPlayerControllerNodeReturnValuePin->MakeLinkTo(SetInputModeNodePlayerControllerPin);
+	LevelEventGraph->Modify();
+
+	if (ContinuationExecPin != nullptr && LastThenPin != nullptr)
+	{
+		LastThenPin->BreakAllPinLinks();
+		LastThenPin->MakeLinkTo(ContinuationExecPin);
+	}
 
 	FKismetEditorUtilities::CompileBlueprint(LevelScriptBlueprint, EBlueprintCompileOptions::None);
 #endif

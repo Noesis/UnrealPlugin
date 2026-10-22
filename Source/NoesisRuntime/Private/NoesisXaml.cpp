@@ -14,6 +14,12 @@
 #include "Engine/Font.h"
 #include "Engine/FontFace.h"
 #include "Engine/World.h"
+#include "Materials/MaterialInterface.h"
+#include "Engine/Texture2D.h"
+#include "Sound/SoundWave.h"
+
+// MediaAssets includes
+#include "MediaSource.h"
 
 // NoesisRuntime includes
 #include "NoesisRuntimeModule.h"
@@ -42,18 +48,23 @@ uint32 UNoesisXaml::GetContentHash() const
 {
 	uint32 Hash = Noesis::HashBytes(XamlText.GetData(), XamlText.Num());
 
-	for (auto Xaml : Xamls)
-	{
-		if (Xaml != nullptr)
-		{
-			Hash ^= Xaml->GetContentHash();
-		}
-	}
-
 	return Hash;
 }
 
 #if WITH_EDITORONLY_DATA
+void UNoesisXaml::PostLoad()
+{
+	Super::PostLoad();
+
+	Dependencies.Append(Xamls_DEPRECATED);
+	Dependencies.Append(Textures_DEPRECATED);
+	Dependencies.Append(Fonts_DEPRECATED);
+	Dependencies.Append(FontFaces_DEPRECATED);
+	Dependencies.Append(Sounds_DEPRECATED);
+	Dependencies.Append(Videos_DEPRECATED);
+	Dependencies.Append(Materials_DEPRECATED);
+}
+
 void UNoesisXaml::PostInitProperties()
 {
 	if (!HasAnyFlags(RF_ClassDefaultObject))
@@ -90,23 +101,25 @@ void UNoesisXaml::GetAssetRegistryTags(FAssetRegistryTagsContext Context) const
 void UNoesisXaml::RegisterDependencies()
 {
 	INoesisRuntimeModuleInterface& NoesisRuntime = INoesisRuntimeModuleInterface::Get();
-	for (auto Font : Fonts)
+	for (auto Dependency : Dependencies)
 	{
-		auto CompositeFont = Font->GetCompositeFont();
-		if (CompositeFont != nullptr)
+		if (auto Font = Cast<UFont>(Dependency))
 		{
-			for (auto TypefaceEntry : CompositeFont->DefaultTypeface.Fonts)
+			auto CompositeFont = Font->GetCompositeFont();
+			if (CompositeFont != nullptr)
 			{
-				const FFontData* FontData = &TypefaceEntry.Font;
-				const UFontFace* FontFace = Cast<UFontFace>(FontData->GetFontFaceAsset());
-				NoesisRuntime.RegisterFont(FontFace);
+				for (auto TypefaceEntry : CompositeFont->DefaultTypeface.Fonts)
+				{
+					const FFontData* FontData = &TypefaceEntry.Font;
+					const UFontFace* FontFace = Cast<UFontFace>(FontData->GetFontFaceAsset());
+					NoesisRuntime.RegisterFont(FontFace);
+				}
 			}
 		}
-	}
-
-	for (auto FontFace : FontFaces)
-	{
-		NoesisRuntime.RegisterFont(FontFace);
+		else if (auto FontFace = Cast<UFontFace>(Dependency))
+		{
+			NoesisRuntime.RegisterFont(FontFace);
+		}
 	}
 }
 

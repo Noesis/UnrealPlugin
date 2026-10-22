@@ -53,9 +53,9 @@ public:
 	void Pause() override;
 	void Stop() override;
 	Noesis::ImageSource* GetTextureSource() const override;
+	void Update() override;
 
 private:
-	void OnRendering(Noesis::IView* View);
 	void OnMediaEvent(EMediaEvent Event);
 
 private:
@@ -64,7 +64,6 @@ private:
 	class UMediaSoundComponent* SoundComponent;
 
 	Noesis::Ptr<Noesis::TextureSource> TextureSource;
-	Noesis::IView* View;
 	float Rate;
 	float Volume;
 	float Position;

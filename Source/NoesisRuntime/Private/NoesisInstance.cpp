@@ -14,6 +14,8 @@
 
 // CoreUObject includes
 #include "UObject/UObjectIterator.h"
+#include "UObject/ConstructorHelpers.h"
+#include "UObject/UObjectGlobals.h"
 
 // Engine includes
 #include "EngineModule.h"
@@ -47,6 +49,7 @@
 #include "SceneRendering.h"
 #include "TranslucentRendering.h"
 #include "PostProcess/PostProcessing.h"
+#include "PostProcess/PostProcessInputs.h"
 
 // UtilityShaders includes
 #include "ClearQuad.h"
@@ -231,7 +234,7 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 #if UE_VERSION_OLDER_THAN(5, 1, 0)
 		FRHIResourceCreateInfo CreateInfo(Name);
 		CreateInfo.ClearValueBinding = ClearValue;
-		GDepthStencilTarget = RHICreateTexture2D(SizeX, SizeY, (uint8)Format, NumMips, NumSamples, TargetableTextureFlags, Access, CreateInfo);
+		GDepthStencilTarget = FRHICommandListImmediate::Get().CreateTexture2D(SizeX, SizeY, (uint8)Format, NumMips, NumSamples, TargetableTextureFlags, Access, CreateInfo);
 #else
 		auto DepthStencilTargetDesc = FRHITextureCreateDesc::Create2D(Name)
 			.SetExtent(SizeX, SizeY)
@@ -241,7 +244,7 @@ void FNoesisSlateElement::DrawRenderThread(FRHICommandListImmediate& RHICmdList,
 			.SetFlags(TargetableTextureFlags)
 			.SetInitialState(Access)
 			.SetClearValue(ClearValue);
-		GDepthStencilTarget = RHICreateTexture(DepthStencilTargetDesc);
+		GDepthStencilTarget = FRHICommandListImmediate::Get().CreateTexture(DepthStencilTargetDesc);
 #endif
 		NOESIS_BIND_DEBUG_TEXTURE_LABEL(FRHICommandListExecutor::GetImmediateCommandList(), GDepthStencilTarget, Name);
 	}
@@ -293,7 +296,7 @@ void FNoesisSlateElement::Draw_RenderThread(FRDGBuilder& GraphBuilder, const FDr
 			.SetFlags(TargetableTextureFlags)
 			.SetInitialState(Access)
 			.SetClearValue(ClearValue);
-		auto DepthStencilTarget = RHICreateTexture(DepthStencilTargetDesc);
+		auto DepthStencilTarget = FRHICommandListImmediate::Get().CreateTexture(DepthStencilTargetDesc);
 
 		NOESIS_BIND_DEBUG_TEXTURE_LABEL(FRHICommandListExecutor::GetImmediateCommandList(), DepthStencilTarget, Name);
 
@@ -340,7 +343,9 @@ void FNoesisSlateElement::RenderOffscreen(FRHICommandList& RHICmdList) const
 
 	SCOPE_CYCLE_COUNTER(STAT_NoesisInstance_DrawOffscreen);
 	SCOPED_DRAW_EVENT(RHICmdList, Noesis_Offscreen);
+#if UE_VERSION_OLDER_THAN(5, 8, 0)
 	SCOPED_GPU_STAT(RHICmdList, NoesisOffscreen);
+#endif
 	RenderDevice->SetWorldTime(WorldTime);
 	RenderDevice->SetScene(Scene);
 	RenderDevice->SetRHICmdList(&RHICmdList);
@@ -360,7 +365,9 @@ void FNoesisSlateElement::RenderOnscreen(FRHICommandList& RHICmdList, bool WithV
 	}
 
 	SCOPED_DRAW_EVENT(RHICmdList, Noesis);
+#if UE_VERSION_OLDER_THAN(5, 8, 0)
 	SCOPED_GPU_STAT(RHICmdList, NoesisOnscreen);
+#endif
 	RenderDevice->SetWorldTime(WorldTime);
 	RenderDevice->SetScene(Scene);
 	RenderDevice->SetRHICmdList(&RHICmdList);
@@ -423,7 +430,11 @@ void FNoesisSlateElement::RenderView(FRHICommandList& RHICmdList, const FViewInf
 		{
 			ViewProj = UnrealToNoesisViewProj(ViewProjectionMatrix, Right - Left, Bottom - Top);
 
+#if UE_VERSION_OLDER_THAN(5, 8, 0)
 			auto LeftEyeViewProjectionMatrix = View->ViewMatrices.GetViewProjectionMatrix();
+#else
+			auto LeftEyeViewProjectionMatrix = View->ViewMatrices.GetWorldToClip();
+#endif
 			LeftEyeViewProj = UnrealToNoesisViewProj(LeftEyeViewProjectionMatrix, Right - Left, Bottom - Top);
 
 			auto InstancedView = (FViewInfo*)View->GetInstancedSceneView();
@@ -433,7 +444,11 @@ void FNoesisSlateElement::RenderView(FRHICommandList& RHICmdList, const FViewInf
 			float InstancedRight = InstancedViewRect.Max.X;
 			float InstancedBottom = InstancedViewRect.Max.Y;
 
+#if UE_VERSION_OLDER_THAN(5, 8, 0)
 			auto RightEyeViewProjectionMatrix = InstancedView->ViewMatrices.GetViewProjectionMatrix();
+#else
+			auto RightEyeViewProjectionMatrix = InstancedView->ViewMatrices.GetWorldToClip();
+#endif
 			RightEyeViewProj = UnrealToNoesisViewProj(RightEyeViewProjectionMatrix, InstancedRight - InstancedLeft, InstancedBottom - InstancedTop);
 
 			RHICmdList.SetStereoViewport(ViewRect.Min.X, InstancedLeft, ViewRect.Min.Y, InstancedTop, 0.0f, ViewRect.Max.X, InstancedRight, ViewRect.Max.Y, InstancedBottom, 1.0f);
@@ -441,7 +456,11 @@ void FNoesisSlateElement::RenderView(FRHICommandList& RHICmdList, const FViewInf
 	}
 	else
 	{
+#if UE_VERSION_OLDER_THAN(5, 8, 0)
 		auto MonoViewProjectionMatrix = View->ViewMatrices.GetViewProjectionMatrix();
+#else
+		auto MonoViewProjectionMatrix = View->ViewMatrices.GetWorldToClip();
+#endif
 		ViewProj = UnrealToNoesisViewProj(MonoViewProjectionMatrix, Right - Left, Bottom - Top);
 
 		RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
@@ -584,7 +603,7 @@ public:
 	}
 
 private:
-	Noesis::TextBox* TextBox;
+	Noesis::Ptr<Noesis::TextBox> TextBox;
 	TWeakPtr<SWindow> Window;
 	UNoesisInstance* NoesisInstance;
 };
@@ -601,9 +620,37 @@ UNoesisInstance* UNoesisInstance::FromView(Noesis::IView* View)
 	return nullptr;
 }
 
+void UNoesisInstance::SetCursorForAll(EMouseCursor::Type CursorType)
+{
+	for (auto ViewInstancePair : ViewInstanceMap)
+	{
+		UNoesisInstance* NoesisInstance = ViewInstancePair.Value;
+		NoesisInstance->SetCursor(CursorType);
+	}
+}
+
 UNoesisInstance::UNoesisInstance(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer), Scene(nullptr), WidgetComponent(nullptr)
 {
+	static ConstructorHelpers::FObjectFinder<UInputAction> LeftInputAction(TEXT("/NoesisGUI/EnhancedInput/Left"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> UpInputAction(TEXT("/NoesisGUI/EnhancedInput/Up"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> RightInputAction(TEXT("/NoesisGUI/EnhancedInput/Right"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> DownInputAction(TEXT("/NoesisGUI/EnhancedInput/Down"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> AcceptInputAction(TEXT("/NoesisGUI/EnhancedInput/Accept"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> CancelInputAction(TEXT("/NoesisGUI/EnhancedInput/Cancel"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> MenuInputAction(TEXT("/NoesisGUI/EnhancedInput/Menu"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> ViewInputAction(TEXT("/NoesisGUI/EnhancedInput/View"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> PageUpInputAction(TEXT("/NoesisGUI/EnhancedInput/PageUp"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> PageDownInputAction(TEXT("/NoesisGUI/EnhancedInput/PageDown"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> PageLeftInputAction(TEXT("/NoesisGUI/EnhancedInput/PageLeft"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> PageRight(TEXT("/NoesisGUI/EnhancedInput/PageRight"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> Context1InputAction(TEXT("/NoesisGUI/EnhancedInput/Context1"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> Context2InputAction(TEXT("/NoesisGUI/EnhancedInput/Context2"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> Context3InputAction(TEXT("/NoesisGUI/EnhancedInput/Context3"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> Context4InputAction(TEXT("/NoesisGUI/EnhancedInput/Context4"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> HorizontalScrollInputAction(TEXT("/NoesisGUI/EnhancedInput/HorizontalScroll"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> VerticalScrollInputAction(TEXT("/NoesisGUI/EnhancedInput/VerticalScroll"));
+
 	EnableKeyboard = true;
 	EnableMouse = true;
 	EmulateTouch = false;
@@ -618,6 +665,110 @@ UNoesisInstance::UNoesisInstance(const FObjectInitializer& ObjectInitializer)
 #endif
 }
 
+void UNoesisInstance::InitView()
+{
+	if (Xaml == nullptr)
+	{
+		return;
+	}
+
+	Xaml->SetDataContext(DataContext);
+
+	XamlLoaded();
+
+	XamlView = Noesis::GUI::CreateView(Xaml);
+
+	if (XamlView)
+	{
+		ViewInstanceMap.Add(XamlView.GetPtr(), this);
+
+		Noesis::Ptr<Noesis::IRenderer> Renderer(XamlView->GetRenderer());
+
+		NoesisSlateElement = MakeShared<FNoesisSlateElement, ESPMode::ThreadSafe>(Renderer);
+
+		if (FApp::CanEverRender())
+		{
+			ENQUEUE_RENDER_COMMAND(FNoesisInstance_InitRenderer)
+			(
+				[Renderer, Is3DWidget = Is3DWidget, NoesisSlateElement = NoesisSlateElement](FRHICommandListImmediate& RHICmdList)
+				{
+					FNoesisRenderDevice* RenderDevice = Is3DWidget ? FNoesisRenderDevice::GetLinear() : FNoesisRenderDevice::Get();
+					Renderer->Init(RenderDevice);
+					NoesisSlateElement->RenderDevice = RenderDevice;
+					if (!Is3DWidget)
+					{
+						++GSlateElementCount;
+					}
+				}
+			);
+		}
+
+		CurrentTime = 0.0f;
+
+		Xaml->Measure(Noesis::Size(FLT_INF, FLT_INF));
+		auto DesiredSize = Xaml->GetDesiredSize();
+		SetMinimumDesiredSize(FVector2D(DesiredSize.width, DesiredSize.height));
+
+		FCoreDelegates::OnSafeFrameChangedEvent.AddUObject(this, &UNoesisInstance::ViewportResized);
+	}
+
+	Xaml->PreviewGotKeyboardFocus() += Noesis::MakeDelegate(this, &UNoesisInstance::OnPreviewGotKeyboardFocus);
+	Xaml->PreviewLostKeyboardFocus() += Noesis::MakeDelegate(this, &UNoesisInstance::OnPreviewLostKeyboardFocus);
+
+#if WITH_ENHANCED_INPUT
+	auto ThisInputComponent = GetInputComponent();
+
+	if (auto EnhancedInputComponent = Cast<UEnhancedInputComponent>(ThisInputComponent))
+	{
+		TPair<const TCHAR*, Noesis::Key> InputEvents[] = {
+			{ TEXT("/NoesisGUI/EnhancedInput/Left.Left"), Noesis::Key_GamepadLeft },
+			{ TEXT("/NoesisGUI/EnhancedInput/Up.Up"), Noesis::Key_GamepadUp },
+			{ TEXT("/NoesisGUI/EnhancedInput/Right.Right"), Noesis::Key_GamepadRight },
+			{ TEXT("/NoesisGUI/EnhancedInput/Down.Down"), Noesis::Key_GamepadDown },
+			{ TEXT("/NoesisGUI/EnhancedInput/Accept.Accept"), Noesis::Key_GamepadAccept },
+			{ TEXT("/NoesisGUI/EnhancedInput/Cancel.Cancel"), Noesis::Key_GamepadCancel },
+			{ TEXT("/NoesisGUI/EnhancedInput/Menu.Menu"), Noesis::Key_GamepadMenu },
+			{ TEXT("/NoesisGUI/EnhancedInput/View.View"), Noesis::Key_GamepadView },
+			{ TEXT("/NoesisGUI/EnhancedInput/PageUp.PageUp"), Noesis::Key_GamepadPageUp },
+			{ TEXT("/NoesisGUI/EnhancedInput/PageDown.PageDown"), Noesis::Key_GamepadPageDown },
+			{ TEXT("/NoesisGUI/EnhancedInput/PageLeft.PageLeft"), Noesis::Key_GamepadPageLeft },
+			{ TEXT("/NoesisGUI/EnhancedInput/PageRight.PageRight"), Noesis::Key_GamepadPageRight },
+			{ TEXT("/NoesisGUI/EnhancedInput/Context1.Context1"), Noesis::Key_GamepadContext1 },
+			{ TEXT("/NoesisGUI/EnhancedInput/Context2.Context2"), Noesis::Key_GamepadContext2 },
+			{ TEXT("/NoesisGUI/EnhancedInput/Context3.Context3"), Noesis::Key_GamepadContext3 },
+			{ TEXT("/NoesisGUI/EnhancedInput/Context4.Context4"), Noesis::Key_GamepadContext4 }
+		};
+
+		for (const auto& Event : InputEvents)
+		{
+			UInputAction* Action = FindObject<UInputAction>(nullptr, Event.Key);
+
+			if (Action != nullptr)
+			{
+				EnhancedInputComponent->BindAction(Action, ETriggerEvent::Triggered, this, &UNoesisInstance::OnEnhancedInputActionTriggered, Event.Value);
+				EnhancedInputComponent->BindAction(Action, ETriggerEvent::Completed, this, &UNoesisInstance::OnEnhancedInputActionCompleted, Event.Value);
+				EnhancedInputComponent->BindAction(Action, ETriggerEvent::Canceled, this, &UNoesisInstance::OnEnhancedInputActionCompleted, Event.Value);
+			}
+		}
+
+		TPair<const TCHAR*, typename FEnhancedInputActionHandlerValueSignature::template TMethodPtr<UNoesisInstance>> InputValueEvents[] = {
+			{ TEXT("/NoesisGUI/EnhancedInput/HorizontalScroll.HorizontalScroll"), &UNoesisInstance::OnEnhancedInputActionHorizontalScroll },
+			{ TEXT("/NoesisGUI/EnhancedInput/VerticalScroll.VerticalScroll"), &UNoesisInstance::OnEnhancedInputActionVerticalScroll }
+		};
+
+		for (const auto& Event : InputValueEvents)
+		{
+			UInputAction* Action = FindObject<UInputAction>(nullptr, Event.Key);
+
+			if (Action != nullptr)
+			{
+				EnhancedInputComponent->BindAction(Action, ETriggerEvent::Triggered, this, Event.Value);
+			}
+		}
+	}
+#endif
+}
+
 void UNoesisInstance::InitInstance()
 {
 	if (!BaseXaml)
@@ -628,104 +779,7 @@ void UNoesisInstance::InitInstance()
 
 	Xaml = Noesis::DynamicPtrCast<Noesis::FrameworkElement>(BaseXaml->LoadXaml());
 
-	if (Xaml)
-	{
-		Xaml->SetDataContext(DataContext);
-
-		XamlLoaded();
-
-		XamlView = Noesis::GUI::CreateView(Xaml);
-
-		if (XamlView)
-		{
-			ViewInstanceMap.Add(XamlView.GetPtr(), this);
-
-			Noesis::Ptr<Noesis::IRenderer> Renderer(XamlView->GetRenderer());
-
-			NoesisSlateElement = MakeShared<FNoesisSlateElement, ESPMode::ThreadSafe>(Renderer);
-
-			if (FApp::CanEverRender())
-			{
-				ENQUEUE_RENDER_COMMAND(FNoesisInstance_InitRenderer)
-				(
-					[Renderer, Is3DWidget = Is3DWidget, NoesisSlateElement = NoesisSlateElement](FRHICommandListImmediate& RHICmdList)
-					{
-						FNoesisRenderDevice* RenderDevice = Is3DWidget ? FNoesisRenderDevice::GetLinear() : FNoesisRenderDevice::Get();
-						Renderer->Init(RenderDevice);
-						NoesisSlateElement->RenderDevice = RenderDevice;
-						if (!Is3DWidget)
-						{
-							++GSlateElementCount;
-						}
-					}
-				);
-			}
-
-			CurrentTime = 0.0f;
-
-			Xaml->Measure(Noesis::Size(FLT_INF, FLT_INF));
-			auto DesiredSize = Xaml->GetDesiredSize();
-			SetMinimumDesiredSize(FVector2D(DesiredSize.width, DesiredSize.height));
-
-			FCoreDelegates::OnSafeFrameChangedEvent.AddUObject(this, &UNoesisInstance::ViewportResized);
-		}
-
-		Xaml->PreviewGotKeyboardFocus() += Noesis::MakeDelegate(this, &UNoesisInstance::OnPreviewGotKeyboardFocus);
-		Xaml->PreviewLostKeyboardFocus() += Noesis::MakeDelegate(this, &UNoesisInstance::OnPreviewLostKeyboardFocus);
-
-#if WITH_ENHANCED_INPUT
-		auto ThisInputComponent = GetInputComponent();
-
-		if (auto EnhancedInputComponent = Cast<UEnhancedInputComponent>(ThisInputComponent))
-		{
-			TPair<const TCHAR*, Noesis::Key> InputEvents[] = {
-				{ TEXT("/NoesisGUI/EnhancedInput/Left"), Noesis::Key_GamepadLeft },
-				{ TEXT("/NoesisGUI/EnhancedInput/Up"), Noesis::Key_GamepadUp },
-				{ TEXT("/NoesisGUI/EnhancedInput/Right"), Noesis::Key_GamepadRight },
-				{ TEXT("/NoesisGUI/EnhancedInput/Down"), Noesis::Key_GamepadDown },
-				{ TEXT("/NoesisGUI/EnhancedInput/Accept"), Noesis::Key_GamepadAccept },
-				{ TEXT("/NoesisGUI/EnhancedInput/Cancel"), Noesis::Key_GamepadCancel },
-				{ TEXT("/NoesisGUI/EnhancedInput/Menu"), Noesis::Key_GamepadMenu },
-				{ TEXT("/NoesisGUI/EnhancedInput/View"), Noesis::Key_GamepadView },
-				{ TEXT("/NoesisGUI/EnhancedInput/PageUp"), Noesis::Key_GamepadPageUp },
-				{ TEXT("/NoesisGUI/EnhancedInput/PageDown"), Noesis::Key_GamepadPageDown },
-				{ TEXT("/NoesisGUI/EnhancedInput/PageLeft"), Noesis::Key_GamepadPageLeft },
-				{ TEXT("/NoesisGUI/EnhancedInput/PageRight"), Noesis::Key_GamepadPageRight },
-				{ TEXT("/NoesisGUI/EnhancedInput/Context1"), Noesis::Key_GamepadContext1 },
-				{ TEXT("/NoesisGUI/EnhancedInput/Context2"), Noesis::Key_GamepadContext2 },
-				{ TEXT("/NoesisGUI/EnhancedInput/Context3"), Noesis::Key_GamepadContext3 },
-				{ TEXT("/NoesisGUI/EnhancedInput/Context4"), Noesis::Key_GamepadContext4 }
-			};
-
-			for (const auto& Event : InputEvents)
-			{
-				UInputAction* Action = LoadObject<UInputAction>(nullptr, Event.Key, nullptr, LOAD_NoWarn);
-
-				if (Action != nullptr)
-				{
-					EnhancedInputComponent->BindAction(Action, ETriggerEvent::Triggered, this, &UNoesisInstance::OnEnhancedInputActionTriggered, Event.Value);
-					EnhancedInputComponent->BindAction(Action, ETriggerEvent::Completed, this, &UNoesisInstance::OnEnhancedInputActionCompleted, Event.Value);
-					EnhancedInputComponent->BindAction(Action, ETriggerEvent::Canceled, this, &UNoesisInstance::OnEnhancedInputActionCompleted, Event.Value);
-				}
-			}
-
-			TPair<const TCHAR*, typename FEnhancedInputActionHandlerValueSignature::template TMethodPtr<UNoesisInstance>> InputValueEvents[] = {
-				{ TEXT("/NoesisGUI/EnhancedInput/HorizontalScroll"), &UNoesisInstance::OnEnhancedInputActionHorizontalScroll },
-				{ TEXT("/NoesisGUI/EnhancedInput/VerticalScroll"), &UNoesisInstance::OnEnhancedInputActionVerticalScroll }
-			};
-
-			for (const auto& Event : InputValueEvents)
-			{
-				UInputAction* Action = LoadObject<UInputAction>(nullptr, Event.Key, nullptr, LOAD_NoWarn);
-
-				if (Action != nullptr)
-				{
-					EnhancedInputComponent->BindAction(Action, ETriggerEvent::Triggered, this, Event.Value);
-				}
-			}
-		}
-#endif
-	}
+	InitView();
 }
 
 void UNoesisInstance::SetDataContext(UObject* InDataContext)
@@ -999,6 +1053,7 @@ void UNoesisInstance::Term3DWidget(UWorld* World)
 	}
 	TermInstance();
 	FCoreDelegates::OnSafeFrameChangedEvent.RemoveAll(this);
+	FWorldDelegates::OnWorldBeginTearDown.RemoveAll(this);
 	FWorldDelegates::OnWorldPostActorTick.RemoveAll(this);
 	Is3DWidget = false;
 	RemoveFromRoot();
@@ -1086,26 +1141,26 @@ void UNoesisInstance::Tick3DWidget(UWorld* World, ELevelTick TickType, float Del
 						);
 						XamlView->SetProjectionMatrix(ViewProj);
 					}
+
+					Update();
+
+					ENQUEUE_RENDER_COMMAND(FNoesisInstance_Tick3DWidget_UpdateSlateElement)
+					(
+						[NoesisSlateElement = NoesisSlateElement, Scene = Scene, WorldTime = WorldTime, Left = Left, Top = Top, Right = Left + Width, Bottom = Top + Height](FRHICommandListImmediate& RHICmdList)
+						{
+							NoesisSlateElement->Left = Left;
+							NoesisSlateElement->Top = Top;
+							NoesisSlateElement->Right = Right;
+							NoesisSlateElement->Bottom = Bottom;
+							NoesisSlateElement->Scene = Scene;
+							NoesisSlateElement->WorldTime = WorldTime;
+							NoesisSlateElement->UpdateRenderTree();
+							NoesisSlateElement->RenderOffscreen(RHICmdList);
+						}
+					);
 				}
 			}
 		}
-
-		Update();
-
-		ENQUEUE_RENDER_COMMAND(FNoesisInstance_Tick3DWidget_UpdateSlateElement)
-		(
-			[NoesisSlateElement = NoesisSlateElement, Scene = Scene, WorldTime = WorldTime, Left = Left, Top = Top, Right = Left + Width, Bottom = Top + Height](FRHICommandListImmediate& RHICmdList)
-			{
-				NoesisSlateElement->Left = Left;
-				NoesisSlateElement->Top = Top;
-				NoesisSlateElement->Right = Right;
-				NoesisSlateElement->Bottom = Bottom;
-				NoesisSlateElement->Scene = Scene;
-				NoesisSlateElement->WorldTime = WorldTime;
-				NoesisSlateElement->UpdateRenderTree();
-				NoesisSlateElement->RenderOffscreen(RHICmdList);
-			}
-		);
 	}
 }
 
@@ -1617,7 +1672,7 @@ FReply UNoesisInstance::NativeOnKeyChar(const FGeometry& MyGeometry, const FChar
 	{
 		TCHAR Character = CharacterEvent.GetCharacter();
 
-		bool Handled = XamlView->Char(CharCast<char>(Character));
+		bool Handled = XamlView->Char(CharCast<WIDECHAR>(Character));
 
 		if (Handled)
 		{
@@ -2137,23 +2192,17 @@ void UNoesisInstance::NativeDestruct()
 
 void UNoesisInstance::OnOwningWindowActivated()
 {
-	if (TakeWidget().Get().HasAnyUserFocusOrFocusedDescendants())
+	if (XamlView != nullptr)
 	{
-		if (XamlView != nullptr)
-		{
-			XamlView->Activate();
-		}
+		XamlView->Activate();
 	}
 }
 
 void UNoesisInstance::OnOwningWindowDeactivated()
 {
-	if (TakeWidget().Get().HasAnyUserFocusOrFocusedDescendants())
+	if (XamlView != nullptr)
 	{
-		if (XamlView != nullptr)
-		{
-			XamlView->Deactivate();
-		}
+		XamlView->Deactivate();
 	}
 }
 
@@ -2345,7 +2394,11 @@ public:
 #endif
 		{
 			GViewRect = View.ViewRect;
+#if UE_VERSION_OLDER_THAN(5, 8, 0)
 			GViewProjectionMatrix = View.ViewMatrices.GetProjectionMatrix();
+#else
+			GViewProjectionMatrix = View.ViewMatrices.GetViewToClip();
+#endif
 		}
 
 		if (ViewFamily->Scene->IsEditorScene())

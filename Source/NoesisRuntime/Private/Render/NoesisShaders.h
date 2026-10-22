@@ -42,6 +42,7 @@
 #else
 #include "SceneTexturesConfig.h"
 #endif
+#include "SceneView.h"
 
 // Noesis includes
 #include "NoesisSDK.h"

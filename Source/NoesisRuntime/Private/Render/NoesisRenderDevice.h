@@ -112,6 +112,7 @@ public:
 	static void Destroy();
 
 	static Noesis::Ptr<Noesis::Texture> CreateTexture(FRHITexture* RHITexture, bool IgnoreAlpha);
+	static void SetRHITexture(Noesis::Texture* Texture, FRHITexture* RHITexture);
 	static Noesis::Ptr<Noesis::Texture> CreateTexture(class UTexture* Texture);
 	static FRHITexture* GetRHITexture(Noesis::Texture* Texture); // You need to add a reference if you want to keep the object.
 	static void* CreateMaterial(class UMaterialInterface* Material);

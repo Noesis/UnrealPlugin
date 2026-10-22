@@ -9,6 +9,11 @@
 // Core includes
 #include "Misc/EngineVersionComparison.h"
 
+#ifdef NS_HAVE_STUDIO
+	#include <NsCore/Category.h>
+	#include <NsGui/StudioMeta.h>
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class LocTextExpression : public Noesis::Expression
 {
@@ -130,11 +135,28 @@ Noesis::Ptr<Noesis::BaseComponent> LocTextExtension::ProvideValue(const Noesis::
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NS_IMPLEMENT_REFLECTION(LocTextExtension, "NoesisGUIExtensions.LocText")
 {
-    NsMeta<Noesis::ContentPropertyMetaData>("Source");
+#ifdef NS_HAVE_STUDIO
+    NsMeta<Noesis::Category>("MarkupExtension");
+    NsMeta<Noesis::StudioName>("LocText");
 
+    NsMeta<Noesis::Attach>("Namespace")
+        ->To<Noesis::FrameworkElement>()
+        ->Meta<Noesis::StudioName>("Namespace")
+        ->Meta<Noesis::StudioOrder>(101, true, "Localization");
+
+    NsProp("Namespace", &LocTextExtension::GetNamespace, &LocTextExtension::SetNamespace)
+        .Meta<Noesis::StudioOrder>(2);
+    NsProp("Key", &LocTextExtension::GetKey, &LocTextExtension::SetKey)
+        .Meta<Noesis::StudioOrder>(0);
+    NsProp("Source", &LocTextExtension::GetSource, &LocTextExtension::SetSource)
+        .Meta<Noesis::StudioOrder>(1);
+#else
     NsProp("Namespace", &LocTextExtension::GetNamespace, &LocTextExtension::SetNamespace);
     NsProp("Key", &LocTextExtension::GetKey, &LocTextExtension::SetKey);
     NsProp("Source", &LocTextExtension::GetSource, &LocTextExtension::SetSource);
+#endif
+
+    NsMeta<Noesis::ContentPropertyMetaData>("Source");
 
     Noesis::UIElementData* data = NsMeta<Noesis::UIElementData>(Noesis::TypeOf<SelfClass>());
     data->RegisterProperty<Noesis::String>(NamespaceProperty, "Namespace",

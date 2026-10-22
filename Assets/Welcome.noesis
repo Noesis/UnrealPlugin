@@ -1,0 +1,17 @@
+<Project>
+  <Assembly>NoesisGUI</Assembly>
+  <DefaultDataNamespace>Welcome</DefaultDataNamespace>
+  <StartupDocument>Welcome/MainPage.xaml</StartupDocument>
+  <AssetsRoot>Welcome</AssetsRoot>
+
+  <IgnoredFiles>
+    <Ignore>*</Ignore>
+    <Allow>Welcome/</Allow>
+  </IgnoredFiles>
+
+  <DesignSizes>
+    <DesignSize Name="1080p" Width="1920" Height="1080"/>
+    <DesignSize Name="Tile_Large" Width="375" Height="320"/>
+    <DesignSize Name="Tile_Small" Width="375" Height="80"/>
+  </DesignSizes>
+</Project>

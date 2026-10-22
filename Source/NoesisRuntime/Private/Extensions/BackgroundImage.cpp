@@ -11,20 +11,34 @@
 // NoesisRuntime includes
 #include "Render/NoesisRenderDevice.h"
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 static Noesis::Ptr<Noesis::Texture> NoesisBackgroundImageTexture;
 static FIntPoint NoesisBackgroundImageSize;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-static Noesis::Texture* UpdateTextureRenderCallback(Noesis::RenderDevice* device, void* user)
+namespace
 {
-	return NoesisBackgroundImageTexture;
+class BackgroundImageRenderer: public Noesis::DynamicTextureSource::Renderer
+{
+public:
+	void Init(Noesis::RenderDevice* device) override { }
+
+	Noesis::Texture* Render(uint32_t width, uint32_t height)
+	{
+		return NoesisBackgroundImageTexture;
+	}
+
+	void Shutdown() { }
+};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-BackgroundImage::BackgroundImage()
-	: Noesis::DynamicTextureSource(NoesisBackgroundImageSize.X, NoesisBackgroundImageSize.Y, &UpdateTextureRenderCallback, nullptr)
+BackgroundImage::BackgroundImage():
+	Noesis::DynamicTextureSource(NoesisBackgroundImageSize.X, NoesisBackgroundImageSize.Y,
+		Noesis::MakePtr<BackgroundImageRenderer>())
 {
-	mViewportResizedDelegateHandle = FViewport::ViewportResizedEvent.AddRaw(this, &BackgroundImage::OnViewportResized);
+	mViewportResizedDelegateHandle = FViewport::ViewportResizedEvent.AddRaw(this,
+		&BackgroundImage::OnViewportResized);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,10 +50,20 @@ BackgroundImage::~BackgroundImage()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void BackgroundImage::SetBackgroundImageTexture(FRHITexture* Texture)
 {
-	if (!NoesisBackgroundImageTexture || FNoesisRenderDevice::GetRHITexture(NoesisBackgroundImageTexture) != Texture)
+	if (!NoesisBackgroundImageTexture)
 	{
 		NoesisBackgroundImageTexture = FNoesisRenderDevice::CreateTexture(Texture, true);
 	}
+	else
+	{
+		FNoesisRenderDevice::SetRHITexture(NoesisBackgroundImageTexture, Texture);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void BackgroundImage::Destroy()
+{
+	NoesisBackgroundImageTexture.Reset();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

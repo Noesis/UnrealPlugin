@@ -42,6 +42,7 @@
 #include "NoesisSupport.h"
 #include "NoesisXaml.h"
 #include "NoesisRive.h"
+#include "NoesisAssetDependency.h"
 #include "Extensions/LocTableExtension.h"
 #include "Extensions/LocTextExtension.h"
 
@@ -250,36 +251,6 @@ static Noesis::BaseComponent* CreateLocTable(Noesis::Symbol)
 	return new LocTableExtensionEditor();
 };
 
-static void AddDependency(UNoesisXaml* NoesisXaml, UObject* Asset)
-{
-	if (UTexture2D* Texture = Cast<UTexture2D>(Asset))
-	{
-		NoesisXaml->Textures.Add(Texture);
-
-		INoesisEditorModuleInterface::Get().EnsurePremultiplyAlpha(Texture);
-	}
-	else if (UNoesisXaml* Xaml = Cast<UNoesisXaml>(Asset))
-	{
-		NoesisXaml->Xamls.Add(Xaml);
-	}
-	else if (USoundWave* Sound = Cast<USoundWave>(Asset))
-	{
-		NoesisXaml->Sounds.Add(Sound);
-	}
-	else if (UMediaSource* Video = Cast<UMediaSource>(Asset))
-	{
-		NoesisXaml->Videos.Add(Video);
-	}
-	else if (UNoesisRive* Rive = Cast<UNoesisRive>(Asset))
-	{
-		NoesisXaml->Rives.Add(Rive);
-	}
-	else if (UMaterialInterface* Material = Cast<UMaterialInterface>(Asset))
-	{
-		NoesisXaml->Materials.Add(Material);
-	}
-}
-
 FString GetDependencyPath(const Noesis::Uri& Uri)
 {
 	FString Dependency;
@@ -298,6 +269,19 @@ FString GetDependencyPath(const Noesis::Uri& Uri)
 	Dependency += Path.Str();
 
 	return Dependency;
+}
+
+FString GetDependencyExtension(const Noesis::Uri& Uri)
+{
+	Noesis::FixedString<512> Path;
+	Uri.GetPath(Path);
+	int32 Extension = Noesis::StrFindLast(Path.Str(), ".");
+	if (Extension != INDEX_NONE)
+	{
+		return (UTF8CHAR*)Path.Begin() + Extension;
+	}
+
+	return "";
 }
 
 void ConfigureFilter(FARFilter& Filter, UClass* Class, bool RecursiveClasses)
@@ -320,11 +304,81 @@ void ConfigureFilter(FARFilter& Filter, UClass* Class, bool RecursiveClasses)
 	}
 }
 
-UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject* Context, const TCHAR* Type, const uint8*& Buffer, const uint8* BufferEnd, FFeedbackContext* Warn)
+static FString RelativizeImportFilename(const FString& InPath, const FString& PackagePath)
+{
+	if (!PackagePath.IsEmpty())
+	{
+		const bool		bIncludeDot = true;
+		const FName		MountPoint = FPackageName::GetPackageMountPoint(PackagePath);
+		const FString	PackageFilename = FPackageName::LongPackageNameToFilename(PackagePath, FPaths::GetExtension(InPath, bIncludeDot));
+		const FString	AbsolutePath = FPaths::ConvertRelativePathToFull(InPath);
+		auto Plugin = IPluginManager::Get().FindPlugin(*MountPoint.ToString());
+
+		if ((MountPoint == FName("Engine") && AbsolutePath.StartsWith(FPaths::ConvertRelativePathToFull(FPaths::EngineContentDir()))) ||
+			(MountPoint == FName("Game") && AbsolutePath.StartsWith(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()))) ||
+			(Plugin && AbsolutePath.StartsWith(FPaths::ConvertRelativePathToFull(Plugin->GetBaseDir()))))
+		{
+			FString RelativePath = InPath;
+			FPaths::MakePathRelativeTo(RelativePath, *PackageFilename);
+			return RelativePath;
+		}
+	}
+
+	return InPath;
+}
+
+static UObject* EnsureDependency(UNoesisXaml* NoesisXaml, FString AssetPath, FString FilePath)
+{
+	if (UE::String::FindFirstChar(AssetPath, TEXT('.')) == INDEX_NONE)
+	{
+		AssetPath += TEXT(".") + FPackageName::GetShortName(AssetPath);
+	}
+
+	UObject* Asset = LoadObject<UObject>(nullptr, *AssetPath, nullptr, LOAD_NoWarn | LOAD_Quiet);
+
+	if (!Asset)
+	{
+		// Dependency may not be imported yet, try to do a manual import now
+		IFileManager& FileManager = IFileManager::Get();
+		if (FileManager.FileExists(*FilePath))
+		{
+			UAutomatedAssetImportData* AutomatedAssetImportData = NewObject<UAutomatedAssetImportData>();
+			AutomatedAssetImportData->bReplaceExisting = true;
+			AutomatedAssetImportData->Filenames.Empty(1);
+			AutomatedAssetImportData->Filenames.Add(FilePath);
+			AutomatedAssetImportData->DestinationPath = FPaths::GetPath(AssetPath);
+			FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
+			AssetToolsModule.Get().ImportAssetsAutomated(AutomatedAssetImportData);
+			Asset = LoadObject<UObject>(nullptr, *AssetPath, nullptr, LOAD_NoWarn | LOAD_Quiet);
+		}
+	}
+
+	if (Asset)
+	{
+		NoesisXaml->Dependencies.Add(Asset);
+	}
+
+	return Asset;
+}
+
+UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject* Context, const TCHAR* Type, const uint8*& Buffer, const uint8* BufferEnd, FFeedbackContext* Warn, bool& bOutOperationCanceled)
 {
 	// This needs to go first, before we invoke other factories, since they're stored in UFactory statics.
 	FString FullFilePath = GetCurrentFilename();
 	FMD5Hash CurrentFileHash = FileHash;
+	if (!CurrentFileHash.IsValid())
+	{
+		CurrentFileHash = FMD5Hash::HashFile(*FullFilePath);
+	}
+
+	if (FullFilePath.Contains("/.noesis/"))
+	{
+		// Do not import XAML files which are contained within a .noesis folder
+		bOutOperationCanceled = true;
+		return nullptr;
+	}
+
+	bOutOperationCanceled = false;
 
 	// This function is invoked for first time imports as well as for reimports.
 	// Reimports can be caused by a change in content, via auto-reimport, or manually by the user.
@@ -332,7 +386,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 	// We want to do that for reimports, even if the content hasn't changed, to fix dependencies that were broken when first imported.
 	// We also want to make sure the ApplicationResources are up to date, so we don't get false errors during the LoadXaml at the end.
 	// But we don't want to reparse all the dependent XAMLs. So we use this static variable that ensures that:
-	// The first level XAML that is imported gets it's dependecies checked, even if it's a reimport and the contents haven't changed.
+	// The first level XAML that is imported gets it's dependencies checked, even if it's a reimport and the contents haven't changed.
 	// The first level XAML also makes sure the ApplicationResources are up to date.
 	// The rest of the dependent XAMLs are traversed recursively, but only updated if the contents have changed.
 	// We use this static variable to achieve that. We store it in a local variable to use inside the function and restore it at the end.
@@ -370,6 +424,8 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 		FString PackageRoot, PackagePath, PackageName;
 		FPackageName::SplitLongPackageName(Parent->GetPathName(), PackageRoot, PackagePath, PackageName, false);
 
+		FString XamlUri = PackageRoot.LeftChop(1) + TEXT(";component/") + PackagePath + PackageName + TEXT(".xaml");
+
 		TArray<FString> ProjectAssetPathRootComponents;
 		SplitPath(PackagePath, ProjectAssetPathRootComponents);
 		TArray<FString> ProjectURIRootComponents;
@@ -394,10 +450,6 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 
 		INoesisRuntimeModuleInterface& NoesisRuntime = INoesisRuntimeModuleInterface::Get();
 		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
-		FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
-		UAutomatedAssetImportData* AutomatedAssetImportData = NewObject<UAutomatedAssetImportData>();
-		AutomatedAssetImportData->bReplaceExisting = true;
-		IFileManager& FileManager = IFileManager::Get();
 
 		TArray<FAssetData> Xamls;
 		TArray<FAssetData> Materials;
@@ -437,7 +489,7 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 
 					if (FontFaces.Num())
 					{
-						NoesisXaml->FontFaces.Append(FontFaces);
+						NoesisXaml->Dependencies.Append(FontFaces);
 						for (auto FontFace : FontFaces)
 						{
 							NoesisRuntime.RegisterFont(FontFace);
@@ -449,93 +501,38 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 					}
 				}
 			}
-			else
+			else if (Type == Noesis::XamlDependencyType_Class)
 			{
-				bool IsUserControl = Type == Noesis::XamlDependencyType_UserControl;
-				if (IsUserControl)
+				Noesis::Symbol TypeId(Uri.Str());
+				const Noesis::Type* NoesisType = Noesis::Reflection::GetType(TypeId);
+				const Noesis::TypeMeta* NoesisTypeClass = Noesis::DynamicCast<const Noesis::TypeMeta*>(NoesisType);
+				if (NoesisTypeClass)
 				{
-					// This means we are looking for the associated xaml of a UserControl, but also for Material assets,
-					// either way, the asset can be located anywhere inside the Content folder so we need to search everywhere
-					if (!XamlsEnumerated)
+					Noesis::ArrayRef<Noesis::TypeMetaData*> Metas = NoesisTypeClass->GetMeta();
+					for (Noesis::TypeMetaData* Meta : Metas)
 					{
-						XamlsEnumerated = true;
-
-						FARFilter Filter;
-						ConfigureFilter(Filter, UNoesisXaml::StaticClass(), false);
-						AssetRegistryModule.Get().GetAssets(Filter, Xamls);
-					}
-					if (!MaterialsEnumerated)
-					{
-						MaterialsEnumerated = true;
-
-						FARFilter Filter;
-						ConfigureFilter(Filter, UMaterialInterface::StaticClass(), true);
-						AssetRegistryModule.Get().GetAssets(Filter, Materials);
-					}
-
-					FAssetData* Asset = Xamls.FindByPredicate([&Dependency](FAssetData& Asset) { return Asset.AssetName == *Dependency; });
-					if (!Asset)
-					{
-						Asset = Materials.FindByPredicate([&Dependency](FAssetData& Asset) { return Asset.AssetName == *Dependency; });
-					}
-
-					if (Asset)
-					{
-						Dependency = Asset->PackageName.ToString();
-					}
-					else
-					{
-						// Dependency name does not correspond to any already imported Xaml or Material, try to find it
-						// next to the xaml being processed
-						FString PackagePath = FPaths::GetPath(Parent->GetPathName());
-						Dependency = PackagePath / Dependency + TEXT(".xaml");
+						Noesis::AssetDependency* AssetDependency = Noesis::DynamicCast<Noesis::AssetDependency*>(Meta);
+						if (AssetDependency)
+						{
+							FString AssetPath = NsProviderUriToAssetPath(AssetDependency->AssetPath());
+							FString AssetFile = AssetPath.Replace(*ProjectAssetPathRoot, *ProjectURIRoot) + GetDependencyExtension(AssetDependency->AssetPath());
+							UObject* Asset = EnsureDependency(NoesisXaml, AssetPath, AssetFile);
+							if (!Asset)
+							{
+								UE_LOG(LogNoesisEditor, Warning, TEXT("Failed to find dependency %s referenced from XAML %s"), StringCast<TCHAR>((UTF8CHAR*)Uri.Str()).Get(), *XamlUri);
+							}
+						}
 					}
 				}
-
-				FString Path = FPaths::GetPath(Dependency);
-				FString Filename = FPaths::GetBaseFilename(Dependency);
-				FString AssetPath = Path / ObjectTools::SanitizeInvalidChars(Filename, INVALID_LONGPACKAGE_CHARACTERS);
-				FString FilePath = Dependency.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
-				if (!FPackageName::IsValidLongPackageName(AssetPath))
+			}
+			else if (Type == Noesis::XamlDependencyType_Filename)
+			{
+				FString AssetPath = NsProviderUriToAssetPath(Uri);
+				FString AssetFile = AssetPath.Replace(*ProjectAssetPathRoot, *ProjectURIRoot) + GetDependencyExtension(Uri);
+				UObject* Asset = EnsureDependency(NoesisXaml, AssetPath, AssetFile);
+				if (!Asset)
 				{
-					AssetPath = TEXT("/Game/") + AssetPath;
-					FilePath = Dependency.Replace(*ProjectAssetPathRoot, *ProjectURIRoot);
-				}
-
-				TArray<FAssetData> FoundAssets;
-				AssetRegistryModule.Get().GetAssetsByPackageName(*AssetPath, FoundAssets);
-				if (FoundAssets.Num() > 0)
-				{
-					// Dependency found
-					UObject* Asset = FoundAssets[0].GetAsset();
-					AddDependency(NoesisXaml, Asset);
-
-					// For a xaml dependency we want to reimport it in case it changed
-					if (Cast<UNoesisXaml>(Asset))
-					{
-						FReimportManager::Instance()->Reimport(Asset);
-					}
-				}
-				else
-				{
-					// Dependency may not be imported yet, try to do a manual import now
-					TArray<UObject*> Assets;
-					if (!IsUserControl || FileManager.FileExists(*FilePath))
-					{
-						AutomatedAssetImportData->Filenames.Empty(1);
-						AutomatedAssetImportData->Filenames.Add(FilePath);
-						AutomatedAssetImportData->DestinationPath = Path;
-						Assets = AssetToolsModule.Get().ImportAssetsAutomated(AutomatedAssetImportData);
-					}
-
-					if (Assets.Num() > 0)
-					{
-						AddDependency(NoesisXaml, Assets[0]);
-					}
-					else if (!IsUserControl)
-					{
-						UE_LOG(LogNoesisEditor, Error, TEXT("Failed to import %s"), *FilePath);
-					}
+					UE_LOG(LogNoesisEditor, Warning, TEXT("Failed to find dependency %s referenced from XAML %s"), StringCast<TCHAR>((UTF8CHAR*)Uri.Str()).Get(), *XamlUri);
 				}
 			}
 		};
@@ -544,46 +541,32 @@ UObject* UNoesisXamlFactory::FactoryCreateBinary(UClass* Class, UObject* Parent,
 			auto Callback = (decltype(DependencyCallback)*)UserData;
 			return (*Callback)(Uri, Type);
 		};
-		FString Uri = PackageRoot.LeftChop(1) + TEXT(";component/") + PackagePath + PackageName + TEXT(".xaml");
-		Noesis::GUI::GetXamlDependencies(&XamlStream, (ANSICHAR*)StringCast<UTF8CHAR>(*Uri).Get(), &DependencyCallback, DependencyCallbackAdaptor);
+		Noesis::GUI::GetXamlDependencies(&XamlStream, (ANSICHAR*)StringCast<UTF8CHAR>(*XamlUri).Get(), &DependencyCallback, DependencyCallbackAdaptor);
 
 		NoesisXaml->XamlText.Insert((uint8*)Text.Str(), Text.Size(), 0);
 
-		NoesisXaml->AssetImportData->Update(FullFilePath);
+		NoesisXaml->AssetImportData->Update(FullFilePath, CurrentFileHash);
+		NoesisXaml->AssetImportData->UpdateFilenameOnly(RelativizeImportFilename(FullFilePath, NoesisXaml->GetOutermost()->GetPathName()));
 	}
 	else
 	{
 		NoesisXaml = ExistingXaml;
+	}
 
-		for (auto Xaml : NoesisXaml->Xamls)
+	for (auto Dependency : NoesisXaml->Dependencies)
+	{
+		if (auto Xaml = Cast<UNoesisXaml>(Dependency))
 		{
-			if (Xaml != nullptr)
-			{
-				FReimportManager::Instance()->Reimport(Xaml);
-			}
+			FReimportManager::Instance()->Reimport(Xaml);
 		}
 	}
 
 	// Make sure textures have alpha premultiplied if the user needs them, or are cleaned if they already are
-	for (auto Texture : NoesisXaml->Textures)
+	for (auto Dependency : NoesisXaml->Dependencies)
 	{
-		if (Texture == nullptr)
-			continue;
-
-		if (Texture->LODGroup != TEXTUREGROUP_UI ||
-			Texture->SRGB)
+		if (auto Texture = Cast<UTexture2D>(Dependency))
 		{
-			Texture->PreEditChange(UTexture::StaticClass()->FindPropertyByName("LODGroup"));
-			Texture->LODGroup = TEXTUREGROUP_UI;
-			Texture->PostEditChange();
-			Texture->PreEditChange(UTexture::StaticClass()->FindPropertyByName("SRGB"));
-			Texture->SRGB = false;
-			Texture->PostEditChange();
-
-			// We notify the change in one of the two properties, so that the callback in NoesisEditorModule
-			// triggers a reimport and premultiplies the alpha, if needed.
-			FPropertyChangedEvent ChangeEvent(UTexture::StaticClass()->FindPropertyByName("LODGroup"));
-			FCoreUObjectDelegates::OnObjectPropertyChanged.Broadcast(Texture, ChangeEvent);
+			INoesisEditorModuleInterface::Get().EnsurePremultiplyAlpha(Texture);
 		}
 	}
 

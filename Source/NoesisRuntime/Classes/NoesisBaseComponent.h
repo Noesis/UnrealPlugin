@@ -8,6 +8,9 @@
 // Core includes
 #include "CoreMinimal.h"
 
+// CoreUObject includes
+#include "UObject/Object.h"
+
 // Noesis includes
 #include "NoesisSDK.h"
 

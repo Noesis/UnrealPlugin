@@ -13,6 +13,11 @@
 #include "Internationalization/StringTableRegistry.h"
 #include "Internationalization/StringTableCore.h"
 
+#ifdef NS_HAVE_STUDIO
+    #include <NsCore/Category.h>
+    #include <NsGui/StudioMeta.h>
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 static void DynamicConvert(const Noesis::Type* targetType, Noesis::Ptr<Noesis::BaseComponent>& sourceVal)
 {
@@ -228,8 +233,28 @@ Noesis::Ptr<Noesis::BaseComponent> LocTableExtension::ProvideValue(const Noesis:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NS_IMPLEMENT_REFLECTION(LocTableExtension, "NoesisGUIExtensions.LocTable")
 {
-    NsMeta<Noesis::ContentPropertyMetaData>("Source");
+#ifdef NS_HAVE_STUDIO
+    NsMeta<Noesis::Category>("MarkupExtension");
+    NsMeta<Noesis::StudioName>("LocTable");
 
+    NsMeta<Noesis::Attach>("Id")
+        ->To<Noesis::FrameworkElement>()
+        ->Meta<Noesis::StudioName>("Id")
+        ->Meta<Noesis::StudioOrder>(100, true, "Localization");
+
+    NsProp("Id", &LocTableExtension::GetId, &LocTableExtension::SetId)
+        .Meta<Noesis::StudioOrder>(4);
+    NsProp("Key", &LocTableExtension::GetKey, &LocTableExtension::SetKey)
+        .Meta<Noesis::StudioOrder>(0);
+    NsProp("Source", &LocTableExtension::GetSource, &LocTableExtension::SetSource)
+        .Meta<Noesis::StudioOrder>(1);
+    NsProp("Converter", &LocTableExtension::GetConverter,
+        &LocTableExtension::SetConverter)
+        .Meta<Noesis::StudioOrder>(2);
+    NsProp("ConverterParameter", &LocTableExtension::GetConverterParameter,
+        &LocTableExtension::SetConverterParameter)
+        .Meta<Noesis::StudioOrder>(3);
+#else
     NsProp("Id", &LocTableExtension::GetId, &LocTableExtension::SetId);
     NsProp("Key", &LocTableExtension::GetKey, &LocTableExtension::SetKey);
     NsProp("Source", &LocTableExtension::GetSource, &LocTableExtension::SetSource);
@@ -237,6 +262,9 @@ NS_IMPLEMENT_REFLECTION(LocTableExtension, "NoesisGUIExtensions.LocTable")
         &LocTableExtension::SetConverter);
     NsProp("ConverterParameter", &LocTableExtension::GetConverterParameter,
         &LocTableExtension::SetConverterParameter);
+#endif
+
+    NsMeta<Noesis::ContentPropertyMetaData>("Source");
 
     Noesis::UIElementData* data = NsMeta<Noesis::UIElementData>(Noesis::TypeOf<SelfClass>());
     data->RegisterProperty<Noesis::String>(IdProperty, "Id",
